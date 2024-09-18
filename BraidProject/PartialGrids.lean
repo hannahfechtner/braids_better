@@ -20,6 +20,7 @@ theorem grid_from_cell (h : cell a b c d) : grid a b c d := by
   | adjacent i k h => exact grid.adjacent _ _ h
   | separated i j h => exact grid.separated _ _ h
 
+--many ideas that did not work
 -- inductive grid_frontier : List (FreeMonoid ℕ × Bool) → Prop
 --   | basic : ∀ (u v : FreeMonoid' ℕ), grid_frontier [(u, false), (v, true)]
 --   | cell {a b c d} (h : cell a b c d) {x y : List (FreeMonoid' ℕ × Bool)} :
@@ -96,7 +97,7 @@ def simp_list (L1 : List (FreeMonoid ℕ × Bool)) : List (FreeMonoid ℕ × Boo
     | [] => L1
     | (b, true) :: r => (a, false) :: (simp_list ((b, true) :: r))
     | (b, false) :: r => ((a * b), false) :: (simp_list r)
-    
+
 inductive pgrid4 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
   | real : pgrid4 1 1 []
   | empty : pgrid4 a b [(a, false), (b, true)]
