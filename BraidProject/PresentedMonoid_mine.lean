@@ -103,147 +103,180 @@ variable {α : Type*} {rels : FreeMonoid' α → FreeMonoid' α → Prop}
 
 def rel (rels : FreeMonoid' α → FreeMonoid' α → Prop) := Con'Gen.Rel rels
 
-inductive mine4 (rels : FreeMonoid' α → FreeMonoid' α → Prop) : FreeMonoid' α → FreeMonoid' α → Prop
-  | refl : mine4 rels a a
-  | reg : ∀ c d, rels a b → mine4 rels (c * a * d) (c * b * d)
-  | symm : ∀ c d, rels a b → mine4 rels (c * b * d) (c * a * d)
-  | trans : mine4 rels a b → mine4 rels b c → mine4 rels a c
+private inductive rw_system (rels : FreeMonoid' α → FreeMonoid' α → Prop) : FreeMonoid' α → FreeMonoid' α → Prop
+  | refl : rw_system rels a a
+  | reg : ∀ c d, rels a b → rw_system rels (c * a * d) (c * b * d)
+  | symm : ∀ c d, rels a b → rw_system rels (c * b * d) (c * a * d)
+  | trans : rw_system rels a b → rw_system rels b c → rw_system rels a c
 
-private theorem mine4_symm : mine4 rels a b → mine4 rels b a := by
+theorem refl : PresentedMonoid.rel rels a a := Con'Gen.Rel.refl _
+theorem reg : ∀ c d, rels a b → PresentedMonoid.rel rels (c * a * d) (c * b * d) :=
+  fun _ _ h => Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (Con'Gen.Rel.of _ _ h))
+        (Con'Gen.Rel.refl _)
+theorem symm : ∀ c d, rels a b → PresentedMonoid.rel rels (c * b * d) (c * a * d) :=
+  fun _ _ h => Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
+        (Con'Gen.Rel.symm (Con'Gen.Rel.of _ _ h))) (Con'Gen.Rel.refl _)
+theorem trans : PresentedMonoid.rel rels a b → PresentedMonoid.rel rels b c →
+  PresentedMonoid.rel rels a c := fun h1 h2 => h1.trans h2
+theorem mul : PresentedMonoid.rel rels a b → PresentedMonoid.rel rels c d →
+  PresentedMonoid.rel rels (a * c) (b * d) := fun h1 h2 => Con'Gen.Rel.mul h1 h2
+theorem mul_left : rels a b → PresentedMonoid.rel rels c d →
+  PresentedMonoid.rel rels (a * c) (b * d) := fun h1 h2 => Con'Gen.Rel.mul (Con'Gen.Rel.of _ _ h1) h2
+theorem mul_right : PresentedMonoid.rel rels a b → rels c d →
+  PresentedMonoid.rel rels (a * c) (b * d) := fun h1 h2 => Con'Gen.Rel.mul h1 (Con'Gen.Rel.of _ _ h2)
+theorem append_left : PresentedMonoid.rel rels c d →
+  PresentedMonoid.rel rels (a * c) (a * d) := fun h => Con'Gen.Rel.mul refl h
+theorem append_right : PresentedMonoid.rel rels a b →
+  PresentedMonoid.rel rels (a * c) (b * c) := fun h => Con'Gen.Rel.mul h refl
+theorem rel_left : rels c d → PresentedMonoid.rel rels (a * c) (a * d) :=
+  fun h => Con'Gen.Rel.mul refl (Con'Gen.Rel.of _ _ h)
+theorem rel_right : rels a b → PresentedMonoid.rel rels (a * c) (b * c) :=
+  fun h => Con'Gen.Rel.mul (Con'Gen.Rel.of _ _ h) refl
+theorem rel_alone : rels a b → PresentedMonoid.rel rels a b :=
+  fun h => Con'Gen.Rel.of _ _ h
+theorem symm_alone : rels a b → PresentedMonoid.rel rels b a :=
+  fun h => Con'Gen.Rel.symm (Con'Gen.Rel.of _ _ h)
+
+private theorem rw_system_symm : rw_system rels a b → rw_system rels b a := by
   intro h
   induction h with
-  | refl => exact mine4.refl
-  | reg c d h => exact mine4.symm _ _ h
-  | symm c d h => exact mine4.reg _ _ h
+  | refl => exact rw_system.refl
+  | reg c d h => exact rw_system.symm _ _ h
+  | symm c d h => exact rw_system.reg _ _ h
   | trans _ _ h3 h4 => exact h4.trans h3
 
-private theorem mul_front : mine4 rels a b → mine4 rels (a * c) (b * c) := by
+private theorem mul_front : rw_system rels a b → rw_system rels (a * c) (b * c) := by
   intro h
   induction h with
-  | refl => exact PresentedMonoid.mine4.refl
+  | refl => exact PresentedMonoid.rw_system.refl
   | reg c d h =>
     rename_i e f g
     rw [mul_assoc _ d e, mul_assoc _ d e]
-    exact PresentedMonoid.mine4.reg _ _ h
+    exact PresentedMonoid.rw_system.reg _ _ h
   | symm c d h =>
     rename_i e f g
     rw [mul_assoc _ d e, mul_assoc _ d e]
-    exact PresentedMonoid.mine4.symm _ _ h
+    exact PresentedMonoid.rw_system.symm _ _ h
   | trans _ _ ha hb => exact ha.trans hb
 
-private theorem mul_back : mine4 rels a b → mine4 rels (c * a) (c * b) := by
+private theorem mul_back : rw_system rels a b → rw_system rels (c * a) (c * b) := by
   intro h
   induction h with
-  | refl => exact PresentedMonoid.mine4.refl
+  | refl => exact PresentedMonoid.rw_system.refl
   | reg c d h =>
     rw [← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc]
-    exact mine4.reg _ _ h
+    exact rw_system.reg _ _ h
   | symm c d h =>
     rw [← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc]
-    apply mine4.symm _ _ h
+    exact rw_system.symm _ _ h
   | trans _ _ ha hb => exact ha.trans hb
 
-private theorem mine4_mul : mine4 rels a b → mine4 rels c d → mine4 rels (a * c) (b * d) := by
+private theorem rw_system_mul : rw_system rels a b → rw_system rels c d → rw_system rels (a * c) (b * d) := by
   intro h1 h2
   induction h1 with
   | refl => exact mul_back h2
   | reg c d h =>
     induction h2 with
-    | refl => exact mul_front <| mine4.reg _ _ h
+    | refl => exact mul_front <| rw_system.reg _ _ h
     | reg c d h1 =>
-      exact (mul_front (mine4.reg _ _ h)).trans (mul_back (mine4.reg _ _ h1))
+      exact (mul_front (rw_system.reg _ _ h)).trans (mul_back (rw_system.reg _ _ h1))
     | symm c d h1 =>
-      exact (mul_front (mine4.reg _ _ h)).trans (mul_back (mine4.symm _ _ h1))
+      exact (mul_front (rw_system.reg _ _ h)).trans (mul_back (rw_system.symm _ _ h1))
     | trans _ _ h3 h4 =>
       rename_i g i k l m _ _
       apply h3.trans
-      have step : mine4 rels (c * i * d * l) (c * g * d * l) := by
+      have step : rw_system rels (c * i * d * l) (c * g * d * l) := by
         rw [mul_assoc _ d, mul_assoc _ d]
-        exact mine4.symm _ _ h
+        exact rw_system.symm _ _ h
       apply step.trans h4
   | symm c d h =>
     rename_i g i
     induction h2 with
     | refl =>
       apply mul_front
-      apply mine4.symm _ _ h
+      apply rw_system.symm _ _ h
     | reg c d h1 =>
-      exact (mul_front (mine4.symm _ _ h)).trans (mul_back (mine4.reg _ _ h1))
+      exact (mul_front (rw_system.symm _ _ h)).trans (mul_back (rw_system.reg _ _ h1))
     | symm c d h1 =>
-      exact (mul_front (mine4.symm _ _ h)).trans (mul_back (mine4.symm _ _ h1))
+      exact (mul_front (rw_system.symm _ _ h)).trans (mul_back (rw_system.symm _ _ h1))
     | trans _ _ hc hd =>
       rename_i j k l m _ _
       apply hc.trans
-      have step : PresentedMonoid.mine4 rels (c * g * d * l) (c * i * d * l) := by
+      have step : PresentedMonoid.rw_system rels (c * g * d * l) (c * i * d * l) := by
         rw [mul_assoc _ d, mul_assoc _ d]
-        exact mine4.reg _ _ h
+        exact rw_system.reg _ _ h
       exact step.trans hd
   | trans _ hb hc _ => exact hc.trans (mul_front hb)
 
-theorem mine4_cg (rels : FreeMonoid' α → FreeMonoid' α → Prop) : mine4 rels a b ↔ Con'Gen.Rel rels a b := by
+private theorem rw_system_cg (rels : FreeMonoid' α → FreeMonoid' α → Prop) : rw_system rels a b ↔ rel rels a b := by
   constructor
   · intro h
     induction h with
-    | refl => exact Con'Gen.Rel.refl _
-    | reg c d h =>
-      exact Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (Con'Gen.Rel.of _ _ h))
-        (Con'Gen.Rel.refl _)
-    | symm c d h =>
-      exact Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
-        (Con'Gen.Rel.symm (Con'Gen.Rel.of _ _ h))) (Con'Gen.Rel.refl _)
+    | refl => exact refl
+    | reg c d h => exact reg _ _ h
+    | symm c d h => exact symm _ _ h
     | trans _ _ h1 h2 => exact h1.trans h2
   intro h
   induction h with
   | of x y h =>
     rw [← mul_one x, ← mul_one y, ← one_mul x, ← one_mul y]
-    exact mine4.reg _ _ h
-  | refl _ => exact mine4.refl
-  | symm _ h => exact mine4_symm h
+    exact rw_system.reg _ _ h
+  | refl _ => exact rw_system.refl
+  | symm _ h => exact rw_system_symm h
   | trans _ _ h1 h2 => exact h1.trans h2
-  | mul _ _ h1 h2 => exact mine4_mul h1 h2
+  | mul _ _ h1 h2 => exact rw_system_mul h1 h2
 
 -- @[induction_eliminator]
+-- theorem rel_induction {P : FreeMonoid' α → FreeMonoid' α → Prop} (h : rel rels a b)
+--     (h1 : ∀ a, P a a) (h2 : ∀ a b, rels a b → P a b) (h3 : ∀ a b, P b a → P a b)
+--     (h4 : ∀ a b c, P a b ∧ P b c → P a c) (h5 : ∀ a b c d, P a b → P c d → P (a * c) (b * d))
+--   : P a b := by
+--   induction h with
+--   | of _ _ ih =>
+--     exact h2 _ _ ih
+--   | symm _ ih =>
+--     exact h3 _ _ ih
+--   | refl => exact h1 _
+--   | trans _ _ h1 h2 => exact h4 _ _ _ ⟨h1, h2⟩
+--   | mul _ _ h1 h2 => exact h5 _ _ _ _ h1 h2
+
+theorem rel_induction_rw {P : FreeMonoid' α → FreeMonoid' α → Prop} {a b : FreeMonoid' α}
+    (h : rel rels a b)
+    (h1 : ∀ (a : FreeMonoid' α), P a a)
+    (h2 : ∀ a b {c d}, rels a b → P (c * a * d) (c * b * d))
+    (h3 : ∀ a b {c d}, rels b a → P (c * a * d) (c * b * d))
+    (h4 : ∀ a b c, P a b ∧ P b c → P a c)
+  : P a b := by
+  induction ((rw_system_cg _).mpr h) with
+  | refl =>
+    exact h1 _
+  | reg _ _ ih =>
+    exact h2 _ _ ih
+  | symm _ _ ih =>
+    exact h3 _ _ ih
+  | trans ha hb h1 h2 => exact h4 _ _ _ ⟨h1 ((rw_system_cg _).mp ha), h2 ((rw_system_cg _).mp hb)⟩
+
+
+-- -- @[induction_eliminator]
 -- theorem rel_induction {P : FreeMonoid' α → FreeMonoid' α → Prop} (h : rel rels a b)
 --     (h1 : ∀ a, P a a) (h2 : ∀ a b, rels a b → P a b) (h3 : ∀ a b, rels b a → P a b)
 --     (h4 : ∀ a b c, P a b ∧ P b c → P a c) (h5 : ∀ a b c d, P a b → P c d → P (a * c) (b * d))
 --   : P a b := by
---   induction (mine4_cg rels).mpr h with
---   | of _ =>
---     rename_i _ ih
---     exact h2 _ _ ih
---   | symm ih => exact h3 _ _ ih
---   | refl => exact h1 _
+--   induction (rw_system_cg rels).mpr h with
+--   | refl =>
+--     exact h1 _
+--   | symm _ _ ih => exact h3 _ _ (PresentedMonoid.symm _ _ ih)
+--   | reg => exact h1 _
 --   | trans _ _ h1 h2 =>
 --     rename_i g1 g2
 --     exact h4 _ _ _ ⟨h1 <| (mine_cg rels).mp g1, h2 <| (mine_cg rels).mp g2⟩
---   | steps first second h1 h2 =>
---     exact h5 _ _ _ _ (h1 ((mine_cg rels).mp first)) (h2 ((mine_cg rels).mp second))
 
-theorem sound (h : rel rels a b) : mk rels a = mk rels b :=
+protected theorem sound (h : rel rels a b) : mk rels a = mk rels b :=
   Quotient.sound h
 
 theorem exact {rels : FreeMonoid' α → FreeMonoid' α → Prop}
-    (h : PresentedMonoid.mk rels a = PresentedMonoid.mk rels b) : PresentedMonoid.rel rels a b := by
-  apply Quot.exact at h
-  unfold rel
-  induction h
-  · rename_i ih
-    change PresentedMonoid.rel _ _ _ at ih
-    induction ih
-    · rename_i a b h
-      exact Con'Gen.Rel.of a b h
-    · exact Con'Gen.Rel.refl _
-    · rename_i a
-      exact Con'Gen.Rel.symm a
-    · rename_i a b
-      exact Con'Gen.Rel.trans a b
-    rename_i a b
-    exact Con'Gen.Rel.mul a b
-  · exact Con'Gen.Rel.refl _
-  · rename_i a
-    exact Con'Gen.Rel.symm a
-  rename_i a b
-  exact Con'Gen.Rel.trans a b
+    (h : PresentedMonoid.mk rels a = PresentedMonoid.mk rels b) : PresentedMonoid.rel rels a b :=
+  Quotient.exact h
 
 def lift_of_mul {β : Type} (f : FreeMonoid' α → β) (hm : ∀ {a b c d}, f a = f c →
     f b = f d → f (a * b) = f (c * d))

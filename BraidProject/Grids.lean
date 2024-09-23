@@ -49,7 +49,7 @@ theorem grid_top_left_word (u : FreeMonoid' ℕ) : grid u u 1 1 := by
 
 /-- relating grid equivalence to braid equivalence, one way -/
 theorem braid_eq_of_grid (h : grid a b c d) :
-    BraidMonoidInf_mk (a * d) = BraidMonoidInf_mk (b * c) := by
+    BraidMonoidInf.mk (a * d) = BraidMonoidInf.mk (b * c) := by
   induction h with
   | empty => rfl
   | top_bottom i => rfl
@@ -91,9 +91,8 @@ theorem braid_eq_of_grid (h : grid a b c d) :
       exact (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (Quotient.exact h2_ih))
 
 theorem grid_diag_length_eq (h : grid a b c d) : a.length + d.length = b.length + c.length := by
-  have H := congr_arg braid_length (braid_eq_of_grid h)
-  unfold BraidMonoidInf_mk at H
-  simp only [PresentedMonoid.mul_mk, braid_length_mul, braid_length_mk] at H
+  have H := congr_arg BraidMonoidInf.length (braid_eq_of_grid h)
+  simp only [BraidMonoidInf.length_mk, length_mul] at H
   exact H
 
 theorem FreeMonoid.prod_eq_one {a b : FreeMonoid' α} (h : a * b = 1) : a = 1 ∧ b = 1 := by

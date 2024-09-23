@@ -3,6 +3,7 @@ import Mathlib.GroupTheory.PresentedGroup
 import Mathlib.GroupTheory.SpecificGroups.Cyclic
 import Mathlib.Topology.Maps
 import Mathlib.Data.Fin.Basic
+import BraidProject.BraidMonoid
 
 set_option autoImplicit false
 namespace Braid
@@ -26,8 +27,10 @@ def braid_rels : (n : ℕ) → Set (FreeGroup (Fin n))
     { r | ∃ i j : Fin n, i ≤ j ∧ r = comm_rel (i.castSucc.castSucc) (j.succ.succ) }
 
 def braid_rels_inf : Set (FreeGroup ℕ) :=
-    { r | ∃ i : ℕ , r = (FreeGroup.of i) * (FreeGroup.of (i + 1)) * FreeGroup.of i * (FreeGroup.of (i + 1))⁻¹ * (FreeGroup.of i)⁻¹ * (FreeGroup.of (i + 1))⁻¹} ∪
-    { r | ∃ i j : ℕ, i ≤ j ∧ r = (FreeGroup.of i) * (FreeGroup.of j) * (FreeGroup.of i)⁻¹ * (FreeGroup.of j)⁻¹}
+    { r | ∃ i : ℕ , r = (FreeGroup.of i) * (FreeGroup.of (i + 1)) * FreeGroup.of i *
+      (FreeGroup.of (i + 1))⁻¹ * (FreeGroup.of i)⁻¹ * (FreeGroup.of (i + 1))⁻¹} ∪
+    { r | ∃ i j : ℕ, i + 2 ≤ j ∧ r = (FreeGroup.of i) * (FreeGroup.of j) * (FreeGroup.of i)⁻¹ *
+      (FreeGroup.of j)⁻¹}
 
 /-
 The predecessor in the next definition is annoying, but hopefully not too bad.
@@ -94,6 +97,19 @@ theorem braid_group.comm {n : ℕ} {i j : Fin n} (h : i ≤ j) :
   . next n =>
     right; use i, j, h; simp [braid_rels, comm_rel, mul_assoc]
 
+theorem braid_group_inf.comm {i j : ℕ} (h : i + 2 ≤ j) :
+    σi i * σi j = σi j * σi i := by
+  symm; rw [←mul_inv_eq_one]
+  apply QuotientGroup.eq.mpr
+  apply Subgroup.subset_normalClosure
+  right
+  simp
+  use i
+  use j
+  constructor
+  · exact h
+  simp only [mul_assoc]
+
 theorem generated_by (n : ℕ) (H : Subgroup (braid_group (n + 1))) (h : ∀ i : Fin n, σ' n i ∈ H) :
     ∀ x : braid_group (n + 1), x ∈ H := by
   intro x
@@ -106,8 +122,8 @@ theorem generated_by (n : ℕ) (H : Subgroup (braid_group (n + 1))) (h : ∀ i :
     apply h
   . intro i
     change σ i ∈ H.carrier → (σ i)⁻¹ ∈ H.carrier
-    simp only [Nat.pred_succ, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup, Subgroup.mem_toSubmonoid,
-      inv_mem_iff, imp_self]
+    simp only [Nat.pred_succ, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
+      Subgroup.mem_toSubmonoid, inv_mem_iff, imp_self]
   . intro i j h1 h2
     change QuotientGroup.mk _ ∈ H.carrier
     rw [QuotientGroup.mk_mul]
@@ -127,19 +143,41 @@ theorem braid_group_2.is_cyclic : ∃ g : (braid_group 2), ∀ x, x ∈ Subgroup
   rw [h]
   rfl
 
---basic braids to try to visualize
+theorem embed_helper (n : ℕ) : ∀ (a b : FreeMonoid' (Fin (n.pred))),
+    (braid_rels_m (n.pred)) a b → ((FreeMonoid'.lift fun a => σ a) a : braid_group n)=
+    (FreeMonoid'.lift fun a => σ a) b := by
+  repeat
+    rcases n
+    · intro _ _ h
+      exfalso
+      apply h
+    rename_i n
+  intro a b h
+  rcases h
+  · rename_i j
+    simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
+    apply braid_group.braid
+  simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
+  apply braid_group.comm
+  next ih => exact ih
 
-def french : braid_group 3 := σ 0 * (σ 1)⁻¹
-def dutch : braid_group 3 := (σ 0)⁻¹ * σ 1
-def empty (n: ℕ) : braid_group n := 1
-def challah_start (n : ℕ) (k: Fin n): braid_group (n + 2) := σ' (n + 1) k
-def challah_granular (n: ℕ) : ℕ →  braid_group (n+2)
-  | 0 => 1
-  | k+1 => challah_granular n k * (σ (k+1))⁻¹
-def challah_repeat (n : ℕ) : braid_group (n + 2) := challah_granular n n
-def challah_end (n : ℕ) : braid_group (n + 2) := σ 0
+def embed {n : ℕ} : (BraidMonoid n) →* (braid_group (n)) :=
+  PresentedMonoid.toMonoid (fun a => @σ (n.pred) a) (embed_helper n)
 
-def challah (n : ℕ) (k : Fin n) : braid_group (n + 2) := challah_start n k * (challah_repeat n)^(k : ℕ) * challah_end n
+theorem embed_inf_helper : ∀ (a b : FreeMonoid' ℕ),
+    (braid_rels_m_inf a b → ((FreeMonoid'.lift fun a => σi a) a : braid_group_inf)=
+    (FreeMonoid'.lift fun a => σi a) b) := by
+  intro a b h
+  rcases h
+  · rename_i j
+    simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
+    apply braid_group_inf.braid
+  simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
+  apply braid_group_inf.comm
+  next ih => exact ih
+
+def embed_inf : BraidMonoidInf →* braid_group_inf :=
+  PresentedMonoid.toMonoid (fun a => σi a) embed_inf_helper
 
 /-
 We need a theorem that says that we can define a function from the braid group by giving any

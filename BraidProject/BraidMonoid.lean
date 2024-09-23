@@ -1,13 +1,25 @@
-import BraidProject.BraidGroup
 import BraidProject.PresentedMonoid_mine
 import Mathlib.Data.Nat.Dist
 import BraidProject.Nat_Dist_Additions
 
+theorem FreeMonoid'.parts_eq (h : FreeMonoid'.of a * b = FreeMonoid'.of c * d) : a = c ∧ b = d := by
+  apply List.append_inj at h
+  simp only [toList_of, List.length_singleton, List.cons.injEq, and_true,
+    EmbeddingLike.apply_eq_iff_eq, true_implies] at h
+  exact h
+
+theorem FreeMonoid'.neq_one {c : FreeMonoid' α} (h : c ≠ 1) : ∃ a b, c = FreeMonoid'.of a * b := by
+  induction c using FreeMonoid'.inductionOn'
+  · exact (h rfl).elim
+  rename_i head tail _
+  use head, tail
+
 open FreeMonoid'
+
 inductive braid_rels_multi {n : ℕ} : FreeMonoid' (Fin (n + 2)) → FreeMonoid' (Fin (n + 2)) → Prop
-  | adjacent (i : Fin (n + 1)): braid_rels_multi (of i.castSucc * of i.succ * of i.castSucc)
+  | adjacent (i : Fin (n + 1)) : braid_rels_multi (of i.castSucc * of i.succ * of i.castSucc)
                                                  (of i.succ * of i.castSucc * of i.succ)
-  | separated (i j : Fin n) (h : i ≤ j): braid_rels_multi (of i.castSucc.castSucc * of j.succ.succ)
+  | separated (i j : Fin n) (h : i ≤ j) : braid_rels_multi (of i.castSucc.castSucc * of j.succ.succ)
                                                           (of j.succ.succ * of i.castSucc.castSucc)
 
 def braid_rels_m : (n : ℕ) → (FreeMonoid' (Fin n) → FreeMonoid' (Fin n) → Prop)
@@ -15,95 +27,78 @@ def braid_rels_m : (n : ℕ) → (FreeMonoid' (Fin n) → FreeMonoid' (Fin n) �
   | 1     => (λ _ _ => False)
   | n + 2 => @braid_rels_multi n
 
+def BraidMonoid (n : ℕ) := PresentedMonoid (braid_rels_m n.pred)
+
+instance (n : ℕ) : Monoid (BraidMonoid n) := by unfold BraidMonoid; infer_instance
+
+
 -- for the braid with infinitely many strands
 inductive braid_rels_m_inf : FreeMonoid' ℕ → FreeMonoid' ℕ → Prop
   | adjacent (i : ℕ): braid_rels_m_inf (of i * of (i+1) * of i) (of (i+1) * of i * of (i+1))
-  | separated (i j : ℕ) (h : i +2 ≤ j): braid_rels_m_inf (of i * of j) (of j * of i)
+  | separated (i j : ℕ) (h : i +2 ≤ j) : braid_rels_m_inf (of i * of j) (of j * of i)
 
-theorem braid_length_pos (h : braid_rels_m_inf f g) : f.length > 0 := by
+theorem length_pos {f g : FreeMonoid' ℕ} (h : braid_rels_m_inf f g) : f.length > 0 := by
   rcases h
   · simp only [length_mul, length_of, Nat.reduceAdd, gt_iff_lt, Nat.ofNat_pos]
   simp only [length_mul, length_of, Nat.reduceAdd, gt_iff_lt, Nat.ofNat_pos]
 
-open PresentedMonoid Braid
--- def braid_rels_inf_set : Set (FreeMonoid ℕ × FreeMonoid ℕ) :=
---   λ p => braid_rels_m_inf p.fst p.snd
+open PresentedMonoid
 
--- -- notation 3.1.4, first sentence
--- def BraidSetoidRel (n : ℕ) : FreeMonoid (Fin (n)) → FreeMonoid (Fin (n)) → Prop :=
---           RTSClosure (@braid_rels_m n)
+def BraidMonoidInf := PresentedMonoid braid_rels_m_inf
 
--- def BraidSetoidRel_Inf : FreeMonoid ℕ  → FreeMonoid ℕ  → Prop := RTSClosure braid_rels_m_inf
+namespace BraidMonoidInf -- end this
 
--- --second part of 3.1.4
--- --I should use "of" for this
--- def word_class {n : ℕ} (l : FreeMonoid (Fin (n))) := Quotient.mk (mySetoid_SC (@braid_rels_m n)) l
--- def word_class_inf (l : FreeMonoid ℕ) := Quotient.mk (mySetoid_SC (@braid_rels_m_inf)) l
+protected def mk := PresentedMonoid.mk (braid_rels_m_inf)
 
-abbrev BraidMonoid (n : ℕ) : Type := PresentedMonoid (@braid_rels_m n.pred)
-def BraidMonoid_Inf := PresentedMonoid braid_rels_m_inf
+theorem mul_mk : BraidMonoidInf.mk (a * b) = BraidMonoidInf.mk a * BraidMonoidInf.mk b :=
+  rfl
 
-abbrev BraidMonoid.mk {n : ℕ} := PresentedMonoid.mk (@braid_rels_m n.pred)
-def BraidMonoidInf_mk := PresentedMonoid.mk (braid_rels_m_inf)
+theorem mk_one : BraidMonoidInf.mk 1 = 1 := rfl
 
---has n strands, numbered 0 to n-1. thus there are n-1 generators, numbered 0 to n-2
-abbrev BraidWords (n : ℕ) : Type := (FreeMonoid' (Fin n.pred))
-abbrev BraidWords_Inf := (FreeMonoid' ℕ)
+instance : Monoid BraidMonoidInf := by unfold BraidMonoidInf; infer_instance
 
-theorem embed_helper (n : ℕ) : ∀ (a b : FreeMonoid' (Fin (n.pred))),
-  (braid_rels_m (n.pred)) a b → ((FreeMonoid'.lift fun a => σ a) a : braid_group n)= (FreeMonoid'.lift fun a => σ a) b := by
-  repeat
-    rcases n
-    · intro _ _ h
-      exfalso
-      apply h
-    rename_i n
-  intro a b h
-  rcases h
-  · rename_i j
-    simp only [_root_.map_mul, lift_eval_of, Nat.pred_succ]
-    apply braid_group.braid
-  simp only [_root_.map_mul, lift_eval_of, Nat.pred_succ]
-  apply braid_group.comm
-  next ih => exact ih
-
-def embed {n : ℕ} : (BraidMonoid n) →* (braid_group (n)) :=
-  toMonoid (fun a => @σ (n.pred) a) (embed_helper n)
+@[induction_eliminator]
+protected theorem inductionOn {δ : BraidMonoidInf → Prop} (q : BraidMonoidInf)
+    (h : ∀ a, δ (BraidMonoidInf.mk a)) : δ q :=
+  Quotient.ind h q
 
 -- define the length of elements of the monoid
-def braid_length : PresentedMonoid braid_rels_m_inf → ℕ :=
+def length : BraidMonoidInf → ℕ :=
   PresentedMonoid.lift_of_mul (FreeMonoid'.length)
   (fun h1 h2 => by rw [length_mul, length_mul, h1, h2]) (fun _ _ h => by
   induction h with
   | adjacent i => simp only [length_mul, length_of, Nat.reduceAdd]
   | separated i j _ => simp only [length_mul, length_of, Nat.reduceAdd])
 
-theorem one_of_eq_mk_one {a : FreeMonoid ℕ}
-    (h : BraidMonoidInf_mk a = (BraidMonoidInf_mk (1 : FreeMonoid' ℕ))) :
-    a = (1 : FreeMonoid ℕ) := by
-  have H : braid_length (BraidMonoidInf_mk a) = braid_length 1 := congrArg braid_length h
-  simp at H
-  unfold braid_length at H
-  unfold BraidMonoidInf_mk at H
-  rw [PresentedMonoid.lift_of_mul_mk] at H
-  · exact FreeMonoid'.eq_one_of_length_eq_zero H
-  intro _ _ _ _ h1 h2
-  rw [length_mul, length_mul, h1, h2]
+@[simp]
+theorem length_one : length 1 = 0 := rfl
+
+@[simp]
+theorem length_mk : length (BraidMonoidInf.mk a) = a.length := rfl
+
+@[simp]
+theorem length_mul {a b : BraidMonoidInf} : length (a * b) = length a + length b := by
+  induction' a ; induction' b
+  rw [← mul_mk, length_mk, length_mk, length_mk, FreeMonoid'.length_mul]
+
+theorem length_eq (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) : a.length = b.length :=
+  congr_arg length h
+
+theorem one_of_eq_mk_one {a : FreeMonoid' ℕ}
+    (h : BraidMonoidInf.mk a = BraidMonoidInf.mk (1 : FreeMonoid' ℕ)) :
+    a = (1 : FreeMonoid' ℕ) := FreeMonoid'.eq_one_of_length_eq_zero (congrArg length h)
 
 theorem symbols_helper : ∀ (a b : FreeMonoid' ℕ), braid_rels_m_inf a b → a.symbols = b.symbols := by
   intro a b hr
   induction hr
   · ext x
     simp only [symbols_mul, symbols_of, Finset.union_assoc, Finset.mem_union, Finset.mem_singleton]
-    exact ⟨fun h ↦ Or.casesOn h (fun h1 ↦ Or.inr (Or.inl h1)) fun h2 ↦
-      Or.casesOn h2 (fun h3 ↦ Or.inl h3) fun h4 ↦ Or.inr (Or.inl h4),
-      fun h ↦ Or.casesOn h (fun h1 ↦ Or.inr (Or.inl h1)) fun h2 ↦
-        Or.casesOn h2 (fun h3 ↦ Or.inl h3) fun h4 ↦ Or.inr (Or.inl h4)⟩
+    tauto
   simp only [symbols_mul, symbols_of]
   exact Finset.union_comm _ _
 
 -- returns the set of generators appearing in a braid word
-def braid_generators : PresentedMonoid braid_rels_m_inf → Finset ℕ :=
+def braid_generators : BraidMonoidInf → Finset ℕ :=
   PresentedMonoid.lift_of_mul (FreeMonoid'.symbols)
   (fun ih1 ih2 => by rw [symbols_mul, symbols_mul, ih1, ih2]) symbols_helper
 
@@ -111,36 +106,41 @@ def braid_generators : PresentedMonoid braid_rels_m_inf → Finset ℕ :=
 theorem braid_generators_one : braid_generators 1 = ∅ := rfl
 
 @[simp]
-theorem braid_generators_mk : braid_generators (mk braid_rels_m_inf a) = FreeMonoid'.symbols a := rfl
+theorem braid_generators_mk : braid_generators (BraidMonoidInf.mk a) = FreeMonoid'.symbols a :=
+  rfl
 
 @[simp]
-theorem braid_generators_mul : braid_generators (a * b) = braid_generators a ∪ braid_generators b := by
+theorem braid_generators_mul : braid_generators (a * b) =
+    braid_generators a ∪ braid_generators b := by
   induction' a
   induction' b
-  rw [← PresentedMonoid.mul_mk, braid_generators_mk, braid_generators_mk, braid_generators_mk,
+  rw [← mul_mk, braid_generators_mk, braid_generators_mk, braid_generators_mk,
     symbols_mul]
 
 theorem reverse_helper : ∀ (a b : FreeMonoid' ℕ),
-  braid_rels_m_inf a b → (fun x ↦ mk braid_rels_m_inf x.reverse) a = (fun x ↦ mk braid_rels_m_inf x.reverse) b := by
+    braid_rels_m_inf a b → (fun x ↦ mk braid_rels_m_inf x.reverse) a =
+    (fun x ↦ mk braid_rels_m_inf x.reverse) b := by
   intro a b h
   beta_reduce
   induction h with
   | adjacent i =>
     simp only [reverse_mul, reverse_of]
-    exact sound (Con'Gen.Rel.of _ _ (braid_rels_m_inf.adjacent i))
+    -- need a braidmonoidinf version
+    exact PresentedMonoid.sound (PresentedMonoid.rel_alone (braid_rels_m_inf.adjacent i))
   | separated i j h =>
     simp only [reverse_mul, reverse_of]
-    exact sound (Con'Gen.Rel.symm (Con'Gen.Rel.of _ _ (braid_rels_m_inf.separated _ _ h)))
+    exact PresentedMonoid.sound (PresentedMonoid.symm_alone (braid_rels_m_inf.separated _ _ h))
 
-def reverse_braid : PresentedMonoid braid_rels_m_inf → PresentedMonoid braid_rels_m_inf :=
+def reverse_braid : BraidMonoidInf → BraidMonoidInf :=
   PresentedMonoid.lift_of_mul (fun x => mk braid_rels_m_inf <| FreeMonoid'.reverse x)
   (fun h1 h2 => by simp [reverse_mul, mul_mk, h1, h2]) reverse_helper
 
 @[simp]
 theorem reverse_braid_one : reverse_braid 1 = 1 := rfl
+
 @[simp]
-theorem reverse_braid_mk : reverse_braid (mk braid_rels_m_inf a) =
-  mk braid_rels_m_inf (FreeMonoid'.reverse a) := rfl
+theorem reverse_braid_mk : reverse_braid (BraidMonoidInf.mk a) =
+  BraidMonoidInf.mk (FreeMonoid'.reverse a) := rfl
 
 @[simp]
 theorem reverse_braid_mul : reverse_braid (a * b) = reverse_braid b * reverse_braid a := by
@@ -152,120 +152,97 @@ theorem reverse_braid_mul : reverse_braid (a * b) = reverse_braid b * reverse_br
   exact congr_arg _ reverse_mul
 
 @[simp]
-theorem braid_length_one : braid_length 1 = 0 := rfl
-
-@[simp]
-theorem braid_length_mk : braid_length (mk braid_rels_m_inf a) = a.length := rfl
-
-@[simp]
-theorem braid_length_mul {a b : PresentedMonoid braid_rels_m_inf} : braid_length (a * b) = braid_length a + braid_length b := by
-  induction' a
-  induction' b
-  rw [← mul_mk, braid_length_mk, braid_length_mk, braid_length_mk, FreeMonoid'.length_mul]
-
-theorem braid_length_eq (h : BraidMonoidInf_mk a = BraidMonoidInf_mk b) : a.length = b.length := by
-  have H := congr_arg braid_length h
-  unfold BraidMonoidInf_mk at H
-  simp only [braid_length_mk] at H
-  exact H
-
-@[simp]
-theorem length_reverse_eq_length : braid_length (reverse_braid a) = braid_length a := by
+theorem length_reverse_eq_length : length (reverse_braid a) = length a := by
   induction' a with a1
-  simp
-theorem exact : mk braid_rels_m_inf a = mk braid_rels_m_inf b → PresentedMonoid.rel braid_rels_m_inf a b := by
+  simp only [reverse_braid_mk, length_mk, reverse_length]
+
+theorem exact : mk braid_rels_m_inf a = mk braid_rels_m_inf b →
+    PresentedMonoid.rel braid_rels_m_inf a b := by
   apply Quotient.exact
 
 theorem reverse_reverse : reverse_braid (reverse_braid a) = a := by
   induction a
-  simp
+  rw [reverse_braid_mk, reverse_braid_mk, FreeMonoid'.reverse_reverse]
 
-theorem rel_reverse_reverse_of_rel : Con'Gen.Rel braid_rels_m_inf a1 b1 →
-    Con'Gen.Rel braid_rels_m_inf a1.reverse b1.reverse := by
-  intro h
-  induction h with
-  | of _ _ h =>
-    exact braid_rels_m_inf.rec (fun _ => Con'Gen.Rel.of _ _ (braid_rels_m_inf.adjacent _))
-      (fun i j h => Con'Gen.Rel.symm (Con'Gen.Rel.of _ _ (braid_rels_m_inf.separated i j h))) h
-  | refl _ => exact Con'Gen.Rel.refl _
-  | symm _ h => exact Con'Gen.Rel.symm h
-  | trans _ _ h1 h2 => exact h1.trans h2
-  | mul _ _ h1 h2 =>
-    simp only [reverse_mul]
-    exact Con'Gen.Rel.mul h2 h1
-
-theorem rel_iff_rel_reverse_reverse : Con'Gen.Rel braid_rels_m_inf a1.reverse b1.reverse ↔
-  Con'Gen.Rel braid_rels_m_inf a1 b1 := by
+theorem rel_iff_rel_reverse_reverse : PresentedMonoid.rel braid_rels_m_inf a1.reverse b1.reverse ↔
+  PresentedMonoid.rel braid_rels_m_inf a1 b1 := by
+  have H : ∀ a1 b1, PresentedMonoid.rel braid_rels_m_inf a1 b1 →
+      PresentedMonoid.rel braid_rels_m_inf a1.reverse b1.reverse := by
+    intro a1 b1 h
+    induction h with
+    | of _ _ h =>
+      exact braid_rels_m_inf.rec (fun _ => PresentedMonoid.rel_alone (braid_rels_m_inf.adjacent _))
+        (fun i j h => PresentedMonoid.symm_alone (braid_rels_m_inf.separated i j h)) h
+    | refl _ => exact PresentedMonoid.refl
+    | symm _ h => exact Con'Gen.Rel.symm h
+    | trans _ _ h1 h2 => exact h1.trans h2
+    | mul _ _ h1 h2 =>
+      rw [reverse_mul, reverse_mul]
+      exact PresentedMonoid.mul h2 h1
   constructor
   · intro h
-    have H := rel_reverse_reverse_of_rel h
-    simp only [FreeMonoid'.reverse_reverse] at H
-    exact H
-  apply rel_reverse_reverse_of_rel
+    have H1 := H _ _ h
+    simp only [FreeMonoid'.reverse_reverse] at H1
+    exact H1
+  exact H _ _
 
 theorem eq_iff_reverse_eq_reverse : a = b ↔ reverse_braid a = reverse_braid b := by
   constructor
   · intro h
     rw [h]
   intro h
-  induction' a with a1
-  induction' b with b1
-  simp at h
-  apply sound
-  apply PresentedMonoid.exact at h
-  unfold rel at h
-  apply rel_iff_rel_reverse_reverse.mp h
+  induction' a ; induction' b
+  simp only [reverse_braid_mk] at h
+  apply PresentedMonoid.sound -- this should be somehow protected in the namespace
+  exact rel_iff_rel_reverse_reverse.mp (PresentedMonoid.exact h)
 
-
-theorem singleton_eq : BraidMonoidInf_mk (of i) = BraidMonoidInf_mk a → a = of i := by
+theorem singleton_eq : BraidMonoidInf.mk (of i) = BraidMonoidInf.mk a → a = of i := by
   intro h
   have h1 := h
-  apply congrArg braid_length at h
+  apply congrArg length at h
   apply congrArg braid_generators at h1
-  erw [braid_length_mk, braid_length_mk] at h
-  simp at h
-  unfold BraidMonoidInf_mk at h1
-  simp at h1
+  erw [length_mk, length_mk] at h
+  rw [length_of] at h
+  rw [braid_generators_mk, symbols_of] at h1
   have h2 := h.symm
   rw [length_eq_one] at h2
   rcases h2 with ⟨b, rfl⟩
-  simp at h1
+  rw [braid_generators_mk, symbols_of, Finset.singleton_inj] at h1
   rw [h1]
 
-
-theorem pair_eq (h : Nat.dist j k >= 2) : BraidMonoidInf_mk (of j * of k) = BraidMonoidInf_mk v' →
+theorem pair_eq (h : Nat.dist j k >= 2) : BraidMonoidInf.mk (of j * of k) = BraidMonoidInf.mk v' →
     v' = (FreeMonoid'.of j * FreeMonoid'.of k) ∨ v' = (FreeMonoid'.of k * FreeMonoid'.of j) := by
   intro h'
   have h1 := h'
-  apply congrArg braid_length at h'
+  apply congrArg length at h'
   apply congrArg braid_generators at h1
-  erw [braid_length_mk, braid_length_mk] at h'
-  simp at h'
-  unfold BraidMonoidInf_mk at h1
-  simp at h1
+  erw [length_mk, length_mk] at h'
+  simp only [FreeMonoid'.length_mul, length_of, Nat.reduceAdd] at h'
   have h2 := h'.symm
   rcases length_eq_two.mp h'.symm with ⟨c, d, rfl⟩
-  rw [symbols_mul, symbols_of, symbols_of] at h1
+  simp only [braid_generators_mk, symbols_mul, symbols_of] at h1
   have H1 : j ∈ ({c} ∪ {d} : Finset ℕ) := by
-    have H2 : j ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr (Or.inl (Finset.mem_singleton.mpr rfl))
+    have H2 : j ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
+      (Or.inl (Finset.mem_singleton.mpr rfl))
     rw [h1] at H2
     exact H2
-  simp at H1
+  simp only [Finset.mem_union, Finset.mem_singleton] at H1
   rcases H1 with ⟨one, two, rfl⟩
   · left
     rw [mul_right_inj]
     apply congr_arg
     symm
     have H1 : k ∈ ({j} ∪ {d} : Finset ℕ) := by
-      have H2 : k ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr (Or.inr (Finset.mem_singleton.mpr rfl))
+      have H2 : k ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
+        (Or.inr (Finset.mem_singleton.mpr rfl))
       rw [h1] at H2
       exact H2
-    simp at H1
+    simp only [Finset.mem_union, Finset.mem_singleton] at H1
     rcases H1 with ⟨three, four, rfl⟩
-    · simp at h1
+    · simp only [Finset.union_idempotent, Finset.left_eq_union, Finset.subset_singleton_iff,
+      Finset.singleton_ne_empty, Finset.singleton_inj, false_or] at h1
       exact h1.symm
-    rename_i ih
-    exact ih
+    assumption
   rename_i h_jd
   rw [h_jd]
   rw [h_jd] at h1
@@ -274,50 +251,38 @@ theorem pair_eq (h : Nat.dist j k >= 2) : BraidMonoidInf_mk (of j * of k) = Brai
   apply congr_arg
   symm
   have H1 : k ∈ ({c} ∪ {d} : Finset ℕ) := by
-    have H2 : k ∈ ({d} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr (Or.inr (Finset.mem_singleton.mpr rfl))
+    have H2 : k ∈ ({d} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
+      (Or.inr (Finset.mem_singleton.mpr rfl))
     rw [h1] at H2
     exact H2
-  simp at H1
+  simp only [Finset.mem_union, Finset.mem_singleton] at H1
   rcases H1 with ⟨three, four, rfl⟩
   · rfl
   rename_i ih
   rw [ih, h_jd] at h
-  simp at h
+  simp only [Nat.dist_self, ge_iff_le, nonpos_iff_eq_zero, OfNat.ofNat_ne_zero] at h
 
-theorem FreeMonoid'.parts_eq (h : FreeMonoid'.of a * b = FreeMonoid'.of c * d) : a = c ∧ b = d := by
-  apply List.append_inj at h
-  simp only [toList_of, List.length_singleton, List.cons.injEq, and_true,
-    EmbeddingLike.apply_eq_iff_eq, true_implies] at h
-  exact h
-
---maybe i need rcases?
-theorem FreeMonoid'.neq_one {c : FreeMonoid' α} (h : c ≠ 1) : ∃ a b, c = of a * b := by
-  induction c using FreeMonoid'.inductionOn'
-  · exact (h rfl).elim
-  rename_i head tail _
-  use head, tail
-
-theorem triplet_eq (h : Nat.dist j k = 1) : BraidMonoidInf_mk (of j * of k * of j) = BraidMonoidInf_mk v' →
-    v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
+theorem triplet_eq (h : Nat.dist j k = 1) : BraidMonoidInf.mk (of j * of k * of j) =
+    BraidMonoidInf.mk v' → v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
   have H : ∀ t, (t = (FreeMonoid'.of j * FreeMonoid'.of k * FreeMonoid'.of j) ∨ t = of k * of j * of k) →
       rel braid_rels_m_inf t v' → v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
     intro t t_is rel_holds
     revert t_is
-    induction (mine4_cg _).mpr rel_holds
-    · exact fun t_is => t_is
-    · rename_i a b c d br_ab
+    apply rel_induction_rw rel_holds
+    · exact fun a t_is => t_is
+    · intro a b c d br_ab
       intro t_is
       rcases br_ab with i | far
       · have t_is' := t_is
         have cd_length : c.length = 0 ∧ d.length = 0 := by
           rcases t_is with one | two
-          · apply congrArg length at one
-            simp only [length_mul, length_of, Nat.reduceAdd] at one
+          · apply congrArg FreeMonoid'.length at one
+            simp only [FreeMonoid'.length_mul, FreeMonoid'.length_of, Nat.reduceAdd] at one
             constructor
             · linarith [one]
             linarith [one]
-          apply congrArg length at two
-          simp only [length_mul, length_of, Nat.reduceAdd] at two
+          apply congrArg FreeMonoid'.length at two
+          simp only [FreeMonoid'.length_mul, FreeMonoid'.length_of, Nat.reduceAdd] at two
           constructor
           · linarith [two]
           linarith [two]
@@ -346,26 +311,26 @@ theorem triplet_eq (h : Nat.dist j k = 1) : BraidMonoidInf_mk (of j * of k * of 
         rw [habc] at t_is
         repeat rw [mul_assoc] at t_is
         rcases t_is with one | two
-        · have H2 := congr_arg length (FreeMonoid'.parts_eq one).2
-          simp only [length_mul, length_of, Nat.reduceAdd] at H2
+        · have H2 := congr_arg FreeMonoid'.length (FreeMonoid'.parts_eq one).2
+          simp only [FreeMonoid'.length_mul, FreeMonoid'.length_of, Nat.reduceAdd] at H2
           have b_length_zero : b.length = 0 := by linarith [H2]
           have d_length_zero : d.length = 0 := by linarith [H2]
           have b_is : b = 1 := eq_one_of_length_eq_zero b_length_zero
           have d_is : d = 1 := eq_one_of_length_eq_zero d_length_zero
           rw [b_is, d_is, one_mul, mul_one] at one
           have H3 := (FreeMonoid'.parts_eq one).2
-          rw [(FreeMonoid'.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid'.parts_eq H3).2]
+          rw [(FreeMonoid'.parts_eq H3).1, FreeMonoid'.of_injective (FreeMonoid'.parts_eq H3).2]
           right
           exact ⟨rfl, rfl⟩
-        have H2 := congr_arg length (FreeMonoid'.parts_eq two).2
-        simp only [length_mul, length_of, Nat.reduceAdd] at H2
+        have H2 := congr_arg FreeMonoid'.length (FreeMonoid'.parts_eq two).2
+        simp only [FreeMonoid'.length_mul, FreeMonoid'.length_of, Nat.reduceAdd] at H2
         have b_length_zero : b.length = 0 := by linarith [H2]
         have d_length_zero : d.length = 0 := by linarith [H2]
         have b_is : b = 1 := eq_one_of_length_eq_zero b_length_zero
         have d_is : d = 1 := eq_one_of_length_eq_zero d_length_zero
         rw [b_is, d_is, one_mul, mul_one] at two
         have H3 := (FreeMonoid'.parts_eq two).2
-        rw [(FreeMonoid'.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid'.parts_eq H3).2]
+        rw [(FreeMonoid'.parts_eq H3).1, FreeMonoid'.of_injective (FreeMonoid'.parts_eq H3).2]
         left
         exact ⟨rfl, rfl⟩
       rcases H with one | two
@@ -377,19 +342,18 @@ theorem triplet_eq (h : Nat.dist j k = 1) : BraidMonoidInf_mk (of j * of k * of 
       rw [two.1, two.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), add_zero] at h
       rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
       linarith [h1]
-    · rename_i a b c d br_ab
-      intro t_is
+    · intro a b c d br_ab t_is
       rcases br_ab with i | far
       · have t_is' := t_is
         have cd_length : c.length = 0 ∧ d.length = 0 := by
           rcases t_is with one | two
-          · apply congrArg length at one
-            simp only [length_mul, length_of, Nat.reduceAdd] at one
+          · apply congrArg FreeMonoid'.length at one
+            simp only [FreeMonoid'.length_mul, FreeMonoid'.length_of, Nat.reduceAdd] at one
             constructor
             · linarith [one]
             linarith [one]
-          apply congrArg length at two
-          simp only [length_mul, length_of, Nat.reduceAdd] at two
+          apply congrArg FreeMonoid'.length at two
+          simp only [FreeMonoid'.length_mul, FreeMonoid'.length_of, Nat.reduceAdd] at two
           constructor
           · linarith [two]
           linarith [two]
@@ -418,26 +382,26 @@ theorem triplet_eq (h : Nat.dist j k = 1) : BraidMonoidInf_mk (of j * of k * of 
         rw [habc] at t_is
         repeat rw [mul_assoc] at t_is
         rcases t_is with one | two
-        · have H2 := congr_arg length (FreeMonoid'.parts_eq one).2
-          simp only [length_mul, length_of, Nat.reduceAdd] at H2
+        · have H2 := congr_arg FreeMonoid'.length (FreeMonoid'.parts_eq one).2
+          simp only [FreeMonoid'.length_mul, FreeMonoid'.length_of, Nat.reduceAdd] at H2
           have b_length_zero : b.length = 0 := by linarith [H2]
           have d_length_zero : d.length = 0 := by linarith [H2]
           have b_is : b = 1 := eq_one_of_length_eq_zero b_length_zero
           have d_is : d = 1 := eq_one_of_length_eq_zero d_length_zero
           rw [b_is, d_is, one_mul, mul_one] at one
           have H3 := (FreeMonoid'.parts_eq one).2
-          rw [(FreeMonoid'.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid'.parts_eq H3).2]
+          rw [(FreeMonoid'.parts_eq H3).1, FreeMonoid'.of_injective (FreeMonoid'.parts_eq H3).2]
           left
           exact ⟨rfl, rfl⟩
-        have H2 := congr_arg length (FreeMonoid'.parts_eq two).2
-        simp only [length_mul, length_of, Nat.reduceAdd] at H2
+        have H2 := congr_arg FreeMonoid'.length (FreeMonoid'.parts_eq two).2
+        simp only [FreeMonoid'.length_mul, FreeMonoid'.length_of, Nat.reduceAdd] at H2
         have b_length_zero : b.length = 0 := by linarith [H2]
         have d_length_zero : d.length = 0 := by linarith [H2]
         have b_is : b = 1 := eq_one_of_length_eq_zero b_length_zero
         have d_is : d = 1 := eq_one_of_length_eq_zero d_length_zero
         rw [b_is, d_is, one_mul, mul_one] at two
         have H3 := (FreeMonoid'.parts_eq two).2
-        rw [(FreeMonoid'.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid'.parts_eq H3).2]
+        rw [(FreeMonoid'.parts_eq H3).1, FreeMonoid'.of_injective (FreeMonoid'.parts_eq H3).2]
         right
         exact ⟨rfl, rfl⟩
       rcases H with one | two
@@ -449,46 +413,55 @@ theorem triplet_eq (h : Nat.dist j k = 1) : BraidMonoidInf_mk (of j * of k * of 
       rw [two.1, two.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), add_zero] at h
       rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
       linarith [h1]
-    rename_i g l m n
-    exact fun d_is => n ((mine4_cg _).mp l) (m ((mine4_cg _).mp g) d_is)
+    exact fun _ _ _ n d_is => n.2 (n.1 d_is)
   exact fun h' => H _ (Or.inl rfl) (PresentedMonoid.exact h')
-  -- rcases h
-  -- have h1 := h'
-  -- apply congrArg braid_length at h'
-  -- apply congrArg braid_generators at h1
-  -- erw [braid_length_mk, braid_length_mk] at h'
-  -- simp at h'
-  -- unfold BraidMonoidInf_mk at h1
-  -- simp at h1
-  -- have h2 := h'.symm
-  -- rcases FreeMonoid'.length_eq_three h2 with ⟨a, b, c, h_cases⟩
-  -- rw [h_cases] at h1
-  -- simp [Finset.union_comm] at h1
-  -- sorry
 
-theorem BraidMonoidInf.comm {j k : ℕ} (h : j.dist k >= 2) :
-    Con'Gen.Rel braid_rels_m_inf (of j * of k) (of k * of j) := by
+theorem comm {j k : ℕ} (h : j.dist k >= 2) :
+    BraidMonoidInf.mk (of j * of k) = BraidMonoidInf.mk (of k * of j) := by
+  apply PresentedMonoid.sound
   rcases or_dist_iff.mp h
-  · apply Con'Gen.Rel.of
+  · apply PresentedMonoid.rel_alone
     apply braid_rels_m_inf.separated
     assumption
-  apply Con'Gen.Rel.symm
-  apply Con'Gen.Rel.of
+  apply PresentedMonoid.symm_alone
   apply braid_rels_m_inf.separated
   assumption
 
-theorem BraidMonoidInf.braid {j k : ℕ} (h : j.dist k = 1) :
-    Con'Gen.Rel braid_rels_m_inf (of j * of k * of j) (of k * of j * of k) := by
+theorem comm_rel {j k : ℕ} (h : j.dist k >= 2) :
+    PresentedMonoid.rel braid_rels_m_inf (of j * of k) (of k * of j) := by
+  rcases or_dist_iff.mp h
+  · apply PresentedMonoid.rel_alone
+    apply braid_rels_m_inf.separated
+    assumption
+  apply PresentedMonoid.symm_alone
+  apply braid_rels_m_inf.separated
+  assumption
+
+theorem braid {j k : ℕ} (h : j.dist k = 1) :
+    BraidMonoidInf.mk (of j * of k * of j) = BraidMonoidInf.mk (of k * of j * of k) := by
+  apply PresentedMonoid.sound
   rcases or_dist_iff_eq.mp h
-  · apply Con'Gen.Rel.of
+  · apply PresentedMonoid.rel_alone
     rename_i k_is
     rw [← k_is]
     exact braid_rels_m_inf.adjacent _
-  apply Con'Gen.Rel.symm
-  apply Con'Gen.Rel.of
+  apply PresentedMonoid.symm_alone
   rename_i j_is
   rw [← j_is]
   exact braid_rels_m_inf.adjacent _
+
+theorem braid_rel {j k : ℕ} (h : j.dist k = 1) :
+    PresentedMonoid.rel braid_rels_m_inf (of j * of k * of j) (of k * of j * of k) := by
+  rcases or_dist_iff_eq.mp h
+  · apply PresentedMonoid.rel_alone
+    rename_i k_is
+    rw [← k_is]
+    exact braid_rels_m_inf.adjacent _
+  apply PresentedMonoid.symm_alone
+  rename_i j_is
+  rw [← j_is]
+  exact braid_rels_m_inf.adjacent _
+
 -- theorem mem_steps_to {n : ℕ}: ∀ (a b : FreeMonoid (Fin (Nat.pred n))),
 --     StepsTo (braid_rels_m (Nat.pred n)) a b → (∀ x, x ∈ a ↔ x ∈ b) := by
 --   intro a b st x

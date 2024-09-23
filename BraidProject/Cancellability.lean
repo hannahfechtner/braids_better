@@ -4,14 +4,14 @@ theorem simpler_grid (u v u' v' : FreeMonoid' ℕ) (h : grid u v u' v') :
     grid (u * v')  (v * u') 1 1 := by
   rcases (stability _ _ 1 1 (grid_top_left_word (u * v')) _ _ rfl (braid_eq_of_grid h)) with
       ⟨a, b, griddy, ha, hb⟩
-  rw [one_of_eq_mk_one ha.symm, one_of_eq_mk_one hb.symm] at griddy
+  rw [BraidMonoidInf.one_of_eq_mk_one ha.symm, BraidMonoidInf.one_of_eq_mk_one hb.symm] at griddy
   exact griddy
 
-theorem grid_of_eq {u v u' v' : FreeMonoid' ℕ} (h : BraidMonoidInf_mk (u * v') = BraidMonoidInf_mk (v * u')) :
+theorem grid_of_eq {u v u' v' : FreeMonoid' ℕ} (h : BraidMonoidInf.mk (u * v') = BraidMonoidInf.mk (v * u')) :
     grid (u * v') (v * u') 1 1 := by
   rcases (stability _ _ 1 1 (grid_top_left_word (u * v')) _ _ rfl h) with
       ⟨a, b, griddy, ha, hb⟩
-  rw [one_of_eq_mk_one ha.symm, one_of_eq_mk_one hb.symm] at griddy
+  rw [BraidMonoidInf.one_of_eq_mk_one ha.symm, BraidMonoidInf.one_of_eq_mk_one hb.symm] at griddy
   exact griddy
 
 theorem left_cancellative (a b c : PresentedMonoid braid_rels_m_inf) (h1 : c * a = c * b) : a = b := by
@@ -19,10 +19,10 @@ theorem left_cancellative (a b c : PresentedMonoid braid_rels_m_inf) (h1 : c * a
   induction' b with b'
   induction' c with c'
   induction' c' using FreeMonoid'.inductionOn' with d e f
-  · change BraidMonoidInf_mk _ = BraidMonoidInf_mk _ at h1
+  · change BraidMonoidInf.mk _ = BraidMonoidInf.mk _ at h1
     simp only [FreeMonoid'.length_one, one_mul] at h1
     exact h1
-  change BraidMonoidInf_mk _ = BraidMonoidInf_mk _ at h1
+  change BraidMonoidInf.mk _ = BraidMonoidInf.mk _ at h1
   simp at h1
   apply f
   rw [mul_assoc, mul_assoc] at h1
@@ -43,9 +43,9 @@ theorem left_cancellative (a b c : PresentedMonoid braid_rels_m_inf) (h1 : c * a
   exact h7
 
 theorem right_cancellative (a b c : PresentedMonoid braid_rels_m_inf) (h1 : a * c = b * c) : a = b := by
-  apply eq_iff_reverse_eq_reverse.mp at h1
-  rw [reverse_braid_mul, reverse_braid_mul] at h1
-  exact eq_iff_reverse_eq_reverse.mpr (left_cancellative _ _ _ h1)
+  apply BraidMonoidInf.eq_iff_reverse_eq_reverse.mp at h1
+  rw [BraidMonoidInf.reverse_braid_mul, BraidMonoidInf.reverse_braid_mul] at h1
+  exact BraidMonoidInf.eq_iff_reverse_eq_reverse.mpr (left_cancellative _ _ _ h1)
 
 theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d' = d := by
   induction h1 with
@@ -86,7 +86,7 @@ theorem existence : ∀ a b, ∃ c d, grid a b c d := by
   use top_vert, m₁
 
 -- theorem existence_common_mul (a b c d e f : FreeMonoid' ℕ) (h1 : grid a b c d) (h2 : a * e = b * f) :
---   ∃ g, BraidMonoidInf_mk ((a * d) * g) = BraidMonoidInf_mk (a * e) := by
+--   ∃ g, BraidMonoidInf.mk ((a * d) * g) = BraidMonoidInf.mk (a * e) := by
 --   have big_grid : grid (a * e) (b * f) 1 1 := by
 --     apply grid_of_eq
 --     rw [h2]

@@ -2,16 +2,16 @@ import BraidProject.GridsTwo
 open FreeMonoid'
 
 def stable (u v : FreeMonoid' ℕ) := ∀ a b, grid u v a b → ∀ u' v',
-  BraidMonoidInf_mk u = BraidMonoidInf_mk u' →
-  BraidMonoidInf_mk v = BraidMonoidInf_mk v' → ∃ a' b',
-    grid u' v' a' b' ∧ BraidMonoidInf_mk a = BraidMonoidInf_mk a' ∧
-    BraidMonoidInf_mk b = BraidMonoidInf_mk b'
+  BraidMonoidInf.mk u = BraidMonoidInf.mk u' →
+  BraidMonoidInf.mk v = BraidMonoidInf.mk v' → ∃ a' b',
+    grid u' v' a' b' ∧ BraidMonoidInf.mk a = BraidMonoidInf.mk a' ∧
+    BraidMonoidInf.mk b = BraidMonoidInf.mk b'
 
 theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
     stable (FreeMonoid'.of i) (FreeMonoid'.of j * FreeMonoid'.of k) := by
   intro a b grid_uvab u' v' u_eq v_eq
-  rw [singleton_eq u_eq]
-  rcases pair_eq h v_eq with ⟨one, two, three, four⟩
+  rw [BraidMonoidInf.singleton_eq u_eq]
+  rcases BraidMonoidInf.pair_eq h v_eq with ⟨one, two, three, four⟩
   · use a, b
   rename_i working_h
   rw [working_h]
@@ -26,7 +26,7 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
       use of i, of k * of j
       exact ⟨grid.horizontal (grid.separated i k (or_dist_iff.mp hik))
         (grid.separated i j (or_dist_iff.mp hij)),
-        ⟨rfl, PresentedMonoid.sound (BraidMonoidInf.comm h)⟩⟩
+        ⟨rfl, PresentedMonoid.sound (BraidMonoidInf.comm_rel h)⟩⟩
     rename_i last_two
     rcases last_two
     · rename_i one two
@@ -49,12 +49,12 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
           := by
         rw [← mul_assoc, ← mul_assoc]
         apply Con'Gen.Rel.mul
-        · exact BraidMonoidInf.comm h
+        · exact BraidMonoidInf.comm_rel h
         exact Con'Gen.Rel.refl _
       apply H1.trans
       apply Con'Gen.Rel.mul
       · exact Con'Gen.Rel.refl _
-      exact BraidMonoidInf.comm (by rw [Nat.dist_comm] at one; exact one)
+      exact BraidMonoidInf.comm_rel (by rw [Nat.dist_comm] at one; exact one)
     rename_i hij hik
     have ud := helpier_ij h1 _ _ (or_dist_iff.mp hij) rfl rfl
     rw [ud.1, hik] at h2
@@ -84,8 +84,8 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
       apply PresentedMonoid.sound
       have H1 : PresentedMonoid.rel braid_rels_m_inf (of j * of i * of k) (of j * of k * of i) := by
         rw [mul_assoc, mul_assoc]
-        apply Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (BraidMonoidInf.comm two)
-      exact H1.trans <| Con'Gen.Rel.mul (BraidMonoidInf.comm h) (Con'Gen.Rel.refl _)
+        apply Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (BraidMonoidInf.comm_rel two)
+      exact H1.trans <| Con'Gen.Rel.mul (BraidMonoidInf.comm_rel h) (Con'Gen.Rel.refl _)
     rename_i last_two
     rcases last_two
     · rename_i hij hik
@@ -119,7 +119,7 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
         · exact Con'Gen.Rel.refl _
         rw [← mul_assoc, ← mul_assoc]
         apply Con'Gen.Rel.mul
-        · apply BraidMonoidInf.comm
+        · apply BraidMonoidInf.comm_rel
           rw [Nat.dist_comm] at h
           exact h
         exact Con'Gen.Rel.refl _
@@ -130,17 +130,17 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
         rw [mul_assoc, mul_assoc, mul_assoc]
         apply Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
         rw [← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc]
-        exact Con'Gen.Rel.mul (BraidMonoidInf.braid hik) (Con'Gen.Rel.refl _)
+        exact Con'Gen.Rel.mul (BraidMonoidInf.braid_rel hik) (Con'Gen.Rel.refl _)
       have H2 : PresentedMonoid.rel braid_rels_m_inf ((of j * of k) * of i * (of k * of j))
           (of k * (of j * of i * of j) * of k) := by
         conv => lhs; rw [mul_assoc]
         conv => rhs; rw [← mul_assoc, ← mul_assoc, mul_assoc, mul_assoc]
-        exact Con'Gen.Rel.mul (BraidMonoidInf.comm h) (Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
-          (Con'Gen.Rel.symm (BraidMonoidInf.comm h)))
+        exact Con'Gen.Rel.mul (BraidMonoidInf.comm_rel h) (Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
+          (Con'Gen.Rel.symm (BraidMonoidInf.comm_rel h)))
       have H3 : PresentedMonoid.rel braid_rels_m_inf (of k * (of j * of i * of j) * of k)
           (of k * of i * of j * of i * of k) := by
         --why does apply work here, but not exact? somehow apply must be doing some mul_assoc rewrites?
-        apply Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (BraidMonoidInf.braid hij))
+        apply Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (BraidMonoidInf.braid_rel hij))
           (Con'Gen.Rel.refl _)
       exact (H1.trans H2).trans H3
     rename_i one two
@@ -174,8 +174,8 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
 theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
     stable (FreeMonoid'.of i) (of j * of k * of j) := by
   intro a b grid_uvab u' v' u_eq v_eq
-  rw [singleton_eq u_eq]
-  rcases triplet_eq h v_eq with ⟨one, two, three, four⟩
+  rw [BraidMonoidInf.singleton_eq u_eq]
+  rcases BraidMonoidInf.triplet_eq h v_eq with ⟨one, two, three, four⟩
   · use a, b
   rename_i working_h
   rw [working_h]
@@ -200,7 +200,7 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
       · rw [af.1]
       rw [ve.2, ug.2, af.2]
       apply PresentedMonoid.sound
-      exact BraidMonoidInf.braid h
+      exact BraidMonoidInf.braid_rel h
     rename_i hik
     rcases hik
     · rename_i hik
@@ -231,20 +231,20 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
           ((of j * of k * of j) * (of i * of k)) := by
         conv => lhs; rw [← mul_assoc, ← mul_assoc, mul_assoc _ (of i)]
         conv => rhs; rw [← mul_assoc, mul_assoc _ (of j)]
-        exact Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (BraidMonoidInf.comm hij))
+        exact Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (BraidMonoidInf.comm_rel hij))
           (Con'Gen.Rel.refl _)
       have H3 : PresentedMonoid.rel braid_rels_m_inf ((of k * of j * of k) * (of i * of k))
           (of k * of j * (of i * of k * of i)) := by
         conv => lhs; rw [mul_assoc]
         apply Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
         rw [← mul_assoc]
-        exact Con'Gen.Rel.symm (BraidMonoidInf.braid hik)
+        exact Con'Gen.Rel.symm (BraidMonoidInf.braid_rel hik)
       have H4 : PresentedMonoid.rel braid_rels_m_inf (of k * of j * (of i * of k * of i))
           (of k * of i * of j * of k * of i) := by
         rw [← mul_assoc, ← mul_assoc, mul_assoc (of k) (of j), mul_assoc (of k) (of i)]
         exact Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
-          (Con'Gen.Rel.symm (BraidMonoidInf.comm hij))) (Con'Gen.Rel.refl _)) (Con'Gen.Rel.refl _)
-      exact H1.trans ((Con'Gen.Rel.mul (BraidMonoidInf.braid h) (Con'Gen.Rel.refl _)).trans
+          (Con'Gen.Rel.symm (BraidMonoidInf.comm_rel hij))) (Con'Gen.Rel.refl _)) (Con'Gen.Rel.refl _)
+      exact H1.trans ((Con'Gen.Rel.mul (BraidMonoidInf.braid_rel h) (Con'Gen.Rel.refl _)).trans
         (H3.trans H4))
     rename_i k_is
     rw [k_is, Nat.dist_comm, h] at hij
@@ -293,20 +293,20 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
         rw [← mul_assoc, ← mul_assoc (of j * of k), ← mul_assoc (of j * of k), mul_assoc _ (of i),
           mul_assoc _ (of k)]
         exact Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
-          (BraidMonoidInf.comm hik)) (Con'Gen.Rel.refl _)) (Con'Gen.Rel.refl _)
+          (BraidMonoidInf.comm_rel hik)) (Con'Gen.Rel.refl _)) (Con'Gen.Rel.refl _)
       have H2 := Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl (of j)) (Con'Gen.Rel.refl (of k)))
-          (BraidMonoidInf.braid hij)
+          (BraidMonoidInf.braid_rel hij)
       have H3 : PresentedMonoid.rel braid_rels_m_inf (of j * of k * (of j * of i * of j))
           (of k * of j * of k * of i * of j) := by
         conv => lhs; rw [mul_assoc (of j) (of i), ← mul_assoc (of j * of k)]
         conv => rhs; rw [mul_assoc _ (of i)]
-        exact Con'Gen.Rel.mul (BraidMonoidInf.braid h) (Con'Gen.Rel.refl _)
+        exact Con'Gen.Rel.mul (BraidMonoidInf.braid_rel h) (Con'Gen.Rel.refl _)
       have H4 : PresentedMonoid.rel braid_rels_m_inf (of k * of j * of k * of i * of j)
           (of k * of j * of i * of k * of j) := by
         conv => rhs; rw [mul_assoc _ (of i)]
         rw [mul_assoc _ (of k)]
         exact Con'Gen.Rel.mul (Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
-          (Con'Gen.Rel.symm (BraidMonoidInf.comm hik))) (Con'Gen.Rel.refl _)
+          (Con'Gen.Rel.symm (BraidMonoidInf.comm_rel hik))) (Con'Gen.Rel.refl _)
       exact H1.trans (H2.trans (H3.trans H4))
     rename_i hik
     rcases hik
@@ -387,12 +387,12 @@ theorem stable_first_one : stable 1 v := by
   induction v using FreeMonoid'.inductionOn'
   · use 1, 1
     constructor
-    · rw [one_of_eq_mk_one nu.symm, one_of_eq_mk_one nv.symm]
+    · rw [BraidMonoidInf.one_of_eq_mk_one nu.symm, BraidMonoidInf.one_of_eq_mk_one nv.symm]
       exact grid.empty
     rw [(all_ones griddy rfl rfl).1, (all_ones griddy rfl rfl).2]
     exact ⟨rfl, rfl⟩
-  rw [one_of_eq_mk_one nu.symm]
-  unfold BraidMonoidInf_mk at nv
+  rw [BraidMonoidInf.one_of_eq_mk_one nu.symm]
+  unfold BraidMonoidInf.mk at nv
   rename_i c d e
   have Ha : a = 1 := (word_side_side _ _ _ griddy).1
   have Hb : b = of c * d := (word_side_side _ _ _ griddy).2
@@ -440,7 +440,7 @@ theorem stable_second_one : stable a 1 := by
   rw [Hc]
   rw [← Hc] at nu
   apply PresentedMonoid.exact at nu
-  rw [one_of_eq_mk_one nv.symm]
+  rw [BraidMonoidInf.one_of_eq_mk_one nv.symm]
   induction nu
   · rename_i e f g
     use f, 1
@@ -489,12 +489,12 @@ theorem stable_braid_elem_symm {w y : FreeMonoid' ℕ} (h : braid_rels_m_inf y w
   exact fun a => stable_far_apart a _ _ (or_dist_iff.mpr (Or.inr (by assumption)))
 
 theorem reg_helper (ih : ∀ (u v a b : FreeMonoid' ℕ), n ≥ u.length + b.length → grid u v a b →
-    ∀ (u' v' : FreeMonoid' ℕ), BraidMonoidInf_mk u = BraidMonoidInf_mk u' →
-    BraidMonoidInf_mk v = BraidMonoidInf_mk v' → ∃ a' b', grid u' v' a' b' ∧
-    BraidMonoidInf_mk a = BraidMonoidInf_mk a' ∧ BraidMonoidInf_mk b = BraidMonoidInf_mk b')
+    ∀ (u' v' : FreeMonoid' ℕ), BraidMonoidInf.mk u = BraidMonoidInf.mk u' →
+    BraidMonoidInf.mk v = BraidMonoidInf.mk v' → ∃ a' b', grid u' v' a' b' ∧
+    BraidMonoidInf.mk a = BraidMonoidInf.mk a' ∧ BraidMonoidInf.mk b = BraidMonoidInf.mk b')
     (br : braid_rels_m_inf f g) (gr : grid e (i * f * j) c d) (len : n + 1 ≥ e.length + d.length) :
     ∃ a' b', grid e (i * g * j) a' b' ∧
-    BraidMonoidInf_mk c = BraidMonoidInf_mk a' ∧ BraidMonoidInf_mk d = BraidMonoidInf_mk b' := by
+    BraidMonoidInf.mk c = BraidMonoidInf.mk a' ∧ BraidMonoidInf.mk d = BraidMonoidInf.mk b' := by
   rcases splittable_vertically_of_grid gr _ _ rfl with ⟨u₁, d₄, d₃, first_grid, grid_right, d_is⟩
   have H_split1 := splittable_vertically_of_grid first_grid _ _ rfl
   rcases H_split1 with ⟨u, d₁, d₂, grid_left, grid_middle, d₄_is⟩
@@ -565,8 +565,8 @@ theorem reg_helper (ih : ∀ (u v a b : FreeMonoid' ℕ), n ≥ u.length + b.len
     --   rcases br
     --     · simp
     --     simp
-    linarith [len, braid_length_pos br]
-  have H_st : BraidMonoidInf_mk (a₁ * a₂) = BraidMonoidInf_mk (a₁' * a₂') :=
+    linarith [len, length_pos br]
+  have H_st : BraidMonoidInf.mk (a₁ * a₂) = BraidMonoidInf.mk (a₁' * a₂') :=
     PresentedMonoid.sound <| Con'Gen.Rel.mul (PresentedMonoid.exact top_middle_fact.2.1)
     (PresentedMonoid.exact bottom_middle_fact.2.1)
   rcases ih (a₁ * a₂) j  c d₃ H_len grid_right _ _ H_st rfl with ⟨c', d₃', right_fact⟩
@@ -581,12 +581,12 @@ theorem reg_helper (ih : ∀ (u v a b : FreeMonoid' ℕ), n ≥ u.length + b.len
     (PresentedMonoid.exact bottom_middle_fact.right.right)) (PresentedMonoid.exact right_fact.2.2)
 
 theorem symm_helper (ih : ∀ (u v a b : FreeMonoid' ℕ), n ≥ u.length + b.length → grid u v a b →
-    ∀ (u' v' : FreeMonoid' ℕ), BraidMonoidInf_mk u = BraidMonoidInf_mk u' →
-    BraidMonoidInf_mk v = BraidMonoidInf_mk v' → ∃ a' b', grid u' v' a' b' ∧
-    BraidMonoidInf_mk a = BraidMonoidInf_mk a' ∧ BraidMonoidInf_mk b = BraidMonoidInf_mk b')
+    ∀ (u' v' : FreeMonoid' ℕ), BraidMonoidInf.mk u = BraidMonoidInf.mk u' →
+    BraidMonoidInf.mk v = BraidMonoidInf.mk v' → ∃ a' b', grid u' v' a' b' ∧
+    BraidMonoidInf.mk a = BraidMonoidInf.mk a' ∧ BraidMonoidInf.mk b = BraidMonoidInf.mk b')
     (br : braid_rels_m_inf f g) (gr : grid e (i * g * j) c d) (len : n + 1 ≥ e.length + d.length) :
     ∃ a' b', grid e (i * f * j) a' b' ∧
-    BraidMonoidInf_mk c = BraidMonoidInf_mk a' ∧ BraidMonoidInf_mk d = BraidMonoidInf_mk b' := by
+    BraidMonoidInf.mk c = BraidMonoidInf.mk a' ∧ BraidMonoidInf.mk d = BraidMonoidInf.mk b' := by
   have H_split := splittable_vertically_of_grid gr _ _ rfl
   rcases H_split with ⟨u₁, d₄, d₃, first_grid, grid_right, d_is⟩
   have H_split1 := splittable_vertically_of_grid first_grid _ _ rfl
@@ -657,7 +657,7 @@ theorem symm_helper (ih : ∀ (u v a b : FreeMonoid' ℕ), n ≥ u.length + b.le
       · simp
       simp
     linarith [len, H]
-  have H_st : BraidMonoidInf_mk (a₁ * a₂) = BraidMonoidInf_mk (a₁' * a₂') :=
+  have H_st : BraidMonoidInf.mk (a₁ * a₂) = BraidMonoidInf.mk (a₁' * a₂') :=
     PresentedMonoid.sound <| Con'Gen.Rel.mul (PresentedMonoid.exact top_middle_fact.2.1)
     (PresentedMonoid.exact bottom_middle_fact.2.1)
   rcases ih (a₁ * a₂) j  c d₃ H_len grid_right _ _ H_st rfl with ⟨c', d₃', right_fact⟩
@@ -673,40 +673,36 @@ theorem symm_helper (ih : ∀ (u v a b : FreeMonoid' ℕ), n ≥ u.length + b.le
 
 -- a grid is stable when only the second element moves
 theorem stable_second (ih : ∀ (u v a b : FreeMonoid' ℕ), n ≥ u.length + b.length → grid u v a b →
-    ∀ (u' v' : FreeMonoid' ℕ), BraidMonoidInf_mk u = BraidMonoidInf_mk u' →
-    BraidMonoidInf_mk v = BraidMonoidInf_mk v' → ∃ a' b', grid u' v' a' b' ∧
-    BraidMonoidInf_mk a = BraidMonoidInf_mk a' ∧ BraidMonoidInf_mk b = BraidMonoidInf_mk b')
-    (b_is : BraidMonoidInf_mk f = BraidMonoidInf_mk i) :
+    ∀ (u' v' : FreeMonoid' ℕ), BraidMonoidInf.mk u = BraidMonoidInf.mk u' →
+    BraidMonoidInf.mk v = BraidMonoidInf.mk v' → ∃ a' b', grid u' v' a' b' ∧
+    BraidMonoidInf.mk a = BraidMonoidInf.mk a' ∧ BraidMonoidInf.mk b = BraidMonoidInf.mk b')
+    (b_is : BraidMonoidInf.mk f = BraidMonoidInf.mk i) :
     ∀ (d : FreeMonoid' ℕ), n + 1 ≥ a.length + d.length →
     ∀ (c : FreeMonoid' ℕ), grid a f c d → ∃ a' b', grid a i a' b' ∧
-    BraidMonoidInf_mk c = BraidMonoidInf_mk a' ∧ BraidMonoidInf_mk d = BraidMonoidInf_mk b' := by
-  induction ((PresentedMonoid.mine4_cg _).mpr (PresentedMonoid.exact b_is)) with
-  | refl =>
-    intro d _ c _
+    BraidMonoidInf.mk c = BraidMonoidInf.mk a' ∧ BraidMonoidInf.mk d = BraidMonoidInf.mk b' := by
+  apply PresentedMonoid.rel_induction_rw (PresentedMonoid.exact b_is)
+  · intro _ d _ c _
     use c, d
-  | reg _ _ br => exact fun _ len _ gr => reg_helper ih br gr len
-  | symm _ _ br => exact fun _ len _ gr => symm_helper ih br gr len
-  | trans j k l m =>
-    intro d len c gr
-    specialize l (PresentedMonoid.sound ((PresentedMonoid.mine4_cg braid_rels_m_inf).mp j))
-      d len c gr
-    rcases l with ⟨c₁, d₁, first_fact⟩
+  · intro _ _ _ _ br
+    exact fun _ len _ gr => reg_helper ih br gr len
+  · intro _ _ _ _ br
+    exact fun _ len _ gr => symm_helper ih br gr len
+  · intro g h k l d len c gr
+    rcases l.1 d len c gr with ⟨c₁, d₁, first_fact⟩
     have len' : n + 1 ≥ a.length + d₁.length := by
-      rw [braid_length_eq first_fact.2.2] at len
+      rw [BraidMonoidInf.length_eq first_fact.2.2] at len
       exact len
-    specialize m (PresentedMonoid.sound ((PresentedMonoid.mine4_cg braid_rels_m_inf).mp k))
-      d₁ len' c₁ first_fact.1
-    rcases m with ⟨c₂, d₂, second_fact⟩
+    rcases l.2 d₁ len' c₁ first_fact.1 with ⟨c₂, d₂, second_fact⟩
     use c₂, d₂
     exact ⟨second_fact.1, ⟨first_fact.2.1.trans second_fact.2.1,
       first_fact.2.2.trans second_fact.2.2⟩⟩
 
 theorem stability (u v : FreeMonoid' ℕ) : stable u v := by
   have H1 : ∀ t u v, ∀ a b, t >= u.length + b.length → grid u v a b → ∀ u' v',
-      BraidMonoidInf_mk u = BraidMonoidInf_mk u' →
-      BraidMonoidInf_mk v = BraidMonoidInf_mk v' → ∃ a' b',
-      grid u' v' a' b' ∧ BraidMonoidInf_mk a = BraidMonoidInf_mk a' ∧
-      BraidMonoidInf_mk b = BraidMonoidInf_mk b' := by
+      BraidMonoidInf.mk u = BraidMonoidInf.mk u' →
+      BraidMonoidInf.mk v = BraidMonoidInf.mk v' → ∃ a' b',
+      grid u' v' a' b' ∧ BraidMonoidInf.mk a = BraidMonoidInf.mk a' ∧
+      BraidMonoidInf.mk b = BraidMonoidInf.mk b' := by
     intro t
     induction t with
     | zero =>
@@ -717,11 +713,9 @@ theorem stability (u v : FreeMonoid' ℕ) : stable u v := by
     | succ n ih =>
       intro a b c d e f a₁ b₁ a_is b_is
       revert c; revert d; revert b
-      induction ((PresentedMonoid.mine4_cg _).mpr (PresentedMonoid.exact a_is)) with
-      | refl => exact fun b b_is => stable_second ih b_is
-      | reg e f br =>
-        intro b b_is d len c gr
-        rename_i g i
+      apply PresentedMonoid.rel_induction_rw (PresentedMonoid.exact a_is)
+      · exact fun _ b b_is => stable_second ih b_is
+      · intro g i e f br b b_is d len c gr
         have easy_len : n + 1 ≥ b.length + c.length := by
           rw [← grid_diag_length_eq gr]
           exact len
@@ -730,9 +724,9 @@ theorem stability (u v : FreeMonoid' ℕ) : stable u v := by
         have easy_len2 : n + 1 ≥ (e * i * f).length + a1.length := by
           simp only [length_mul] at len
           simp only [length_mul]
-          rw [← braid_length_eq da]
+          rw [← BraidMonoidInf.length_eq da]
           have H_ig : i.length = g.length := by
-            have H2 := braid_length_eq a_is
+            have H2 := BraidMonoidInf.length_eq (PresentedMonoid.sound (PresentedMonoid.rel_alone br))
             simp only [length_mul, add_left_inj, add_right_inj] at H2
             exact H2.symm
           rw [H_ig]
@@ -740,43 +734,40 @@ theorem stability (u v : FreeMonoid' ℕ) : stable u v := by
         rcases stable_second ih b_is a1 easy_len2 b1 swapped_grid with ⟨a2, b2, second_fact⟩
         use a2, b2
         exact ⟨second_fact.1, ⟨cb.trans second_fact.2.1, da.trans second_fact.2.2⟩⟩
-      | symm g i br =>
-        intro b b_is d len c gr
+      · intro _ _ g i br b b_is d len c gr
         have easy_len : n + 1 ≥ b.length + c.length := by
           rw [← grid_diag_length_eq gr]
           exact len
         rcases symm_helper ih br (grid_swap gr) easy_len with ⟨a1, b1, swapped_grid, da, cb⟩
         apply grid_swap at swapped_grid
-        rename_i x _
-        have easy_len2 : n + 1 ≥ (g * x * i).length + a1.length := by
+        rename_i x x2
+        have easy_len2 : n + 1 ≥ (g * x2 * i).length + a1.length := by
           simp only [length_mul] at len
           simp only [length_mul]
-          rw [← braid_length_eq da]
-          rename_i x1
-          have H_ig : x.length = x1.length := by
-            have H2 := braid_length_eq a_is
+          rw [← BraidMonoidInf.length_eq da]
+          have H_ig : x.length = x2.length := by
+            have H2 := BraidMonoidInf.length_eq (PresentedMonoid.sound (PresentedMonoid.rel_alone br))
             simp only [length_mul, add_left_inj, add_right_inj] at H2
             exact H2.symm
-          rw [H_ig]
+          rw [← H_ig]
           assumption
         rcases stable_second ih b_is a1 easy_len2 b1 swapped_grid with ⟨a2, b2, second_fact⟩
         use a2, b2
         exact ⟨second_fact.1, ⟨cb.trans second_fact.2.1, da.trans second_fact.2.2⟩⟩
-      | trans ha1 hb1 hc1 hd1 =>
-        rename_i f g _
-        intro b b_is d len c gr
-        specialize hc1 (PresentedMonoid.sound ((PresentedMonoid.mine4_cg braid_rels_m_inf).mp ha1))
-          b b_is d len c gr
-        rcases hc1 with ⟨c₁, d₁, first_fact⟩
-        have H_len : n + 1 >= g.length + d₁.length := by
-          have H1 : g.length = f.length := braid_length_eq
-            (PresentedMonoid.sound ((PresentedMonoid.mine4_cg braid_rels_m_inf).mp ha1)).symm
-          have H2 : d₁.length = d.length := braid_length_eq first_fact.2.2.symm
-          rw [H1, H2]
+      · intro ha1 hb1 hc1 ih b b_is d len c gr
+        rcases ih.1 b b_is d len c gr with ⟨c₁, d₁, first_fact⟩
+        have H_len : n + 1 ≥ hb1.length + d₁.length := by
+          have Hb : b₁.length = b.length := by
+            have H3 := congr_arg BraidMonoidInf.length b_is
+            simp only [BraidMonoidInf.length_mk] at H3
+            exact H3.symm
+          have Hc : c₁.length = c.length := by
+            have H3 := congr_arg BraidMonoidInf.length first_fact.2.1
+            simp only [BraidMonoidInf.length_mk] at H3
+            exact H3.symm
+          rw [← grid_diag_length_eq (grid_swap first_fact.1), Hb, Hc, ← grid_diag_length_eq gr]
           exact len
-        specialize hd1 (PresentedMonoid.sound ((PresentedMonoid.mine4_cg braid_rels_m_inf).mp hb1))
-          b₁ rfl d₁ H_len c₁ first_fact.1
-        rcases hd1 with ⟨c₂, d₂, second_fact⟩
+        rcases ih.2 b₁ rfl d₁ H_len c₁ first_fact.1 with ⟨c₂, d₂, second_fact⟩
         use c₂, d₂
         exact ⟨second_fact.1, ⟨first_fact.2.1.trans second_fact.2.1,
           first_fact.2.2.trans second_fact.2.2⟩⟩

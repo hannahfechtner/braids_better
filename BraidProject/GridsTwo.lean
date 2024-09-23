@@ -137,11 +137,11 @@ theorem i_top_left : grid a b c d → itl a b c d := by
   | top_left i => exact fun _ _ _ => ⟨rfl, rfl⟩
   | adjacent i k h =>
     intro j h1 h2
-    rw [FreeMonoid.of_injective h1, FreeMonoid.of_injective h2] at h
+    rw [FreeMonoid'.of_injective h1, FreeMonoid'.of_injective h2] at h
     simp at h
   | separated i j h =>
     intro k h1 h2
-    rw [FreeMonoid.of_injective h1, FreeMonoid.of_injective h2] at h
+    rw [FreeMonoid'.of_injective h1, FreeMonoid'.of_injective h2] at h
     simp at h
   | vertical h1 h2 h1_ih h2_ih =>
     intro k ha hb
@@ -236,7 +236,7 @@ theorem i_adjacent : grid a b c d → ia a b c d := by
     exact ((FreeMonoid'.of_neq_one _).elim h2.symm).elim
   | top_left i =>
     intro i j h1 h2 d
-    rw [FreeMonoid.of_injective h1.symm, FreeMonoid.of_injective h2] at d
+    rw [FreeMonoid'.of_injective h1.symm, FreeMonoid'.of_injective h2] at d
     simp at d
   | adjacent i k _ =>
     intro i j h1 h2 _
@@ -244,7 +244,7 @@ theorem i_adjacent : grid a b c d → ia a b c d := by
     exact ⟨rfl, rfl⟩
   | separated i j h =>
     intro i j h1 h2 d
-    rw [FreeMonoid.of_injective h1.symm, FreeMonoid.of_injective h2.symm] at d
+    rw [FreeMonoid'.of_injective h1.symm, FreeMonoid'.of_injective h2.symm] at d
     have H := or_dist_iff.mpr h
     rw [d] at H
     simp at H
