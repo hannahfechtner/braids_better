@@ -58,6 +58,68 @@ theorem grid_from_cell (h : cell a b c d) : grid a b c d := by
 --       pgrid' a (b * e) f (d * g)
 
 -- theorem grid_of_pgrid (h : pgrid a b (some c) (some d)) : grid a b c d := by sorry
+--need some kind of part_split
+open FreeMonoid'
+
+def get_across : List (FreeMonoid' ℕ × Bool) → FreeMonoid' ℕ :=
+  fun L => match L with
+  | (a, true) :: L1 => a * (get_across L1)
+  | (_, false) :: _ => 1
+  | [] => 1
+
+-- should have a helper function because this is so inefficient
+def get_right : List (FreeMonoid' ℕ × Bool) → FreeMonoid' ℕ :=
+  fun L => match L.reverse with
+  | (a, false) :: L1 => a * (get_across L1.reverse)
+  | (_, true) :: _ => 1
+  | [] => 1
+
+def remove_right : List (FreeMonoid' ℕ × Bool) → List (FreeMonoid' ℕ × Bool) := sorry
+
+def remove_across : List (FreeMonoid' ℕ × Bool) → List (FreeMonoid' ℕ × Bool) :=
+  fun L => match L with
+  | (_, false) :: _ => L
+  | (_, true) :: L1 => remove_across L1
+  | [] => []
+
+def cfh : List (FreeMonoid' ℕ × Bool) → List (FreeMonoid' ℕ × Bool) →
+  List (FreeMonoid' ℕ × Bool) := fun a b => (remove_right a) ++ b
+def cfv : List (FreeMonoid' ℕ × Bool) → List (FreeMonoid' ℕ × Bool) →
+  List (FreeMonoid' ℕ × Bool) := fun a b => a ++ remove_across b
+
+--left side, top side, frontier, across, right
+inductive pgrid4 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) →
+    FreeMonoid' ℕ → FreeMonoid' ℕ → Prop
+  | empty : pgrid4 1 1 [] 1 1
+  | simple : pgrid4 (of a) (of b) [(of a, false), (of b, true)] 1 1
+  | cell : cell a b c d → pgrid4 a b [(d, true), (c, false)] c d
+  | append_horiz : pgrid4 a b c d e → pgrid4 d f g h i → pgrid4 a (b * f) (cfh c g)
+      (get_across (cfh c g)) (get_right (cfh c g))
+  | append_vert : pgrid4 a b c d e → pgrid4 f e g h i → pgrid4 (a * d) b (cfv c g)
+      (get_across (cfv c g)) (get_right (cfh c g))
+
+def lbw (c : List (FreeMonoid' ℕ × Bool)) : Prop := sorry
+
+--claim : if L rws to L2, then we have a pgrid with a, b corresponding to L and a frontier corresponding to L2
+theorem grid_of_pgrid (h1 : pgrid4 a b c d e) (h2 : lbw c) : grid a b d e := by
+  induction h1
+  · exact grid.empty
+  · exfalso
+    sorry
+  · rename_i hc
+    exact grid_from_cell hc
+  · rename_i f g L i j k L2 l m pg1 pg2 ih1 ih2
+    have H1 : lbw L := by sorry
+    have H2 : lbw L2 := by sorry
+    specialize ih1 H1
+    specialize ih2 H2
+    have H3 := grid.horizontal ih1 ih2
+    have H4 : (get_across (cfh L L2)) = l := by sorry
+    rw [H4]
+    have H5 : (get_right (cfh L L2)) = j * m := by sorry
+    rw [H5]
+    exact H3
+  sorry
 
 inductive pgrid3 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
   | empty : pgrid3 1 1 []
@@ -98,10 +160,10 @@ def simp_list (L1 : List (FreeMonoid ℕ × Bool)) : List (FreeMonoid ℕ × Boo
     | (b, true) :: r => (a, false) :: (simp_list ((b, true) :: r))
     | (b, false) :: r => ((a * b), false) :: (simp_list r)
 
-inductive pgrid4 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
-  | real : pgrid4 1 1 []
-  | empty : pgrid4 a b [(a, false), (b, true)]
-  | corner : grid a b c d → pgrid4 a₁ d L₁ → pgrid4 c b₁ L₂ → pgrid4 (a * a₁) (b * b₁) (L₁ ++ L₂)
+-- inductive pgrid4 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
+--   | real : pgrid4 1 1 []
+--   | empty : pgrid4 a b [(a, false), (b, true)]
+--   | corner : grid a b c d → pgrid4 a₁ d L₁ → pgrid4 c b₁ L₂ → pgrid4 (a * a₁) (b * b₁) (L₁ ++ L₂)
 #exit
 inductive pgrid2 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
   | real : pgrid2 1 1 []

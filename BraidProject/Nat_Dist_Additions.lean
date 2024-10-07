@@ -65,3 +65,15 @@ theorem Nat.dist_eq_one (h : Nat.dist j k = 1) : j = k + 1 ∨ k = j + 1 := by
     exact Or.inr ((Nat.sub_eq_iff_eq_add' (le_of_succ_le hjk)).mp h)
   rw [Nat.sub_eq_zero_of_le hkj, add_zero] at h
   exact Or.inl ((Nat.sub_eq_iff_eq_add' hkj).mp h)
+
+theorem Nat.dist_lt_of_increase_smaller {i j: ℕ} (h : i+1<j) :
+    Nat.dist (i + 1) (j) < Nat.dist i j := by
+  rw [Nat.dist_eq_sub_of_le (le_of_succ_le h), Nat.dist_eq_sub_of_le (by linarith [h])]
+  exact sub_succ_lt_self (j - i) 0 (zero_lt_of_lt (Nat.lt_sub_iff_add_lt'.mpr h))
+
+theorem Nat.dist_lt_of_decrease_greater {i j: ℕ} (h : i+1<j) :
+    Nat.dist i (j-1) < Nat.dist i j := by
+  have i_lt_j_minus_1 := Nat.le_of_succ_le (Nat.lt_sub_of_add_lt h)
+  rw [Nat.dist_eq_sub_of_le i_lt_j_minus_1, Nat.dist_eq_sub_of_le (by linarith [h])]
+  apply (Nat.sub_lt_sub_iff_right i_lt_j_minus_1).mpr
+  exact Nat.sub_lt (Nat.one_le_of_lt h) Nat.one_pos

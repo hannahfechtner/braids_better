@@ -402,7 +402,8 @@ protected def congr {c d : Con' M} (h : c = d) : c.Quotient ≃* d.Quotient :=
 #align con.congr Con'.congr
 #align add_con.congr AddCon'.congr
 
-@[simp] theorem congr_mk {c d : Con' M} (h : c = d) (a : M) :
+@[simp]
+theorem congr_mk {c d : Con' M} (h : c = d) (a : M) :
     Con'.congr h (a : c.Quotient) = (a : d.Quotient) := rfl
 
 -- The complete lattice of congruence relations on a type

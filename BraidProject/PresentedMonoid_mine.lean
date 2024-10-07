@@ -136,6 +136,8 @@ theorem rel_alone : rels a b → PresentedMonoid.rel rels a b :=
   fun h => Con'Gen.Rel.of _ _ h
 theorem symm_alone : rels a b → PresentedMonoid.rel rels b a :=
   fun h => Con'Gen.Rel.symm (Con'Gen.Rel.of _ _ h)
+theorem swap : PresentedMonoid.rel rels a b → PresentedMonoid.rel rels b a :=
+  fun h => Con'Gen.Rel.symm h
 
 private theorem rw_system_symm : rw_system rels a b → rw_system rels b a := by
   intro h

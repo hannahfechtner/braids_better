@@ -352,7 +352,7 @@ theorem sigma_neg_bounded' (n : ℕ) {k : ℕ}: k ∈ (sigma_neg 0 n) → k < n 
   rw [mem_of.mp right]
   exact Nat.le.refl
 
-theorem map_sigma_neg_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid'.map (fun x => x +k)) (sigma_neg 0 n) →
+theorem map_sigma_neg_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid'.map (fun x => x + k)) (sigma_neg 0 n) →
     x < (n + k) := by
   intro x h
   rcases n
