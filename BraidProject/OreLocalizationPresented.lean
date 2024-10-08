@@ -45,25 +45,21 @@ theorem rels_pg_iff_rels_pml {G₁ : Type} [Group G₁]
     (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂)) := by
   constructor
   · intro one_version r1 r2 relsy
-    specialize one_version ((FreeMonoid'.lift (FreeGroup.of) r1) *
-      (FreeMonoid'.lift (FreeGroup.of) r2)⁻¹)
     have anty : FreeMonoid'.lift (FreeGroup.of) r1 * (FreeMonoid'.lift (FreeGroup.of) r2)⁻¹ ∈
         convert_rels rels := by
       apply Prod.exists.mpr
       simp only [Set.mem_setOf_eq]
       use r1, r2
-    specialize one_version anty
-    simp only [map_mul, map_inv] at one_version
-    rw [← lift_eq_lift_lift_of, ← lift_eq_lift_lift_of, ← mul_left_inj ((FreeMonoid'.lift f) r2)]
-      at one_version
-    simp only [inv_mul_cancel_right, one_mul] at one_version
+    specialize one_version ((FreeMonoid'.lift (FreeGroup.of) r1) *
+      (FreeMonoid'.lift (FreeGroup.of) r2)⁻¹) anty
+    rw [map_mul, map_inv, ← lift_eq_lift_lift_of, ← lift_eq_lift_lift_of, ← mul_left_inj ((FreeMonoid'.lift f) r2),
+      inv_mul_cancel_right, one_mul] at one_version
     exact one_version
   intro double_version r r_in
   rcases r_in with ⟨a, b, one, two⟩
   simp only [Set.mem_setOf_eq] at b
   simp only [map_mul, map_inv]
-  erw [← lift_eq_lift_lift_of, ← lift_eq_lift_lift_of]
-  rw [double_version a.1 a.2 b, mul_right_inv]
+  rw [← lift_eq_lift_lift_of, ← lift_eq_lift_lift_of, double_version a.1 a.2 b, mul_right_inv]
 
 variable (cl₁ : PresentedMonoid rels → PresentedMonoid rels → PresentedMonoid rels)
   (cl₂ : PresentedMonoid rels → PresentedMonoid rels → PresentedMonoid rels)
@@ -71,21 +67,21 @@ variable (cl₁ : PresentedMonoid rels → PresentedMonoid rels → PresentedMon
   (cancel_left : ∀ (a b c : PresentedMonoid rels), a * b = a * c → b = c)
   (cancel_right : ∀ (a b c : PresentedMonoid rels), a * b = c * b → a = c)
 
-private def pml_to_presented_group :
-    pml cl₁ cl₂ cl_spec cancel_left cancel_right →*
+private def pml_to_presented_group : pml cl₁ cl₂ cl_spec cancel_left cancel_right →*
     PresentedGroup (convert_rels rels) :=
   presented_fraction_group_to_group cl₁ cl₂ cl_spec cancel_left cancel_right (PresentedGroup.of)
   ((rels_pg_iff_rels_pml PresentedGroup.of).mp presented_identity_works)
 
 @[simp]
-private theorem pml_to_presented_group_apply_of
-    (a : α) : pml_to_presented_group cl₁ cl₂ cl_spec cancel_left cancel_right
-    (@OreLocalization.numeratorHom _ _ _ (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right)
-      (PresentedMonoid.of rels a)) =
-    (PresentedGroup.of a : PresentedGroup (convert_rels rels)) :=
+private theorem pml_to_presented_group_apply_of (a : α) :
+    pml_to_presented_group cl₁ cl₂ cl_spec cancel_left cancel_right
+    (@OreLocalization.numeratorHom _ _ _
+    (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right)
+    (PresentedMonoid.of rels a)) = (PresentedGroup.of a : PresentedGroup (convert_rels rels)) :=
   rfl
 
-theorem lift_of_eq_mk_of_mulHom {β : Type} [Monoid β] (r : FreeMonoid' α) (f : ((PresentedMonoid rels)) →* β) :
+theorem lift_of_eq_mk_of_mulHom {β : Type} [Monoid β] (r : FreeMonoid' α)
+    (f : PresentedMonoid rels →* β) :
     (FreeMonoid'.lift fun x => f (PresentedMonoid.of rels x)) r =
     (f (PresentedMonoid.mk rels r)) := by
   induction' r using FreeMonoid'.inductionOn' with _ _ ih
@@ -94,26 +90,29 @@ theorem lift_of_eq_mk_of_mulHom {β : Type} [Monoid β] (r : FreeMonoid' α) (f 
   rfl
 
 private theorem fraction_identity_works
-    : ∀ r ∈ convert_rels rels, ((@FreeGroup.lift _ _ (group_of_self' cl₁ cl₂ cl_spec cancel_left cancel_right)
-    (fun x => @OreLocalization.numeratorHom _ _ _ (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right) (PresentedMonoid.of rels x))) r :
+    : ∀ r ∈ convert_rels rels, ((@FreeGroup.lift _ _
+    (group_of_self' cl₁ cl₂ cl_spec cancel_left cancel_right)
+    (fun x => @OreLocalization.numeratorHom _ _ _
+    (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right) (PresentedMonoid.of rels x))) r :
     @OreLocalization _ _ _ (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right)
-      (PresentedMonoid rels) _) = 1 := by
+    (PresentedMonoid rels) _) = 1 := by
   intro r r_in
   rcases r_in with ⟨a, b, one, two⟩
   simp only [Set.mem_setOf_eq] at b
-  simp only [map_mul, map_inv]
-  erw [← lift_eq_lift_lift_of, ← lift_eq_lift_lift_of]
-  rw [lift_of_eq_mk_of_mulHom a.1, lift_of_eq_mk_of_mulHom a.2]
-  rw [PresentedMonoid.sound (PresentedMonoid.rel_alone b), mul_right_inv]
+  rw [map_mul, map_inv, ← lift_eq_lift_lift_of, ← lift_eq_lift_lift_of, lift_of_eq_mk_of_mulHom a.1,
+    lift_of_eq_mk_of_mulHom a.2, PresentedMonoid.sound (PresentedMonoid.rel_alone b), mul_right_inv]
 
-private def presented_group_to_pml : PresentedGroup (convert_rels rels) →* (pml cl₁ cl₂ cl_spec cancel_left cancel_right) :=
+private def presented_group_to_pml : PresentedGroup (convert_rels rels) →* (
+      pml cl₁ cl₂ cl_spec cancel_left cancel_right) :=
   let _ := group_of_self' cl₁ cl₂ cl_spec cancel_left cancel_right
   PresentedGroup.toGroup (fraction_identity_works cl₁ cl₂ cl_spec cancel_left cancel_right)
 
 @[simp]
-private theorem presented_group_to_pml_apply_of (a : α) : presented_group_to_pml cl₁ cl₂ cl_spec cancel_left cancel_right
+private theorem presented_group_to_pml_apply_of (a : α) :
+    presented_group_to_pml cl₁ cl₂ cl_spec cancel_left cancel_right
     (PresentedGroup.of a : PresentedGroup (convert_rels rels)) =
-    (@OreLocalization.numeratorHom _ _ _ (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right)
+    (@OreLocalization.numeratorHom _ _ _
+    (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right)
     (PresentedMonoid.of rels a)) := by
   unfold presented_group_to_pml
   simp only [PresentedGroup.toGroup.of]
@@ -123,15 +122,15 @@ private theorem presented_group_to_pml_apply_of (a : α) : presented_group_to_pm
 private theorem comp_pg_pml_pml_pg_eq_id : MonoidHom.comp (presented_group_to_pml cl₁ cl₂ cl_spec cancel_left cancel_right)
     (@pml_to_presented_group α rels cl₁ cl₂ cl_spec cancel_left cancel_right) = ⟨⟨id, rfl⟩, fun _ _ => rfl⟩ := by
   let _ := @oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right
-  have SH1 := @presented_fraction_group_to_group_unique α rels cl₁ cl₂ cl_spec cancel_left cancel_right
+  have unique_map_to_self := @presented_fraction_group_to_group_unique α rels cl₁ cl₂ cl_spec cancel_left cancel_right
     (pml cl₁ cl₂ cl_spec cancel_left cancel_right) (group_of_self' cl₁ cl₂ cl_spec cancel_left cancel_right)
     (fun a => @OreLocalization.numeratorHom _ _ _ (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right) (PresentedMonoid.of rels a))
     ((rels_pg_iff_rels_pml _).mp <| fraction_identity_works cl₁ cl₂ cl_spec cancel_left cancel_right)
-  have Sh2 := SH1 (MonoidHom.comp (presented_group_to_pml cl₁ cl₂ cl_spec cancel_left cancel_right)
+  have Sh2 := unique_map_to_self (MonoidHom.comp (presented_group_to_pml cl₁ cl₂ cl_spec cancel_left cancel_right)
     (@pml_to_presented_group α rels cl₁ cl₂ cl_spec cancel_left cancel_right)) (fun x => by simp only [MonoidHom.coe_comp,
       Function.comp_apply, pml_to_presented_group_apply_of, presented_group_to_pml_apply_of])
-  exact Sh2.trans (SH1 ⟨⟨id, rfl⟩, fun _ _ => rfl⟩ (fun r => by simp only [MonoidHom.coe_mk,
-    OneHom.coe_mk, id_eq])).symm
+  exact Sh2.trans (unique_map_to_self ⟨⟨id, rfl⟩, fun _ _ => rfl⟩
+    (fun r => by simp only [MonoidHom.coe_mk, OneHom.coe_mk, id_eq])).symm
 
 private theorem comp_pml_pg_pg_pml_eq_id : MonoidHom.comp (pml_to_presented_group cl₁ cl₂ cl_spec cancel_left cancel_right)
     (@presented_group_to_pml α rels cl₁ cl₂ cl_spec cancel_left cancel_right) = ⟨⟨id, rfl⟩, fun _ _ => rfl⟩ := by
