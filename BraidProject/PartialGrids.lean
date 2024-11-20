@@ -20,45 +20,50 @@ theorem grid_from_cell (h : cell a b c d) : grid a b c d := by
   | adjacent i k h => exact grid.adjacent _ _ h
   | separated i j h => exact grid.separated _ _ h
 
---many ideas that did not work
--- inductive grid_frontier : List (FreeMonoid ℕ × Bool) → Prop
---   | basic : ∀ (u v : FreeMonoid' ℕ), grid_frontier [(u, false), (v, true)]
---   | cell {a b c d} (h : cell a b c d) {x y : List (FreeMonoid' ℕ × Bool)} :
---       grid_frontier (x ++ [(a, false), (b, true)] ++ y) →
---       grid_frontier (x ++ [(c, true), (d, false)] ++ y)
+def to_up (a : FreeMonoid' ℕ) : FreeMonoid' (Option ℕ × Bool) := FreeMonoid'.map
+  (fun x => (some x, false)) a
 
--- inductive partial_grid : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
---   | start : partial_grid a b [(a, false), (b, true)]
---   | cell {a b c d} (h : cell a b c d) : partial_grid left top (x ++ [(a, false), (b, true)] ++ y) → partial_grid left top (x ++ [(d, true), (c, false)] ++ y)
+def to_over (a : FreeMonoid' ℕ) : FreeMonoid' (Option ℕ × Bool) := FreeMonoid'.map
+  (fun x => (some x, true)) a
 
--- theorem grid_of_partial_grid (h : partial_grid a b [(a, true), (b, false)]) : grid a b a b := by
---   have H : ∀ c, partial_grid a b c → c = [(a, true), (b, false)] → grid a b a b := by
---     intro c
---     intro pg_abc
---     induction pg_abc with
---     | start =>
---       intro h_exf
---       simp only [List.cons.injEq, Prod.mk.injEq, Bool.false_eq_true, and_false, Bool.true_eq_false,
---         and_true, and_self] at h_exf
---     | cell h k ih => sorry
---   apply H _ h rfl
+def remover : (a : FreeMonoid' (Option ℕ × Bool)) → FreeMonoid' ℕ
+  | 1 => 1
+  | (some a, _) :: c => a :: remover c
+  | (none, _) :: c => remover c
 
--- inductive pgrid : (FreeMonoid' ℕ) → (FreeMonoid' ℕ) →
---       (Option (FreeMonoid' ℕ)) → (Option (FreeMonoid' ℕ)) → Prop
---   | incomplete : pgrid a b none none
---   | single (h : cell a b c d) : pgrid a b (some c) (some d)
---   | horizontal (h1 : pgrid a b (some c) (some d)) (h2 : pgrid c e (some f) (some g)) :
---       pgrid a (b * e) f (d * g)
---   --| horiz_idk (h1 : pgrid a b)
--- inductive pgrid' : Option (FreeMonoid' ℕ) → Option (FreeMonoid' ℕ) →
---       (Option (FreeMonoid' ℕ)) → (Option (FreeMonoid' ℕ)) → Prop
---   | incomplete : pgrid' a b none none
---   | single (h : cell a b c d) : pgrid' a b (some c) (some d)
---   | horizontal (h1 : pgrid a b (some c) (some d)) (h2 : pgrid c e (some f) (some g)) :
---       pgrid' a (b * e) f (d * g)
+def grid_option (a b c d : FreeMonoid' (Option ℕ × Bool)) : Prop := grid (remover a) (remover b)
+  (remover c) (remover d)
 
--- theorem grid_of_pgrid (h : pgrid a b (some c) (some d)) : grid a b c d := by sorry
---need some kind of part_split
+/-- A partial grid generalizes the notion of a grid to include "unfinished" grids. -/
+inductive PartialGrid : FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) →
+  FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) → Prop
+  | single_grid {a b c d : FreeMonoid' ℕ} (h : grid a b c d):
+      PartialGrid (to_up a) (to_over b) (to_over d) 1 (to_up c)
+  | empty (a b : FreeMonoid' ℕ) :
+      PartialGrid (to_up a) (to_over b) 1 ((to_up a) * (to_over b)) 1
+  | horizontal_append_one {a b bot up b2 bot2 mid2 up2} (g1 : grid_option a b up bot)
+      (g2 : PartialGrid up b2 bot2 mid2 up2) : PartialGrid a (b*b2) (bot * bot2) mid2 up2
+  | horizontal_append {a b bot mid up b2 bot2 mid2 up2 : FreeMonoid' (Option ℕ × Bool)}
+      (g1 : PartialGrid a b bot mid up) (g2 : PartialGrid up b2 bot2 mid2 up2) :
+      PartialGrid a (b*b2) bot (mid * bot2 * mid2) up2
+
+def frontier2 (pg : PartialGrid a b c d e) : FreeMonoid' (Option ℕ × Bool) := c * d * e
+
+inductive pgrid : FreeMonoid' (Option ℕ) → FreeMonoid' (Option ℕ) → FreeMonoid' (Option ℕ) →
+    FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ) →  Prop
+  | spine (a b : FreeMonoid' (Option ℕ)): pgrid a b 1 (((FreeMonoid'.map fun x => (x, false)) a) *
+      ((FreeMonoid'.map fun x => (x, true)) b)) 1
+  | cell {a b c d} (h : cell a b c d) : pgrid ((FreeMonoid'.map fun x => some x) a)
+      ((FreeMonoid'.map fun x => some x) b) ((FreeMonoid'.map fun x => some x) c.reverse) 1
+      ((FreeMonoid'.map fun x => some x) d)
+  | horizontal_L (h1 : pgrid a b c 1 e) (h2 : pgrid e f g h i) : pgrid a (b * f) (c * g) h i
+  | horizontal (h1 : pgrid a b c d e) (h2 : pgrid e f g h i) : pgrid a (b * f) c
+      (d * (FreeMonoid'.map (fun x => (x, true)) g) * h) i
+  | vertical_L (h1 : pgrid a b c 1 e) (h2 : pgrid f c g h i) : pgrid (a * f) b g h (i * e)
+  | vertical (h1 : pgrid a b c d e) (h2 : pgrid f c g h i) : pgrid a (b * f) c
+      (d * (FreeMonoid'.map (fun x => (x, true)) g) * h) i
+
+#exit
 open FreeMonoid'
 
 def get_across : List (FreeMonoid' ℕ × Bool) → FreeMonoid' ℕ :=
@@ -121,31 +126,6 @@ theorem grid_of_pgrid (h1 : pgrid4 a b c d e) (h2 : lbw c) : grid a b d e := by
     exact H3
   sorry
 
-inductive pgrid3 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
-  | empty : pgrid3 1 1 []
-  | start : pgrid3 a b [(a, false), (b, true)]
-  | left_grid : grid a b c d → pgrid3 c e L → pgrid3 a (b * e) ((d, true) :: L)
-
--- def combine_lists (L1 L2 : List (FreeMonoid' ℕ × Bool)) : List (FreeMonoid' ℕ × Bool) :=
---   match (List.getLast? L1) with
---   | none => L2
---   | some (a, true) =>
---     match (L2) with
---     | [] => L2
---     | h :: t =>
---       match h with
---       | (a1, true) => combine_lists (List.take (L1.length -1) L1) ((a * a1, true) :: t)
---       | (a, false) => L1 ++ L2
---   | some (b, false) =>
---     match L2 with
---     | [] => L1
---     | h :: t =>
---       match h with
---       | (b1, true) => L1 ++ L2
---       | (b1, false) => combine_lists (List.take (L1.length -1) L1) ((b * b1, true) :: t)
-
--- #eval combine_lists [([2], true), ([4], false), ([5], true)] [([3], true)]
-
 def simp_list (L1 : List (FreeMonoid ℕ × Bool)) : List (FreeMonoid ℕ × Bool) :=
   match L1 with
   | [] => []
@@ -159,16 +139,6 @@ def simp_list (L1 : List (FreeMonoid ℕ × Bool)) : List (FreeMonoid ℕ × Boo
     | [] => L1
     | (b, true) :: r => (a, false) :: (simp_list ((b, true) :: r))
     | (b, false) :: r => ((a * b), false) :: (simp_list r)
-
--- inductive pgrid4 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
---   | real : pgrid4 1 1 []
---   | empty : pgrid4 a b [(a, false), (b, true)]
---   | corner : grid a b c d → pgrid4 a₁ d L₁ → pgrid4 c b₁ L₂ → pgrid4 (a * a₁) (b * b₁) (L₁ ++ L₂)
-#exit
-inductive pgrid2 : FreeMonoid' ℕ → FreeMonoid' ℕ → List (FreeMonoid' ℕ × Bool) → Prop
-  | real : pgrid2 1 1 []
-  | empty : pgrid2 a b [(a, false), (b, true)]
-  | corner : grid a b c d → pgrid2 a₁ d L₁ → pgrid2 c b₁ L₂ → pgrid2 (a * a₁) (b * b₁) (L₁ ++ L₂)
 
 theorem empty_of_frontier_empty (h : pgrid2 i l []) : (grid i l 1 1) := by
   have H : ∀ i l L, pgrid2 i l L → L = [] → grid i l 1 1 := by

@@ -30,6 +30,39 @@ theorem foldl_one : ∀ (L : List (FreeMonoid (α × Bool)))
     specialize ih (a * head)
     exact List.foldl_assoc
 
+theorem lift_to_map_inj' {a b : FreeMonoid α} {z : Bool} (h1 : FreeMonoid.lift (fun x ↦ FreeMonoid.of (x, z)) a =
+    FreeMonoid.lift (fun x ↦ FreeMonoid.of (x, z)) b) :
+    List.map (fun x ↦ FreeMonoid.of (x, z)) a = List.map (fun x ↦ FreeMonoid.of (x, z)) b := by
+  revert b
+  induction a using FreeMonoid'.inductionOn' with
+  | one =>
+    intro b h
+    simp [List.map]
+    rcases b
+    · simp [List.map]
+    rename_i hb tb
+    simp [List.map]
+    apply congr_arg FreeMonoid'.length at h
+    simp at h
+    have H3 : List.length (FreeMonoid.of (hb, z) * List.foldl (fun x x_1 ↦ x * x_1) 1
+        (List.map (fun x ↦ FreeMonoid.of (x, z)) (FreeMonoid.toList tb))) =
+        1 + List.length (List.foldl (fun (x x_1 : FreeMonoid (α × Bool)) ↦ x * x_1) (1 : FreeMonoid (α × Bool))
+        (List.map (fun x ↦ FreeMonoid.of (x, z)) (FreeMonoid.toList tb))) :=
+      Nat.succ_eq_one_add ([].append (FreeMonoid.toList (List.foldl (fun x x_1 ↦ x * x_1) 1
+        (List.map (fun x ↦ FreeMonoid.of (x, z)) (FreeMonoid.toList tb))))).length
+    unfold FreeMonoid.lift at h
+    unfold FreeMonoid.prodAux at h
+    simp at h
+    have H4 : List.map (fun x ↦ FreeMonoid.of (x, z)) (FreeMonoid.toList (hb :: tb)) =
+        (FreeMonoid.of (hb, z) : FreeMonoid (α × Bool)) :: ((List.map (fun x ↦ FreeMonoid.of (x, z)) (FreeMonoid.toList tb)) : FreeMonoid (FreeMonoid (α × Bool))) := by
+      have H5 : FreeMonoid.toList (hb :: tb) = hb :: (FreeMonoid.toList tb) := by rfl
+      rw [H5]
+      rfl
+    simp [H4] at h
+    sorry --rw [H3] at h
+
+  | mul_of h t iht => sorry
+
 theorem lift_to_map_inj {a b : FreeMonoid α} {z : Bool} (h1 : FreeMonoid.lift (fun x ↦ FreeMonoid.of (x, z)) a =
     FreeMonoid.lift (fun x ↦ FreeMonoid.of (x, z)) b) :
     List.map (fun x ↦ FreeMonoid.of (x, z)) a = List.map (fun x ↦ FreeMonoid.of (x, z)) b := by
@@ -48,9 +81,9 @@ theorem lift_to_map_inj {a b : FreeMonoid α} {z : Bool} (h1 : FreeMonoid.lift (
     rename_i hb tb
     have H : List.map (fun x ↦ FreeMonoid.of (x, z)) (FreeMonoid.toList (hb :: tb)) =
         (FreeMonoid.of (hb, z)) ::List.map (fun x ↦ FreeMonoid.of (x, z))
-        (FreeMonoid.toList tb) := by rfl
+        (FreeMonoid.toList tb) := rfl
     rw [H] at h
-    simp at h
+    simp [FreeMonoid'.length_one] at h
     exfalso
     rw [foldl_one] at h
     have H1 := congr_arg List.length h
@@ -90,8 +123,12 @@ theorem lift_to_map_inj {a b : FreeMonoid α} {z : Bool} (h1 : FreeMonoid.lift (
     have H : List.map (fun x ↦ FreeMonoid.of (x, z)) (FreeMonoid.toList (hb :: tb)) =
       FreeMonoid.of (hb, z) :: List.map (fun x ↦ FreeMonoid.of (x, z)) (FreeMonoid.toList tb) := rfl
     rw [H] at h
+    have H2 : List.map (fun x ↦ FreeMonoid.of (x, z)) (hb :: tb) = FreeMonoid'.of (hb, z) ::
+      List.map (fun x ↦ FreeMonoid.of (x, z)) (tb) := rfl
+    rw [H2]
     simp at h
     specialize @ih tb
+    simp at ih
     sorry
 
 theorem FreeMonoid.lift_bool {a b : FreeMonoid α} {z : Bool}
@@ -124,11 +161,17 @@ theorem false_true_true_false {a b c d : FreeMonoid' ℕ}
     have reverse_empty : FreeMonoid'.reverse ([] : List ℕ) = 1 := by rfl
     rw [reverse_empty] at h
     simp only [FreeMonoid'.length_one, map_one, FreeMonoid'.eq_one_of_length_eq_zero, one_mul] at h
-    rcases c
+    induction c using FreeMonoid'.inductionOn'
     · constructor
       · rfl
-      rw [reverse_empty] at h
-      simp only [FreeMonoid'.length_one, map_one, FreeMonoid'.eq_one_of_length_eq_zero, mul_one] at h
-      sorry
+      simp only [FreeMonoid'.length_one, FreeMonoid'.reverse_length,
+        FreeMonoid'.eq_one_of_length_eq_zero, map_one, mul_one] at h
+      exact FreeMonoid.lift_bool h
+    rename_i ha ta ih
+    exfalso
+    have H : (FreeMonoid'.of ha * ta).reverse = ta.reverse * (FreeMonoid'.of ha) := by
+      rw [FreeMonoid'.reverse_mul, FreeMonoid'.reverse_of]
+    simp [H] at h
+
     sorry
   sorry

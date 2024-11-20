@@ -159,7 +159,7 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
     rw [one] at h1
     have ud := helpier_eq h1 _ rfl rfl
     rw [ud.1] at h2
-    have af := i_top_bottom h2 _ rfl rfl
+    have af := i_top_bottom h2
     rw [ud.2, af.1, af.2, mul_one, one_mul]
     exact ⟨rfl, rfl⟩
   rename_i last_two
@@ -273,7 +273,7 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
       rcases H_split with ⟨u₄, f₁, f₂, hj, hk, hl⟩
       have u₄f₁ := helpier_eq hj _ rfl rfl
       rw [u₄f₁.1] at hk
-      have e₁f₂ := i_top_bottom hk i rfl rfl
+      have e₁f₂ := i_top_bottom hk
       rw [u₄f₁.2, e₁f₂.2, one_mul] at hl
       rw [hl] at hh
       have e₂f := helpier_ij hh _ _
@@ -348,9 +348,9 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
   rw [← j_is] at h0
   have ve := helpier_eq h0 _ rfl rfl
   rw [ve.1] at h1
-  have ug := i_top_bottom h1 _ rfl rfl
+  have ug := i_top_bottom h1
   rw [ug.1] at h3
-  have af := i_top_bottom h3 _ rfl rfl
+  have af := i_top_bottom h3
   rw [ve.2, one_mul, ug.2, af.1, af.2, j_is]
   rcases trichotomous_dist i k
   · rename_i hik

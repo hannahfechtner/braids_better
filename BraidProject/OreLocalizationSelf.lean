@@ -5,17 +5,6 @@ open Classical
 
 section Self
 
--- I believe this should be because of the instance
--- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Group/Submonoid/Basic.html#Submonoid.instTop
--- but I can't seem to get it to work
-/-- a monoid M, viewed as a submonoid of itself -/
-def submonoid_self (M : Type*) [Monoid M] : Submonoid M :=
-  ⟨⟨(setOf (fun _ => True)), fun a _ => a⟩, trivial⟩
-
-/-- the property that for every pair of elements in a monoid, there is another pair of elements in
-that monoid serving as their common right multiples -/
---def has_common_left_mul (M : Type*) [Monoid M] := ∀ a b : M, ∃ c d : M, c * a = d * b
-
 class CommonLeftMultipleMonoid (M : Type*) extends Monoid M where
   cl₁ : M → M → M
   cl₂ : M → M → M
@@ -39,7 +28,7 @@ variable {M : Type*} [OreMonoid M]
 --variable (cml : has_common_left_mul M)
 --variable [OreLocalization.OreSet (submonoid_self M)]
 
-instance oreSetSelf : OreLocalization.OreSet (submonoid_self M) where
+instance oreSetSelf : OreLocalization.OreSet (⊤ : Submonoid M) where
   ore_right_cancel  := by
     intro r1 r2 s eq
     use 1
@@ -49,15 +38,10 @@ instance oreSetSelf : OreLocalization.OreSet (submonoid_self M) where
   oreDenom r s := ⟨CommonLeftMultipleMonoid.cl₂ r s, trivial⟩
   ore_eq := fun r s => CommonLeftMultipleMonoid.cl_spec _ _
 
-local notation "OreLocalizationSelf" => @OreLocalization M _ (submonoid_self M) _ M _
+local notation "OreLocalizationSelf" => @OreLocalization M _ (⊤ : Submonoid M) _ M _
 
 /-- when localizing by the entire monoid, the result is a group -/
 instance group_of_self : Group (OreLocalizationSelf) where
-  mul := fun a b => a * b --OreLocalization.smul
-  mul_assoc := mul_assoc --OreLocalization.mul_assoc
-  one := 1 /ₒ 1
-  one_mul := one_mul --OreLocalization.one_mul
-  mul_one := mul_one -- OreLocalization.mul_one
   inv := OreLocalization.liftExpand (fun a b => b.val /ₒ ⟨a, trivial⟩)
     fun a b c d => by
       apply OreLocalization.oreDiv_eq_iff.mpr
@@ -69,7 +53,7 @@ instance group_of_self : Group (OreLocalizationSelf) where
 def fraction_group_to_group {G₁ : Type} [Group G₁] (f : M →* G₁) :
     OreLocalizationSelf →* G₁ :=
   OreLocalization.universalMulHom f
-  ⟨⟨(fun (x : ↥(submonoid_self M)) => toUnits (f x.val)),
+  ⟨⟨(fun (x : ↥((⊤ : Submonoid M))) => toUnits (f x.val)),
   by simp only [OneMemClass.coe_one, map_one]⟩, by simp only
   [Submonoid.coe_mul, map_mul, Subtype.forall, implies_true, forall_const]⟩
   (by intro s ; simp)
@@ -85,9 +69,10 @@ end Self
 
 section Presented
 
+--#check IsOreMonoid
 -- okay, now in the context of a presented monoid
 --first we need to update variables
-variable {α : Type} {rels : FreeMonoid' α → FreeMonoid' α → Prop}
+variable {α : Type} {rels : FreeMonoid' α → FreeMonoid' α → Prop} --[IsCancelMul (PresentedMonoid rels)]
 --local notation "P" => PresentedMonoid rels
 
 -- instance for_heavens_sake (cancel_left : ∀ (a b c : PresentedMonoid rels), a * b = a * c → b = c)
@@ -115,13 +100,19 @@ variable {α : Type} {rels : FreeMonoid' α → FreeMonoid' α → Prop}
 --   cl₂ := cl₂
 --   cl_spec := cl_spec
 
-variable (cl₁ : PresentedMonoid rels → PresentedMonoid rels → PresentedMonoid rels)
-  (cl₂ : PresentedMonoid rels → PresentedMonoid rels → PresentedMonoid rels)
+variable {cl₁ : PresentedMonoid rels → PresentedMonoid rels → PresentedMonoid rels}
+  {cl₂ : PresentedMonoid rels → PresentedMonoid rels → PresentedMonoid rels}
   (cl_spec : ∀ a b : PresentedMonoid rels, cl₂ a b * a = cl₁ a b * b)
   (cancel_left : ∀ (a b c : PresentedMonoid rels), a * b = a * c → b = c)
   (cancel_right : ∀ (a b c : PresentedMonoid rels), a * b = c * b → a = c)
 
-instance oreSetSelf' : OreLocalization.OreSet (submonoid_self (PresentedMonoid rels)) where
+instance : CancelMonoid (PresentedMonoid rels) where
+  mul_left_cancel := cancel_left
+  mul_right_cancel := cancel_right
+  one_mul := one_mul
+  mul_one := mul_one
+
+instance oreSetSelf' : OreLocalization.OreSet (⊤ : Submonoid (PresentedMonoid rels)) where
   ore_right_cancel  := by
     intro r1 r2 s eq
     use 1
@@ -147,7 +138,7 @@ instance oreSetSelf' : OreLocalization.OreSet (submonoid_self (PresentedMonoid r
       exact H)
 
 /-- when localizing by the entire monoid, the result is a group -/
-instance group_of_self' : Group (@OreLocalization ((PresentedMonoid rels)) _ (submonoid_self ((PresentedMonoid rels))) (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right) ((PresentedMonoid rels)) _) where
+instance group_of_self' : Group (@OreLocalization ((PresentedMonoid rels)) _ (⊤ : Submonoid (PresentedMonoid rels)) (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right) ((PresentedMonoid rels)) _) where
   mul := fun a b => a * b --OreLocalization.smul
   mul_assoc := mul_assoc --OreLocalization.mul_assoc
   one :=
@@ -181,7 +172,7 @@ private theorem lift_eq_lift_of_rel {G₁ : Type} [Group G₁] (f : α → G₁)
 (which will become denominators) into units of the group -/
 private def map_denom_into_units {G₁ : Type} [Group G₁] (f : α → G₁)
   (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂)) :
-  ↥(submonoid_self (PresentedMonoid rels)) →* G₁ˣ :=
+  ↥(⊤ : Submonoid (PresentedMonoid rels)) →* G₁ˣ :=
   ⟨⟨toUnits ∘ (PresentedMonoid.lift_hom f (lift_eq_lift_of_rel f universal_h)) ∘ (fun x => x.val),
     (Units.val_eq_one.mp rfl)⟩,
     (by
@@ -189,7 +180,7 @@ private def map_denom_into_units {G₁ : Type} [Group G₁] (f : α → G₁)
       intro a _ b _
       simp only [map_mul] ) ⟩
 
-abbrev pml := @OreLocalization (PresentedMonoid rels) _ (submonoid_self (PresentedMonoid rels))
+abbrev pml := @OreLocalization (PresentedMonoid rels) _ (⊤ : Submonoid (PresentedMonoid rels))
   (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right) (PresentedMonoid rels) _
 
 -- instance get_oreset [h : OreMonoid (PresentedMonoid rels)] :
@@ -199,20 +190,20 @@ abbrev pml := @OreLocalization (PresentedMonoid rels) _ (submonoid_self (Present
 /-- the universal property for the ore localization of a presented monoid by itself -/
 def presented_fraction_group_to_group {G₁ : Type} [Group G₁] (f : α → G₁)
     (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂)) :
-    (pml cl₁ cl₂ cl_spec cancel_left cancel_right) →* G₁ :=
+    (pml cl_spec cancel_left cancel_right) →* G₁ :=
     @OreLocalization.universalMulHom ((PresentedMonoid rels)) _
-    (submonoid_self (PresentedMonoid rels))
+    (⊤ : Submonoid (PresentedMonoid rels))
     (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right) G₁ _
   ⟨⟨PresentedMonoid.lift_hom f (lift_eq_lift_of_rel f universal_h), rfl⟩,
   by simp only [map_mul, implies_true]⟩ (map_denom_into_units f universal_h) (fun _ => rfl)
 
 theorem presented_fraction_group_to_group_unique {G₁ : Type} [Group G₁] (f : α → G₁)
     (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂))
-    (φ : pml cl₁ cl₂ cl_spec cancel_left cancel_right →* G₁) :
+    (φ : pml cl_spec cancel_left cancel_right →* G₁) :
     (∀ (r : α), φ (@OreLocalization.numeratorHom _ _ _
     (@oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right)
     (PresentedMonoid.of rels r)) = f r) → φ =
-    presented_fraction_group_to_group _ _ _ _ _ f universal_h := by
+    presented_fraction_group_to_group _ _ _ f universal_h := by
   intro hr
   let _ := @oreSetSelf' _ rels cl₁ cl₂ cl_spec cancel_left cancel_right
   apply OreLocalization.universalMulHom_unique

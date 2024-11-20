@@ -5,7 +5,7 @@ import Mathlib.Topology.Maps
 import Mathlib.Data.Fin.Basic
 import BraidProject.BraidMonoid
 
-set_option autoImplicit false
+--set_option autoImplicit false
 namespace Braid
 
 section
@@ -27,10 +27,9 @@ def braid_rels : (n : ℕ) → Set (FreeGroup (Fin n))
     { r | ∃ i j : Fin n, i ≤ j ∧ r = comm_rel (i.castSucc.castSucc) (j.succ.succ) }
 
 def braid_rels_inf : Set (FreeGroup ℕ) :=
-    { r | ∃ i : ℕ , r = (FreeGroup.of i) * (FreeGroup.of (i + 1)) * FreeGroup.of i *
-      (FreeGroup.of (i + 1))⁻¹ * (FreeGroup.of i)⁻¹ * (FreeGroup.of (i + 1))⁻¹} ∪
-    { r | ∃ i j : ℕ, i + 2 ≤ j ∧ r = (FreeGroup.of i) * (FreeGroup.of j) * (FreeGroup.of i)⁻¹ *
-      (FreeGroup.of j)⁻¹}
+  { r | ∃ i : ℕ , r = .of i * (.of (i + 1)) * .of i *
+    (.of (i + 1))⁻¹ * (.of i)⁻¹ * (.of (i + 1))⁻¹} ∪
+  { r | ∃ i j : ℕ, i + 2 ≤ j ∧ r = .of i * .of j * (.of i)⁻¹ * (.of j)⁻¹}
 
 /-
 The predecessor in the next definition is annoying, but hopefully not too bad.
@@ -40,11 +39,14 @@ Most of the time we will write `braid_group (n + 1)`, which corresponds to `B_{n
 def braid_group (n : ℕ) := PresentedGroup (braid_rels n.pred)
 
 def braid_group_inf := PresentedGroup braid_rels_inf
+
 instance (n : ℕ) : Group (braid_group n) := by
   unfold braid_group; infer_instance
 
 instance : Group braid_group_inf := by
   unfold braid_group_inf; infer_instance
+
+def braid_group.rel := PresentedGroup braid_rels_inf
 
 def σ {n : ℕ} (k : Fin n) : braid_group (n + 1) := PresentedGroup.of k
 
@@ -57,27 +59,14 @@ This version makes n explicit. Note that `σ' n k` is an element of
 -/
 abbrev σ' (n : ℕ) (k : Fin n) : braid_group (n + 1) := PresentedGroup.of k
 
--- #check σ' 5 2
--- #check (σ 2 : braid_group 6)
-
--- example : σ' 5 2 = σ 2 := rfl
-
-/-
-This says that σ i * σ (i + 1) * σ i = σ (i + 1) * σ i * σ (i + 1) in `braid_group (n + 2)`,
-the smallest group in which there are any generators at all.
-Notice that this means that `i` and `i + 1` must be `Fin (n + 1)`.
-To make type checking work, we take `i` in `Fin n`, and use
-`i.castSucc` and `i.succ` to interpret `i` and `i + 1` as elements of `Fin (n + 1)`.
--/
-theorem braid_group.braid {n : ℕ} (i : Fin n) :
-    σ' (n + 1) i.castSucc * σ i.succ * σ i.castSucc = σ i.succ * σ i.castSucc * σ i.succ := by
+theorem braid_group.braid {n : ℕ} {i j : Fin n} (h : i ≤ j) :
+    σ' (n + 2) i.castSucc.castSucc * σ j.succ.succ = σ j.succ.succ * σ i.castSucc.castSucc := by
   symm; rw [←mul_inv_eq_one]
   apply QuotientGroup.eq.mpr
   apply Subgroup.subset_normalClosure
-  cases n
-  . next => apply i.elim0
-  . next n =>
-    left; use i; simp [braid_rels, braid_rel, mul_assoc]
+  left; use i
+  simp [braid_rels, braid_rel, mul_assoc]
+  sorry
 
 theorem braid_group_inf.braid (i : ℕ) :
     σi i * σi i.succ * σi i = σi i.succ * σi i * σi i.succ := by
@@ -116,10 +105,7 @@ theorem generated_by (n : ℕ) (H : Subgroup (braid_group (n + 1))) (h : ∀ i :
   apply QuotientGroup.induction_on
   intro z
   change ⟦z⟧ ∈ H
-  apply FreeGroup.induction_on (C := fun z => ⟦z⟧ ∈ H)
-  . exact one_mem H
-  . intro i
-    apply h
+  apply FreeGroup.induction_on (C := fun z => ⟦z⟧ ∈ H) _ (one_mem H) (fun _ => h _)
   . intro i
     change σ i ∈ H.carrier → (σ i)⁻¹ ∈ H.carrier
     simp only [Nat.pred_succ, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
@@ -128,7 +114,6 @@ theorem generated_by (n : ℕ) (H : Subgroup (braid_group (n + 1))) (h : ∀ i :
     change QuotientGroup.mk _ ∈ H.carrier
     rw [QuotientGroup.mk_mul]
     exact Subgroup.mul_mem _ h1 h2
-
 
 theorem braid_group_2.is_cyclic : ∃ g : (braid_group 2), ∀ x, x ∈ Subgroup.zpowers g := by
   use (σ 0)
@@ -156,7 +141,7 @@ theorem embed_helper (n : ℕ) : ∀ (a b : FreeMonoid' (Fin (n.pred))),
   rcases h
   · rename_i j
     simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
-    apply braid_group.braid
+    sorry --apply braid_group.braid
   simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
   apply braid_group.comm
   next ih => exact ih
