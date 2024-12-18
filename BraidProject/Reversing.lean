@@ -1,6 +1,6 @@
 import Mathlib.Data.Nat.Dist
 import BraidProject.FreeMonoid_mine
-import BraidProject.BraidGroup
+--import BraidProject.BraidGroup
 import BraidProject.Cancellability
 import BraidProject.ListBoolFacts
 
@@ -69,7 +69,7 @@ inductive second_rw_closure (rels : FreeMonoid (α × Bool) → FreeMonoid (α �
 open Braid
 -- need some kind of PresentedGroup.mk
 theorem braid_rel_holds (h1 : first_rw_closure reversing_rels a b) :
-    (QuotientGroup.mk (FreeGroup.mk a) : PresentedGroup braid_rels_inf) =
+    (QuotientGroup.mk (FreeGroup.mk a) : PresentedGroup braid_rels_coexeter) =
     QuotientGroup.mk (FreeGroup.mk b) := by
   induction h1 with
   | refl a _ => rfl
@@ -105,13 +105,24 @@ theorem braid_rel_holds (h1 : first_rw_closure reversing_rels a b) :
     rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk,
       QuotientGroup.mk_mul, QuotientGroup.mk_mul, QuotientGroup.mk_mul, QuotientGroup.mk_mul,
       mul_left_inj, mul_right_inj]
+    rcases or_dist_iff.mp j
+    · apply QuotientGroup.eq'.mpr
+      show ((FreeGroup.of g)⁻¹ * FreeGroup.of e) * (FreeGroup.of g * (FreeGroup.of e)⁻¹) ∈ _
+      apply Subgroup.conjugatesOfSet_subset_normalClosure ; apply Group.mem_conjugatesOfSet_iff.mpr
+      use FreeGroup.of e * FreeGroup.of g * (FreeGroup.of e)⁻¹ * (FreeGroup.of g)⁻¹
+      constructor
+      · apply separated
+        assumption
+      apply isConj_iff.mpr; use (FreeGroup.of g)⁻¹; group
+    symm
     apply QuotientGroup.eq'.mpr
-    show ((FreeGroup.of g)⁻¹ * FreeGroup.of e) * (FreeGroup.of g * (FreeGroup.of e)⁻¹) ∈ _
     apply Subgroup.conjugatesOfSet_subset_normalClosure ; apply Group.mem_conjugatesOfSet_iff.mpr
-    use FreeGroup.of e * FreeGroup.of g * (FreeGroup.of e)⁻¹ * (FreeGroup.of g)⁻¹
+    use FreeGroup.of g * FreeGroup.of e * (FreeGroup.of g)⁻¹ * (FreeGroup.of e)⁻¹
     constructor
-    · sorry
+    · apply separated
+      assumption
     apply isConj_iff.mpr; use (FreeGroup.of g)⁻¹; group
+    rfl
   | trans _ _ h1 h2 => exact h1.trans h2
 
 theorem grid_to_rev' (h : grid a b c d) : second_rw_closure reversing_rels'

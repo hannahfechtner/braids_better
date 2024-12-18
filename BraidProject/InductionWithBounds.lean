@@ -32,6 +32,38 @@ theorem induction_above {k : ℕ} (i j : ℕ) (h : k ≤ Nat.dist i j)
   · exact base_case
   exact inductive_case
 
+
+theorem induction_above_diff {k : ℕ} (i j : ℕ) (h : k ≤ j-i)
+    (p : ℕ → ℕ → Prop) (base_case : ∀ i' j', j'-i' = k → p i' j')
+    (inductive_case : ∀ i' j', k + 1 ≤ j'-i' →
+    (∀ i'' j'' : ℕ, k <= j''- i'' → (j''-i'' < j' -i') →  p i'' j'') →
+    p i' j') : p i j := by
+  have : ∀ t, ∀ i j, j-i = t+k → (∀ i' j', j'-i' = k → p i' j') →
+      (∀ i' j', k + 1 <= j'-i' → (∀ i'' j'' : ℕ, k <= j''-i'' →
+      (j'' -i'' < j'-i') →  p i'' j'') → p i' j') → p i j := by
+    intro t
+    induction t using Nat.caseStrongInductionOn
+    · intro i j ad_is bbase_case _
+      rw [zero_add] at ad_is
+      exact bbase_case _ _ ad_is
+    rename_i k' hk'
+    intro new_i new_j new_ad_is _ n_ic
+    apply n_ic
+    · rw [new_ad_is]
+      rw [Nat.succ_eq_add_one, add_comm, add_assoc, add_comm]
+      exact Nat.le_add_left (k + 1) k'
+    intro one two bigger_than smaller_thing
+    apply hk' ((two-one) - k)
+    · rw [new_ad_is, Nat.succ_add k' k] at smaller_thing
+      exact Nat.sub_le_of_le_add (Nat.lt_succ.mp smaller_thing)
+    · exact Nat.eq_add_of_sub_eq bigger_than rfl
+    · exact base_case
+    exact n_ic
+  apply this ((j-i) - k) i j
+  · exact Nat.eq_add_of_sub_eq h rfl
+  · exact base_case
+  exact inductive_case
+
 -- startting at two. again, m,ore general version is above
 theorem induction_above_two (i j : ℕ) (h : 2 ≤ Nat.dist i j)
     (p : ℕ → ℕ → Prop) (base_case : ∀ i' j', Nat.dist i' j' = 2 → p i' j')
