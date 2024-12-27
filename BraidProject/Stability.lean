@@ -24,9 +24,12 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
       have af := helpier_ij h2 _ _ (or_dist_iff.mp hik) rfl rfl
       rw [ud.2, af.1, af.2]
       use of i, of k * of j
-      exact ⟨grid.horizontal (grid.separated i k (or_dist_iff.mp hik))
-        (grid.separated i j (or_dist_iff.mp hij)),
+      exact ⟨grid.horizontal (grid.separated i k hik)
+        (grid.separated i j hij),
         ⟨rfl, PresentedMonoid.sound (BraidMonoidInf.comm_rel h)⟩⟩
+      -- exact ⟨grid.horizontal (grid.separated i k (or_dist_iff.mp hik))
+      --   (grid.separated i j (or_dist_iff.mp hij)),
+      --   ⟨rfl, PresentedMonoid.sound (BraidMonoidInf.comm_rel h)⟩⟩
     rename_i last_two
     rcases last_two
     · rename_i one two
@@ -36,8 +39,10 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
       use of i * of k, of k * of i * of j
       constructor
       · rw [Nat.dist_comm] at h
-        have H := (grid.vertical (grid.separated i j (or_dist_iff.mp one))
-          (grid.separated k j (or_dist_iff.mp h)))
+        have H := (grid.vertical (grid.separated i j one)
+          (grid.separated k j h))
+        -- have H := (grid.vertical (grid.separated i j (or_dist_iff.mp one))
+        --   (grid.separated k j (or_dist_iff.mp h)))
         exact grid.horizontal (grid.adjacent i k two) H
       have H := helpier_close h2 i k two rfl rfl
       constructor
@@ -68,7 +73,8 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
     · rename_i one two
       use of i * of j, of k * of j * of i
       constructor
-      · apply grid.horizontal (grid.separated i k (or_dist_iff.mp two)) (grid.adjacent i j one)
+      · apply grid.horizontal (grid.separated i k two) (grid.adjacent i j one)
+        --apply grid.horizontal (grid.separated i k (or_dist_iff.mp two)) (grid.adjacent i j one)
       have ud := helpier_close h1 i j one rfl rfl
       rw [ud.1] at h2
       rw [ud.2]
@@ -107,9 +113,12 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
       constructor
       · rw [Nat.dist_comm] at hij
         apply grid.horizontal (grid.adjacent i k hik) (grid.vertical (grid.adjacent i j hij)
-          (grid.horizontal (grid.separated k j
-          (or_dist_iff.mp (by rw [Nat.dist_comm] at h; exact h)))
+          (grid.horizontal (grid.separated k j (by rw [Nat.dist_comm] at h; exact h))
           (grid.adjacent k i (by rw [Nat.dist_comm] at hik; exact hik))))
+        -- apply grid.horizontal (grid.adjacent i k hik) (grid.vertical (grid.adjacent i j hij)
+        --   (grid.horizontal (grid.separated k j
+        --   (or_dist_iff.mp (by rw [Nat.dist_comm] at h; exact h)))
+        --   (grid.adjacent k i (by rw [Nat.dist_comm] at hik; exact hik))))
       constructor
       · rename_i a_is
         rw [a_is, c₁u₁.1, c₂d₂.1]
@@ -155,7 +164,8 @@ theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
     · apply grid.horizontal _ (grid.top_left j)
       apply grid.separated
       rw [← one]
-      exact or_dist_iff.mp two
+      exact two
+      --exact or_dist_iff.mp two
     rw [one] at h1
     have ud := helpier_eq h1 _ rfl rfl
     rw [ud.1] at h2
@@ -193,9 +203,12 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
       have af := helpier_ij h3 _ _ (or_dist_iff.mp hij) rfl rfl
       use of i, of k * of j * of k
       constructor
-      · apply grid.horizontal (grid.separated i k (or_dist_iff.mp hik))
-          (grid.horizontal (grid.separated i j (or_dist_iff.mp hij))
-          (grid.separated i k (or_dist_iff.mp hik)))
+      · apply grid.horizontal (grid.separated i k hik)
+          (grid.horizontal (grid.separated i j hij)
+          (grid.separated i k hik))
+      -- · apply grid.horizontal (grid.separated i k (or_dist_iff.mp hik))
+      --     (grid.horizontal (grid.separated i j (or_dist_iff.mp hij))
+      --     (grid.separated i k (or_dist_iff.mp hik)))
       constructor
       · rw [af.1]
       rw [ve.2, ug.2, af.2]
@@ -217,12 +230,22 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
         (grid.vertical (grid.separated i j _) (grid.adjacent k j _))
         (grid.vertical (grid.adjacent i k hik)
         (grid.horizontal (grid.vertical (grid.top_left k) (grid.sides j))
-        (grid.vertical (grid.top_bottom i) (grid.separated j i (or_dist_iff.mp _))))))
-        · exact or_dist_iff.mp hij
+        (grid.vertical (grid.top_bottom i) (grid.separated j i _)))))
+        · exact hij
         · rw [Nat.dist_comm] at h
           exact h
         rw [Nat.dist_comm] at hij
         exact hij
+      -- · apply grid.horizontal (grid.adjacent i k hik) (grid.horizontal
+      --   (grid.vertical (grid.separated i j _) (grid.adjacent k j _))
+      --   (grid.vertical (grid.adjacent i k hik)
+      --   (grid.horizontal (grid.vertical (grid.top_left k) (grid.sides j))
+      --   (grid.vertical (grid.top_bottom i) (grid.separated j i (or_dist_iff.mp _))))))
+      --   · exact or_dist_iff.mp hij
+      --   · rw [Nat.dist_comm] at h
+      --     exact h
+      --   rw [Nat.dist_comm] at hij
+      --   exact hij
       constructor
       · rw [hc, c₁w.1, c₂f.1, mul_assoc]
       rw [ve.2, ug.2, c₂f.2]
@@ -282,9 +305,12 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
       use of i * of j * of k, of k * of j * of i * of k * of j
       constructor
       -- again, why does exact not work here?
-      · apply grid.horizontal (grid.separated i k (or_dist_iff.mp hik))
+      · apply grid.horizontal (grid.separated i k hik)
           (grid.horizontal (grid.adjacent i j hij)
-          (grid.vertical (grid.separated i k (or_dist_iff.mp hik)) (grid.adjacent j k h)))
+          (grid.vertical (grid.separated i k hik) (grid.adjacent j k h)))
+      -- · apply grid.horizontal (grid.separated i k (or_dist_iff.mp hik))
+      --     (grid.horizontal (grid.adjacent i j hij)
+      --     (grid.vertical (grid.separated i k (or_dist_iff.mp hik)) (grid.adjacent j k h)))
       constructor
       · rw [one_mul, mul_assoc]
       apply PresentedMonoid.sound

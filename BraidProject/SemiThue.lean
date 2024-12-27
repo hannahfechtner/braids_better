@@ -87,6 +87,8 @@ inductive grid_style : List (Bool × Option ℕ) → List (Bool × Option ℕ) �
 | close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style [(false, i), (true, j)]
     [(true, j), (true, i), (false, j), (false, i)]
 
+-- theorem helper (h : remove_ones a₀' = c₀*a₁*d₀) (h2 : reversing_option a₁ a₂) :
+--   ∃ c₁ d₁, move_ones a₀' = c₁ * a1 * d₁ ∧ remove_ones c₁ = c₁ ∧ remove_ones d₁ = d₀ := by sorry
 -- theorem List.length_eq_two {l : List α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
 --   ⟨fun _ => let [a, b] := l; ⟨a, b, rfl⟩, fun ⟨_, _, e⟩ => e ▸ rfl⟩
 
@@ -342,24 +344,34 @@ instance {r : α → α → Prop} [IsTrichotomous α r] : IsTrichotomous (List �
 instance : IsTrichotomous (List (Bool × Option ℕ))
     (List.Lex (Prod.Lex (fun (a b : Bool) => a < b) option_rel)) := by infer_instance
 
+def lexAccessible {a : α} (aca : Acc ra a) (acb : (b : β) → Acc rb b) (b : β) : Acc (Prod.Lex ra rb) (a, b) := by
+  induction aca generalizing b with
+  | intro xa _ iha =>
+    induction (acb b) with
+    | intro xb _ ihb =>
+      apply Acc.intro (xa, xb)
+      intro p lt
+      cases lt with
+      | left  _ _ h => apply iha _ h
+      | right _ h   => apply ihb _ h
+
+def lexAccessible_same : Acc (Prod.Lex (fun a b => a < b) (List.Lex (Prod.Lex (fun (a b : Bool) => a < b) option_rel))) b := by
+  apply Acc.intro
+
+
 instance : WellFoundedRelation (List (Bool × Option ℕ)) where
-  rel := List.Lex (Prod.Lex (fun (a b : Bool) => a < b) option_rel)
+  rel := fun a b => Prod.Lex (fun a b => a < b) (List.Lex (Prod.Lex (fun (a b : Bool) => a < b) option_rel)) (a.length, a) (b.length, b)
   wf := by
     apply WellFounded.intro
     intro y
     apply Acc.intro
     intro a h
+    simp only at h
     cases h with
-    | nil =>
-      apply Acc.intro
-      intro y ylt
-      exfalso
-      simp only [List.Lex.not_nil_right] at ylt
-    | cons h =>
-      rename_i c l1 l2
-      apply Acc.intro; intro y ylt
-      sorry
-    | rel h => sorry
+    | left b₁ b₂ h =>
+      apply lexAccessible
+      intro y1 h1
+    | right a h => sorry
 
 -- def find_it (L : List α) (r : List α) : Option (List α × List α × List α) := sorry
 

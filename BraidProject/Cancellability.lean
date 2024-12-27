@@ -56,7 +56,7 @@ theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d
   | adjacent i k h => exact fun _ _ three => helpier_close three _ _ h rfl rfl
   | separated i j h =>
     intro one two three
-    exact helpier_ij three _ _ h rfl rfl
+    exact helpier_ij three _ _ (or_dist_iff.mp h) rfl rfl
   | vertical _ _ h_ih h'_ih =>
     intro c' d' gr
     rcases splittable_horizontally_of_grid gr _ _ rfl with ⟨u, c₁, c₂, gr1, gr2, c_is⟩

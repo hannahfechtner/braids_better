@@ -56,6 +56,7 @@ inductive second_rw_closure (rels : FreeMonoid (α × Bool) → FreeMonoid (α �
   | right : second_rw_closure rels a b → second_rw_closure rels (a * d) (b * d)
   | trans : second_rw_closure rels a b → second_rw_closure rels b c → second_rw_closure rels a c
 
+
 -- theorem uniqueness (a : List (α × Bool)) (h1 : first_rw_closure reversing_rels a b)
 --     (h2 : first_rw_closure reversing_rels a c) (hc : in_order c) (hb : in_order b) : b = c := by
 --   induction h1 with
@@ -137,7 +138,7 @@ theorem grid_to_rev' (h : grid a b c d) : second_rw_closure reversing_rels'
   | top_left i => exact second_rw_closure.reg (reversing_rels'.inverse _)
   | adjacent i k h => exact second_rw_closure.reg (reversing_rels'.adjacent _ _ h)
   | separated i j h =>
-    exact second_rw_closure.reg (reversing_rels'.separated i j (or_dist_iff.mpr h))
+    exact second_rw_closure.reg (reversing_rels'.separated i j h)
   | vertical h1 h2 h1_ih h2_ih =>
     rw [FreeMonoid'.reverse_mul, FreeMonoid'.reverse_mul, map_mul, map_mul, mul_assoc]
     apply (second_rw_closure.left h1_ih).trans
@@ -205,7 +206,7 @@ theorem rev'_to_grid {a b c d : FreeMonoid' ℕ} (h : second_rw_closure reversin
         have H : a = FreeMonoid.of i ∧ b = FreeMonoid.of j ∧ d = FreeMonoid.of j ∧ c = FreeMonoid.of i := by sorry
         rw [H.1, H.2.1, H.2.2.1, H.2.2.2]
         apply grid.separated
-        exact or_dist_iff.mp h
+        exact h
     | left g h =>
       rename_i i j k
       induction k using FreeMonoid'.inductionOn'

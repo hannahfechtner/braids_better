@@ -304,9 +304,8 @@ theorem i_adjacent : grid a b c d → ia a b c d := by
   | separated i j h =>
     intro i j h1 h2 d
     rw [FreeMonoid'.of_injective h1.symm, FreeMonoid'.of_injective h2.symm] at d
-    have H := or_dist_iff.mpr h
-    rw [d] at H
-    simp at H
+    rw [d] at h
+    simp at h
   | vertical h1 h2 h1_ih h2_ih =>
     intro i j ha hb d
     rw [hb] at h1
@@ -360,13 +359,15 @@ theorem helpier_eq {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_eq a b c 
     simp at dist
   · intro k eq1 eq2
     rename_i dist
-    rcases dist
-    · rename_i ih
-      rw [of_injective eq1, of_injective eq2] at ih
-      linarith [ih]
-    rename_i ih
-    rw [of_injective eq1, of_injective eq2] at ih
-    linarith [ih]
+    rw [of_injective eq1, of_injective eq2] at dist
+    simp at dist
+    -- rcases dist
+    -- · rename_i ih
+    --   rw [of_injective eq1, of_injective eq2] at ih
+    --   linarith [ih]
+    -- rename_i ih
+    -- rw [of_injective eq1, of_injective eq2] at ih
+    -- linarith [ih]
   · rename_i e f g h i j k l m n o
     intro p eq1 eq2
     rcases FreeMonoid.prod_eq_of eq1
@@ -449,23 +450,25 @@ theorem helpier_close {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_close 
     rename_i e f apart
     rw [← of_injective one, ← of_injective two] at dist
     exfalso
-    rcases apart
-    · rename_i lt
-      rcases or_dist_iff_eq.mp dist
-      · rename_i f_is
-        rw [← f_is] at lt
-        linarith [lt]
-      rename_i e_is
-      rw [← e_is] at lt
-      linarith [lt]
-    rename_i gt
-    rcases or_dist_iff_eq.mp dist
-    · rename_i f_is
-      rw [← f_is] at gt
-      linarith [gt]
-    rename_i e_is
-    rw [← e_is] at gt
-    linarith [gt]
+    rw [dist] at apart
+    linarith [apart]
+    -- rcases apart
+    -- · rename_i lt
+    --   rcases or_dist_iff_eq.mp dist
+    --   · rename_i f_is
+    --     rw [← f_is] at lt
+    --     linarith [lt]
+    --   rename_i e_is
+    --   rw [← e_is] at lt
+    --   linarith [lt]
+    -- rename_i gt
+    -- rcases or_dist_iff_eq.mp dist
+    -- · rename_i f_is
+    --   rw [← f_is] at gt
+    --   linarith [gt]
+    -- rename_i e_is
+    -- rw [← e_is] at gt
+    -- linarith [gt]
   · rename_i e f g h i j k l m n o
     intro p q dist one two
     rcases FreeMonoid.prod_eq_of one

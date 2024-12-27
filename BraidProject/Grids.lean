@@ -3,13 +3,14 @@ import Mathlib.Data.Nat.Dist
 open FreeMonoid'
 /-- a reversing grid, inductively defined as the set of basic cells, and a vertical and horizontal
 closure under appending-/
+
 inductive grid : FreeMonoid' ℕ → FreeMonoid' ℕ → FreeMonoid' ℕ → FreeMonoid' ℕ → Prop
-  | empty : (grid 1 1 1 1 : Prop)
-  | top_bottom (i : ℕ) : grid 1 (of i) 1 (FreeMonoid'.of i)
+  | empty : grid 1 1 1 1
+  | top_bottom (i : ℕ) : grid 1 (of i) 1 (.of i)
   | sides (i : ℕ) : grid (of i) 1 (of i) 1
   | top_left (i : ℕ) : grid (of i) (of i) 1 1
-  | adjacent (i k : ℕ) (h : Nat.dist i k = 1) : grid (of i) (of k) (of i * of k) (of k * of i)
-  | separated (i j : ℕ) (h : i +2 ≤ j ∨ j+2 <= i) : grid (of i) (of j) (of i) (of j)
+  | adjacent (i k : ℕ) (h : i.dist k = 1) : grid (of i) (of k) (of i * of k) (of k * of i)
+  | separated (i j : ℕ) (h : i.dist j > 1) : grid (of i) (of j) (of i) (of j)
   | vertical (h1: grid u v u' v') (h2 : grid a v' c d) : grid (u * a) v (u' * c) d
   | horizontal (h1: grid u v u' v') (h2 : grid u' b c d) : grid u (v * b) c (v' * d)
 
@@ -21,7 +22,7 @@ theorem grid_swap : grid a b c d → grid b a d c := by
   | sides i => exact grid.top_bottom i
   | top_left i => exact grid.top_left i
   | adjacent i k h => exact grid.adjacent k i (by rw [Nat.dist_comm] at h; exact h)
-  | separated i j h => exact grid.separated j i h.symm
+  | separated i j h => exact grid.separated j i (by rw [Nat.dist_comm] at h; exact h)
   | vertical _ _ h1 h2 => exact grid.horizontal h1 h2
   | horizontal _ _ h1 h2 => exact grid.vertical h1 h2
 
@@ -69,7 +70,7 @@ theorem braid_eq_of_grid (h : grid a b c d) :
       apply braid_rels_m_inf.adjacent
   | separated i j h =>
       apply PresentedMonoid.sound
-      rcases h
+      rcases or_dist_iff.mp h
       · rename_i h1
         apply Con'Gen.Rel.of
         exact braid_rels_m_inf.separated _ _ h1
