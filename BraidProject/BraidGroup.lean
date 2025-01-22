@@ -5,26 +5,25 @@ import Mathlib.Topology.Maps
 import Mathlib.Data.Fin.Basic
 import BraidProject.BraidMonoid
 
---set_option autoImplicit false
 namespace Braid
 
 variable (M : α → α → ℕ)
 
-def artin_tits (a b : α) (k : ℕ) :=
+def alternate (a b : α) (k : ℕ) :=
   match k with
   | 0 => 1
-  | Nat.succ n => FreeGroup.of a * artin_tits b a n
+  | Nat.succ n => FreeGroup.of a * alternate b a n
 
-def artin_tits_rel : α → α → FreeGroup (α) := fun i j => artin_tits i j (M i j) * (artin_tits j i (M i j))⁻¹
-
-@[simp]
-theorem artin_tits_one (a b : α) : artin_tits a b 1 = .of a := rfl
+def artin_tits_rel : α → α → FreeGroup (α) := fun i j => alternate i j (M i j) * (alternate j i (M i j))⁻¹
 
 @[simp]
-theorem artin_tits_two (a b : α) : artin_tits a b 2 = .of a * .of b := rfl
+theorem alternate_one (a b : α) : alternate a b 1 = .of a := rfl
 
 @[simp]
-theorem artin_tits_three (a b : α) : artin_tits a b 3 = .of a * .of b * .of a := rfl
+theorem alternate_two (a b : α) : alternate a b 2 = .of a * .of b := rfl
+
+@[simp]
+theorem alternate_three (a b : α) : alternate a b 3 = .of a * .of b * .of a := rfl
 
 def M_braid (i j : ℕ) : ℕ :=
   match j-i with
@@ -67,10 +66,6 @@ theorem M_braid_fin_close (i : Fin n) : M_braid_fin i.castSucc i.succ = 3 := by
   simp only [add_eq_zero, one_ne_zero, and_false, and_self, add_left_eq_self, or_self, ↓reduceIte,
     Fin.coe_castSucc, Fin.val_succ]
   exact M_braid_close
-
-theorem foo (a b : Fin n) (h : a + b < n) : (a+b).val = a.val + b.val := by
-  rw [Fin.val_add_eq_ite]
-  simp only [ite_eq_right_iff, isEmpty_Prop, not_le, h, IsEmpty.forall_iff]
 
 def braid_rels_coexeter : Set (FreeGroup ℕ) :=
   Set.range (Function.uncurry (artin_tits_rel M_braid))
@@ -122,7 +117,7 @@ theorem braid_group.braid (i : Fin n) :
   apply Set.mem_range.mpr
   use (i.castSucc, i.succ)
   rw [Function.uncurry_apply_pair, Braid.artin_tits_rel, M_braid_fin_close i]
-  simp only [Nat.pred_succ, artin_tits_three, mul_inv_rev, Nat.succ_eq_add_one, inv_inv, mul_one]
+  simp only [Nat.pred_succ, alternate_three, mul_inv_rev, Nat.succ_eq_add_one, inv_inv, mul_one]
 
 theorem braid_group_inf.braid (i : ℕ) :
     σi i * σi i.succ * σi i = σi i.succ * σi i * σi i.succ := by
@@ -132,7 +127,7 @@ theorem braid_group_inf.braid (i : ℕ) :
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, i + 1)
-  simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_close, artin_tits_three, mul_inv_rev,
+  simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_close, alternate_three, mul_inv_rev,
     Nat.succ_eq_add_one, inv_inv, mul_one]
 
 theorem braid_group.comm {i j : Fin n} (h : i ≤ j) :
@@ -144,7 +139,7 @@ theorem braid_group.comm {i j : Fin n} (h : i ≤ j) :
   apply Set.mem_range.mpr
   use (i.castSucc.castSucc, j.succ.succ)
   rw [Function.uncurry_apply_pair, Braid.artin_tits_rel, M_braid_fin_apart i j h]
-  simp only [artin_tits_two, mul_inv_rev, inv_inv, mul_one]
+  simp only [alternate_two, mul_inv_rev, inv_inv, mul_one]
 
 theorem separated (h :e + 2 ≤ g) : FreeGroup.of e * .of g * (.of e)⁻¹ * (.of g)⁻¹ ∈ braid_rels_coexeter := by
   unfold braid_rels_coexeter
@@ -164,7 +159,7 @@ theorem braid_group_inf.comm {i j : ℕ} (h : i + 2 ≤ j) :
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, j)
-  simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_apart h, artin_tits_two, mul_inv_rev,
+  simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_apart h, alternate_two, mul_inv_rev,
     inv_inv, mul_one]
 
 theorem generated_by (H : Subgroup braid_group_inf) (h : ∀ i : ℕ, σi i ∈ H) :
