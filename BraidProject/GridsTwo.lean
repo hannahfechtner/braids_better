@@ -54,11 +54,9 @@ theorem all_ones_better (h1 : grid 1 1 c d) : c = 1 ∧ d = 1 := all_ones h1 rfl
 --   rw [o.2, n.2]
 --   exact ⟨o.1, rfl⟩
 
-theorem i_top_bottom : grid 1 (of i) c d → (c = 1 ∧ d = of i) := by
-  intro h
+theorem i_top_bottom {i : ℕ} (h : grid 1 (of i) c d) : c = 1 ∧ d = of i := by
   generalize hb : of i = b at h
   generalize ha : (1 : FreeMonoid' ℕ) = a at h
-  --intro h
   induction h with
   | empty => exact (of_neq_one _ hb).elim
   | top_bottom i => exact ⟨rfl, rfl⟩
@@ -91,99 +89,50 @@ theorem i_top_bottom : grid 1 (of i) c d → (c = 1 ∧ d = of i) := by
     rw [H.2, mul_one, h1_ih.2]
     exact ⟨H.1, h4.1⟩
 
--- theorem i_top_bottom' : grid a b c d → itb a b c d := by
---   intro h
---   induction h
---   · exact fun _ one two => ⟨one, two⟩
---   · exact fun _ one two => ⟨one, two⟩
---   · exact fun _ one two => ⟨one, two⟩
---   · exact fun _ one two => ⟨rfl, one.symm.trans two⟩
---   · intro a one two
---     rw [one, of_injective two]
---     exact ⟨(of_neq_one _ one).elim, rfl⟩
---   · exact fun _ one two => ⟨one, two⟩
---   · rename_i o p
---     intro i one two
---     rw [(FreeMonoid.prod_eq_one one).1, two] at o
---     rw [(FreeMonoid.prod_eq_one one).2] at p
-  --   specialize o i rfl rfl
-  --   rw [o.1]
-  --   rw [o.2] at p
-  --   specialize p i rfl rfl
-  --   rw [p.1, p.2]
-  --   exact ⟨rfl, rfl⟩
-  -- rename_i g h j k l m n o p
-  -- intro i one two
-  -- rw [one] at o
-  -- rcases FreeMonoid.prod_eq_of two
-  -- · rename_i prod_is
-  --   rw [prod_is.1] at o
-  --   have H : g = 1 ∧ h = 1 := by
-  --     rw [prod_is.1, one] at m
-  --     exact all_ones m rfl rfl
-  --   rw [H.1, prod_is.2] at p
-  --   rw [H.2]
-  --   specialize p i rfl rfl
-  --   rw [p.1, p.2]
-  --   exact ⟨rfl, rfl⟩
-  -- rename_i prod_is
-  -- rw [prod_is.1] at o
-  -- specialize o i rfl rfl
-  -- rw [prod_is.2, o.1] at p
-  -- have H : k = 1 ∧ l = 1 := by
-  --   rw [o.1, prod_is.2] at n
-  --   exact all_ones n rfl rfl
-  -- rw [H.1, H.2, o.2]
-  -- exact ⟨rfl, rfl⟩
-
-def iss (a b c d : FreeMonoid' ℕ) := ∀ i, a = of i → b = 1 → (c = of i ∧ d = 1)
-
-theorem i_side_side : grid a b c d → iss a b c d := by
-  intro h
+theorem i_side_side (h : grid (of i) 1 c d) : c = of i ∧ d = 1 := by
+  generalize one : of i = a at h
+  generalize two : (1 : FreeMonoid' ℕ) = b at h
   induction h
-  · exact fun _ one two => ⟨one, two⟩
-  · exact fun _ one two => ⟨one, two⟩
-  · exact fun _ one two => ⟨one, two⟩
-  · exact fun _ one two => ⟨two.symm.trans one, rfl⟩
-  · intro a one two
-    rw [one, two]
+  · exact ⟨rfl, rfl⟩
+  · exact (of_neq_one _ two.symm).elim
+  · exact ⟨rfl, rfl⟩
+  · exact ⟨two, two⟩
+  · rw [← two]
     constructor
     · rfl
-    exact (of_neq_one _ two).elim
-  · exact fun _ one two => ⟨one, two⟩
+    exact (of_neq_one _ two.symm).elim
+  · exact ⟨rfl, rfl⟩
   · rename_i e f g h j k l m n o p
-    intro i one two
     rw [two] at o
-    rcases FreeMonoid.prod_eq_of one
+    rcases FreeMonoid.prod_eq_of one.symm
     · rename_i prod_is
       rw [prod_is.1] at o
       have H : g = 1 ∧ h = 1 := by
         rw [prod_is.1, two] at m
-        exact all_ones m rfl rfl
+        exact all_ones m two.symm two.symm
       rw [H.2, prod_is.2] at p
       rw [H.1]
-      specialize p i rfl rfl
-      rw [p.1, p.2]
-      exact ⟨rfl, rfl⟩
+      specialize p rfl rfl
+      rw [p.1, p.2, prod_is.1, prod_is.2]
+      exact ⟨rfl, two⟩
     rename_i prod_is
     rw [prod_is.1] at o
-    specialize o i rfl rfl
+    specialize o rfl rfl
     rw [prod_is.2, o.2] at p
     have H : k = 1 ∧ l = 1 := by
       rw [o.2, prod_is.2] at n
-      exact all_ones n rfl rfl
-    rw [H.1, H.2, o.1]
-    exact ⟨rfl, rfl⟩
+      exact all_ones n rfl two.symm
+    rw [H.1, H.2, o.1, prod_is.1, prod_is.2]
+    exact ⟨rfl, two⟩
   rename_i o p
-  intro i one two
-  rw [(FreeMonoid.prod_eq_one two).1, one] at o
-  rw [(FreeMonoid.prod_eq_one two).2] at p
-  specialize o i rfl rfl
+  rw [(FreeMonoid.prod_eq_one two.symm).1, one] at o
+  rw [(FreeMonoid.prod_eq_one two.symm).2] at p
+  specialize o rfl rfl
   rw [o.2]
   rw [o.1] at p
-  specialize p i rfl rfl
+  specialize p one rfl
   rw [p.2]
-  exact ⟨p.1, rfl⟩
+  exact ⟨p.1, two⟩
 
 def itl (a b c d : FreeMonoid' ℕ) := ∀ i, a = FreeMonoid'.of i → b = FreeMonoid'.of i → c = 1 ∧ d = 1
 
@@ -228,7 +177,7 @@ theorem i_top_left : grid a b c d → itl a b c d := by
     rcases FreeMonoid.prod_eq_of hb
     · rename_i ua
       rw [ua.1] at h1
-      have H_idk := i_side_side h1 _ rfl rfl
+      have H_idk := i_side_side h1
       rw [H_idk.1, ua.2] at h2_ih
       specialize h2_ih _ rfl rfl
       rw [h2_ih.1, h2_ih.2, H_idk.2]
@@ -270,7 +219,6 @@ theorem word_top_bottom : ∀ a b c, grid c 1 a b → a = c ∧ b = 1 := by
   specialize h (of a) b rfl
   rcases h with ⟨u, c₁, c₂, h1, h2, h3⟩
   apply i_side_side at h1
-  specialize h1 a rfl rfl
   rw [h1.2] at h2
   rw [h1.1] at h3
   specialize ih c₂ d h2
@@ -332,7 +280,7 @@ theorem i_adjacent : grid a b c d → ia a b c d := by
     rcases FreeMonoid.prod_eq_of hb
     · rename_i ua
       rw [ua.1] at h1
-      have u'v' := i_side_side h1 _ rfl rfl
+      have u'v' := i_side_side h1
       rw [ua.2, u'v'.1] at h2_ih
       specialize h2_ih _ _ rfl rfl d
       rw [u'v'.2, h2_ih.1, h2_ih.2, one_mul]
@@ -392,7 +340,7 @@ theorem helpier_eq {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_eq a b c 
   rcases FreeMonoid.prod_eq_of eq2
   · rename_i fi
     rw [eq1, fi.1] at l
-    have gh := i_side_side l p rfl rfl
+    have gh := i_side_side l
     rw [gh.1, fi.2] at o
     specialize o p rfl rfl
     rw [o.1, o.2, mul_one]
@@ -494,7 +442,7 @@ theorem helpier_close {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_close 
   · rename_i ih
     rw [ih.1, one] at l
     rw [ih.1] at n
-    have H := i_side_side l _ rfl rfl
+    have H := i_side_side l
     rw [H.2]
     rw [ih.2, H.1] at o
     specialize o _ _ dist rfl rfl
@@ -581,7 +529,7 @@ theorem helpier_ij {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_st a b c 
   · rename_i one_way
     rw [one_way.1] at n
     rw [p_is, one_way.1] at l
-    have H := i_side_side l p rfl rfl
+    have H := i_side_side l
     rw [H.2]
     rw [H.1, one_way.2] at o
     specialize o p q or_thing rfl rfl
@@ -591,8 +539,8 @@ theorem helpier_ij {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_st a b c 
   rw [another.1] at n
   specialize n p q or_thing rfl rfl
   rw [n.2]
-  rw [n.1, another.2] at o
-  have H := i_side_side m p n.1 another.2
+  rw [another.2, n.1] at m
+  have H := i_side_side m
   rw [H.2]
   exact ⟨H.1, rfl⟩
 

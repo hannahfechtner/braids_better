@@ -287,7 +287,7 @@ theorem braid_rel_inf_to_fin (n : ℕ) (a b : FreeMonoid' ℕ) (bounded_a: ∀ x
       have h_finset := FreeMonoid'.mem_symbols.mpr hb
       have H : x∈ a := by
         have H1 : a.symbols = b.symbols :=
-          congrArg BraidMonoidInf.braid_generators (BraidMonoidInf.sound ab)
+          congrArg BraidMonoidInf.generators (BraidMonoidInf.sound ab)
         have H2 : x ∈ b.symbols := by exact h_finset
         rw [← H1] at H2
         exact FreeMonoid'.mem_symbols.mp H2
@@ -359,11 +359,11 @@ theorem flipit2 : make_fin' n (FreeMonoid'.map (fun i => i.val) v  *  u') bounde
     }
     simp only [mul_left_inj]
     apply fin_flop
+
 theorem rel_restriction {n : ℕ} (u v : FreeMonoid' (Fin n.pred)) (u' v' : FreeMonoid' ℕ)
-    (u'_bound : ∀x, x∈ u' → x < n.pred) (v'_bound : ∀x, x∈ v' → x < n.pred)
-    (br_inf_holds : BraidMonoidInf.mk ((FreeMonoid'.map (fun i => i.val) u)  *  v') =
-    BraidMonoidInf.mk (FreeMonoid'.map (fun i => i.val) v  *  u'))
-    (_ : ∀ (x : ℕ), x ∈ u' ∨ x ∈ v' → x < n.pred) :
+    (u'_bound : ∀ x ∈ u', x < n.pred) (v'_bound : ∀ x ∈ v', x < n.pred)
+    (br_inf_holds : BraidMonoidInf.mk (FreeMonoid'.map (fun i => i.val) u * v') =
+    BraidMonoidInf.mk (FreeMonoid'.map (fun i => i.val) v  *  u')) :
     BraidMonoid.mk _ (u  *  make_fin' n v' v'_bound) =
     BraidMonoid.mk _ (v  *  make_fin' n u' u'_bound) := by
   have bounded_a : ∀ (x : ℕ), x ∈ FreeMonoid'.map (fun i => i.val) u  *  v' → x < n.pred := by
@@ -397,4 +397,4 @@ theorem common_right_mul_fin {n : ℕ} (u v : FreeMonoid' (Fin n.pred)) :
   rcases common_right_mul_souped_three u v with ⟨u', v', huv'⟩
   use (make_fin' n u' (fun t t_h => huv'.right t (Or.inl t_h)))
   use (make_fin' n v' (fun t t_h => huv'.right t (Or.inr t_h)))
-  exact rel_restriction _ _ _ _ _ _ huv'.1 huv'.2
+  exact rel_restriction _ _ _ _ _ _ huv'.1

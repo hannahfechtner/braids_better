@@ -87,6 +87,15 @@ inductive grid_style : List (Bool × Option ℕ) → List (Bool × Option ℕ) �
 | close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style [(false, i), (true, j)]
     [(true, j), (true, i), (false, j), (false, i)]
 
+inductive grid_style' : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Prop
+| basic {n : ℕ} : grid_style' [(some n, false), (some n, true)] [(none, true), (none, false)]
+| over {n : ℕ} : grid_style' [(n, false), (none, true)] [(none, true), (n, false)]
+| up {n : ℕ} : grid_style' [(none, false), (some n, true)] [(n, true), (none, false)]
+| empty : grid_style' [(none, false), (none, true)] [(none, true), (none, false)]
+| apart {i j : ℕ} (h : Nat.dist i j > 1) : grid_style' [(i, false), (j, true)] [(j, true), (i, false)]
+| close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style' [(i, false), (j, true)]
+    [(j, true), (i, true), (j, false), (i, true)]
+
 -- theorem helper (h : remove_ones a₀' = c₀*a₁*d₀) (h2 : reversing_option a₁ a₂) :
 --   ∃ c₁ d₁, move_ones a₀' = c₁ * a1 * d₁ ∧ remove_ones c₁ = c₁ ∧ remove_ones d₁ = d₀ := by sorry
 -- theorem List.length_eq_two {l : List α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
@@ -355,23 +364,23 @@ def lexAccessible {a : α} (aca : Acc ra a) (acb : (b : β) → Acc rb b) (b : �
       | left  _ _ h => apply iha _ h
       | right _ h   => apply ihb _ h
 
-def lexAccessible_same : Acc (Prod.Lex (fun a b => a < b) (List.Lex (Prod.Lex (fun (a b : Bool) => a < b) option_rel))) b := by
-  apply Acc.intro
+-- def lexAccessible_same : Acc (Prod.Lex (fun a b => a < b) (List.Lex (Prod.Lex (fun (a b : Bool) => a < b) option_rel))) b := by
+--   apply Acc.intro
 
 
-instance : WellFoundedRelation (List (Bool × Option ℕ)) where
-  rel := fun a b => Prod.Lex (fun a b => a < b) (List.Lex (Prod.Lex (fun (a b : Bool) => a < b) option_rel)) (a.length, a) (b.length, b)
-  wf := by
-    apply WellFounded.intro
-    intro y
-    apply Acc.intro
-    intro a h
-    simp only at h
-    cases h with
-    | left b₁ b₂ h =>
-      apply lexAccessible
-      intro y1 h1
-    | right a h => sorry
+-- instance : WellFoundedRelation (List (Bool × Option ℕ)) where
+--   rel := fun a b => Prod.Lex (fun a b => a < b) (List.Lex (Prod.Lex (fun (a b : Bool) => a < b) option_rel)) (a.length, a) (b.length, b)
+--   wf := by
+--     apply WellFounded.intro
+--     intro y
+--     apply Acc.intro
+--     intro a h
+--     simp only at h
+--     cases h with
+--     | left b₁ b₂ h =>
+--       apply lexAccessible
+--       intro y1 h1
+--     | right a h => sorry
 
 -- def find_it (L : List α) (r : List α) : Option (List α × List α × List α) := sorry
 

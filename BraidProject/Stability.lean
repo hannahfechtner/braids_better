@@ -361,7 +361,7 @@ theorem stable_close (i j k : ℕ) (h : Nat.dist j k = 1) :
     rw [← k_is] at ha
     have c₁u₁ := helpier_eq ha _ rfl rfl
     rw [c₁u₁.2] at hb
-    have c₂g := i_side_side hb _ rfl rfl
+    have c₂g := i_side_side hb
     rw [hc, c₁u₁.1, c₂g.1, one_mul] at h3
     have af := helpier_eq h3 _ rfl rfl
     rw [af.1, af.2, ve.2, c₂g.2, ← k_is, mul_one, mul_one]
@@ -733,8 +733,8 @@ theorem stability (u v : FreeMonoid' ℕ) : stable u v := by
     induction t with
     | zero =>
       intro u _ _ _ length
-      have H : u.length = 0 := by linarith [length]
-      rw [FreeMonoid'.eq_one_of_length_eq_zero H]
+      have : u.length = 0 := by linarith [length]
+      rw [FreeMonoid'.eq_one_of_length_eq_zero this]
       exact stable_first_one _ _
     | succ n ih =>
       intro a b c d e f a₁ b₁ a_is b_is
@@ -750,12 +750,7 @@ theorem stability (u v : FreeMonoid' ℕ) : stable u v := by
         have easy_len2 : n + 1 ≥ (e * i * f).length + a1.length := by
           simp only [length_mul] at len
           simp only [length_mul]
-          rw [← BraidMonoidInf.length_eq da]
-          have H_ig : i.length = g.length := by
-            have H2 := BraidMonoidInf.length_eq (PresentedMonoid.sound (PresentedMonoid.rel_alone br))
-            simp only [length_mul, add_left_inj, add_right_inj] at H2
-            exact H2.symm
-          rw [H_ig]
+          rw [← BraidMonoidInf.length_eq da, ← BraidMonoidInf.length_eq (PresentedMonoid.sound (PresentedMonoid.rel_alone br))]
           assumption
         rcases stable_second ih b_is a1 easy_len2 b1 swapped_grid with ⟨a2, b2, second_fact⟩
         use a2, b2
@@ -770,12 +765,7 @@ theorem stability (u v : FreeMonoid' ℕ) : stable u v := by
         have easy_len2 : n + 1 ≥ (g * x2 * i).length + a1.length := by
           simp only [length_mul] at len
           simp only [length_mul]
-          rw [← BraidMonoidInf.length_eq da]
-          have H_ig : x.length = x2.length := by
-            have H2 := BraidMonoidInf.length_eq (PresentedMonoid.sound (PresentedMonoid.rel_alone br))
-            simp only [length_mul, add_left_inj, add_right_inj] at H2
-            exact H2.symm
-          rw [← H_ig]
+          rw [← BraidMonoidInf.length_eq da, BraidMonoidInf.length_eq (PresentedMonoid.sound (PresentedMonoid.rel_alone br))]
           assumption
         rcases stable_second ih b_is a1 easy_len2 b1 swapped_grid with ⟨a2, b2, second_fact⟩
         use a2, b2
@@ -783,14 +773,8 @@ theorem stability (u v : FreeMonoid' ℕ) : stable u v := by
       · intro ha1 hb1 hc1 ih b b_is d len c gr
         rcases ih.1 b b_is d len c gr with ⟨c₁, d₁, first_fact⟩
         have H_len : n + 1 ≥ hb1.length + d₁.length := by
-          have Hb : b₁.length = b.length := by
-            have H3 := congr_arg BraidMonoidInf.length b_is
-            simp only [BraidMonoidInf.length_mk] at H3
-            exact H3.symm
-          have Hc : c₁.length = c.length := by
-            have H3 := congr_arg BraidMonoidInf.length first_fact.2.1
-            simp only [BraidMonoidInf.length_mk] at H3
-            exact H3.symm
+          have Hb : b₁.length = b.length := (congr_arg BraidMonoidInf.length b_is).symm
+          have Hc : c₁.length = c.length := (congr_arg BraidMonoidInf.length first_fact.2.1).symm
           rw [← grid_diag_length_eq (grid_swap first_fact.1), Hb, Hc, ← grid_diag_length_eq gr]
           exact len
         rcases ih.2 b₁ rfl d₁ H_len c₁ first_fact.1 with ⟨c₂, d₂, second_fact⟩

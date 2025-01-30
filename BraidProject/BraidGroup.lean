@@ -243,18 +243,10 @@ theorem generated_by (H : Subgroup braid_group_inf) (h : ∀ i : ℕ, σi i ∈ 
 -- def embed {n : ℕ} : (BraidMonoid n) →* (braid_group (n)) :=
 --   PresentedMonoid.toMonoid (fun a => @σ (n.pred) a) (embed_helper n)
 
-theorem embed_inf_helper : ∀ (a b : FreeMonoid' ℕ),
-    (braid_rels_m_inf a b → ((FreeMonoid'.lift fun a => σi a) a : braid_group_inf)=
-    (FreeMonoid'.lift fun a => σi a) b) := by
-  intro a b h
-  rcases h
-  · rename_i j
-    simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
-    apply braid_group_inf.braid
-  simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
-  apply braid_group_inf.comm
-  next ih => exact ih
-
+theorem embed_inf_helper (a b : FreeMonoid' ℕ) (h : braid_rels_m_inf a b) :
+    (FreeMonoid'.lift fun a => σi a) a = (FreeMonoid'.lift fun a => σi a) b :=
+  braid_rels_m_inf.casesOn h braid_group_inf.braid (fun _ _ d => braid_group_inf.comm d)
+  
 def embed_inf : BraidMonoidInf →* braid_group_inf :=
   PresentedMonoid.toMonoid (fun a => σi a) embed_inf_helper
 

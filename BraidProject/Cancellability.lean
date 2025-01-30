@@ -51,7 +51,7 @@ theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d
   induction h1 with
   | empty => exact fun _ _ h2 => all_ones h2 rfl rfl
   | top_bottom i => exact fun _ _ h2 => i_top_bottom h2
-  | sides i => exact fun _ _ h2 =>  i_side_side h2 _ rfl rfl
+  | sides i => exact fun _ _ h2 =>  i_side_side h2
   | top_left i => exact fun _ _ h2 => i_top_left h2 _ rfl rfl
   | adjacent i k h => exact fun _ _ three => helpier_close three _ _ h rfl rfl
   | separated i j h =>

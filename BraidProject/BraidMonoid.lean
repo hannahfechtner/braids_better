@@ -50,14 +50,14 @@ namespace BraidMonoidInf -- end this
 
 def rel := PresentedMonoid.rel braid_rels_m_inf
 
-protected def mk := PresentedMonoid.mk (braid_rels_m_inf)
+protected def mk : FreeMonoid' ℕ → BraidMonoidInf := PresentedMonoid.mk (braid_rels_m_inf)
+
+instance : Monoid BraidMonoidInf := by unfold BraidMonoidInf; infer_instance
 
 theorem mul_mk : BraidMonoidInf.mk (a * b) = BraidMonoidInf.mk a * BraidMonoidInf.mk b :=
   rfl
 
 theorem mk_one : BraidMonoidInf.mk 1 = 1 := rfl
-
-instance : Monoid BraidMonoidInf := by unfold BraidMonoidInf; infer_instance
 
 @[induction_eliminator]
 protected theorem inductionOn {δ : BraidMonoidInf → Prop} (q : BraidMonoidInf)
@@ -90,40 +90,47 @@ theorem one_of_eq_mk_one {a : FreeMonoid' ℕ}
     (h : BraidMonoidInf.mk a = BraidMonoidInf.mk (1 : FreeMonoid' ℕ)) :
     a = (1 : FreeMonoid' ℕ) := FreeMonoid'.eq_one_of_length_eq_zero (congrArg length h)
 
-private theorem symbols_helper : ∀ (a b : FreeMonoid' ℕ), braid_rels_m_inf a b → a.symbols = b.symbols := by
-  intro a b hr
-  induction hr
-  · ext x
+private theorem symbols_helper  (a b : FreeMonoid' ℕ) (h : braid_rels_m_inf a b ) : a.symbols = b.symbols := by
+  induction h with
+  | adjacent i =>
+    ext x
     simp only [symbols_mul, symbols_of, Finset.union_assoc, Finset.mem_union, Finset.mem_singleton]
     tauto
-  simp only [symbols_mul, symbols_of]
-  exact Finset.union_comm _ _
+  | separated i j h =>
+    simp only [symbols_mul, symbols_of]
+    exact Finset.union_comm _ _
 
--- returns the set of generators appearing in a braid word
-def braid_generators : BraidMonoidInf → Finset ℕ :=
+
+/-- the set of generators appearing in a braid word -/
+def generators : BraidMonoidInf → Finset ℕ :=
   PresentedMonoid.lift_of_mul (FreeMonoid'.symbols)
-  (fun ih1 ih2 => by rw [symbols_mul, symbols_mul, ih1, ih2]) symbols_helper
+  (fun ih1 ih2 => by rw [symbols_mul, symbols_mul, ih1, ih2])
+  (fun a b h => by induction h with
+  | adjacent i =>
+    ext x
+    simp only [symbols_mul, symbols_of, Finset.union_assoc, Finset.mem_union, Finset.mem_singleton]
+    tauto
+  | separated i j h =>
+    simp only [symbols_mul, symbols_of]
+    exact Finset.union_comm _ _)
 
 @[simp]
-theorem braid_generators_one : braid_generators 1 = ∅ := rfl
+theorem generators_one : generators 1 = ∅ := rfl
 
 @[simp]
-theorem braid_generators_mk : braid_generators (BraidMonoidInf.mk a) = FreeMonoid'.symbols a :=
+theorem generators_mk : generators (BraidMonoidInf.mk a) = FreeMonoid'.symbols a :=
   rfl
 
 @[simp]
-theorem braid_generators_mul : braid_generators (a * b) =
-    braid_generators a ∪ braid_generators b := by
+theorem generators_mul : generators (a * b) =
+    generators a ∪ generators b := by
   induction' a
   induction' b
-  rw [← mul_mk, braid_generators_mk, braid_generators_mk, braid_generators_mk,
+  rw [← mul_mk, generators_mk, generators_mk, generators_mk,
     symbols_mul]
 
-private theorem reverse_helper : ∀ (a b : FreeMonoid' ℕ),
-    braid_rels_m_inf a b → (fun x ↦ mk braid_rels_m_inf x.reverse) a =
-    (fun x ↦ mk braid_rels_m_inf x.reverse) b := by
-  intro a b h
-  beta_reduce
+private theorem reverse_helper (a b : FreeMonoid' ℕ) (h : braid_rels_m_inf a b) :
+    mk braid_rels_m_inf a.reverse = mk braid_rels_m_inf b.reverse := by
   induction h with
   | adjacent i =>
     simp only [reverse_mul, reverse_of]
@@ -194,16 +201,16 @@ theorem eq_iff_reverse_eq_reverse : a = b ↔ reverse_braid a = reverse_braid b 
   intro h
   induction' a ; induction' b
   simp only [reverse_braid_mk] at h
-  apply PresentedMonoid.sound -- this should be somehow protected in the namespace
+  apply PresentedMonoid.sound
   exact rel_iff_rel_reverse_reverse.mp (PresentedMonoid.exact h)
 
 theorem singleton_eq (h : BraidMonoidInf.mk (of i) = BraidMonoidInf.mk a) : a = of i := by
-  have h1 := congrArg braid_generators h
+  have h1 := congrArg generators h
   apply congrArg length at h
   rw [length_mk, length_mk, length_of] at h
-  rw [braid_generators_mk, symbols_of] at h1
+  rw [generators_mk, symbols_of] at h1
   rcases length_eq_one.mp h.symm with ⟨b, rfl⟩
-  rw [braid_generators_mk, symbols_of, Finset.singleton_inj] at h1
+  rw [generators_mk, symbols_of, Finset.singleton_inj] at h1
   rw [h1]
 
 theorem pair_eq (h : Nat.dist j k >= 2) : BraidMonoidInf.mk (of j * of k) = BraidMonoidInf.mk v' →
@@ -211,12 +218,12 @@ theorem pair_eq (h : Nat.dist j k >= 2) : BraidMonoidInf.mk (of j * of k) = Brai
   intro h'
   have h1 := h'
   apply congrArg length at h'
-  apply congrArg braid_generators at h1
+  apply congrArg generators at h1
   rw [length_mk, length_mk] at h'
   simp only [FreeMonoid'.length_mul, length_of, Nat.reduceAdd] at h'
   have h2 := h'.symm
   rcases length_eq_two.mp h'.symm with ⟨c, d, rfl⟩
-  simp only [braid_generators_mk, symbols_mul, symbols_of] at h1
+  simp only [generators_mk, symbols_mul, symbols_of] at h1
   have H1 : j ∈ ({c} ∪ {d} : Finset ℕ) := by
     have H2 : j ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
       (Or.inl (Finset.mem_singleton.mpr rfl))
@@ -259,8 +266,8 @@ theorem pair_eq (h : Nat.dist j k >= 2) : BraidMonoidInf.mk (of j * of k) = Brai
   simp only [Nat.dist_self, ge_iff_le, nonpos_iff_eq_zero, OfNat.ofNat_ne_zero] at h
 
 -- look up what other people do in the library
-theorem triplet_eq (h : Nat.dist j k = 1) : BraidMonoidInf.mk (of j * of k * of j) =
-    BraidMonoidInf.mk v' → v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
+theorem triplet_eq {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * of k * of j)⟧ =
+   (⟦v'⟧ : BraidMonoidInf) → v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
   generalize ht : of j * of k * of j = t
   intro rel_holds
   apply BraidMonoidInf.exact at rel_holds
@@ -502,50 +509,3 @@ theorem braid_rel {j k : ℕ} (h : j.dist k = 1) :
   rename_i j_is
   rw [← j_is]
   exact braid_rels_m_inf.adjacent _
-
--- theorem mem_steps_to {n : ℕ}: ∀ (a b : FreeMonoid (Fin (Nat.pred n))),
---     StepsTo (braid_rels_m (Nat.pred n)) a b → (∀ x, x ∈ a ↔ x ∈ b) := by
---   intro a b st x
---   constructor
---   · intro in_a
---     apply FreeMonoid.mem_symbols.mp
---     apply FreeMonoid.mem_symbols.mpr at in_a
---     rw [← generators_helper _ _ st]
---     exact in_a
---   intro in_b
---   apply FreeMonoid.mem_symbols.mp
---   rw [generators_helper _ _ st]
---   exact FreeMonoid.mem_symbols.mpr in_b
-
--- theorem generators_inf : ∀ (a b : FreeMonoid ℕ),
---     EqvGen (StepsTo (braid_rels_m_inf)) a b → symbols a = symbols b :=
---   fun _ _ eg => EqvGen.rec (fun x y a => generators_helper_inf x y a)
---   (fun x => Eq.refl (symbols x)) (fun _ _ _ a_ih => a_ih.symm)
---   (fun _ _ _ _ _ a_ih a_ih_1 => a_ih.trans a_ih_1) eg
-
--- theorem mem_steps_to_inf : ∀ (a b : FreeMonoid ℕ),
---     StepsTo (braid_rels_m_inf) a b → (∀ x, x ∈ a ↔ x ∈ b) := by
---   intro a b st x
---   constructor
---   · intro in_a
---     apply FreeMonoid.mem_symbols.mp
---     rw [← generators_helper_inf _ _ st]
---     exact FreeMonoid.mem_symbols.mpr in_a
---   intro in_b
---   apply FreeMonoid.mem_symbols.mp
---   rw [generators_helper_inf _ _ st]
---   exact FreeMonoid.mem_symbols.mpr in_b
-
--- theorem generators_unique {n : ℕ} {i : Fin n.pred} {s : FreeMonoid (Fin n.pred)} (neq: s ≠ FreeMonoid.of i)
---     : ¬ StepsTo (@braid_rels_m (n.pred)) s (FreeMonoid.of i) := by
---   intro h
---   apply neq
---   have H := f_preserved_length _ _ h
---   have H1 := generators_helper _ _ h
---   rw [FreeMonoid.length_of] at H
---   match length_eq_one.mp H with
---   | ⟨a, ha⟩ =>
---     rw [ha]
---     rw [ha, symbols_of, symbols_of] at H1
---     simp only [Finset.singleton_inj] at H1
---     rw [H1]
