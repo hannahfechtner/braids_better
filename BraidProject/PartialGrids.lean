@@ -2,7 +2,6 @@ import BraidProject.Grids
 import BraidProject.Reversing
 import BraidProject.SemiThue
 
-#check Acc
 
 inductive cell : List ℕ → List ℕ → List ℕ → List ℕ → Prop
   | empty : (cell [] [] [] [] : Prop)
