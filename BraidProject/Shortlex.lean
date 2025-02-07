@@ -197,19 +197,16 @@ theorem wf {α : Type*} (r : α → α → Prop) {h : WellFounded r} : WellFound
           at len_a
       | cons head tail =>
         intro len_a
+        simp only [List.length_cons, Nat.succ_eq_add_one, add_left_inj] at len_a
         apply lexAccessible' r (n+1)
         · exact WellFounded.apply h head
-        · intro b bl
-          apply ih b.length bl
-          rfl
-        · simp at len_a
-          rw [len_a]
+        · exact fun b bl =>ih b.length bl _ rfl
+        · rw [len_a]
           exact lt_add_one n
         · intro l ll
           apply ih l.length
-          simp at ll
-          · simp at len_a
-            rw [← len_a]
+          simp only [List.length_cons, Nat.succ_eq_add_one] at ll
+          · rw [← len_a]
             exact ll
           rfl
   exact fun a => H a.length _ rfl

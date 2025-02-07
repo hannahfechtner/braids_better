@@ -44,7 +44,7 @@ theorem braid_rel_def_is_good {i j k : ℕ} {i_n : i < k+2} {j_n : j < k+2} (apa
   exact braid_rels_multi.separated _ _ (Eq.mpr (congrArg (fun _a => _a) (propext Fin.le_iff_val_le_val))
         (Nat.le_sub_of_add_le apart))
 
-def make_fin' (n : ℕ) (a : FreeMonoid' ℕ) (bound : ∀ x ∈ a, x<n.pred) : FreeMonoid' (Fin n.pred) :=
+def make_fin (n : ℕ) (a : FreeMonoid' ℕ) (bound : ∀ x ∈ a, x<n.pred) : FreeMonoid' (Fin n.pred) :=
   (FreeMonoid'.pmap (λ i => Fin.mk i ) a) bound
 
 theorem common_right_mul_souped_two {a : ℕ} (u v : FreeMonoid' (Fin a.pred)) (n : ℕ)
@@ -95,9 +95,8 @@ theorem rid_empty (H : x ∈ FreeMonoid'.of head * (tail  *  1)) : x∈ FreeMono
 theorem bounded_empty : ∀ (x : ℕ), x ∈ (1 : FreeMonoid' ℕ) → x < n :=
   fun _ h => (FreeMonoid'.mem_one_iff.mp h).elim
 
-theorem mk_fin_empty : make_fin' n 1 bounded_empty = 1 := rfl
+theorem mk_fin_empty : make_fin n 1 bounded_empty = 1 := rfl
 
-#check Nat.beq
 theorem end_of_FreeMonoid' (length : FreeMonoid'.length b = Nat.succ n) : ∃ b_front b_last, b = b_front  *  FreeMonoid'.of b_last := by
   rcases FreeMonoid'.eq_one_or_has_last_elem b
   · rename_i b_is_one
@@ -109,8 +108,8 @@ theorem end_of_FreeMonoid' (length : FreeMonoid'.length b = Nat.succ n) : ∃ b_
 
 theorem mk_fin_singleton (a : ℕ) (b : FreeMonoid' ℕ) (bounded_a : ∀ x, x ∈ FreeMonoid'.of a → x < n.pred) (bounded_b : ∀ x, x ∈ b → x < n.pred)
   (bounded_ab : ∀ x ∈ FreeMonoid'.of a * b, x < n.pred)
-  : make_fin' n (FreeMonoid'.of a * b) bounded_ab = make_fin' n (FreeMonoid'.of a) bounded_a  *  make_fin' n b bounded_b := by
-  have H : ∀ t, (FreeMonoid'.length b)=t → make_fin' n (FreeMonoid'.of a * b) bounded_ab = make_fin' n ([a]) bounded_a  *  make_fin' n b bounded_b := by
+  : make_fin n (FreeMonoid'.of a * b) bounded_ab = make_fin n (FreeMonoid'.of a) bounded_a  *  make_fin n b bounded_b := by
+  have H : ∀ t, (FreeMonoid'.length b)=t → make_fin n (FreeMonoid'.of a * b) bounded_ab = make_fin n ([a]) bounded_a  *  make_fin n b bounded_b := by
     intro t
     induction t
     · intro h
@@ -123,9 +122,9 @@ theorem mk_fin_singleton (a : ℕ) (b : FreeMonoid' ℕ) (bounded_a : ∀ x, x �
     rcases (end_of_FreeMonoid' m) with ⟨b_front, b_last, b_prf⟩
     rw [b_prf] at bounded_ab
     rw [b_prf] at bounded_b
-    have replace_b : make_fin' n (FreeMonoid'.of a * (b_front * FreeMonoid'.of b_last)) bounded_ab =
-        make_fin' n (FreeMonoid'.of a) bounded_a  *  make_fin' n (b_front  * FreeMonoid'.of b_last) bounded_b := by
-      unfold make_fin'
+    have replace_b : make_fin n (FreeMonoid'.of a * (b_front * FreeMonoid'.of b_last)) bounded_ab =
+        make_fin n (FreeMonoid'.of a) bounded_a  *  make_fin n (b_front  * FreeMonoid'.of b_last) bounded_b := by
+      unfold make_fin
       rfl
     rw [← b_prf] at bounded_ab
     rw [← b_prf] at bounded_b
@@ -134,9 +133,9 @@ theorem mk_fin_singleton (a : ℕ) (b : FreeMonoid' ℕ) (bounded_a : ∀ x, x �
   exact H (FreeMonoid'.length b) (Eq.refl (FreeMonoid'.length b))
 
 theorem make_fin_helper (a b : FreeMonoid' ℕ) (bounded_a : ∀ x∈ a, x < n.pred) (bounded_b : ∀ x∈ b, x < n.pred) (bounded_ab : ∀ x∈ a * b, x < n.pred) :
-    make_fin' n (a * b) bounded_ab = make_fin' n a bounded_a  *  make_fin' n b bounded_b := by
+    make_fin n (a * b) bounded_ab = make_fin n a bounded_a  *  make_fin n b bounded_b := by
   have H : ∀ a, ∀ (bounded_a : ∀ x∈ a, x < n.pred) (bounded_ab : ∀ x ∈ a * b, x < n.pred),
-        make_fin' n (a * b) bounded_ab = make_fin' n a bounded_a  *  make_fin' n b bounded_b := by
+        make_fin n (a * b) bounded_ab = make_fin n a bounded_a  *  make_fin n b bounded_b := by
     intro a
     induction a using FreeMonoid'.inductionOn'
     · intro bounded_a bounded_ab
@@ -177,7 +176,7 @@ end Nat
 
 theorem braid_rel_inf_to_fin_helper (n: ℕ) (a b: FreeMonoid' ℕ) (holds_in_inf : braid_rels_m_inf a b)
     (bounded_a: ∀ (x : ℕ), x ∈ a → x < n.pred) (bounded_b: ∀ (x : ℕ), x ∈ b → x < n.pred) :
-    braid_rels_m n.pred (make_fin' n a bounded_a) (make_fin' n b bounded_b) := by
+    braid_rels_m n.pred (make_fin n a bounded_a) (make_fin n b bounded_b) := by
   induction holds_in_inf
   · rename_i i
     have H_ub : ∃k, n = Nat.succ (Nat.succ (Nat.succ k)) := by  -- because it's bigger than n+1
@@ -211,13 +210,13 @@ theorem braid_rel_inf_to_fin_helper (n: ℕ) (a b: FreeMonoid' ℕ) (holds_in_in
     have i1_k : i+1 < k + 2 :=
       bounded_a (i + 1) (FreeMonoid'.mem_mul.mpr (Or.inl (FreeMonoid'.mem_mul.mpr
       (Or.inr (FreeMonoid'.mem_of.mpr (Eq.refl (i + 1)))))))
-    have mkfin_fwd : (make_fin' (Nat.succ (Nat.succ (Nat.succ k))) (FreeMonoid'.of i * FreeMonoid'.of (i + 1) * FreeMonoid'.of i) bounded_a) =
+    have mkfin_fwd : (make_fin (Nat.succ (Nat.succ (Nat.succ k))) (FreeMonoid'.of i * FreeMonoid'.of (i + 1) * FreeMonoid'.of i) bounded_a) =
           (FreeMonoid'.of (Fin.mk i i_n) * FreeMonoid'.of (Fin.mk (i+1) i1_k) * FreeMonoid'.of (Fin.mk i i_n)) := by
-      unfold make_fin'
+      unfold make_fin
       rfl
-    have mkfin_bwd : (make_fin' (Nat.succ (Nat.succ (Nat.succ k))) (FreeMonoid'.of (i+1) * FreeMonoid'.of i * FreeMonoid'.of (i + 1)) bounded_b) =
+    have mkfin_bwd : (make_fin (Nat.succ (Nat.succ (Nat.succ k))) (FreeMonoid'.of (i+1) * FreeMonoid'.of i * FreeMonoid'.of (i + 1)) bounded_b) =
           (FreeMonoid'.of (Fin.mk (i+1) i1_k) * FreeMonoid'.of (Fin.mk i i_n) * FreeMonoid'.of (Fin.mk (i+1) i1_k)) := by
-      unfold make_fin'
+      unfold make_fin
       rfl
     rw [mkfin_fwd, mkfin_bwd]
     have h123 : ⟨i, i_n⟩ ≠ Fin.last (k + 1) := by
@@ -253,16 +252,16 @@ theorem braid_rel_inf_to_fin_helper (n: ℕ) (a b: FreeMonoid' ℕ) (holds_in_in
   unfold braid_rels_m
   have i_n : i< k+2 := bounded_a i (FreeMonoid'.mem_mul.mpr (Or.inl FreeMonoid'.mem_of_self))
   have j_n : j< k+2 :=  bounded_a j (FreeMonoid'.mem_mul.mpr (Or.inr FreeMonoid'.mem_of_self))
-  have first : make_fin' (k+3) (FreeMonoid'.of i * FreeMonoid'.of j) bounded_a =
+  have first : make_fin (k+3) (FreeMonoid'.of i * FreeMonoid'.of j) bounded_a =
     FreeMonoid'.of (Fin.mk i i_n) * FreeMonoid'.of (Fin.mk j j_n) := rfl
-  have second : make_fin' (k+3) (FreeMonoid'.of j * FreeMonoid'.of i) bounded_b =
+  have second : make_fin (k+3) (FreeMonoid'.of j * FreeMonoid'.of i) bounded_b =
     [Fin.mk j j_n, Fin.mk i i_n] := rfl
   rw [first, second]
   exact braid_rel_def_is_good apart
 
 theorem braid_rel_inf_to_fin (n : ℕ) (a b : FreeMonoid' ℕ) (bounded_a: ∀ x, (x ∈ a) → x<n.pred)
     (bounded_b: ∀ x, x∈ b→ x<n.pred) (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
-    BraidMonoid.mk _ (make_fin' n a bounded_a) = BraidMonoid.mk _ (make_fin' n b bounded_b) := by
+    BraidMonoid.mk _ (make_fin n a bounded_a) = BraidMonoid.mk _ (make_fin n b bounded_b) := by
   apply PresentedMonoid.exact at h
   induction h with
   | of x y old =>
@@ -316,7 +315,7 @@ theorem h_up_down {n : ℕ} : ∀ (u : FreeMonoid' (Fin n.pred)), ∀ (x : ℕ),
     rw [← ha.2]
     exact a.isLt
 
-theorem fin_flop : ∀ u : FreeMonoid' (Fin n.pred), make_fin' n (FreeMonoid'.map (fun i => i.val) u) (h_up_down u) = u := by
+theorem fin_flop : ∀ u : FreeMonoid' (Fin n.pred), make_fin n (FreeMonoid'.map (fun i => i.val) u) (h_up_down u) = u := by
     intro u
     induction u using FreeMonoid'.inductionOn'
     · simp only [map_one]
@@ -333,7 +332,7 @@ theorem fin_flop : ∀ u : FreeMonoid' (Fin n.pred), make_fin' n (FreeMonoid'.ma
     rw [iht]
     exact rfl
 
-theorem flipit : make_fin' n (FreeMonoid'.map (fun i => i.val) u  *  v') bounded_a = u  *  make_fin' n v' v'_bound := by
+theorem flipit : make_fin n (FreeMonoid'.map (fun i => i.val) u  *  v') bounded_a = u  *  make_fin n v' v'_bound := by
     conv =>
     {
       enter [1]
@@ -342,7 +341,7 @@ theorem flipit : make_fin' n (FreeMonoid'.map (fun i => i.val) u  *  v') bounded
     simp only [mul_left_inj]
     apply fin_flop
 
-theorem flipit' : make_fin' n (FreeMonoid'.map (fun i => i.val) u  *  v') bounded_a = u  *  make_fin' n v' v'_bound := by
+theorem flipit' : make_fin n (FreeMonoid'.map (fun i => i.val) u  *  v') bounded_a = u  *  make_fin n v' v'_bound := by
     conv =>
     {
       enter [1]
@@ -351,7 +350,7 @@ theorem flipit' : make_fin' n (FreeMonoid'.map (fun i => i.val) u  *  v') bounde
     simp only [mul_left_inj]
     apply fin_flop
 
-theorem flipit2 : make_fin' n (FreeMonoid'.map (fun i => i.val) v  *  u') bounded_b = v  *  make_fin' n u' u'_bound := by
+theorem flipit2 : make_fin n (FreeMonoid'.map (fun i => i.val) v  *  u') bounded_b = v  *  make_fin n u' u'_bound := by
     conv =>
     {
       enter [1]
@@ -364,8 +363,8 @@ theorem rel_restriction {n : ℕ} (u v : FreeMonoid' (Fin n.pred)) (u' v' : Free
     (u'_bound : ∀ x ∈ u', x < n.pred) (v'_bound : ∀ x ∈ v', x < n.pred)
     (br_inf_holds : BraidMonoidInf.mk (FreeMonoid'.map (fun i => i.val) u * v') =
     BraidMonoidInf.mk (FreeMonoid'.map (fun i => i.val) v  *  u')) :
-    BraidMonoid.mk _ (u  *  make_fin' n v' v'_bound) =
-    BraidMonoid.mk _ (v  *  make_fin' n u' u'_bound) := by
+    BraidMonoid.mk _ (u  *  make_fin n v' v'_bound) =
+    BraidMonoid.mk _ (v  *  make_fin n u' u'_bound) := by
   have bounded_a : ∀ (x : ℕ), x ∈ FreeMonoid'.map (fun i => i.val) u  *  v' → x < n.pred := by
     intro x is_in
     simp only [FreeMonoid'.mem_mul, FreeMonoid'.mem_map] at is_in
@@ -395,6 +394,6 @@ theorem rel_restriction {n : ℕ} (u v : FreeMonoid' (Fin n.pred)) (u' v' : Free
 theorem common_right_mul_fin {n : ℕ} (u v : FreeMonoid' (Fin n.pred)) :
     ∃ (u' v' : FreeMonoid' (Fin n.pred)), (BraidMonoid.mk _ (u * v') = BraidMonoid.mk _ (v * u')) := by
   rcases common_right_mul_souped_three u v with ⟨u', v', huv'⟩
-  use (make_fin' n u' (fun t t_h => huv'.right t (Or.inl t_h)))
-  use (make_fin' n v' (fun t t_h => huv'.right t (Or.inr t_h)))
+  use (make_fin n u' (fun t t_h => huv'.right t (Or.inl t_h)))
+  use (make_fin n v' (fun t t_h => huv'.right t (Or.inr t_h)))
   exact rel_restriction _ _ _ _ _ _ huv'.1

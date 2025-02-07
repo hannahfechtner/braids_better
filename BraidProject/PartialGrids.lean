@@ -403,13 +403,87 @@ theorem over_up_neq_false_true (h : to_over d ++ to_up c = k ++ [(a1, false), (b
     simp only [List.append_assoc, List.cons_append, List.singleton_append, imp_false] at ih
     exact ih h.2
 
-theorem over_up_splits_at_i (h1 : is_false a) (h2 : is_false b) (h3 : a.length > 0) (h4 : b.length > 0)
+theorem List.append_singleton_eq_append_singleton (h : a ++ [b] = c ++ [d]) : a = c ∧ b = d := by
+  induction a generalizing c with
+  | nil =>
+    have h2 := congr_arg List.length h
+    simp at h2
+    rw [h2] at h
+    simp at h
+    exact ⟨h2.symm, h⟩
+  | cons head tail ih =>
+    cases c with
+    | nil =>
+      exfalso
+      have h2 := congr_arg List.length h
+      simp at h2
+    | cons head2 tail2 =>
+      simp at h
+      specialize ih h.2
+      rw [h.1, ih.1]
+      exact ⟨rfl, ih.2⟩
+
+theorem List.length_geq_one_eq_cons_cons (b) (h : a ++ b = c :: d :: e) (h2 : a.length > 1) : ∃ f, a = c :: d :: f := by
+  induction e using List.list_reverse_induction generalizing b with
+  | base =>
+    use []
+    have H : a.length = 2 := by
+      apply congr_arg List.length at h
+      simp only [length_append, length_cons, length_singleton, Nat.succ_eq_add_one,
+        Nat.reduceAdd, List.length_nil] at h
+      omega
+    exact append_inj_left h H
+  | ind front caboose ih =>
+    induction b using List.list_reverse_induction with
+    | base =>
+      use front ++ [caboose]
+      rw [List.append_nil] at h
+      exact h
+    | ind head tail =>
+      apply ih head
+      rw [← List.append_assoc] at h
+      change (a++head) ++ [tail] = (c :: d :: front) ++ [caboose] at h
+      exact (List.append_singleton_eq_append_singleton h).1
+
+theorem over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a.length > 0)
       (h5 : a ++ b = k ++ ([(a3, false), (b3, true)] ++ l)) : ∃ a1 a2 b1 b2, a = a1 ++ a2 ∧ b = b1 ++ b2 ∧
       [(a3, false), (b3, true)] = a2 ++ b1 ∧ a1 = k ∧ b2 = l := by
   induction k generalizing a with
   | nil =>
     use [], [(a3, false)], [(b3, true)], l
-  | cons head tail ih => sorry
+    simp at h5
+    simp
+    have H : a.length = 1 := by
+      have H : ¬ a.length > 1 := by
+        intro h
+        rcases List.length_geq_one_eq_cons_cons _ h5 h with ⟨f, hf⟩
+        rw [hf] at h1
+        simp [is_false] at h1
+      omega
+    exact List.append_inj h5 H
+  | cons head tail ih =>
+    cases a with
+    | nil => simp at h3
+    | cons heada taila =>
+      simp at h5
+      cases taila with
+      | nil =>
+        use [], [heada]
+        simp
+        rw [List.nil_append] at h5
+        rw [h5.2] at h2
+        specialize h2 (a3, false)
+        have H : (a3, false).2 = true := by
+          apply h2
+          apply List.mem_append_of_mem_right tail
+          exact List.mem_cons_self (a3, false) ((b3, true) :: l)
+        exact (Bool.eq_not_self (a3, false).2).mp H
+      | cons headaa tailaa =>
+        have H1 : is_false (headaa :: tailaa) := fun x hx => h1 _ <| List.mem_cons_of_mem heada hx
+        specialize ih H1 (by simp) h5.2
+        rcases ih with ⟨a1', a2', b1', b2', f1, f2, f3, f4, f5⟩
+        use heada :: a1', a2', b1', b2'
+        exact ⟨by rw [f1]; rfl, ⟨f2, ⟨f3, ⟨by rw [f4, h5.1], f5⟩⟩⟩⟩
 
 theorem step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : b.length > 0) :
     SemiThue grid_style' (a ++ b) c → (∃ bot mid up, PartialGrid a b bot mid up ∧ bot ++ mid ++ up = c) := by
@@ -438,8 +512,7 @@ theorem step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : 
                 List.singleton_append] at fe
       rcases grid_style_split h2 with ⟨a3, b3, i_is⟩
       rw [i_is] at fe
-      have H :  ∃ a1 a2 b1 b2, a = a1 ++ a2 ∧ b = b1 ++ b2 ∧ [(a3, false), (b3, true)] = a2 ++ b1 ∧ a1 = k ∧ b2 = l := by sorry
-      rcases H with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
+      rcases over_up_splits_at_i ha hb ha1 fe with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
       cases a1 with
       | nil =>
         cases b2 with
@@ -492,11 +565,13 @@ theorem step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : 
               simp at a_is
               rename_i old_i
               rw [← a_is] at old_i
+              rw [old_i] at i_is
               have H : a.length ≠ 2 := by
                 intro h
                 have hb1 : b1.length = 0 := by
                   apply congr_arg List.length at i_is
-                  simp at i_is
+                  simp only [List.length_cons, List.length_singleton, Nat.succ_eq_add_one,
+                    Nat.reduceAdd, List.length_append, h, List.length_nil] at i_is
                   omega
                 have b1_is : b1 = [] := List.length_eq_zero.mp hb1
                 rw [b1_is] at i_is
@@ -510,7 +585,8 @@ theorem step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : 
                   simp at i_is
                   omega
               have H : a.length = 1 := by omega
-              have h4 : a = [(some n, false)] := Eq.symm (List.append_inj_left i_is (id (Eq.symm H)))
+              change [(some n, false)] ++ [(some n, true)] = _ at i_is
+              have h4 : a = [(some n, false)] := Eq.symm (List.append_inj_left i_is H.symm)
               rw [h4]
               have h5 : b = (some n, true) :: head :: tail := by
                 rw [b_is]

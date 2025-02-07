@@ -246,7 +246,7 @@ theorem generated_by (H : Subgroup braid_group_inf) (h : ∀ i : ℕ, σi i ∈ 
 theorem embed_inf_helper (a b : FreeMonoid' ℕ) (h : braid_rels_m_inf a b) :
     (FreeMonoid'.lift fun a => σi a) a = (FreeMonoid'.lift fun a => σi a) b :=
   braid_rels_m_inf.casesOn h braid_group_inf.braid (fun _ _ d => braid_group_inf.comm d)
-  
+
 def embed_inf : BraidMonoidInf →* braid_group_inf :=
   PresentedMonoid.toMonoid (fun a => σi a) embed_inf_helper
 

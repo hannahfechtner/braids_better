@@ -99,7 +99,7 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
   · exact h1
   exact h2
 
-theorem append_k (i j k : ℕ) (h1: j>=i+2) (h2 : i<k∧k<j) :
+theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
       BraidMonoidInf.mk (of (k-1) * (sigma_bar j i)) = BraidMonoidInf.mk ((sigma_bar j i) * of k) := by
   have i_lt_j : i<j := by linarith [h1]
   have H_absdiff : Nat.dist i j >= 2 := or_dist_iff.mpr (Or.inl h1)
@@ -238,7 +238,7 @@ theorem sigma_delta_swap (n m : ℕ) {h : n < m}: BraidMonoidInf.mk (of m * delt
   exact move_bigger_across m (delta_bar _) fun k h1 =>
     Nat.lt_of_le_of_lt (delta_bar_bounded _ k h1) h
 
-theorem factor_delta (n : ℕ) : n>=1 → BraidMonoidInf.mk (delta_bar n) =
+theorem factor_delta (n : ℕ) : 1 ≤ n → BraidMonoidInf.mk (delta_bar n) =
     BraidMonoidInf.mk ((delta_bar (n-1))*(sigma_bar n 0)) := by
   cases n with
   | zero => exact fun h => (Set.right_mem_Ico.mp ⟨h, h⟩).elim
@@ -260,7 +260,7 @@ theorem factor_delta (n : ℕ) : n>=1 → BraidMonoidInf.mk (delta_bar n) =
       rw [sigma_bar_last hn, sigma_bar_big_first <| Nat.zero_le (n + 1), ← mul_assoc]
       exact third.trans fourth
 
-theorem swap_sigma_delta (n : ℕ)  : ∀ i : ℕ , (i<= n-1) →
+theorem swap_sigma_delta (n : ℕ)  : ∀ i : ℕ , (i≤  n-1) →
     BraidMonoidInf.mk (of i * (delta_bar n)) = BraidMonoidInf.mk (delta_bar n * of (n-1-i)) := by
     cases n with
     | zero =>

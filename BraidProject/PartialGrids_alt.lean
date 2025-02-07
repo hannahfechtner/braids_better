@@ -19,7 +19,7 @@ theorem grid_from_cell (h : cell a b c d) : grid a b c d := by
   | sides i => exact grid.sides _
   | top_left i => exact grid.top_left _
   | adjacent i k h => exact grid.adjacent _ _ h
-  | separated i j h => exact grid.separated _ _ h
+  | separated i j h => exact grid.separated _ _ (or_dist_iff.mpr h)
 
 def to_up (a : FreeMonoid' ℕ) : FreeMonoid' (Option ℕ × Bool) := FreeMonoid'.map
   (fun x => (some x, false)) a
@@ -347,7 +347,7 @@ theorem middle_starts_up' (h : PartialGrid' a b d mid c) : mid = 1 ∨ ∃ first
     rename_i ih
     rcases ih with ⟨firstie, hf⟩
 
-    
+
     sorry
     --rfl
   | horizontal_append_one _ _ ih =>

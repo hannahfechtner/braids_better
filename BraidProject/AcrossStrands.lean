@@ -21,6 +21,7 @@ def count_down_helper : ℕ → ℕ → ℕ → FreeMonoid' ℕ
 | n+1, i, j => (count_down_helper n i (j+1)) * (j)
 
 def count_down (i j : ℕ) : FreeMonoid' ℕ := count_down_helper (i - j) i j
+
 set_option profiler true
 
 theorem not_dense : j < k → k < j+1 → False := by
@@ -132,7 +133,7 @@ theorem count_down_pop {i j : ℕ} { h : i <= j} : count_down (j+1) i =
   · rfl
   exact h
 
--- FreeMonoid' counting between two numbers, including the little and excluding the highest
+-- FreeMonoid counting between two numbers, including the little and excluding the highest
 def sigma_bar (i j : ℕ) : FreeMonoid' (ℕ) :=
   if i = j then 1 else if i < j then count_up i j else count_down i j
 

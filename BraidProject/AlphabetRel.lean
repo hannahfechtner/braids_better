@@ -1,6 +1,6 @@
 import Mathlib.Algebra.Order.Ring.Nat
 
-def lt' : (Option ℕ × Bool) → Option ℕ × Bool →  Prop
+def lt_a : (Option ℕ × Bool) → Option ℕ × Bool →  Prop
   | (_, true), (_, false) => true
   | (none, true), (some _, true) => true
   | (some i, true), (some j, true) => i < j
@@ -8,13 +8,13 @@ def lt' : (Option ℕ × Bool) → Option ℕ × Bool →  Prop
   | (some _, false), (none, false) => true
   | (_, _), (_, _) => false
 
-theorem lt_acc_none : Acc lt' (none, true) := by
+theorem lt_acc_none : Acc lt_a (none, true) := by
   apply Acc.intro
   intro y hy
   exfalso
-  simp [lt'] at hy
+  simp [lt_a] at hy
 
-theorem some_zero_true : Acc lt' (some 0, true) := by
+theorem some_zero_true : Acc lt_a (some 0, true) := by
   apply Acc.intro
   intro y hy
   cases y with
@@ -23,34 +23,34 @@ theorem some_zero_true : Acc lt' (some 0, true) := by
     | none =>
       cases snd with
       | false =>
-        simp [lt'] at hy
+        simp [lt_a] at hy
       | true =>
         exact lt_acc_none
     | some val =>
       induction val with
       | zero =>
         cases snd with
-        | false => simp [lt'] at hy
-        | true => simp [lt'] at hy
+        | false => simp [lt_a] at hy
+        | true => simp [lt_a] at hy
       | succ n ih =>
         cases snd with
-        | false => simp [lt'] at hy
-        | true => simp [lt'] at hy
+        | false => simp [lt_a] at hy
+        | true => simp [lt_a] at hy
 
-theorem lt_acc_some_true : Acc lt' (some val, true) := by
+theorem lt_acc_some_true : Acc lt_a (some val, true) := by
   induction val with
   | zero => exact some_zero_true
   | succ n ih =>
     apply Acc.intro
     intro y y_lt
-    have H : y = (some n, true) ∨ lt' y (some n, true) := by
+    have H : y = (some n, true) ∨ lt_a y (some n, true) := by
       cases y with
       | mk fst snd =>
         cases fst with
         | none =>
           cases snd with
           | false =>
-            simp [lt'] at y_lt
+            simp [lt_a] at y_lt
           | true =>
             exact Or.inr y_lt
         | some val =>
@@ -58,17 +58,17 @@ theorem lt_acc_some_true : Acc lt' (some val, true) := by
           | zero =>
             cases snd with
             | false =>
-              simp [lt'] at y_lt
+              simp [lt_a] at y_lt
             | true =>
               cases n with
               | zero => left; rfl
-              | succ n => right; simp [lt']
+              | succ n => right; simp [lt_a]
           | succ m =>
             cases snd with
             | false =>
-              simp [lt'] at y_lt
+              simp [lt_a] at y_lt
             | true =>
-              simp [lt'] at y_lt
+              simp [lt_a] at y_lt
               have H : n = m + 1 ∨ n > m + 1 := by omega
               cases H with
               | inl h =>
@@ -80,7 +80,7 @@ theorem lt_acc_some_true : Acc lt' (some val, true) := by
     | inl h => rw [h] ; assumption
     | inr h => exact Acc.inv ih h
 
-theorem lt_acc_some_false : Acc lt' (some val, false) := by
+theorem lt_acc_some_false : Acc lt_a (some val, false) := by
   induction val with
   | zero =>
     apply Acc.intro
@@ -90,23 +90,23 @@ theorem lt_acc_some_false : Acc lt' (some val, false) := by
       cases fst with
       | none =>
         cases snd with
-        | false => simp [lt'] at hy
+        | false => simp [lt_a] at hy
         | true => exact lt_acc_none
       | some val =>
         cases snd with
-        | false => simp [lt'] at hy
+        | false => simp [lt_a] at hy
         | true => exact lt_acc_some_true
   | succ n ih =>
     apply Acc.intro
     intro y y_lt
-    have H : y = (some n, false) ∨ lt' y (some n, false) := by
+    have H : y = (some n, false) ∨ lt_a y (some n, false) := by
       cases y with
       | mk fst snd =>
         cases fst with
         | none =>
           cases snd with
           | false =>
-            simp [lt'] at y_lt
+            simp [lt_a] at y_lt
           | true =>
             exact Or.inr y_lt
         | some val =>
@@ -116,13 +116,13 @@ theorem lt_acc_some_false : Acc lt' (some val, false) := by
             | false =>
               cases n with
               | zero => left; rfl
-              | succ n => right; simp [lt']
+              | succ n => right; simp [lt_a]
             | true =>
-              right; simp [lt']
+              right; simp [lt_a]
           | succ m =>
             cases snd with
             | false =>
-              simp [lt'] at y_lt
+              simp [lt_a] at y_lt
               have H : m + 1 = n ∨ m + 1 < n := by omega
               cases H with
               | inl h =>
@@ -136,7 +136,7 @@ theorem lt_acc_some_false : Acc lt' (some val, false) := by
     | inl h => rw [h] ; assumption
     | inr h => exact Acc.inv ih h
 
-theorem lt_acc_none_false : Acc lt' (none, false) := by
+theorem lt_acc_none_false : Acc lt_a (none, false) := by
   apply Acc.intro
   intro y hy
   cases y with
@@ -145,7 +145,7 @@ theorem lt_acc_none_false : Acc lt' (none, false) := by
     | none =>
       cases snd with
       | false =>
-        simp [lt'] at hy
+        simp [lt_a] at hy
       | true =>
         exact lt_acc_none
     | some val =>
@@ -163,7 +163,7 @@ theorem lt_acc_none_false : Acc lt' (none, false) := by
         | true =>
           exact lt_acc_some_true
 
-theorem lt_acc : ∀ (a : Option ℕ × Bool), Acc lt' a := by
+theorem lt_acc : ∀ (a : Option ℕ × Bool), Acc lt_a a := by
   intro a
   cases a with
   | mk fst snd =>
@@ -177,7 +177,4 @@ theorem lt_acc : ∀ (a : Option ℕ × Bool), Acc lt' a := by
       | none => exact lt_acc_none
       | some val => exact lt_acc_some_true
 
-instance : WellFounded lt' := by
-  refine WellFounded.intro ?h
-  intro a
-  exact lt_acc a
+instance : WellFounded lt_a := WellFounded.intro fun a ↦ lt_acc a
