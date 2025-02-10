@@ -88,13 +88,13 @@ inductive grid_style : List (Bool × Option ℕ) → List (Bool × Option ℕ) �
     [(true, j), (true, i), (false, j), (false, i)]
 
 inductive grid_style' : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Prop
-| basic {n : ℕ} : grid_style' [(some n, false), (some n, true)] [(none, true), (none, false)]
-| over {n : ℕ} : grid_style' [(n, false), (none, true)] [(none, true), (n, false)]
-| up {n : ℕ} : grid_style' [(none, false), (some n, true)] [(n, true), (none, false)]
+| basic (n : ℕ) : grid_style' [(some n, false), (some n, true)] [(none, true), (none, false)]
+| over (n : ℕ) : grid_style' [(n, false), (none, true)] [(none, true), (n, false)]
+| up (n : ℕ) : grid_style' [(none, false), (some n, true)] [(n, true), (none, false)]
 | empty : grid_style' [(none, false), (none, true)] [(none, true), (none, false)]
 | apart {i j : ℕ} (h : Nat.dist i j > 1) : grid_style' [(i, false), (j, true)] [(j, true), (i, false)]
 | close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style' [(i, false), (j, true)]
-    [(j, true), (i, true), (j, false), (i, true)]
+    [(j, true), (i, true), (j, false), (i, false)]
 
 -- theorem helper (h : remove_ones a₀' = c₀*a₁*d₀) (h2 : reversing_option a₁ a₂) :
 --   ∃ c₁ d₁, move_ones a₀' = c₁ * a1 * d₁ ∧ remove_ones c₁ = c₁ ∧ remove_ones d₁ = d₀ := by sorry
