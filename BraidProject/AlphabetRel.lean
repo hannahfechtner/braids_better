@@ -177,4 +177,4 @@ theorem lt_acc : ∀ (a : Option ℕ × Bool), Acc lt_a a := by
       | none => exact lt_acc_none
       | some val => exact lt_acc_some_true
 
-instance : WellFounded lt_a := WellFounded.intro fun a ↦ lt_acc a
+instance wf_ar : WellFounded lt_a := WellFounded.intro fun a ↦ lt_acc a

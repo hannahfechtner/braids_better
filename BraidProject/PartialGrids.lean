@@ -332,6 +332,25 @@ theorem top_frontier_is_true (h : PartialGrid a b c d e) : is_true b := by
   | vertical_append_one => assumption
   | vertical_append => assumption
 
+theorem left_frontier_is_false (h : PartialGrid a b c d e) : is_false a := by
+  induction h with
+    | single_grid => exact is_false_up
+    | empty => assumption
+    | horizontal_append_one => assumption
+    | horizontal_append => assumption
+    | vertical_append_one _ _ g1_ih g2_ih =>
+      exact is_false_of_false_false g2_ih g1_ih
+    | vertical_append _ _ _ ih1 ih2 => exact is_false_of_false_false ih2 ih1
+
+theorem bottom_frontier_is_true (h : PartialGrid a b c d e) : is_true c := by
+  induction h with
+    | single_grid => exact is_true_over
+    | empty => simp
+    | horizontal_append_one => exact is_true_of_true_true (by assumption) (by assumption)
+    | horizontal_append => assumption
+    | vertical_append_one => assumption
+    | vertical_append => assumption
+
 theorem left_length_pos (h : PartialGrid a b c d e) : a.length > 0 := by
   induction h with
   | single_grid  => exact to_up_len_pos
@@ -357,6 +376,20 @@ theorem top_length_pos (h : PartialGrid a b c d e) : b.length > 0 := by
     omega
   | vertical_append_one => assumption
   | vertical_append => assumption
+
+theorem mid_length_neq_one (h : PartialGrid a b c d e) : d.length ≠ 1 := by
+  intro hd
+  induction h with
+  | single_grid => simp at hd
+  | empty => rw [List.length_append] at hd; omega
+  | horizontal_append_one _ _ _ g2_ih => exact g2_ih hd
+  | horizontal_append _ _ _ g1_ih =>
+    rw [List.append_assoc, List.length_append] at hd
+    exact g1_ih (by omega)
+  | vertical_append_one _ _ _ g2_ih => exact g2_ih hd
+  | vertical_append _ _ _ g1_ih =>
+    rw [List.length_append] at hd
+    exact g1_ih (by omega)
 
 theorem equiv_paths (h : PartialGrid a b c d e) : SemiThue_one_step grid_style' (a ++ b) (c ++ d ++ e) := by
   induction h with
@@ -609,18 +642,16 @@ theorem skeleton_one_cons (h2 : grid_style' i j) (fe : a ++ b = ([(a3, false), (
     (ab_is : [(a3, false), (b3, true)] = a ++ b1) (i_is : i = [(a3, false), (b3, true)]):
     ∃ bot mid up, PartialGrid a b bot mid up ∧ bot ++ mid ++ up = [] ++ j ++ head :: tail := by
   have ht_true : is_true (head :: tail) := by
-    have h19 : is_true (b1 ++ (head :: tail)) := by
-      rw [← b_is]
-      exact hb
-    exact (is_true_append h19).2
+    rw [b_is] at hb
+    exact (is_true_append hb).2
   rcases grid_rel_means h2 with ⟨a2, b2, c2, d2, i_is', h_cell, j_is⟩
   use to_over d2, to_up c2 ++ head :: tail, []
   constructor
   · have H2 := PartialGrid.empty (to_up c2) (head :: tail) (by simp [to_up_len_pos]) is_false_up (by simp) ht_true
     have H3 := PartialGrid.horizontal_append_one (PartialGrid.single_grid h_cell) H2
-    simp [over_oc, up_oc] at H3
+    simp only [up_oc, over_oc, List.singleton_append, List.append_nil] at H3
     have helper := i_is.symm.trans i_is'
-    simp at helper
+    simp only [List.cons.injEq, Prod.mk.injEq, and_true] at helper
     have ha : a = [(a2, false)] := by
       rw [← helper.1]
       exact bool_change_second ha1 ha ab_is.symm
@@ -641,11 +672,8 @@ theorem skeleton_cons_one (h2 : grid_style' i j) (a_is : a = head :: tail ++ a2)
     ∃ bot mid up, PartialGrid a b bot mid up ∧ bot ++ mid ++ up = head :: tail ++ j ++ [] := by
   rcases grid_rel_means h2 with ⟨a5, b2, c2, d2, i_is', h_cell, j_is⟩
   have ht_false : is_false (head :: tail) := by
-    intro e he
-    have e_in : e ∈ a := by
-      rw [a_is]
-      exact List.mem_append_of_mem_left _ he
-    exact ha e e_in
+    rw [a_is] at ha
+    exact (is_false_append ha).1
   have H2 := PartialGrid.empty (head :: tail) (to_over d2) (by simp [to_up_len_pos]) ht_false (by simp [to_over_len_pos]) is_true_over
   have H3 := PartialGrid.vertical_append_one (PartialGrid.single_grid h_cell) H2
   use [], head::tail ++ to_over d2, to_up c2
@@ -696,107 +724,113 @@ theorem bool_split (ha : is_false a2) (hb : is_true b1) (h : [(a3, false), (b3, 
     omega
   exact List.append_inj h.symm H
 
-theorem skeleton_cons_cons (gs : grid_style' i j) (ha : is_false (head :: tail ++ a2)) (hb : is_true (b1 ++ headb :: tailb)) :
+theorem skeleton_cons_cons (gs : grid_style' i j) (ha : is_false (head :: tail)) (hb : is_true (headb :: tailb))
+    (i_is : i = [(a3, false), (b3, true)]) :
     ∃ bot mid up, PartialGrid (head :: tail ++ [(a3, false)]) ([(b3, true)] ++ headb :: tailb) bot mid up ∧
     bot ++ mid ++ up = head :: tail ++ j ++ headb :: tailb := by
   rcases grid_rel_means gs with ⟨a5, b2, c2, d2, i_is', h_cell, j_is⟩
   use [], head :: tail ++ to_over d2 ++ to_up c2 ++ headb :: tailb, []
   constructor
-  · have ht_false : is_false (head :: tail) := by sorry
-    have htb_true : is_true (headb :: tailb) := by sorry
-    have H2 := PartialGrid.empty (head :: tail) (to_over d2) (by simp) ht_false (by simp [to_over_len_pos]) is_true_over
+  · have H2 := PartialGrid.empty (head :: tail) (to_over d2) (by simp) ha (by simp [to_over_len_pos]) is_true_over
     have H3 := PartialGrid.vertical_append_one (PartialGrid.single_grid h_cell) H2
-    have H4 := PartialGrid.empty (to_up c2) (headb :: tailb) to_up_len_pos is_false_up (by simp) htb_true
+    have H4 := PartialGrid.empty (to_up c2) (headb :: tailb) to_up_len_pos is_false_up (by simp) hb
     have H5 := PartialGrid.horizontal_append (by simp) H3 H4
     rw [List.append_nil] at H5
-    have H6 : to_up (option_to_cell a5) = [(a3, false)] := by sorry
-    have H7 : to_over (option_to_cell b2) = [(b3, true)] := by sorry
-    rw [H6, H7] at H5
+    have hi := i_is.symm.trans i_is'
+    simp only [List.cons.injEq, Prod.mk.injEq, and_true] at hi
+    rw [← hi.1, up_oc, ← hi.2, over_oc] at H5
     simp only [List.cons_append, List.singleton_append, List.append_assoc]
     simp only [List.cons_append, List.singleton_append, List.append_assoc] at H5
     exact H5
   simp [j_is]
 
-theorem step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : b.length > 0) :
-    SemiThue grid_style' (a ++ b) c → (∃ bot mid up, PartialGrid a b bot mid up ∧ bot ++ mid ++ up = c) := by
-  intro h
-  generalize ell : a ++ b = el at h
-  induction one_step_equiv_reg.mp h with
-  | refl x =>
-    rw [← ell]
-    use [], a++b, []
+theorem big_split (hup2 : is_false up2)
+    (h : bot3 ++ mid3 ++ (up3 ++ up2) = k ++ [(a1, false), (b1, true)] ++ l) :
+    ∃ l₁ l₂, l = l₁ ++ l₂ ∧ bot3 ++ mid3 ++ up3 = k ++ [(a1, false), (b1, true)] ++ l₁ ∧
+    l₂ = up2 := by
+  induction l using List.list_reverse_induction generalizing up2 with
+  | base =>
+    use [], []
+    have H : up2 = [] := by
+      induction up2 using List.list_reverse_induction with
+      | base => rfl
+      | ind l e _ =>
+        have h3 := congr_arg List.getLast? h
+        rw [← List.append_assoc, ← List.append_assoc, List.getLast?_concat, List.append_nil,
+          List.getLast?_append_cons, List.getLast?_cons_cons, List.getLast?_singleton, Option.some.injEq] at h3
+        rw [h3] at hup2
+        specialize hup2 (b1, true) (List.mem_append_of_mem_right l (List.mem_singleton.mpr rfl))
+        simp at hup2
+    rw [H] at h
     constructor
-    · exact PartialGrid.empty _ _ ha1 ha hb1 hb
-    rw [List.append_nil, List.nil_append]
-  | one_step h1 h2 ih =>
-    rename_i i j k l m
-    specialize ih ell (one_step_equiv_reg.mpr h1)
-    rcases ih with ⟨bot1, mid1, up1, pg1, fe⟩
-    induction pg1 generalizing m k l with
-    | single_grid h =>
-      exfalso
-      rw [List.append_nil] at fe
-      rcases grid_style_split h2 with ⟨a1, b1, i_is⟩
-      rw [i_is] at fe
-      exact over_up_neq_false_true fe
-    | empty a b ha ha1 hb hb =>
-      simp only [List.nil_append, List.append_nil, List.append_assoc, List.cons_append,
-                List.singleton_append] at fe
-      rcases grid_style_split h2 with ⟨a3, b3, i_is⟩
-      rw [i_is] at fe
-      rcases over_up_splits_at_i ha hb ha1 fe with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
-      cases a1 with
-      | nil =>
-        rw [List.nil_append] at a_is
-        rw [a_is] at ha1
-        rw [← k_is]
-        cases b2 with
-        | nil =>
-          rw [← l_is]
-          rw [List.append_nil] at b_is
-          rw [b_is] at hb1
-          rw [List.append_nil]
-          rw [← a_is,← b_is] at i_is
-          exact skeleton_one_one h2 (by assumption) (by assumption) (by assumption) i_is
-        | cons head tail =>
-          rw [← l_is]
-          apply skeleton_one_cons h2 _ b_is (by assumption) (by assumption) (by assumption)
-          · rw [← a_is] at i_is
-            exact i_is
-          assumption
-          rw [a_is, b_is, i_is]
-          simp
-      | cons head tail =>
-        cases b2 with
-        | nil =>
-          rw [← k_is, ← l_is,]
-          rw [List.append_nil] at b_is
-          exact skeleton_cons_one h2 a_is ha hb i_is (by assumption) b_is hb1
-        | cons headb tailb =>
-          have ha2 : is_false a2 := sorry
-          have hb1 : is_true b1 :=  sorry
-          have H3 := bool_split ha2 hb1 i_is
-          rw [← k_is, ← l_is, a_is, b_is, H3.1, H3.2]
-          rw [a_is] at ha
-          rw [b_is] at hb
-          exact skeleton_cons_cons h2 ha hb
-    | horizontal_append_one g1 g2 ih1 ih2 =>
-      rename_i a2 b2 bot2 up2 b3 bot3 mid3 up3
-      rcases grid_style_split h2 with ⟨a1, b1, i_is⟩
-      rw [i_is] at fe
-      have hk : ∃ k₁ k₂, k = k₁ ++ k₂ ∧ bot3 ++ mid3 ++ up3 = k₂ ++ [(a1, false), (b1, true)] ++ l ∧ k₁ = bot2 := by sorry
-      rcases hk with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
-      rw [← i_is] at eq_rest
-      have H1 : SemiThue grid_style' (up2 ++ b3) (k₂ ++ i ++ l) := by
-        rw [← eq_rest]
-        exact one_step_equiv_reg.mpr (equiv_paths g2)
-      specialize @ih2 (right_frontier_is_false g1) (left_length_pos g2) (top_frontier_is_true g2) (top_length_pos g2) k₂ l (up2 ++ b3)
-        (one_step_equiv_reg.mp H1) rfl (H1.trans _ (SemiThue.reduction h2)) eq_rest
-      rcases ih2 with ⟨bot1, mid1, up1, pg1, fe1⟩
-      use bot2 ++ bot1, mid1, up1
+    · rfl
+    constructor
+    · simp at h
+      simp
+      exact h
+    exact H.symm
+  | ind front caboose ih =>
+    induction up2 using List.list_reverse_induction with
+    | base =>
+      simp at h
+      use front ++ [caboose], []
       constructor
-      · exact PartialGrid.horizontal_append_one g1 pg1
-      rw [List.append_assoc, List.append_assoc, ← List.append_assoc bot1, fe1, ← k₁_is, ← List.append_assoc, ← List.append_assoc, k_is]
-    | horizontal_append h g1 g2 g1_ih g2_ih => sorry
-    | vertical_append_one g1 g2 ih => sorry
-    | vertical_append g1 g2 h g1_ih g2_ih => sorry
+      · simp
+      simp [h]
+    | ind up2front up2back _ =>
+      specialize @ih up2front (is_false_append hup2).1
+      rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc] at h
+      have h1 := List.append_inj_left' h rfl
+      rw [h1] at h
+      simp at h1
+      simp at ih
+      specialize ih h1
+      rcases ih with ⟨l₁, hl1, hl2⟩
+      use l₁, up2front ++ [caboose]
+      constructor
+      · rw [hl1]
+        exact List.append_assoc l₁ up2front [caboose]
+      constructor
+      · simp [hl2]
+      simp
+      simp at h
+      exact h.symm
+
+theorem big_split_first (hbot2 : is_true bot2) (h : bot2 ++ bot3 ++ mid3 ++ up3 = k ++ [(a1, false), (b1, true)] ++ l)
+    : ∃ k₁ k₂, k = k₁ ++ k₂ ∧ bot3 ++ mid3 ++ up3 = k₂ ++ [(a1, false), (b1, true)] ++ l
+    ∧ k₁ = bot2  := by
+  induction k generalizing bot2 with
+  | nil =>
+    use [], []
+    constructor
+    · rfl
+    have H : bot2 = [] := by
+      induction bot2 with
+      | nil => rfl
+      | cons head tail _ =>
+        simp at h
+        rw [h.1] at hbot2
+        simp [is_true]  at hbot2
+    rw [H, List.nil_append] at h
+    constructor
+    · simp [h]
+    exact H.symm
+  | cons head tail ih =>
+    cases bot2 with
+    | nil =>
+      use [], head:: tail
+      rw [List.nil_append] at h
+      exact ⟨rfl, ⟨h, rfl⟩⟩
+    | cons headb tailb =>
+      change is_true ([headb] ++ tailb) at hbot2
+      simp at h
+      simp at ih
+      specialize @ih tailb (is_true_append hbot2).2 h.2
+      rcases ih with ⟨k₁, k₂, k_is, front, back⟩
+      use head :: k₁, k₂
+      constructor
+      · rw [k_is]
+        rfl
+      constructor
+      · simp [front]
+      rw [back, h.1]
