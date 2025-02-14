@@ -1,7 +1,6 @@
 import Mathlib.Data.List.Lex
 import Mathlib.Tactic.Linarith
 import Mathlib.Data.List.Indexes
-import Mathlib.Data.DFinsupp.Basic
 import Mathlib.Data.DFinsupp.Lex
 import Mathlib.Data.DFinsupp.WellFounded
 
@@ -13,14 +12,14 @@ namespace Shortlex
 theorem not_nil_nil (h : Shortlex r [] []) : False := by
   cases h with
   | left b₁ b₂ h => exact Nat.not_succ_le_zero 0 h
-  | right a h => exact List.Lex.not_nil_right _ _ h
+  | right a h => exact List.not_lex_nil h
 
 theorem not_nil_right (h : Shortlex r l []) : False := by
   unfold Shortlex at h
   generalize hl : (l.length, l) = l' at h
   cases h with
   | left b₁ b₂ h => simp only [List.length_nil, not_lt_zero'] at h
-  | right a h => exact List.Lex.not_nil_right _ _ h
+  | right a h => exact List.not_lex_nil h
 
 theorem acc_empty {α : Type*} (r : α → α → Prop) : Acc (Shortlex r) [] := by
   apply Acc.intro
@@ -58,14 +57,14 @@ theorem acc_lt (h : Acc (Shortlex r) l) (m : List α) (hl : m.length < l.length)
   apply Acc.inv h
   exact shorter_than _ hl
 
-theorem acc_length_one (m : List α) (hl : m.length =1) :
+theorem acc_length_one {h : WellFounded r} (m : List α) (hl : m.length =1) :
     Acc (Shortlex r) m := by
   rcases List.length_eq_one.mp hl with ⟨q, hq⟩
   rw [hq]
   apply acc_singleton
   exact h
 
-theorem lexAccessible2 {a : α} (aca : Acc r a) (acb : (b : α) → Acc r b) (b : α) :
+theorem lexAccessible2 {a : α} {h : WellFounded r} (aca : Acc r a) (acb : (b : α) → Acc r b) (b : α) :
     Acc (Shortlex r) [a, b] := by
   induction aca generalizing b with
   | intro xa _ iha =>
@@ -99,7 +98,7 @@ theorem lexAccessible2 {a : α} (aca : Acc r a) (acb : (b : α) → Acc r b) (b 
         cases h with
         | cons h =>
           cases h with
-          | cons h => simp only [List.Lex.not_nil_right] at h
+          | cons h => simp only [List.not_lex_nil] at h
           | rel h =>
             rw [h12]
             apply ihb
@@ -146,7 +145,7 @@ theorem lexAccessible' {a : α} (n : ℕ) (aca : Acc r a)
             simp at h
             apply ihb
             unfold Shortlex
-            apply (Prod.lex_def _ _).mpr
+            apply (Prod.lex_def).mpr
             right
             constructor
             · simp at hp
@@ -180,7 +179,7 @@ theorem wf {α : Type*} (r : α → α → Prop) {h : WellFounded r} : WellFound
   apply WellFounded.intro
   have H : ∀ n, ∀ (a : List α), a.length = n → Acc (Shortlex r) a := by
     intro n
-    induction n using Nat.strongInductionOn
+    induction n using Nat.strongRecOn
     rename_i n ih
     cases n with
     | zero =>

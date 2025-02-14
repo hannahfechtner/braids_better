@@ -1,7 +1,6 @@
 import BraidProject.Grids
-import BraidProject.Reversing
+import BraidProject.StepOne
 import BraidProject.SemiThue
-
 
 inductive cell : List ℕ → List ℕ → List ℕ → List ℕ → Prop
   | empty : (cell [] [] [] [] : Prop)
@@ -162,12 +161,11 @@ theorem remover_over : remover (to_over a) = a := by
   rename_i a b hb
   unfold to_over
   simp
-  change remover (_ :: _) = _
   rw [remover_mul]
   simp only [List.cons.injEq, true_and]
   cases b with
   | nil =>
-    simp only [remover]
+    simp [remover]
   | cons head tail =>
     exact hb
 
@@ -198,8 +196,8 @@ theorem is_false_up : is_false (to_up a) := by
 
 theorem is_false_append (h : is_false (a ++ b)) : is_false a ∧ is_false b := by
   constructor
-  · exact fun x hx => h x (List.mem_append_of_mem_left b hx)
-  exact fun x hx => h x (List.mem_append_of_mem_right a hx)
+  · exact fun x hx => h x (List.mem_append_left b hx)
+  exact fun x hx => h x (List.mem_append_right a hx)
 def is_true (a : List (Option ℕ × Bool)) := ∀ x ∈ a, x.2 = true
 
 theorem is_false_of_false_false (h1 : is_false a) (h2 : is_false b) : is_false (a ++ b) := by
@@ -222,8 +220,8 @@ theorem is_true_nil : is_true [] := by simp [is_true]
 
 theorem is_true_append (h : is_true (a ++ b)) : is_true a ∧ is_true b := by
   constructor
-  · exact fun x hx => h x (List.mem_append_of_mem_left b hx)
-  exact fun x hx => h x (List.mem_append_of_mem_right a hx)
+  · exact fun x hx => h x (List.mem_append_left b hx)
+  exact fun x hx => h x (List.mem_append_right a hx)
 
 theorem is_true_of_true_true (h1 : is_true a) (h2 : is_true b) : is_true (a ++ b) := by
   intro x h
@@ -267,7 +265,7 @@ theorem grid_of_PartialGrid (h : PartialGrid a b d [] c) : grid_option a b c d :
     specialize ih2 he
     exact grid_option_append_horiz ih1 ih2
   | horizontal_append _ _ _ g1_ih g2_ih =>
-    simp only [List.append_assoc, List.nil_eq_append, List.append_eq_nil] at he
+    simp only [List.append_assoc, List.nil_eq_append_iff, List.append_eq_nil_iff] at he
     specialize g1_ih he.1.symm
     specialize g2_ih he.2.2.symm
     have H := grid_option_append_horiz g1_ih g2_ih
@@ -278,7 +276,7 @@ theorem grid_of_PartialGrid (h : PartialGrid a b d [] c) : grid_option a b c d :
     specialize ih2 he
     exact grid_option_append_vert ih1 ih2
   | vertical_append _ _ _ g1_ih g2_ih =>
-    simp only [List.append_assoc, List.nil_eq_append, List.append_eq_nil] at he
+    simp only [List.append_assoc, List.nil_eq_append_iff, List.append_eq_nil_iff] at he
     specialize g1_ih he.2.2.symm
     specialize g2_ih he.1.symm
     have H := grid_option_append_vert g1_ih g2_ih

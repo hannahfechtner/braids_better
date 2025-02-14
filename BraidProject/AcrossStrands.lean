@@ -1,26 +1,27 @@
-import BraidProject.FreeMonoid_mine
+import Mathlib.Algebra.FreeMonoid.Basic
+import Mathlib.Data.Finset.Empty
+import Mathlib.Data.Finset.Lattice.Basic
 import Mathlib.Tactic.Linarith
 
---should go in finset
 theorem mem_nil : (a : α) ∈ (∅ : Finset α) ↔ False := List.mem_nil_iff a
 
 
-open FreeMonoid'
+open FreeMonoid
 
-local instance : Coe ℕ (FreeMonoid' ℕ) :=
+local instance : Coe ℕ (FreeMonoid ℕ) :=
   ⟨of⟩
 
-def count_up_helper : ℕ → ℕ → ℕ → FreeMonoid' ℕ
+def count_up_helper : ℕ → ℕ → ℕ → FreeMonoid ℕ
 | 0, _, _ => 1
 | n+1, i, j => (of i) * (count_up_helper n (i+1) j)
 
-def count_up (i j : ℕ) : FreeMonoid' ℕ := count_up_helper (j - i) i j
+def count_up (i j : ℕ) : FreeMonoid ℕ := count_up_helper (j - i) i j
 
-def count_down_helper : ℕ → ℕ → ℕ → FreeMonoid' ℕ
+def count_down_helper : ℕ → ℕ → ℕ → FreeMonoid ℕ
 | 0, _, _ => 1
 | n+1, i, j => (count_down_helper n i (j+1)) * (j)
 
-def count_down (i j : ℕ) : FreeMonoid' ℕ := count_down_helper (i - j) i j
+def count_down (i j : ℕ) : FreeMonoid ℕ := count_down_helper (i - j) i j
 
 set_option profiler true
 
@@ -83,7 +84,7 @@ theorem count_up_pop {b n : ℕ} {h : n > b} : count_up b n =
     · next eq_case =>
       rw [← eq_case]
       simp only [count_up, add_tsub_cancel_left, count_up_helper, length_one, mul_one,
-        add_tsub_cancel_right, ge_iff_le, le_refl, tsub_eq_zero_of_le, eq_one_of_length_eq_zero,
+        add_tsub_cancel_right, ge_iff_le, le_refl, tsub_eq_zero_of_le, length_eq_zero,
         one_mul]
     next gt_case =>
     exfalso
@@ -134,7 +135,7 @@ theorem count_down_pop {i j : ℕ} { h : i <= j} : count_down (j+1) i =
   exact h
 
 -- FreeMonoid counting between two numbers, including the little and excluding the highest
-def sigma_bar (i j : ℕ) : FreeMonoid' (ℕ) :=
+def sigma_bar (i j : ℕ) : FreeMonoid (ℕ) :=
   if i = j then 1 else if i < j then count_up i j else count_down i j
 
 theorem sigma_bar_last {i j : ℕ} (h: i<j) : sigma_bar i j = sigma_bar i (j - 1) * (of (j-1)) := by
@@ -216,7 +217,7 @@ theorem sigma_bar_first {i j : ℕ} (h: i<j) : sigma_bar i j = of i * (sigma_bar
   simp only [ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero, add_tsub_cancel_right]
   rw [ih, mul_assoc]
 
-theorem sigma_bar_big_last {i j : ℕ} (h: i<j) : sigma_bar j i = sigma_bar j (i + 1) * (of i : FreeMonoid' ℕ) := by
+theorem sigma_bar_big_last {i j : ℕ} (h: i<j) : sigma_bar j i = sigma_bar j (i + 1) * (of i : FreeMonoid ℕ) := by
   induction j, h using Nat.le_induction
   · induction i
     · unfold sigma_bar
@@ -248,7 +249,7 @@ theorem sigma_length {i j : ℕ} (h : i<j) : length (sigma_bar i j) = j-i := by
       mul_one, length_of]
   rename_i h lt_k ih
   rw [sigma_bar_last]
-  · rw [add_tsub_cancel_right, length_mul, ih, FreeMonoid'.length_of]
+  · rw [add_tsub_cancel_right, length_mul, ih, FreeMonoid.length_of]
     exact (Nat.sub_add_comm (Nat.lt_succ.mp (Nat.le.step lt_k))).symm
   exact Nat.le.step lt_k
 
@@ -256,7 +257,7 @@ theorem count_up_bounded (k : ℕ) {j : ℕ} : j ∈ (count_up 1 k.succ) → j <
     intro h
     induction k
     · exfalso
-      exact mem_one_iff.mp h
+      exact not_mem_one h
     rename_i n hn
     have h1 : j ∈ (count_up 1 (Nat.succ (Nat.succ n))) := by
       simp only [count_up, Nat.succ_sub_succ_eq_sub, tsub_zero]
@@ -276,7 +277,7 @@ theorem count_down_bounded (k : ℕ) {j : ℕ} : j ∈ (count_down (Nat.succ k) 
   intro h
   induction k
   · exfalso
-    exact mem_one_iff.mp h
+    exact not_mem_one h
   rename_i n hn
   have h1 : j ∈ (count_down (Nat.succ (Nat.succ n)) 1) := by
     simp only [count_down, Nat.succ_sub_succ_eq_sub, tsub_zero]
@@ -291,12 +292,12 @@ theorem count_down_bounded (k : ℕ) {j : ℕ} : j ∈ (count_down (Nat.succ k) 
     exact Nat.le.step (hn use_ih)
   exact NeZero.one_le
 
-theorem map_count_up_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid'.map (fun x => x +k)) (count_up 0 n) →
+theorem map_count_up_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid.map (fun x => x +k)) (count_up 0 n) →
     x < (n + k) := by
   intro x x_in
   induction n
-  · simp only [count_up, count_up_helper, length_one, map_one, eq_one_of_length_eq_zero] at x_in
-    exact (mem_one_iff.mp x_in).elim
+  · simp only [count_up, count_up_helper, length_one, map_one, length_eq_zero] at x_in
+    exact (not_mem_one x_in).elim
   rename_i n ih
   rcases n
   · simp only [count_up, count_up_helper, length_one, mul_one, map_of, zero_add, mem_of] at x_in
@@ -326,7 +327,7 @@ theorem sigma_bar_bounded (n : ℕ) {k : ℕ}: k ∈ (sigma_bar n 0) → k < n :
   intro k_in
   induction n
   · exfalso
-    exact mem_one_iff.mp k_in
+    exact not_mem_one k_in
   rename_i n _
   unfold sigma_bar at k_in
   simp only [Nat.succ_ne_zero, not_lt_zero', ge_iff_le, zero_le, tsub_eq_zero_of_le, nonpos_iff_eq_zero, tsub_zero,
@@ -343,7 +344,7 @@ theorem sigma_bar_bounded' (n : ℕ) {k : ℕ}: k ∈ sigma_bar 0 n → k < n :=
   intro k_in
   induction n
   · exfalso
-    exact mem_one_iff.mp k_in
+    exact not_mem_one k_in
   rename_i n n_ih
   rw [sigma_bar_last <| Nat.lt_of_le_of_lt (Nat.zero_le n) (Nat.le.refl)] at k_in
   cases (mem_mul.mp k_in)
@@ -353,7 +354,7 @@ theorem sigma_bar_bounded' (n : ℕ) {k : ℕ}: k ∈ sigma_bar 0 n → k < n :=
   rw [mem_of.mp right]
   exact Nat.le.refl
 
-theorem map_sigma_bar_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid'.map (fun x => x + k)) (sigma_bar 0 n) →
+theorem map_sigma_bar_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid.map (fun x => x + k)) (sigma_bar 0 n) →
     x < (n + k) := by
   intro x h
   rcases n

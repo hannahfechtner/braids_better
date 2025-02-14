@@ -4,14 +4,14 @@ import Mathlib.GroupTheory.FreeGroup.Basic
 import Mathlib.GroupTheory.PresentedGroup
 
 
-variable {α : Type} [Monoid α] {rels : FreeMonoid' α → FreeMonoid' α → Prop}
+variable {α : Type} [Monoid α] {rels : FreeMonoid α → FreeMonoid α → Prop}
 
 -- this should have a better name and be in a namespace
-def pm_rels_to_pg_rels (rels : FreeMonoid' α → FreeMonoid' α → Prop) : Set (FreeGroup α) :=
-  {FreeMonoid'.lift (FreeGroup.of) x.1 * (FreeMonoid'.lift (FreeGroup.of) x.2)⁻¹ |
-  x ∈ setOf (fun (a : FreeMonoid' α × FreeMonoid' α) => rels a.1 a.2)}
+def pm_rels_to_pg_rels (rels : FreeMonoid α → FreeMonoid α → Prop) : Set (FreeGroup α) :=
+  {FreeMonoid.lift (FreeGroup.of) x.1 * (FreeMonoid.lift (FreeGroup.of) x.2)⁻¹ |
+  x ∈ setOf (fun (a : FreeMonoid α × FreeMonoid α) => rels a.1 a.2)}
 
-variable {α : Type} {rels : FreeMonoid' α → FreeMonoid' α → Prop}
+variable {α : Type} {rels : FreeMonoid α → FreeMonoid α → Prop}
 -- variable [OreLocalization.OreSet (submonoid_self (PresentedMonoid rels))]
 -- local notation "P" => PresentedMonoid rels
 -- local notation "pml" =>  OreLocalization (submonoid_self P) P
@@ -31,28 +31,28 @@ theorem presented_identity_works : ∀ r ∈ pm_rels_to_pg_rels rels, (FreeGroup
   rfl
 
 -- this should go somewhere else : either free monoid or free group
-theorem lift_eq_lift_lift_of {G₁ : Type} {a : FreeMonoid' α} [Group G₁] (f : α → G₁) :
-    FreeMonoid'.lift f a = (FreeGroup.lift f) (FreeMonoid'.lift (FreeGroup.of) a) := by
-  induction' a using FreeMonoid'.inductionOn'
+theorem lift_eq_lift_lift_of {G₁ : Type} {a : FreeMonoid α} [Group G₁] (f : α → G₁) :
+    FreeMonoid.lift f a = (FreeGroup.lift f) (FreeMonoid.lift (FreeGroup.of) a) := by
+  induction' a using FreeMonoid.inductionOn'
   · rfl
   rename_i ih
-  simp only [map_mul, FreeMonoid'.lift_eval_of, ih, FreeGroup.lift.of]
+  simp only [map_mul, FreeMonoid.lift_eval_of, ih, FreeGroup.lift.of]
 
 theorem rels_pg_iff_rels_pml {G₁ : Type} [Group G₁]
-    {rels : FreeMonoid' α → FreeMonoid' α → Prop}
+    {rels : FreeMonoid α → FreeMonoid α → Prop}
     (f : α → G₁) :
     (∀ r ∈ (pm_rels_to_pg_rels rels), ((FreeGroup.lift f) r ) = 1) ↔ (∀ r₁ r₂, rels r₁ r₂ →
-    (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂)) := by
+    (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂)) := by
   constructor
   · intro one_version r1 r2 relsy
-    have anty : FreeMonoid'.lift (FreeGroup.of) r1 * (FreeMonoid'.lift (FreeGroup.of) r2)⁻¹ ∈
+    have anty : FreeMonoid.lift (FreeGroup.of) r1 * (FreeMonoid.lift (FreeGroup.of) r2)⁻¹ ∈
         pm_rels_to_pg_rels rels := by
       apply Prod.exists.mpr
       simp only [Set.mem_setOf_eq]
       use r1, r2
-    specialize one_version ((FreeMonoid'.lift (FreeGroup.of) r1) *
-      (FreeMonoid'.lift (FreeGroup.of) r2)⁻¹) anty
-    rw [map_mul, map_inv, ← lift_eq_lift_lift_of, ← lift_eq_lift_lift_of, ← mul_left_inj ((FreeMonoid'.lift f) r2),
+    specialize one_version ((FreeMonoid.lift (FreeGroup.of) r1) *
+      (FreeMonoid.lift (FreeGroup.of) r2)⁻¹) anty
+    rw [map_mul, map_inv, ← lift_eq_lift_lift_of, ← lift_eq_lift_lift_of, ← mul_left_inj ((FreeMonoid.lift f) r2),
       inv_mul_cancel_right, one_mul] at one_version
     exact one_version
   intro double_version r r_in
@@ -75,13 +75,13 @@ private theorem pml_to_presented_group_apply_of (a : α) : pml_to_presented_grou
     (PresentedMonoid.of rels a)) = (PresentedGroup.of a : PresentedGroup (pm_rels_to_pg_rels rels)) :=
   rfl
 
-theorem lift_of_eq_mk_of_mulHom {β : Type} [Monoid β] (r : FreeMonoid' α)
+theorem lift_of_eq_mk_of_mulHom {β : Type} [Monoid β] (r : FreeMonoid α)
     (f : PresentedMonoid rels →* β) :
-    (FreeMonoid'.lift fun x => f (PresentedMonoid.of rels x)) r =
+    (FreeMonoid.lift fun x => f (PresentedMonoid.of rels x)) r =
     (f (PresentedMonoid.mk rels r)) := by
-  induction' r using FreeMonoid'.inductionOn' with _ _ ih
+  induction' r using FreeMonoid.inductionOn' with _ _ ih
   · exact f.map_one.symm
-  rw [map_mul, ih, FreeMonoid'.lift_eval_of, PresentedMonoid.mul_mk, map_mul]
+  rw [map_mul, ih, FreeMonoid.lift_eval_of, PresentedMonoid.mul_mk, map_mul]
   rfl
 
 private theorem fraction_identity_works

@@ -1,10 +1,10 @@
 import BraidProject.BraidMonoid
 import Mathlib.Data.Nat.Dist
-open FreeMonoid'
+open FreeMonoid
 /-- a reversing grid, inductively defined as the set of basic cells, and a vertical and horizontal
 closure under appending-/
 
-inductive grid : FreeMonoid' ℕ → FreeMonoid' ℕ → FreeMonoid' ℕ → FreeMonoid' ℕ → Prop
+inductive grid : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → Prop
   | empty : grid 1 1 1 1
   | top_bottom (i : ℕ) : grid 1 (of i) 1 (.of i)
   | sides (i : ℕ) : grid (of i) 1 (of i) 1
@@ -26,21 +26,21 @@ theorem grid_swap : grid a b c d → grid b a d c := by
   | vertical _ _ h1 h2 => exact grid.horizontal h1 h2
   | horizontal _ _ h1 h2 => exact grid.vertical h1 h2
 
-theorem grid_sides_word (u : FreeMonoid' ℕ) : grid u 1 u 1 := by
+theorem grid_sides_word (u : FreeMonoid ℕ) : grid u 1 u 1 := by
   induction' u
   · exact grid.empty
   · exact grid.sides _
   · rename_i one two
     exact grid.vertical one two
 
-theorem grid_top_bottom_word (u : FreeMonoid' ℕ) : grid 1 u 1 u := by
+theorem grid_top_bottom_word (u : FreeMonoid ℕ) : grid 1 u 1 u := by
   induction' u
   · exact grid.empty
   · exact grid.top_bottom _
   · rename_i one two
     exact grid.horizontal one two
 
-theorem grid_top_left_word (u : FreeMonoid' ℕ) : grid u u 1 1 := by
+theorem grid_top_left_word (u : FreeMonoid ℕ) : grid u u 1 1 := by
   induction' u
   · exact grid.empty
   · exact grid.top_left _
@@ -62,56 +62,56 @@ theorem braid_eq_of_grid (h : grid a b c d) :
       rename_i k h_dist
       rcases Nat.dist_eq_one h_dist with ha | hb
       · rw [ha]
-        apply Con'Gen.Rel.symm
-        apply Con'Gen.Rel.of
+        apply ConGen.Rel.symm
+        apply ConGen.Rel.of
         apply braid_rels_m_inf.adjacent
-      apply Con'Gen.Rel.of
+      apply ConGen.Rel.of
       rw [hb]
       apply braid_rels_m_inf.adjacent
   | separated i j h =>
       apply PresentedMonoid.sound
       rcases or_dist_iff.mp h
       · rename_i h1
-        apply Con'Gen.Rel.of
+        apply ConGen.Rel.of
         exact braid_rels_m_inf.separated _ _ h1
       rename_i h2
-      apply Con'Gen.Rel.symm
-      apply Con'Gen.Rel.of
+      apply ConGen.Rel.symm
+      apply ConGen.Rel.of
       exact braid_rels_m_inf.separated _ _ h2
   | vertical _ _ h1_ih h2_ih =>
       apply PresentedMonoid.sound
       rw [mul_assoc]
-      apply (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (Quotient.exact h2_ih)).trans
+      apply (ConGen.Rel.mul (ConGen.Rel.refl _) (Quotient.exact h2_ih)).trans
       rw [← mul_assoc, ← mul_assoc]
-      exact Con'Gen.Rel.mul (Quotient.exact h1_ih) (Con'Gen.Rel.refl _)
+      exact ConGen.Rel.mul (Quotient.exact h1_ih) (ConGen.Rel.refl _)
   | horizontal _ _ h1_ih h2_ih =>
       apply PresentedMonoid.sound
       rw [← mul_assoc]
-      apply (Con'Gen.Rel.mul (Quotient.exact h1_ih) (Con'Gen.Rel.refl _)).trans
+      apply (ConGen.Rel.mul (Quotient.exact h1_ih) (ConGen.Rel.refl _)).trans
       rw [mul_assoc, mul_assoc]
-      exact (Con'Gen.Rel.mul (Con'Gen.Rel.refl _) (Quotient.exact h2_ih))
+      exact (ConGen.Rel.mul (ConGen.Rel.refl _) (Quotient.exact h2_ih))
 
 theorem grid_diag_length_eq (h : grid a b c d) : a.length + d.length = b.length + c.length := by
   have H := congr_arg BraidMonoidInf.length (braid_eq_of_grid h)
   simp only [BraidMonoidInf.length_mk, length_mul] at H
   exact H
 
-theorem FreeMonoid.prod_eq_one {a b : FreeMonoid' α} (h : a * b = 1) : a = 1 ∧ b = 1 := by
-  have H : FreeMonoid'.length (a * b) = 0 := by
+theorem FreeMonoid.prod_eq_one {a b : FreeMonoid α} (h : a * b = 1) : a = 1 ∧ b = 1 := by
+  have H : FreeMonoid.length (a * b) = 0 := by
     rw [h, length_one]
-  rw [FreeMonoid'.length_mul] at H
+  rw [FreeMonoid.length_mul] at H
   constructor
   · have H : length a = 0 := by linarith [h]
-    exact eq_one_of_length_eq_zero H
+    exact length_eq_zero.mp H
   have H : length b = 0 := by linarith [h]
-  exact eq_one_of_length_eq_zero H
+  exact length_eq_zero.mp H
 
-theorem FreeMonoid.prod_eq_of {a b : FreeMonoid' α} {i : α} (h : a * b = FreeMonoid'.of i) :
+theorem FreeMonoid.prod_eq_of {a b : FreeMonoid α} {i : α} (h : a * b = FreeMonoid.of i) :
     (a = 1 ∧ b = of i) ∨ (a = of i ∧ b = 1) := by
-  have H : FreeMonoid'.length (a * b) = 1 := by
+  have H : FreeMonoid.length (a * b) = 1 := by
     rw [h]
-    exact FreeMonoid'.length_of
-  rw [FreeMonoid'.length_mul] at H
+    exact FreeMonoid.length_of _
+  rw [FreeMonoid.length_mul] at H
   have H2 : length a = 0 ∨ length b = 0 := by
     revert H
     rcases (length a)
@@ -122,16 +122,16 @@ theorem FreeMonoid.prod_eq_of {a b : FreeMonoid' α} {i : α} (h : a * b = FreeM
   rcases H2 with a_one | b_one
   · left
     constructor
-    · exact eq_one_of_length_eq_zero a_one
-    rw [eq_one_of_length_eq_zero a_one] at h
+    · exact length_eq_zero.mp a_one
+    rw [length_eq_zero.mp a_one] at h
     exact h
   right
   constructor
-  · rw [eq_one_of_length_eq_zero b_one, mul_one] at h
+  · rw [length_eq_zero.mp b_one, mul_one] at h
     exact h
-  exact eq_one_of_length_eq_zero b_one
+  exact length_eq_zero.mp b_one
 
-def split_vertically (a b c d : FreeMonoid' ℕ) := ∀ b₁ b₂, b = b₁ * b₂ →
+def split_vertically (a b c d : FreeMonoid ℕ) := ∀ b₁ b₂, b = b₁ * b₂ →
   ∃ u d₁ d₂, grid a b₁ u d₁ ∧ grid u b₂ c d₂ ∧ d = d₁ * d₂
 
 -- theorem eq_of_length_eq {a b c d : FreeMonoid α} (h : a * b = c * d) (hl : a.length = c.length) :
@@ -148,11 +148,11 @@ def split_vertically (a b c d : FreeMonoid' ℕ) := ∀ b₁ b₂, b = b₁ * b�
 --   rw [h2, h3] at hf
 --   exact hf
 
-theorem FreeMonoid.prod_eq_prod {a b c d : FreeMonoid' α} (h : a * b = c * d) :
+theorem FreeMonoid.prod_eq_prod {a b c d : FreeMonoid α} (h : a * b = c * d) :
     (∃ from_middle, c = a * from_middle ∧ b = from_middle * d) ∨
     (∃ to_middle, a = c * to_middle ∧ d = to_middle * b) := List.append_eq_append_iff.mp h
 
-theorem splittable_vertically_of_grid {a b c d : FreeMonoid' ℕ} (h : grid a b c d) :
+theorem splittable_vertically_of_grid {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
     split_vertically a b c d := by
   induction h with
   | empty =>
@@ -248,10 +248,10 @@ theorem splittable_vertically_of_grid {a b c d : FreeMonoid' ℕ} (h : grid a b 
     rw [hm2]
     exact ⟨g1, ⟨grid.horizontal g2 h2, by rw [← mul_assoc, hh]⟩⟩
 
-def split_horizontally (a b c d : FreeMonoid' ℕ) := ∀ a₁ a₂, a = a₁ * a₂ →
+def split_horizontally (a b c d : FreeMonoid ℕ) := ∀ a₁ a₂, a = a₁ * a₂ →
   ∃ u c₁ c₂, grid a₁ b c₁ u ∧ grid a₂ u c₂ d ∧ c = c₁ * c₂
 
-theorem splittable_horizontally_of_grid {a b c d : FreeMonoid' ℕ} (h : grid a b c d) :
+theorem splittable_horizontally_of_grid {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
     split_horizontally a b c d := by
   induction h with
   | empty =>

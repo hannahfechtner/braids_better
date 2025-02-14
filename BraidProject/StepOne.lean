@@ -186,7 +186,7 @@ def find_it (L : List α) (r : List α) : Option (List α × List α × List α)
 
 instance hi : WellFounded (Shortlex lt_a) := by
   apply Shortlex.wf
-  exact instWellFoundedProdOptionNatBoolLt_a
+  exact wf_ar
 def move_ones (a : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
   match find_it a [(none, false), (none, true)] with
   | none => a

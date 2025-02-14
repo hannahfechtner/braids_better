@@ -10,7 +10,7 @@ theorem induction_above {k : ℕ} (i j : ℕ) (h : k ≤ Nat.dist i j)
       (∀ i' j', k + 1 <= Nat.dist i' j' → (∀ i'' j'' : ℕ, k <= Nat.dist i'' j'' →
       (Nat.dist i'' j'' < Nat.dist i' j') →  p i'' j'') → p i' j') → p i j := by
     intro t
-    induction t using Nat.caseStrongInductionOn
+    induction t using Nat.caseStrongRecOn
     · intro i j ad_is bbase_case _
       rw [zero_add] at ad_is
       exact bbase_case _ _ ad_is
@@ -42,7 +42,7 @@ theorem induction_above_diff {k : ℕ} (i j : ℕ) (h : k ≤ j-i)
       (∀ i' j', k + 1 <= j'-i' → (∀ i'' j'' : ℕ, k <= j''-i'' →
       (j'' -i'' < j'-i') →  p i'' j'') → p i' j') → p i j := by
     intro t
-    induction t using Nat.caseStrongInductionOn
+    induction t using Nat.caseStrongRecOn
     · intro i j ad_is bbase_case _
       rw [zero_add] at ad_is
       exact bbase_case _ _ ad_is
@@ -74,7 +74,7 @@ theorem induction_above_two (i j : ℕ) (h : 2 ≤ Nat.dist i j)
       (∀ i' j', 3<= Nat.dist i' j' → (∀ i'' j'' : ℕ, 2 <= Nat.dist i'' j'' →
       (Nat.dist i'' j'' < Nat.dist i' j') →  p i'' j'') → p i' j') → p i j := by
     intro t
-    induction t using Nat.caseStrongInductionOn
+    induction t using Nat.caseStrongRecOn
     · intro i j ad_is bbase_case _
       exact bbase_case _ _ ad_is
     rename_i k hk
@@ -104,7 +104,7 @@ theorem induction_above' (i j : ℕ) (p : ℕ → ℕ → Prop)
       (∀ i' j', (∀ i'' j'' : ℕ, (Nat.dist i'' j'' < Nat.dist i' j') →  p i'' j'') → p i' j') →
       p i j := by
     intro t
-    induction t using Nat.caseStrongInductionOn
+    induction t using Nat.caseStrongRecOn
     · intro i j ad_is bbase_case _
       exact bbase_case _ _ ad_is
     rename_i k hk

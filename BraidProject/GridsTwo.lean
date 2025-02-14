@@ -1,6 +1,6 @@
 import BraidProject.Grids
 
-open FreeMonoid'
+open FreeMonoid
 
 theorem all_ones : grid a b c d → a = 1 → b = 1 → (c = 1 ∧ d = 1) := by
   intro h one two
@@ -9,8 +9,8 @@ theorem all_ones : grid a b c d → a = 1 → b = 1 → (c = 1 ∧ d = 1) := by
   | top_bottom i => exact ⟨rfl, two⟩
   | sides i => exact ⟨one, rfl⟩
   | top_left i => exact ⟨rfl, rfl⟩
-  | adjacent i k _ => exact (of_neq_one _ one).elim
-  | separated i j _ => exact (of_neq_one _ one).elim
+  | adjacent i k _ => exact (of_ne_one _ one).elim
+  | separated i j _ => exact (of_ne_one _ one).elim
   | vertical _ _ h1_ih h2_ih =>
     specialize h1_ih (FreeMonoid.prod_eq_one one).1 two
     specialize h2_ih (FreeMonoid.prod_eq_one one).2 h1_ih.2
@@ -26,7 +26,7 @@ theorem all_ones : grid a b c d → a = 1 → b = 1 → (c = 1 ∧ d = 1) := by
 
 theorem all_ones_better (h1 : grid 1 1 c d) : c = 1 ∧ d = 1 := all_ones h1 rfl rfl
 
--- def all_one (a b c d : FreeMonoid' ℕ) := a = 1 → b = 1 → (c = 1 ∧ d = 1)
+-- def all_one (a b c d : FreeMonoid ℕ) := a = 1 → b = 1 → (c = 1 ∧ d = 1)
 
 -- theorem all_ones' : grid a b c d → all_one a b c d := by
 --   intro h
@@ -35,7 +35,7 @@ theorem all_ones_better (h1 : grid 1 1 c d) : c = 1 ∧ d = 1 := all_ones h1 rfl
 --   · exact fun _ two => ⟨rfl, two⟩
 --   · exact fun one _ => ⟨one, rfl⟩
 --   · exact fun _ _ => ⟨rfl, rfl⟩
---   · exact fun one _ => (of_neq_one _ one).elim
+--   · exact fun one _ => (of_ne_one _ one).elim
 --   · exact fun one two => ⟨one, two⟩
 --   · rename_i n o
 --     intro one two
@@ -56,14 +56,14 @@ theorem all_ones_better (h1 : grid 1 1 c d) : c = 1 ∧ d = 1 := all_ones h1 rfl
 
 theorem i_top_bottom {i : ℕ} (h : grid 1 (of i) c d) : c = 1 ∧ d = of i := by
   generalize hb : of i = b at h
-  generalize ha : (1 : FreeMonoid' ℕ) = a at h
+  generalize ha : (1 : FreeMonoid ℕ) = a at h
   induction h with
-  | empty => exact (of_neq_one _ hb).elim
+  | empty => exact (of_ne_one _ hb).elim
   | top_bottom i => exact ⟨rfl, rfl⟩
-  | sides i => exact (of_neq_one _ ha.symm).elim
-  | top_left i => exact (of_neq_one _ ha.symm).elim
-  | adjacent i k h => exact (of_neq_one _ ha.symm).elim
-  | separated i j h => exact (of_neq_one _ ha.symm).elim
+  | sides i => exact (of_ne_one _ ha.symm).elim
+  | top_left i => exact (of_ne_one _ ha.symm).elim
+  | adjacent i k h => exact (of_ne_one _ ha.symm).elim
+  | separated i j h => exact (of_ne_one _ ha.symm).elim
   | vertical h1 h2 h1_ih h2_ih =>
     have h3 := (FreeMonoid.prod_eq_one ha.symm)
     rw [h3.1, ← hb] at h1
@@ -91,16 +91,16 @@ theorem i_top_bottom {i : ℕ} (h : grid 1 (of i) c d) : c = 1 ∧ d = of i := b
 
 theorem i_side_side (h : grid (of i) 1 c d) : c = of i ∧ d = 1 := by
   generalize one : of i = a at h
-  generalize two : (1 : FreeMonoid' ℕ) = b at h
+  generalize two : (1 : FreeMonoid ℕ) = b at h
   induction h
   · exact ⟨rfl, rfl⟩
-  · exact (of_neq_one _ two.symm).elim
+  · exact (of_ne_one _ two.symm).elim
   · exact ⟨rfl, rfl⟩
   · exact ⟨two, two⟩
   · rw [← two]
     constructor
     · rfl
-    exact (of_neq_one _ two.symm).elim
+    exact (of_ne_one _ two.symm).elim
   · exact ⟨rfl, rfl⟩
   · rename_i e f g h j k l m n o p
     rw [two] at o
@@ -134,22 +134,22 @@ theorem i_side_side (h : grid (of i) 1 c d) : c = of i ∧ d = 1 := by
   rw [p.2]
   exact ⟨p.1, two⟩
 
-def itl (a b c d : FreeMonoid' ℕ) := ∀ i, a = FreeMonoid'.of i → b = FreeMonoid'.of i → c = 1 ∧ d = 1
+def itl (a b c d : FreeMonoid ℕ) := ∀ i, a = FreeMonoid.of i → b = FreeMonoid.of i → c = 1 ∧ d = 1
 
 theorem i_top_left : grid a b c d → itl a b c d := by
   intro h
   induction h with
   | empty => exact fun _ _ _ => ⟨rfl, rfl⟩
-  | top_bottom i => exact fun j h1 => ((FreeMonoid'.of_neq_one j).elim h1.symm).elim
-  | sides i => exact fun j _ h2 => ((FreeMonoid'.of_neq_one j).elim h2.symm).elim
+  | top_bottom i => exact fun j h1 => ((FreeMonoid.of_ne_one j).elim h1.symm).elim
+  | sides i => exact fun j _ h2 => ((FreeMonoid.of_ne_one j).elim h2.symm).elim
   | top_left i => exact fun _ _ _ => ⟨rfl, rfl⟩
   | adjacent i k h =>
     intro j h1 h2
-    rw [FreeMonoid'.of_injective h1, FreeMonoid'.of_injective h2] at h
+    rw [FreeMonoid.of_injective h1, FreeMonoid.of_injective h2] at h
     simp at h
   | separated i j h =>
     intro k h1 h2
-    rw [FreeMonoid'.of_injective h1, FreeMonoid'.of_injective h2] at h
+    rw [FreeMonoid.of_injective h1, FreeMonoid.of_injective h2] at h
     simp at h
   | vertical h1 h2 h1_ih h2_ih =>
     intro k ha hb
@@ -194,7 +194,7 @@ theorem i_top_left : grid a b c d → itl a b c d := by
 theorem word_side_side : ∀ a b c, grid 1 c a b → a = 1 ∧ b = c := by
   intro a b c
   revert a b
-  induction c using FreeMonoid'.inductionOn'
+  induction c using FreeMonoid.inductionOn'
   · intro a b griddy
     exact all_ones griddy rfl rfl
   rename_i one two three
@@ -210,7 +210,7 @@ theorem word_side_side : ∀ a b c, grid 1 c a b → a = 1 ∧ b = c := by
 theorem word_top_bottom : ∀ a b c, grid c 1 a b → a = c ∧ b = 1 := by
   intro a b c
   revert a b
-  induction c using FreeMonoid'.inductionOn'
+  induction c using FreeMonoid.inductionOn'
   · intro a b h
     exact all_ones h rfl rfl
   intro c d h
@@ -226,24 +226,24 @@ theorem word_top_bottom : ∀ a b c, grid c 1 a b → a = c ∧ b = 1 := by
   rw [h3]
   exact ⟨rfl, ih.2⟩
 
-def ia (a b c d : FreeMonoid' ℕ) := ∀ i j, a = FreeMonoid'.of i → b = FreeMonoid'.of j → (Nat.dist i j = 1) →
-  c = FreeMonoid'.of i * FreeMonoid'.of j ∧ d = FreeMonoid'.of j * FreeMonoid'.of i
+def ia (a b c d : FreeMonoid ℕ) := ∀ i j, a = FreeMonoid.of i → b = FreeMonoid.of j → (Nat.dist i j = 1) →
+  c = FreeMonoid.of i * FreeMonoid.of j ∧ d = FreeMonoid.of j * FreeMonoid.of i
 
 theorem i_adjacent : grid a b c d → ia a b c d := by
   intro h
   induction h with
   | empty =>
     intro i j h1
-    exact ((FreeMonoid'.of_neq_one _).elim h1.symm).elim
+    exact ((FreeMonoid.of_ne_one _).elim h1.symm).elim
   | top_bottom i =>
     intro i j h1
-    exact ((FreeMonoid'.of_neq_one _).elim h1.symm).elim
+    exact ((FreeMonoid.of_ne_one _).elim h1.symm).elim
   | sides i =>
     intro i j _ h2
-    exact ((FreeMonoid'.of_neq_one _).elim h2.symm).elim
+    exact ((FreeMonoid.of_ne_one _).elim h2.symm).elim
   | top_left i =>
     intro i j h1 h2 d
-    rw [FreeMonoid'.of_injective h1.symm, FreeMonoid'.of_injective h2] at d
+    rw [FreeMonoid.of_injective h1.symm, FreeMonoid.of_injective h2] at d
     simp at d
   | adjacent i k _ =>
     intro i j h1 h2 _
@@ -251,7 +251,7 @@ theorem i_adjacent : grid a b c d → ia a b c d := by
     exact ⟨rfl, rfl⟩
   | separated i j h =>
     intro i j h1 h2 d
-    rw [FreeMonoid'.of_injective h1.symm, FreeMonoid'.of_injective h2.symm] at d
+    rw [FreeMonoid.of_injective h1.symm, FreeMonoid.of_injective h2.symm] at d
     rw [d] at h
     simp at h
   | vertical h1 h2 h1_ih h2_ih =>
@@ -293,13 +293,13 @@ theorem i_adjacent : grid a b c d → ia a b c d := by
     rw [H_idk.1, H_idk.2, h1_ih.2, mul_one]
     exact ⟨rfl, rfl⟩
 
-def ij_eq (a b c d : FreeMonoid' ℕ) := ∀ k, a = of k → b = of k → (c = 1 ∧ d = 1)
+def ij_eq (a b c d : FreeMonoid ℕ) := ∀ k, a = of k → b = of k → (c = 1 ∧ d = 1)
 
-theorem helpier_eq {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_eq a b c d := by
+theorem helpier_eq {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_eq a b c d := by
   induction h
-  · exact fun _ _ h2 => (of_neq_one _ h2.symm).elim
-  · exact fun _ h1 _ => (of_neq_one _ h1.symm).elim
-  · exact fun _ _ h2 => (of_neq_one _ h2.symm).elim
+  · exact fun _ _ h2 => (of_ne_one _ h2.symm).elim
+  · exact fun _ h1 _ => (of_ne_one _ h1.symm).elim
+  · exact fun _ _ h2 => (of_ne_one _ h2.symm).elim
   · exact fun _ _ _ => ⟨rfl, rfl⟩
   · intro k eq1 eq2
     rename_i dist
@@ -353,17 +353,17 @@ theorem helpier_eq {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_eq a b c 
   rw [jk.1, jk.2, n.2]
   exact ⟨rfl, rfl⟩
 
-def ij_close (a b c d : FreeMonoid' ℕ) := ∀ i j, (Nat.dist i j = 1) → a = of i → b = of j →
+def ij_close (a b c d : FreeMonoid ℕ) := ∀ i j, (Nat.dist i j = 1) → a = of i → b = of j →
     (c = of i * of j ∧ d = of j * of i)
 
--- theorem helpier_close' {c d : FreeMonoid' ℕ} (h1 : Nat.dist i j =1)
+-- theorem helpier_close' {c d : FreeMonoid ℕ} (h1 : Nat.dist i j =1)
 --     (h : grid (of i) (of j) c d) : (c = of i * of j ∧ d = of j * of i):= by
 --   generalize one : of i = a at h
 --   generalize two : of j = b at h
 --   induction h with
---   | empty => exact (of_neq_one _ one).elim
---   | top_bottom k => exact (of_neq_one _ one).elim
---   | sides i => exact (of_neq_one _ two).elim
+--   | empty => exact (of_ne_one _ one).elim
+--   | top_bottom k => exact (of_ne_one _ one).elim
+--   | sides i => exact (of_ne_one _ two).elim
 --   | top_left k =>
 --     rw [of_injective one, of_injective two] at h1
 --     simp only [Nat.dist_self, zero_ne_one] at h1
@@ -382,11 +382,11 @@ def ij_close (a b c d : FreeMonoid' ℕ) := ∀ i j, (Nat.dist i j = 1) → a = 
   -- | horizontal h1 h2 h1_ih h2_ih => sorry
 
 
-theorem helpier_close {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_close a b c d := by
+theorem helpier_close {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_close a b c d := by
   induction h
-  · exact fun _ _ _ one _ => (of_neq_one _ one.symm).elim
-  · exact fun _ _ _ one _ => (of_neq_one _ one.symm).elim
-  · exact fun _ _ _ _ two => (of_neq_one _ two.symm).elim
+  · exact fun _ _ _ one _ => (of_ne_one _ one.symm).elim
+  · exact fun _ _ _ one _ => (of_ne_one _ one.symm).elim
+  · exact fun _ _ _ _ two => (of_ne_one _ two.symm).elim
   · intro j k dist one two
     rename_i i
     rw [← of_injective one, ← of_injective two] at dist
@@ -456,10 +456,10 @@ theorem helpier_close {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_close 
   rw [H.1, H.2, n.2]
   exact ⟨rfl, rfl⟩
 
-def ij_st (a b c d : FreeMonoid' ℕ) := ∀ i j, (i + 2 <= j ∨ j + 2 <= i) → a = of i → b = of j →
+def ij_st (a b c d : FreeMonoid ℕ) := ∀ i j, (i + 2 <= j ∨ j + 2 <= i) → a = of i → b = of j →
     (c = of i ∧ d = of j)
 
-theorem helpier_ij {a b c d : FreeMonoid' ℕ} (h : grid a b c d) : ij_st a b c d := by
+theorem helpier_ij {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_st a b c d := by
   induction h
   · intro i j _ one two
     exact ⟨one, two⟩

@@ -1,9 +1,8 @@
 import BraidProject.BraidMonoid
 import BraidProject.AcrossStrands
 import BraidProject.InductionWithBounds
-import BraidProject.FreeMonoid_mine
 
-open FreeMonoid'
+open FreeMonoid
 --lemma 3.9 property
 def three_nine (i j : ℕ) := ∀ k, i + 2 ≤ j → i < k ∧ k < j → BraidMonoidInf.mk (of k * sigma_bar i j) =
     BraidMonoidInf.mk (sigma_bar i j * of (k-1))
@@ -188,7 +187,7 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
   · exact h1
   exact h2
 
-def delta_bar : ℕ → FreeMonoid' ℕ
+def delta_bar : ℕ → FreeMonoid ℕ
   | 0 => 1
   | n+1 => (sigma_bar 0 (n+1)) * (delta_bar n)
 
@@ -198,30 +197,30 @@ theorem delta_bar_zero : delta_bar 0 = 1 := rfl
 theorem delta_bar_bounded (n : ℕ) : ∀ k ∈ delta_bar n, k < n := by
   intro k h
   induction n with
-  | zero =>  exact (mem_one_iff.mp h).elim
+  | zero =>  exact (not_mem_one h).elim
   | succ n ih =>
     rcases mem_mul.mp h with _ | h1
     · apply sigma_bar_bounded'
       assumption
     exact Nat.le.step (ih h1)
 
-theorem map_delta_bar_bounded (n k x : ℕ) (h : x ∈ (FreeMonoid'.map (fun x => x +k)) (delta_bar n)) :
+theorem map_delta_bar_bounded (n k x : ℕ) (h : x ∈ (FreeMonoid.map (fun x => x +k)) (delta_bar n)) :
     x < n + k := by
   induction n with
-  | zero => exact (mem_one_iff.mp h).elim
+  | zero => exact (not_mem_one h).elim
   | succ n ih =>
     rw [delta_bar, map_mul, mem_mul] at h
     rcases h with outer | inner
     · exact map_sigma_bar_bounded n.succ k _ outer
     exact lt_add_of_lt_add_right (ih inner) (Nat.le.step Nat.le.refl)
 
-theorem move_bigger_across (m : ℕ) (word : FreeMonoid' ℕ) : (∀ k ∈ word, k + 1 < m) →
+theorem move_bigger_across (m : ℕ) (word : FreeMonoid ℕ) : (∀ k ∈ word, k + 1 < m) →
     BraidMonoidInf.mk (of m * word) = BraidMonoidInf.mk (word * of m) := by
   induction word
   · exact fun _ => rfl
   · intro h
     apply BraidMonoidInf.comm
-    specialize h _ FreeMonoid'.mem_of_self
+    specialize h _ FreeMonoid.mem_of_self
     rw [Nat.dist_eq_sub_of_le_right (Nat.le_of_succ_le (Nat.lt_of_succ_lt h))]
     exact Nat.le_sub_of_add_le' h
   rename_i hx hy
@@ -296,8 +295,8 @@ theorem swap_sigma_delta (n : ℕ)  : ∀ i : ℕ , (i≤  n-1) →
           simp only [Nat.succ_eq_add_one, add_tsub_cancel_right, Nat.reduceSubDiff]
           rfl
 
-theorem swap_sigma_delta_souped {n : ℕ} {w : FreeMonoid' ℕ} (w_bounded : ∀x, x ∈ w → x < n) :
-    BraidMonoidInf.mk (w * delta_bar n) = BraidMonoidInf.mk  (delta_bar n * FreeMonoid'.map (λ i => (n-1)-i) w) := by
+theorem swap_sigma_delta_souped {n : ℕ} {w : FreeMonoid ℕ} (w_bounded : ∀x, x ∈ w → x < n) :
+    BraidMonoidInf.mk (w * delta_bar n) = BraidMonoidInf.mk  (delta_bar n * FreeMonoid.map (λ i => (n-1)-i) w) := by
   induction w
   · simp only [one_mul, map_one, mul_one]
   · rename_i y
@@ -314,11 +313,11 @@ theorem swap_sigma_delta_souped {n : ℕ} {w : FreeMonoid' ℕ} (w_bounded : ∀
     exact BraidMonoidInf.append_left_mk (hy fun a ha ↦ w_bounded a (mem_mul.mpr (Or.inr ha))).symm
   exact (step_one.trans step_two).symm
 
-def boundary (n i: ℕ) : FreeMonoid' ℕ :=
+def boundary (n i: ℕ) : FreeMonoid ℕ :=
   match n with
   | 0 => 1
   | 1 => 1
-  | k+2 => if i = n - 1 then sigma_bar (n-1) 0 * FreeMonoid'.map (λ i => i+1) (delta_bar (n-1))
+  | k+2 => if i = n - 1 then sigma_bar (n-1) 0 * FreeMonoid.map (λ i => i+1) (delta_bar (n-1))
           else boundary (k+1) i * sigma_bar n 0
 
 theorem boundary_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidMonoidInf.mk (delta_bar n) =
@@ -350,7 +349,7 @@ theorem boundary_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidMonoidInf
         exact Nat.lt_succ.mp lt
       · rcases last_two with eq | bigger
         · have boundary_is : boundary (Nat.succ (Nat.succ n)) i =
-              (sigma_bar (n+2-1) 0)*(FreeMonoid'.map (λ i => i+1) (delta_bar (n+2-1))) := by
+              (sigma_bar (n+2-1) 0)*(FreeMonoid.map (λ i => i+1) (delta_bar (n+2-1))) := by
             conv => lhs; unfold boundary
             simp [eq]
           rw [boundary_is]
@@ -361,7 +360,7 @@ theorem boundary_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidMonoidInf
             apply factor_delta
             linarith
           have step_two' : ∀ L, (∀ x, x∈L → x <n+1) → BraidMonoidInf.mk (L * sigma_bar (n+2) 0) =
-              BraidMonoidInf.mk ((sigma_bar (n+2) 0) * (FreeMonoid'.map (λ i => i+1) (L))) := by
+              BraidMonoidInf.mk ((sigma_bar (n+2) 0) * (FreeMonoid.map (λ i => i+1) (L))) := by
             intro L
             induction L
             · intro _
@@ -393,7 +392,7 @@ theorem boundary_bounded (i n : ℕ) (h_n : n>0) (h : i ≤ n-1) : ∀ x, x ∈ 
   | zero => exact (LT.lt.false h_n).elim
   | succ k =>
     induction k with
-    | zero => exact fun x h_empty => (mem_one_iff.mp h_empty).elim
+    | zero => exact fun x h_empty => (not_mem_one h_empty).elim
     | succ j hj =>
       intro x h_boundary
       unfold boundary at h_boundary
@@ -431,15 +430,15 @@ theorem boundary_bounded (i n : ℕ) (h_n : n>0) (h : i ≤ n-1) : ∀ x, x ∈ 
 
 theorem multiple_delta_bar_bounded {n k : ℕ} : ∀ x ∈ delta_bar n ^ k, x < n := by
   induction k with
-  | zero => exact fun _ h => (mem_one_iff.mp h).elim
+  | zero => exact fun _ h => (not_mem_one h).elim
   | succ k hk =>
     intro x h
     rw [pow_succ' (delta_bar n) k] at h
-    rcases (FreeMonoid'.mem_mul.mp h) with in_delta | ic
+    rcases (FreeMonoid.mem_mul.mp h) with in_delta | ic
     · exact delta_bar_bounded _ _ in_delta
     exact hk _ ic
 
-theorem multiple_delta_bar (u : FreeMonoid' ℕ) (l n : ℕ) (h : FreeMonoid'.length u <= l)
+theorem multiple_delta_bar (u : FreeMonoid ℕ) (l n : ℕ) (h : FreeMonoid.length u <= l)
   (bounded : ∀ x, x ∈ u → x < n) : ∃ w, BraidMonoidInf.mk (u * w) = BraidMonoidInf.mk ((delta_bar n)^l) ∧
     (∀ x, x ∈ w → x < n)  := by
   have helper : ∀ l, ∀ n, ∀ u, (u.length <= l) → (∀ x, x ∈ u → x < n) →
@@ -448,30 +447,30 @@ theorem multiple_delta_bar (u : FreeMonoid' ℕ) (l n : ℕ) (h : FreeMonoid'.le
     induction l with
     | zero =>
       intro n u u_length _
-      rw [FreeMonoid'.eq_one_of_length_eq_zero (nonpos_iff_eq_zero.mp u_length)]
+      rw [FreeMonoid.length_eq_zero.mp (nonpos_iff_eq_zero.mp u_length)]
       use 1
-      exact ⟨rfl, fun _ h => (mem_one_iff.mp h).elim⟩
+      exact ⟨rfl, fun _ h => (not_mem_one h).elim⟩
     | succ j hj =>
       intro n u u_length bounded_u
-      rcases FreeMonoid'.eq_one_or_has_last_elem u with ⟨thing, prf⟩ | ⟨front, caboose, h⟩
+      rcases FreeMonoid.eq_one_or_has_last_elem u with ⟨thing, prf⟩ | ⟨front, caboose, h⟩
       · use delta_bar n ^ Nat.succ j
         exact ⟨rfl, multiple_delta_bar_bounded⟩
       rw [h]
-      have front_length : FreeMonoid'.length front <= j := by
-        rw [h, FreeMonoid'.length_mul, FreeMonoid'.length_of] at u_length
+      have front_length : FreeMonoid.length front <= j := by
+        rw [h, FreeMonoid.length_mul, FreeMonoid.length_of] at u_length
         exact Nat.lt_succ.mp u_length
       have front_bounded : ∀ x, x ∈ front → x < n := by
         rw [h] at bounded_u
-        exact fun x x_in => bounded_u _ <| FreeMonoid'.mem_mul.mpr <| Or.inl x_in
+        exact fun x x_in => bounded_u _ <| FreeMonoid.mem_mul.mpr <| Or.inl x_in
       rcases hj n front front_length front_bounded with ⟨w', hw⟩
-      let phi_w' := FreeMonoid'.map (λ i => n-1-i) w'
+      let phi_w' := FreeMonoid.map (λ i => n-1-i) w'
       use boundary n caboose * phi_w'
       have H : ∀ a b, BraidMonoidInf.mk (a * b) = BraidMonoidInf.mk a * BraidMonoidInf.mk b :=
         fun _ _ => rfl
       have caboose_bounded : caboose < n := by
         apply bounded_u
-        rw [h, FreeMonoid'.mem_mul]
-        exact Or.inr (FreeMonoid'.mem_of.mpr rfl)
+        rw [h, FreeMonoid.mem_mul]
+        exact Or.inr (FreeMonoid.mem_of.mpr rfl)
       have step_one : BraidMonoidInf.mk (front * (of caboose) * (boundary n caboose * phi_w')) =
         BraidMonoidInf.mk (front * delta_bar n * phi_w') := by
         repeat rw [H]
@@ -488,27 +487,27 @@ theorem multiple_delta_bar (u : FreeMonoid' ℕ) (l n : ℕ) (h : FreeMonoid'.le
         rw [hw.1]
         rfl
       intro x x_in
-      rcases FreeMonoid'.mem_mul.mp x_in with in_boundary | in_phi
+      rcases FreeMonoid.mem_mul.mp x_in with in_boundary | in_phi
       · apply boundary_bounded caboose n _ (Nat.le_sub_one_of_lt caboose_bounded) _ in_boundary
         cases n with
         | zero =>
           have H : caboose < 0 := by
             apply bounded_u
-            rw [h, FreeMonoid'.mem_mul]
+            rw [h, FreeMonoid.mem_mul]
             exact Or.inr (mem_of.mpr (Eq.refl caboose))
           exact (Nat.not_lt_zero caboose H).elim
         | succ n => exact Fin.pos ⟨n, Nat.le.refl⟩
-      rcases FreeMonoid'.mem_map.mp in_phi with ⟨w, hw⟩
+      rcases FreeMonoid.mem_map.mp in_phi with ⟨w, hw⟩
       rw [← hw.2]
       exact Nat.lt_of_le_of_lt (Nat.sub_le (n - 1) _)
           (Nat.sub_one_lt_of_le (Fin.pos (Fin.mk caboose caboose_bounded)) Nat.le.refl)
   exact helper _ _ _ h bounded
 
 -- though this one is quickly done!
-theorem is_bounded (u : FreeMonoid' ℕ) : ∃ k, ∀ x ∈ u, x < k := by
-  induction u using FreeMonoid'.inductionOn'
+theorem is_bounded (u : FreeMonoid ℕ) : ∃ k, ∀ x ∈ u, x < k := by
+  induction u using FreeMonoid.inductionOn'
   · use 1
-    exact fun _ h => (mem_one_iff.mp h).elim
+    exact fun _ h => (not_mem_one h).elim
   rename_i head tail tail_ih
   rcases tail_ih with ⟨old_k, kh⟩
   use Nat.max old_k (head+1)
@@ -518,22 +517,22 @@ theorem is_bounded (u : FreeMonoid' ℕ) : ∃ k, ∀ x ∈ u, x < k := by
   next x_in_tail =>
   exact lt_max_iff.mpr (Or.inl (kh x x_in_tail))
 
-theorem common_right_mul_inf_mk (u v : FreeMonoid' ℕ) : ∃ (u' v' : FreeMonoid' ℕ ), BraidMonoidInf.mk (u*v') = BraidMonoidInf.mk (v*u') := by
+theorem common_right_mul_inf_mk (u v : FreeMonoid ℕ) : ∃ (u' v' : FreeMonoid ℕ ), BraidMonoidInf.mk (u*v') = BraidMonoidInf.mk (v*u') := by
   rcases (is_bounded u) with ⟨k1, hk1⟩
   rcases (is_bounded v) with ⟨k2, hk2⟩
   have u_under : ∀ x ∈ u, x < Nat.max k1 k2 :=
     fun x h => Nat.lt_of_lt_of_le (hk1 x h) (Nat.le_max_left k1 k2)
   have v_under : ∀ x ∈ v, x < Nat.max k1 k2 :=
     fun x h => Nat.lt_of_lt_of_le (hk2 x h) (Nat.le_max_right k1 k2)
-  have u_length := Nat.le_max_left (FreeMonoid'.length u) (FreeMonoid'.length v)
-  have v_length := Nat.le_max_right (FreeMonoid'.length u) (FreeMonoid'.length v)
-  rcases (multiple_delta_bar u (Nat.max (FreeMonoid'.length u) (FreeMonoid'.length v)) (Nat.max k1 k2)
+  have u_length := Nat.le_max_left (FreeMonoid.length u) (FreeMonoid.length v)
+  have v_length := Nat.le_max_right (FreeMonoid.length u) (FreeMonoid.length v)
+  rcases (multiple_delta_bar u (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
     u_length u_under) with ⟨v', hv', _⟩
-  rcases (multiple_delta_bar v (Nat.max (FreeMonoid'.length u) (FreeMonoid'.length v)) (Nat.max k1 k2)
+  rcases (multiple_delta_bar v (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
     v_length v_under) with ⟨u', hu', _⟩
   exact Exists.intro u' (Exists.intro v' (hv'.trans hu'.symm))
 
-theorem common_right_mul_inf (u v : BraidMonoidInf) : ∃ (u' v' : FreeMonoid' ℕ ),
+theorem common_right_mul_inf (u v : BraidMonoidInf) : ∃ (u' v' : FreeMonoid ℕ ),
     u * BraidMonoidInf.mk v' = v * BraidMonoidInf.mk u' := by
   induction' u with u
   induction' v with v
@@ -543,10 +542,10 @@ theorem common_right_mul_inf (u v : BraidMonoidInf) : ∃ (u' v' : FreeMonoid' �
     fun x h => Nat.lt_of_lt_of_le (hk1 x h) (Nat.le_max_left k1 k2)
   have v_under : ∀ x ∈ v, x < Nat.max k1 k2 :=
     fun x h => Nat.lt_of_lt_of_le (hk2 x h) (Nat.le_max_right k1 k2)
-  have u_length := Nat.le_max_left (FreeMonoid'.length u) (FreeMonoid'.length v)
-  have v_length := Nat.le_max_right (FreeMonoid'.length u) (FreeMonoid'.length v)
-  rcases (multiple_delta_bar u (Nat.max (FreeMonoid'.length u) (FreeMonoid'.length v)) (Nat.max k1 k2)
+  have u_length := Nat.le_max_left (FreeMonoid.length u) (FreeMonoid.length v)
+  have v_length := Nat.le_max_right (FreeMonoid.length u) (FreeMonoid.length v)
+  rcases (multiple_delta_bar u (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
     u_length u_under) with ⟨v', hv', _⟩
-  rcases (multiple_delta_bar v (Nat.max (FreeMonoid'.length u) (FreeMonoid'.length v)) (Nat.max k1 k2)
+  rcases (multiple_delta_bar v (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
     v_length v_under) with ⟨u', hu', _⟩
   exact Exists.intro u' (Exists.intro v' (hv'.trans hu'.symm))

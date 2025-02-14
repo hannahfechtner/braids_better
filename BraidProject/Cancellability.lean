@@ -1,13 +1,13 @@
 import BraidProject.Stability
 
-theorem simpler_grid (u v u' v' : FreeMonoid' ℕ) (h : grid u v u' v') :
+theorem simpler_grid (u v u' v' : FreeMonoid ℕ) (h : grid u v u' v') :
     grid (u * v')  (v * u') 1 1 := by
   rcases (stability _ _ 1 1 (grid_top_left_word (u * v')) _ _ rfl (braid_eq_of_grid h)) with
       ⟨a, b, griddy, ha, hb⟩
   rw [BraidMonoidInf.one_of_eq_mk_one ha.symm, BraidMonoidInf.one_of_eq_mk_one hb.symm] at griddy
   exact griddy
 
-theorem grid_of_eq {u v u' v' : FreeMonoid' ℕ} (h : BraidMonoidInf.mk (u * v') = BraidMonoidInf.mk (v * u')) :
+theorem grid_of_eq {u v u' v' : FreeMonoid ℕ} (h : BraidMonoidInf.mk (u * v') = BraidMonoidInf.mk (v * u')) :
     grid (u * v') (v * u') 1 1 := by
   rcases (stability _ _ 1 1 (grid_top_left_word (u * v')) _ _ rfl h) with
       ⟨a, b, griddy, ha, hb⟩
@@ -18,9 +18,9 @@ theorem left_cancellative (a b c : PresentedMonoid braid_rels_m_inf) (h1 : c * a
   induction' a with a'
   induction' b with b'
   induction' c with c'
-  induction' c' using FreeMonoid'.inductionOn' with d e f
+  induction' c' using FreeMonoid.inductionOn' with d e f
   · change BraidMonoidInf.mk _ = BraidMonoidInf.mk _ at h1
-    simp only [FreeMonoid'.length_one, one_mul] at h1
+    simp only [FreeMonoid.length_one, one_mul] at h1
     exact h1
   change BraidMonoidInf.mk _ = BraidMonoidInf.mk _ at h1
   simp at h1
@@ -72,7 +72,7 @@ theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d
     rw [c_is, c₁u.2, (h'_ih c' c₂ gr2).1, (h'_ih c' c₂ gr2).2]
     exact ⟨rfl, rfl⟩
 
-theorem common_mul (a b : FreeMonoid' ℕ) : ∃ c d, a * c = b * d := sorry
+theorem common_mul (a b : FreeMonoid ℕ) : ∃ c d, a * c = b * d := sorry
 
 theorem existence : ∀ a b, ∃ c d, grid a b c d := by
   intro a b
@@ -85,7 +85,7 @@ theorem existence : ∀ a b, ∃ c d, grid a b c d := by
   rcases splittable_vertically_of_grid top_grid _ _ rfl with ⟨top_vert, m₁, m₂, top_left, _, _⟩
   use top_vert, m₁
 
--- theorem existence_common_mul (a b c d e f : FreeMonoid' ℕ) (h1 : grid a b c d) (h2 : a * e = b * f) :
+-- theorem existence_common_mul (a b c d e f : FreeMonoid ℕ) (h1 : grid a b c d) (h2 : a * e = b * f) :
 --   ∃ g, BraidMonoidInf.mk ((a * d) * g) = BraidMonoidInf.mk (a * e) := by
 --   have big_grid : grid (a * e) (b * f) 1 1 := by
 --     apply grid_of_eq
@@ -98,7 +98,7 @@ theorem existence : ∀ a b, ∃ c d, grid a b c d := by
 --   use bot_vert
 --   apply PresentedMonoid.sound
 --   rw [mul_assoc]
---   apply Con'Gen.Rel.mul (Con'Gen.Rel.refl _)
+--   apply ConGen.Rel.mul (ConGen.Rel.refl _)
 --   sorry
 
 -- theorem existence : ∀ a b, ∃ c d, grid a b c d := by
@@ -112,3 +112,5 @@ instance : CancelMonoid (PresentedMonoid braid_rels_m_inf) where
     -- what the ? ?
     one_mul := one_mul
     mul_one := mul_one
+    npow_zero := pow_zero
+    npow_succ := sorry

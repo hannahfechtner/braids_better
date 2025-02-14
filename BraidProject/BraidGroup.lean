@@ -1,7 +1,6 @@
 import Mathlib.GroupTheory.FreeGroup.Basic
 import Mathlib.GroupTheory.PresentedGroup
 import Mathlib.GroupTheory.SpecificGroups.Cyclic
-import Mathlib.Topology.Maps
 import Mathlib.Data.Fin.Basic
 import BraidProject.BraidMonoid
 
@@ -222,9 +221,9 @@ theorem generated_by (H : Subgroup braid_group_inf) (h : ∀ i : ℕ, σi i ∈ 
 --   rw [h]
 --   rfl
 
--- theorem embed_helper (n : ℕ) : ∀ (a b : FreeMonoid' (Fin (n.pred))),
---     (braid_rels_m (n.pred)) a b → ((FreeMonoid'.lift fun a => σ a) a : braid_group n)=
---     (FreeMonoid'.lift fun a => σ a) b := by
+-- theorem embed_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin (n.pred))),
+--     (braid_rels_m (n.pred)) a b → ((FreeMonoid.lift fun a => σ a) a : braid_group n)=
+--     (FreeMonoid.lift fun a => σ a) b := by
 --   repeat
 --     rcases n
 --     · intro _ _ h
@@ -234,17 +233,17 @@ theorem generated_by (H : Subgroup braid_group_inf) (h : ∀ i : ℕ, σi i ∈ 
 --   intro a b h
 --   rcases h
 --   · rename_i j
---     simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
+--     simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid.lift_eval_of, Nat.pred_succ]
 --     sorry --apply braid_group.braid
---   simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid'.lift_eval_of, Nat.pred_succ]
+--   simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid.lift_eval_of, Nat.pred_succ]
 --   apply braid_group.comm
 --   next ih => exact ih
 
 -- def embed {n : ℕ} : (BraidMonoid n) →* (braid_group (n)) :=
 --   PresentedMonoid.toMonoid (fun a => @σ (n.pred) a) (embed_helper n)
 
-theorem embed_inf_helper (a b : FreeMonoid' ℕ) (h : braid_rels_m_inf a b) :
-    (FreeMonoid'.lift fun a => σi a) a = (FreeMonoid'.lift fun a => σi a) b :=
+theorem embed_inf_helper (a b : FreeMonoid ℕ) (h : braid_rels_m_inf a b) :
+    (FreeMonoid.lift fun a => σi a) a = (FreeMonoid.lift fun a => σi a) b :=
   braid_rels_m_inf.casesOn h braid_group_inf.braid (fun _ _ d => braid_group_inf.comm d)
 
 def embed_inf : BraidMonoidInf →* braid_group_inf :=

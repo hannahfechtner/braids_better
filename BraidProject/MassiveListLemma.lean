@@ -653,7 +653,7 @@ theorem double_split_horiz {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bo
     (hbot2 : is_true bot2) (hbot3 : is_true bot3) (hup3 : is_false up3)
     (h : bot2 ++ (mid2 ++ bot3 ++ mid3) ++ up3 = k ++ [(a1, false), (b1, true)] ++ l)
     (hm : mid2 = [] ∨ ∃ front a, mid2 = front ++ [(a, true)])
-    (hm3 : mid3 = [] ∨ ∃ front a, mid3 = front ++ [(a, true)]):
+    (hm3 : mid3 = [] ∨ ∃ front a, mid3 = front ++ [(a, true)]) :
     (∃ k₁ k₂, k = k₁ ++ k₂ ∧ k₁ = bot2 ++ mid2 ∧ k₂ ++ [(a1, false), (b1, true)] ++ l = bot3 ++ mid3 ++ up3) ∨
     (∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₂ = bot3 ++ mid3 ++ up3 ∧ k ++ [(a1, false), (b1, true)] ++ l₁ = bot2 ++ mid2) := by
   rcases @double_split_helper' bot2 mid2 bot3 mid3 up3 k l a1 b1 hbot2 hbot3 hup3 hm hm3 h with ⟨m1, m2, hm12, k_is⟩ | ⟨m3, m4, hm34, l_is⟩
@@ -756,7 +756,7 @@ theorem step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : 
         exact one_step_equiv_reg.mpr (equiv_paths g2)
       rw [i_is] at eq_rest
       specialize @ih2 (right_frontier_is_false g1) (left_length_pos g2) (top_frontier_is_true g2) (top_length_pos g2) k₂ l (up2 ++ b3)
-        (one_step_equiv_reg.mp H1) rfl (H1.trans _ (SemiThue.reduction h2)) eq_rest
+        (one_step_equiv_reg.mp H1) rfl (H1.trans _ _ _ (SemiThue.reduction h2)) eq_rest
       rcases ih2 with ⟨bot1, mid1, up1, pg1, fe1⟩
       use bot2 ++ bot1, mid1, up1
       constructor
@@ -781,7 +781,7 @@ theorem step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : 
       rw [i_is] at eq_rest
       specialize @ih2 (left_frontier_is_false g2) (left_length_pos g2) (top_frontier_is_true g2)
         (top_length_pos g2) k l₁ (b3 ++ bot2) H1 rfl
-        ((one_step_equiv_reg.mpr H1).trans _ (SemiThue.reduction h2)) eq_rest
+        ((one_step_equiv_reg.mpr H1).trans _ _ _ (SemiThue.reduction h2)) eq_rest
       rcases ih2 with ⟨bot1, mid1, up1, pg1, fe1⟩
       use bot1, mid1, up1 ++ up2
       constructor

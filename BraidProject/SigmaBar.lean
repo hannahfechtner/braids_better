@@ -1,20 +1,21 @@
-import BraidProject.FreeMonoid_mine
+import Mathlib.Algebra.FreeMonoid.Basic
+import Mathlib.Data.Finset.Basic
 import Mathlib.Tactic.Linarith
 
 --should go in finset
 theorem mem_nil : (a : α) ∈ (∅ : Finset α) ↔ False := List.mem_nil_iff a
 
 
-open FreeMonoid'
+open FreeMonoid
 
-local instance : Coe ℕ (FreeMonoid' ℕ) :=
+local instance : Coe ℕ (FreeMonoid ℕ) :=
   ⟨of⟩
 
-def count_up : ℕ → ℕ → ℕ → FreeMonoid' ℕ
+def count_up : ℕ → ℕ → ℕ → FreeMonoid ℕ
 | 0, _, _ => 1
 | n+1, i, j => (of i) * (count_up n (i+1) j)
 
-def count_down : ℕ → ℕ → ℕ → FreeMonoid' ℕ
+def count_down : ℕ → ℕ → ℕ → FreeMonoid ℕ
 | 0, _, _ => 1
 | n+1, i, j => (count_down n i (j+1)) * (j)
 
@@ -126,8 +127,8 @@ theorem count_down_pop {i j : ℕ} { h : i <= j} : count_down ((j+1)-i) (j+1) i 
   · rfl
   exact h
 
--- FreeMonoid' counting between two numbers, including the little and excluding the highest
-def sigma_neg (i j : ℕ) : FreeMonoid' (ℕ) :=
+-- FreeMonoid counting between two numbers, including the little and excluding the highest
+def sigma_neg (i j : ℕ) : FreeMonoid (ℕ) :=
   if i=j then 1 else (if i <j then (count_up (j-i) i j) else count_down (i-j) i j)
 
 theorem sigma_neg_last {i j : ℕ} (h: i<j) : sigma_neg i j = sigma_neg i (j - 1) * (of (j-1)) := by
@@ -211,7 +212,7 @@ theorem sigma_neg_first {i j : ℕ} (h: i<j) : sigma_neg i j = (of i)* (sigma_ne
   simp only [ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero, add_tsub_cancel_right]
   rw [ih, mul_assoc]
 
-theorem sigma_neg_big_last {i j : ℕ} (h: i<j) : sigma_neg j i = sigma_neg j (i + 1) * (of i : FreeMonoid' ℕ) := by
+theorem sigma_neg_big_last {i j : ℕ} (h: i<j) : sigma_neg j i = sigma_neg j (i + 1) * (of i : FreeMonoid ℕ) := by
   induction j, h using Nat.le_induction
   · induction i
     · unfold sigma_neg
@@ -252,7 +253,7 @@ theorem count_up_bounded (k : ℕ) {j : ℕ} : j ∈ (count_up k 1 (Nat.succ k))
     intro h
     induction k
     · exfalso
-      exact mem_one_iff.mp h
+      exact not_mem_one h
     rename_i n hn
     have h1 : j ∈ (count_up (Nat.succ (Nat.succ n)-1) 1 (Nat.succ (Nat.succ n))) := by
       simp only [Nat.succ_sub_succ_eq_sub, tsub_zero]
@@ -272,7 +273,7 @@ theorem count_down_bounded (k : ℕ) {j : ℕ} : j ∈ (count_down k (Nat.succ k
   intro h
   induction k
   · exfalso
-    exact mem_one_iff.mp h
+    exact not_mem_one h
   rename_i n hn
   have h1 : j ∈ (count_down (Nat.succ (Nat.succ n)-1) (Nat.succ (Nat.succ n)) 1) := by
     simp only [Nat.succ_sub_succ_eq_sub, tsub_zero]
@@ -287,13 +288,13 @@ theorem count_down_bounded (k : ℕ) {j : ℕ} : j ∈ (count_down k (Nat.succ k
     exact Nat.le.step (hn use_ih)
   exact NeZero.one_le
 
-theorem map_count_up_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid'.map (fun x => x +k)) (count_up n 0 n) →
+theorem map_count_up_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid.map (fun x => x +k)) (count_up n 0 n) →
     x < (n + k) := by
   intro x x_in
   induction n
   · simp [count_up] at x_in
     exfalso
-    exact mem_one_iff.mp x_in
+    exact not_mem_one x_in
   rename_i n ih
   rcases n
   · simp [count_up] at x_in
@@ -329,7 +330,7 @@ theorem sigma_neg_bounded (n : ℕ) {k : ℕ}: k ∈ (sigma_neg n 0) → k < n :
   intro k_in
   induction n
   · exfalso
-    exact mem_one_iff.mp k_in
+    exact not_mem_one k_in
   rename_i n _
   unfold sigma_neg at k_in
   simp only [Nat.succ_ne_zero, not_lt_zero', ge_iff_le, zero_le, tsub_eq_zero_of_le, nonpos_iff_eq_zero, tsub_zero,
@@ -346,7 +347,7 @@ theorem sigma_neg_bounded' (n : ℕ) {k : ℕ}: k ∈ (sigma_neg 0 n) → k < n 
   intro k_in
   induction n
   · exfalso
-    exact mem_one_iff.mp k_in
+    exact not_mem_one k_in
   rename_i n n_ih
   rw [sigma_neg_last <| Nat.lt_of_le_of_lt (Nat.zero_le n) (Nat.le.refl)] at k_in
   cases (mem_mul.mp k_in)
@@ -356,7 +357,7 @@ theorem sigma_neg_bounded' (n : ℕ) {k : ℕ}: k ∈ (sigma_neg 0 n) → k < n 
   rw [mem_of.mp right]
   exact Nat.le.refl
 
-theorem map_sigma_neg_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid'.map (fun x => x +k))
+theorem map_sigma_neg_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid.map (fun x => x +k))
     (sigma_neg 0 n) → x < (n + k) := by
   intro x h
   rcases n
@@ -373,11 +374,8 @@ theorem map_sigma_neg_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid'.map (fun x 
   rename_i n _
   unfold sigma_neg at h
   have H : ¬ 0 = Nat.succ n := Nat.ne_of_beq_eq_false rfl
-  simp [H] at h
+  simp [H, FreeMonoid.mem_map] at h
   rcases h with ⟨m, hm, hm2⟩
   apply map_count_up_bounded _ _ _
-  rename_i ih
-  unfold sigma_neg at ih
-  rw [← hm2]
   apply mem_map.mpr
   use m

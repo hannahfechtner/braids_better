@@ -8,7 +8,7 @@ def rel (n : ℕ):= PresentedMonoid.rel (braid_rels_m n)
 
 protected def mk (n : ℕ) := PresentedMonoid.mk (braid_rels_m n)
 
-theorem mul_mk {n : ℕ} {a b : FreeMonoid' (Fin n)} : BraidMonoid.mk n (a * b) =
+theorem mul_mk {n : ℕ} {a b : FreeMonoid (Fin n)} : BraidMonoid.mk n (a * b) =
     BraidMonoid.mk n a * BraidMonoid.mk n b :=
   rfl
 
@@ -53,7 +53,7 @@ theorem append_right_mk : BraidMonoid.mk n a = BraidMonoid.mk n b →
   fun h => BraidMonoid.sound (append_right (BraidMonoid.exact h))
 
 theorem comm {j k : Fin n} (h1 : n >= 3) (h : j - k >= (⟨2, h1⟩ : Fin n)) :
-    BraidMonoid.mk n (FreeMonoid'.of j * FreeMonoid'.of k) = BraidMonoid.mk n (FreeMonoid'.of k * FreeMonoid'.of j) := by
+    BraidMonoid.mk n (FreeMonoid.of j * FreeMonoid.of k) = BraidMonoid.mk n (FreeMonoid.of k * FreeMonoid.of j) := by
   apply PresentedMonoid.sound
   -- rcases or_dist_iff.mp h
   -- · apply PresentedMonoid.rel_alone
@@ -68,7 +68,7 @@ theorem comm {j k : Fin n} (h1 : n >= 3) (h : j - k >= (⟨2, h1⟩ : Fin n)) :
   sorry
 
 theorem comm_rel {j k : Fin n} (h1 : n≥ 3) (h : j - k >= ⟨2, h1⟩) :
-    BraidMonoid.rel n (FreeMonoid'.of j * FreeMonoid'.of k) (FreeMonoid'.of k * FreeMonoid'.of j) := by sorry
+    BraidMonoid.rel n (FreeMonoid.of j * FreeMonoid.of k) (FreeMonoid.of k * FreeMonoid.of j) := by sorry
   -- rcases or_dist_iff.mp h
   -- · apply PresentedMonoid.rel_alone
   --   apply braid_rels_m_inf.separated

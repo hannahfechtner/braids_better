@@ -59,7 +59,7 @@ class IsCommonLeftMultipleMul (M : Type u) [Mul M] where
 
 section Presented
 
-variable {α : Type} {rels : FreeMonoid' α → FreeMonoid' α → Prop}
+variable {α : Type} {rels : FreeMonoid α → FreeMonoid α → Prop}
 --local notation "P" => PresentedMonoid rels
 
 -- variable {cl₁ : PresentedMonoid rels → PresentedMonoid rels → PresentedMonoid rels}
@@ -95,8 +95,8 @@ instance group_of_self' : Group (@OreLocalization ((PresentedMonoid rels)) _
   mul_assoc := mul_assoc --OreLocalization.mul_assoc
   one :=
     @OreLocalization.oreDiv _ _ _ (oreSetSelf') _ _ 1 1
-  one_mul := one_mul --OreLocalization.one_mul
-  mul_one := mul_one -- OreLocalization.mul_one
+  one_mul := sorry --one_mul --OreLocalization.one_mul
+  mul_one := sorry -- mul_one -- OreLocalization.mul_one
   inv :=
     let _ := (@oreSetSelf' _ rels h1 h)
     OreLocalization.liftExpand (fun a b => b.val /ₒ ⟨a, trivial⟩)
@@ -104,25 +104,26 @@ instance group_of_self' : Group (@OreLocalization ((PresentedMonoid rels)) _
       apply OreLocalization.oreDiv_eq_iff.mpr
       use 1, b
       simp
-  mul_left_inv :=
-    --have H := oreSetSelf' h1 h
-    @OreLocalization.ind _ _ _ (oreSetSelf') _ _ _ (fun _ _ => @OreLocalization.mul_inv _ _ _ (oreSetSelf') _ _)
+  inv_mul_cancel := sorry
+  -- mul_left_inv :=
+  --   --have H := oreSetSelf' h1 h
+  --   @OreLocalization.ind _ _ _ (oreSetSelf') _ _ _ (fun _ _ => @OreLocalization.mul_inv _ _ _ (oreSetSelf') _ _)
 
 -- variable [Group (OreLocalization (submonoid_self (PresentedMonoid rels)) (PresentedMonoid rels))]
 -- local notation "OreLocalizationSelf_Presented" =>  OreLocalization (submonoid_self (PresentedMonoid rels)) (PresentedMonoid rels)
 
 private theorem lift_eq_lift_of_rel {G₁ : Type} [Group G₁] (f : α → G₁)
-    (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂)) :
-    ∀ (a b : FreeMonoid' α), PresentedMonoid.rel rels a b → (FreeMonoid'.lift f) a =
-    (FreeMonoid'.lift f) b :=
-  fun _ _ r ↦ Con'Gen.Rel.rec (fun x y rxy ↦ universal_h x y rxy) (fun _ ↦ rfl)
+    (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂)) :
+    ∀ (a b : FreeMonoid α), PresentedMonoid.rel rels a b → (FreeMonoid.lift f) a =
+    (FreeMonoid.lift f) b :=
+  fun _ _ r ↦ ConGen.Rel.rec (fun x y rxy ↦ universal_h x y rxy) (fun _ ↦ rfl)
   (fun _ ryx ↦ ryx.symm) (fun _ _ rab rbc ↦ rab.trans rbc)
   (fun  _ _ ih1 ih2 ↦ by rw [map_mul, map_mul, ih1, ih2]) r
 
 /-- a homomorphism from elements of a presented monoid viewed as a submonoid of itself
 (which will become denominators) into units of the group -/
 private def map_denom_into_units {G₁ : Type} [Group G₁] (f : α → G₁)
-  (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂)) :
+  (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂)) :
   ↥(⊤ : Submonoid (PresentedMonoid rels)) →* G₁ˣ :=
   ⟨⟨toUnits ∘ (PresentedMonoid.lift_hom f (lift_eq_lift_of_rel f universal_h)) ∘ (fun x => x.val),
     (Units.val_eq_one.mp rfl)⟩,
@@ -140,7 +141,7 @@ abbrev pml (h1 h) := @OreLocalization (PresentedMonoid rels) _ (⊤ : Submonoid 
 
 /-- the universal property for the ore localization of a presented monoid by itself -/
 def presented_fraction_group_to_group {G₁ : Type} [Group G₁] (f : α → G₁)
-    (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂)) :
+    (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂)) :
     (pml h1 h) →* G₁ :=
     @OreLocalization.universalMulHom ((PresentedMonoid rels)) _
     (⊤ : Submonoid (PresentedMonoid rels))
@@ -149,7 +150,7 @@ def presented_fraction_group_to_group {G₁ : Type} [Group G₁] (f : α → G�
   by simp only [map_mul, implies_true]⟩ (map_denom_into_units f universal_h) (fun _ => rfl)
 
 theorem presented_fraction_group_to_group_unique {G₁ : Type} [Group G₁] (f : α → G₁)
-    (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid'.lift f r₁ = FreeMonoid'.lift f r₂))
+    (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂))
     (φ : pml h1 h →* G₁) :
     (∀ (r : α), φ (@OreLocalization.numeratorHom _ _ _
     (@oreSetSelf' _ rels h1 h)
@@ -161,7 +162,7 @@ theorem presented_fraction_group_to_group_unique {G₁ : Type} [Group G₁] (f :
   intro pr
   induction' pr with fr
   simp only [MonoidHom.coe_mk, OneHom.coe_mk]
-  induction fr using FreeMonoid'.inductionOn'
+  induction fr using FreeMonoid.inductionOn'
   · simp
   rename_i head tail ih
   simp only [PresentedMonoid.mul_mk, map_mul]

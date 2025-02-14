@@ -3,21 +3,21 @@ import BraidProject.BraidGroup
 
 variable {a : Type*}
 
-open FreeMonoid'
+open FreeMonoid
 
-inductive rev_rels : FreeMonoid' ((FreeMonoid' ℕ) × Bool) → FreeMonoid' ((FreeMonoid' ℕ) × Bool) → Prop
+inductive rev_rels : FreeMonoid ((FreeMonoid ℕ) × Bool) → FreeMonoid ((FreeMonoid ℕ) × Bool) → Prop
   | inverse (a : ℕ): rev_rels [(of a, false), (of a, true)] []
   | adjacent (a b : ℕ) (h : Nat.dist a b = 1) : rev_rels [(of a,false), (of b, true)] [(of b, true), (of a, true), (of b, false), (of a, false)]
   | separated (a c : ℕ) (h : Nat.dist a c > 1) : rev_rels [(of a, false), (of c, true)] [(of c, true), (of a, false)]
 
-inductive rev_rels_one : FreeMonoid' ((FreeMonoid' ℕ) × Bool) → FreeMonoid' ((FreeMonoid' ℕ) × Bool) → Prop
+inductive rev_rels_one : FreeMonoid ((FreeMonoid ℕ) × Bool) → FreeMonoid ((FreeMonoid ℕ) × Bool) → Prop
   | inverse (a : ℕ): rev_rels_one [(of a, false), (of a, true)] [(1, true), (1, false)]
   | adjacent (a b : ℕ) (h : Nat.dist a b = 1) : rev_rels_one [(of a,false), (of b, true)] [(of b, true), (of a, true), (of b, false), (of a, false)]
   | separated (a c : ℕ) (h : Nat.dist a c > 1) : rev_rels_one [(of a, false), (of c, true)] [(of c, true), (of a, false)]
   | one_over (a : ℕ) : rev_rels_one [(of a, false), (1, true)] [(1, true), (of a, false)]
   | one_up (a : ℕ) : rev_rels_one [(1, false), (of a, true)] [(of a, true), (1, false)]
 
-def remove_ones (b : FreeMonoid' (FreeMonoid' ℕ × Bool)) : FreeMonoid' (FreeMonoid' ℕ × Bool) :=
+def remove_ones (b : FreeMonoid (FreeMonoid ℕ × Bool)) : FreeMonoid (FreeMonoid ℕ × Bool) :=
   match b with
   | 1 => 1
   | (1, true) :: a => remove_ones a
@@ -26,7 +26,7 @@ def remove_ones (b : FreeMonoid' (FreeMonoid' ℕ × Bool)) : FreeMonoid' (FreeM
   | (a :: b, false) :: c => (a::b, false) :: (remove_ones c)
 open PresentedMonoid
 
-theorem add_ones {a b : FreeMonoid' (FreeMonoid' ℕ × Bool)} (h : Con'Gen.Rel rev_rels a b) :
+theorem add_ones {a b : FreeMonoid (FreeMonoid ℕ × Bool)} (h : ConGen.Rel rev_rels a b) :
     ∃ c, PresentedMonoid.rel rev_rels_one a c ∧ remove_ones c = b := by
   induction h with
   | of x y h =>
@@ -38,14 +38,14 @@ theorem add_ones {a b : FreeMonoid' (FreeMonoid' ℕ × Bool)} (h : Con'Gen.Rel 
         exact rev_rels_one.inverse a
       rfl
     | adjacent a b h =>
-      use [(FreeMonoid'.of b, true), (FreeMonoid'.of a, true), (FreeMonoid'.of b, false),
-        (FreeMonoid'.of a, false)]
+      use [(FreeMonoid.of b, true), (FreeMonoid.of a, true), (FreeMonoid.of b, false),
+        (FreeMonoid.of a, false)]
       constructor
       · apply rel_alone
         exact rev_rels_one.adjacent a b h
       rfl
     | separated a c h =>
-      use [(FreeMonoid'.of c, true), (FreeMonoid'.of a, false)]
+      use [(FreeMonoid.of c, true), (FreeMonoid.of a, false)]
       constructor
       · apply rel_alone
         exact rev_rels_one.separated a c h

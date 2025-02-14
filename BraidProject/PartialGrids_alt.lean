@@ -2,15 +2,15 @@ import BraidProject.Grids
 import BraidProject.Reversing
 import BraidProject.SemiThue
 
-inductive cell : FreeMonoid' ℕ → FreeMonoid' ℕ → FreeMonoid' ℕ → FreeMonoid' ℕ → Prop
+inductive cell : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → Prop
   | empty : (cell 1 1 1 1 : Prop)
-  | top_bottom (i : ℕ) : cell 1 (FreeMonoid'.of i) 1 (FreeMonoid'.of i)
-  | sides (i : ℕ) : cell (FreeMonoid'.of i) 1 (FreeMonoid'.of i) 1
-  | top_left (i : ℕ) : cell (FreeMonoid'.of i) (FreeMonoid'.of i) 1 1
-  | adjacent (i k : ℕ) (h : Nat.dist i k = 1) : cell (FreeMonoid'.of i) (FreeMonoid'.of k)
-      (FreeMonoid'.of i * FreeMonoid'.of k) (FreeMonoid'.of k * FreeMonoid'.of i)
-  | separated (i j : ℕ) (h : i +2 ≤ j ∨ j+2 <= i) : cell (FreeMonoid'.of i) (FreeMonoid'.of j)
-      (FreeMonoid'.of i) (FreeMonoid'.of j)
+  | top_bottom (i : ℕ) : cell 1 (FreeMonoid.of i) 1 (FreeMonoid.of i)
+  | sides (i : ℕ) : cell (FreeMonoid.of i) 1 (FreeMonoid.of i) 1
+  | top_left (i : ℕ) : cell (FreeMonoid.of i) (FreeMonoid.of i) 1 1
+  | adjacent (i k : ℕ) (h : Nat.dist i k = 1) : cell (FreeMonoid.of i) (FreeMonoid.of k)
+      (FreeMonoid.of i * FreeMonoid.of k) (FreeMonoid.of k * FreeMonoid.of i)
+  | separated (i j : ℕ) (h : i +2 ≤ j ∨ j+2 <= i) : cell (FreeMonoid.of i) (FreeMonoid.of j)
+      (FreeMonoid.of i) (FreeMonoid.of j)
 
 theorem grid_from_cell (h : cell a b c d) : grid a b c d := by
   induction h with
@@ -21,23 +21,23 @@ theorem grid_from_cell (h : cell a b c d) : grid a b c d := by
   | adjacent i k h => exact grid.adjacent _ _ h
   | separated i j h => exact grid.separated _ _ (or_dist_iff.mpr h)
 
-def to_up (a : FreeMonoid' ℕ) : FreeMonoid' (Option ℕ × Bool) := FreeMonoid'.map
+def to_up (a : FreeMonoid ℕ) : FreeMonoid (Option ℕ × Bool) := FreeMonoid.map
   (fun x => (some x, false)) a
 
-def to_over (a : FreeMonoid' ℕ) : FreeMonoid' (Option ℕ × Bool) := FreeMonoid'.map
+def to_over (a : FreeMonoid ℕ) : FreeMonoid (Option ℕ × Bool) := FreeMonoid.map
   (fun x => (some x, true)) a
 
-def to_up' (a : List ℕ) : FreeMonoid' (Option ℕ × Bool) :=
+def to_up' (a : List ℕ) : FreeMonoid (Option ℕ × Bool) :=
  match a with
- | [] => FreeMonoid'.of (none, false)
- | _ => FreeMonoid'.map (fun x => (some x, false)) a.reverse
+ | [] => FreeMonoid.of (none, false)
+ | _ => FreeMonoid.map (fun x => (some x, false)) a.reverse
 
-def to_over' (a : List ℕ) : FreeMonoid' (Option ℕ × Bool) :=
+def to_over' (a : List ℕ) : FreeMonoid (Option ℕ × Bool) :=
   match a with
-  | [] => FreeMonoid'.of (none, true)
-  | _ => FreeMonoid'.map (fun x => (some x, true)) a
+  | [] => FreeMonoid.of (none, true)
+  | _ => FreeMonoid.map (fun x => (some x, true)) a
 
-def remover : (a : FreeMonoid' (Option ℕ × Bool)) → FreeMonoid' ℕ
+def remover : (a : FreeMonoid (Option ℕ × Bool)) → FreeMonoid ℕ
   | 1 => 1
   | (some a, _) :: c => a :: remover c
   | (none, _) :: c => remover c
@@ -47,7 +47,7 @@ theorem remover_mul : remover ((some a, bo) :: b) = .of a * remover b := rfl
 theorem remover_none : remover ((none, bo) :: b) = remover b := rfl
 
 theorem remover_split : ∀ b, remover (a * b) = remover a * remover b := by
-  induction a using FreeMonoid'.inductionOn'
+  induction a using FreeMonoid.inductionOn'
   · exact fun _ => rfl
   intro b
   rename_i h t ht
@@ -65,28 +65,28 @@ theorem remover_split : ∀ b, remover (a * b) = remover a * remover b := by
 @[simp]
 theorem up_length : (to_up a).length = a.length := by
   unfold to_up
-  induction a using FreeMonoid'.inductionOn'
-  · simp only [FreeMonoid'.length_one, map_one, FreeMonoid'.eq_one_of_length_eq_zero]
-  simp only [map_mul, FreeMonoid'.map_of, FreeMonoid'.length_mul, FreeMonoid'.length_of,
+  induction a using FreeMonoid.inductionOn'
+  · simp only [FreeMonoid.length_one, map_one, FreeMonoid.length_eq_zero.mp]
+  simp only [map_mul, FreeMonoid.map_of, FreeMonoid.length_mul, FreeMonoid.length_of,
     add_right_inj]
   assumption
 
 @[simp]
 theorem over_length : (to_over a).length = a.length := by
   unfold to_over
-  induction a using FreeMonoid'.inductionOn'
-  · simp only [FreeMonoid'.length_one, map_one, FreeMonoid'.eq_one_of_length_eq_zero]
-  simp only [map_mul, FreeMonoid'.map_of, FreeMonoid'.length_mul, FreeMonoid'.length_of,
+  induction a using FreeMonoid.inductionOn'
+  · simp only [FreeMonoid.length_one, map_one, FreeMonoid.length_eq_zero.mp]
+  simp only [map_mul, FreeMonoid.map_of, FreeMonoid.length_mul, FreeMonoid.length_of,
     add_right_inj]
   assumption
 
 @[simp]
 theorem remover_up : remover (to_up a) = a := by
-  induction a using FreeMonoid'.inductionOn'
+  induction a using FreeMonoid.inductionOn'
   · rfl
   rename_i a b hb
   unfold to_up
-  simp only [map_mul, FreeMonoid'.map_of]
+  simp only [map_mul, FreeMonoid.map_of]
   change remover (_ :: _) = _
   rw [remover_mul]
   simp only [List.append_eq, List.nil_append, mul_right_inj]
@@ -95,33 +95,33 @@ theorem remover_up : remover (to_up a) = a := by
 
 @[simp]
 theorem remover_over : remover (to_over a) = a := by
-  induction a using FreeMonoid'.inductionOn'
+  induction a using FreeMonoid.inductionOn'
   · rfl
   rename_i a b hb
   unfold to_over
-  simp only [map_mul, FreeMonoid'.map_of]
+  simp only [map_mul, FreeMonoid.map_of]
   change remover (_ :: _) = _
   rw [remover_mul]
   simp only [List.append_eq, List.nil_append, mul_right_inj]
   change remover (to_over _) = _
   rw [hb]
 
-def grid_option (a b c d : FreeMonoid' (Option ℕ × Bool)) : Prop := grid (remover a) (remover b)
+def grid_option (a b c d : FreeMonoid (Option ℕ × Bool)) : Prop := grid (remover a) (remover b)
   (remover c) (remover d)
 
 @[simp]
 theorem remover_up' : remover (to_up' a) = a.reverse := by
-  induction a using FreeMonoid'.inductionOn'
+  induction a using FreeMonoid.inductionOn'
   · rfl
   exact remover_up
 
-theorem FreeMonoid'.map_mul : FreeMonoid.map f (a * b) = FreeMonoid.map f a * FreeMonoid.map f b := List.map_append f a b
+theorem FreeMonoid.map_mul : FreeMonoid.map f (a * b) = FreeMonoid.map f a * FreeMonoid.map f b := List.map_append f a b
 
 theorem to_up'_triple {a b : ℕ} : to_up' (a::(b::c)) =  to_up' (b :: c) * to_up' [a] := by
   unfold to_up'
   simp only [List.reverse_cons, List.append_assoc, List.singleton_append, List.reverse_nil,
     List.nil_append]
-  change FreeMonoid'.map _ (_ * _) = FreeMonoid'.map _ (_ * _) * _
+  change FreeMonoid.map _ (_ * _) = FreeMonoid.map _ (_ * _) * _
   rw [map_mul, map_mul, mul_assoc, mul_right_inj]
   rfl
 
@@ -133,22 +133,22 @@ theorem remover_up'_rev : remover (to_up' i).reverse = i := by
     cases tail with
     | nil => rfl
     | cons h1 t1  =>
-      rw [to_up'_triple, FreeMonoid'.reverse_mul, remover_split, ih]
+      rw [to_up'_triple, FreeMonoid.reverse_mul, remover_split, ih]
       unfold to_up'
       simp only [List.reverse_cons, List.reverse_nil, List.nil_append]
       rfl
 
 -- theorem remover_up'_rev' : remover (to_up' a).reverse = a := by
---   induction a using FreeMonoid'.inductionOn'
+--   induction a using FreeMonoid.inductionOn'
 --   · rfl
 --   rename_i head tail ih
---   induction tail using FreeMonoid'.inductionOn'
+--   induction tail using FreeMonoid.inductionOn'
 --   · rfl
 --   sorry
 
 @[simp]
 theorem remover_over' : remover (to_over' a) = a := by
-  induction a using FreeMonoid'.inductionOn'
+  induction a using FreeMonoid.inductionOn'
   · rfl
   exact remover_over
 
@@ -160,48 +160,48 @@ theorem grid_option_append_vert (h1 : grid_option a b c d) (h2 : grid_option e d
   simp [grid_option, remover_split]
   exact grid.vertical h1 h2
 
--- inductive PartialGrid : FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) →
---   FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) → Prop
---   | single_grid {a b c d : FreeMonoid' ℕ} (h : grid a b c d):
+-- inductive PartialGrid : FreeMonoid (Option ℕ × Bool) → FreeMonoid (Option ℕ × Bool) →
+--   FreeMonoid (Option ℕ × Bool) → FreeMonoid (Option ℕ × Bool) → FreeMonoid (Option ℕ × Bool) → Prop
+--   | single_grid {a b c d : FreeMonoid ℕ} (h : grid a b c d):
 --       PartialGrid (to_up a) (to_over b) (to_over d) 1 (to_up c)
 --   | empty_both :
---       PartialGrid (FreeMonoid'.of (none, false)) (FreeMonoid.of (none, true)) 1
---         ((FreeMonoid'.of (none, false)) * (FreeMonoid'.of (none, true))) 1
---   | empty_side (a : FreeMonoid' ℕ) (h : a.length > 0) :
+--       PartialGrid (FreeMonoid.of (none, false)) (FreeMonoid.of (none, true)) 1
+--         ((FreeMonoid.of (none, false)) * (FreeMonoid.of (none, true))) 1
+--   | empty_side (a : FreeMonoid ℕ) (h : a.length > 0) :
 --       PartialGrid (to_up a) (FreeMonoid.of (none, true)) 1
---         ((to_up a) * (FreeMonoid'.of (none, true))) 1
---   | empty (a b : FreeMonoid' ℕ) (h : a.length >0 ∧ b.length > 0):
+--         ((to_up a) * (FreeMonoid.of (none, true))) 1
+--   | empty (a b : FreeMonoid ℕ) (h : a.length >0 ∧ b.length > 0):
 --       PartialGrid (to_up a) (to_over b) 1 ((to_up a) * (to_over b)) 1
 --   | horizontal_append_one {a b bot up b2 bot2 mid2 up2} (g1 : grid_option a b up bot)
 --       (g2 : PartialGrid up b2 bot2 mid2 up2) : PartialGrid a (b*b2) (bot * bot2) mid2 up2
---   | horizontal_append {a b bot mid up b2 bot2 mid2 up2 : FreeMonoid' (Option ℕ × Bool)}
+--   | horizontal_append {a b bot mid up b2 bot2 mid2 up2 : FreeMonoid (Option ℕ × Bool)}
 --       (h : mid.length > 0)
 --       (g1 : PartialGrid a b bot mid up) (g2 : PartialGrid up b2 bot2 mid2 up2) :
 --       PartialGrid a (b*b2) bot (mid * bot2 * mid2) up2
 
 /-- A partial grid generalizes the notion of a grid to include "unfinished" grids. -/
-inductive PartialGrid' : FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) →
-  FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Option ℕ × Bool) → Prop
-  | single_grid {a b c d : FreeMonoid' ℕ} (h : grid a b c d):
+inductive PartialGrid' : FreeMonoid (Option ℕ × Bool) → FreeMonoid (Option ℕ × Bool) →
+  FreeMonoid (Option ℕ × Bool) → FreeMonoid (Option ℕ × Bool) → FreeMonoid (Option ℕ × Bool) → Prop
+  | single_grid {a b c d : FreeMonoid ℕ} (h : grid a b c d):
       PartialGrid' (to_up' a) (to_over' b) (to_over' d) 1 (to_up' c)
-  | empty (a b : FreeMonoid' ℕ):
+  | empty (a b : FreeMonoid ℕ):
       PartialGrid' (to_up' a) (to_over' b) 1 ((to_up' a) * (to_over' b)) 1
   | horizontal_append_one {a b bot up b2 bot2 mid2 up2} (g1 : grid a b up bot)
       (g2 : PartialGrid' (to_up' up) b2 bot2 mid2 up2) : PartialGrid' (to_up' a) ((to_over' b)*b2) (to_over' bot * bot2) mid2 up2
-  | horizontal_append {a b bot mid up b2 bot2 mid2 up2 : FreeMonoid' (Option ℕ × Bool)}
+  | horizontal_append {a b bot mid up b2 bot2 mid2 up2 : FreeMonoid (Option ℕ × Bool)}
       (h : mid.length > 0)
       (g1 : PartialGrid' a b bot mid up) (g2 : PartialGrid' up b2 bot2 mid2 up2) :
       PartialGrid' a (b*b2) bot (mid * bot2 * mid2) up2
   | vertical_append_one {a b bot up b2 bot2 mid2 up2} (g1 : grid a b up bot)
         (g2 : PartialGrid' b2 (to_over' bot) bot2 mid2 up2) :
       PartialGrid' (b2 * to_up' a) (to_over' b) bot2 mid2 (up2 * to_up' up)
-  | vertical_append {a b bot mid up b2 bot2 mid2 up2 : FreeMonoid' (Option ℕ × Bool)}
+  | vertical_append {a b bot mid up b2 bot2 mid2 up2 : FreeMonoid (Option ℕ × Bool)}
       (h : mid.length > 0)
       (g1 : PartialGrid' a b bot mid up) (g2 : PartialGrid' a2 bot bot2 mid2 up2) :
       PartialGrid' (a2*a) b bot2 (mid2 *up2 * mid) up
 
 -- theorem grid_of_PartialGrid (h : PartialGrid a b d 1 c) : grid_option a b c d := by
---   generalize he : (1 : FreeMonoid' (Option ℕ × Bool)) = e at h
+--   generalize he : (1 : FreeMonoid (Option ℕ × Bool)) = e at h
 --   induction h with
 --   | single_grid h =>
 --     unfold grid_option
@@ -213,7 +213,7 @@ inductive PartialGrid' : FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Optio
 --     exact grid.empty
 --   | empty_side a _ =>
 --     exfalso
---     have H3 := congr_arg FreeMonoid'.length (FreeMonoid.prod_eq_one he.symm).2
+--     have H3 := congr_arg FreeMonoid.length (FreeMonoid.prod_eq_one he.symm).2
 --     simp at H3
 --   | empty a b =>
 --     rw [(FreeMonoid.prod_eq_one he.symm).1, (FreeMonoid.prod_eq_one he.symm).2]
@@ -235,7 +235,7 @@ inductive PartialGrid' : FreeMonoid' (Option ℕ × Bool) → FreeMonoid' (Optio
 --     exact H
 
 theorem grid_of_PartialGrid' (h : PartialGrid' a b d 1 c) : grid_option a.reverse b c.reverse d := by
-  generalize he : (1 : FreeMonoid' (Option ℕ × Bool)) = e at h
+  generalize he : (1 : FreeMonoid (Option ℕ × Bool)) = e at h
   induction h with
   | single_grid h =>
     unfold grid_option
@@ -262,7 +262,7 @@ theorem grid_of_PartialGrid' (h : PartialGrid' a b d 1 c) : grid_option a.revers
   | vertical_append_one g1 _ ih =>
     specialize ih he
     unfold grid_option
-    simp only [FreeMonoid'.reverse_mul, remover_over', remover_split, remover_up'_rev]
+    simp only [FreeMonoid.reverse_mul, remover_over', remover_split, remover_up'_rev]
     apply grid.vertical g1
     unfold grid_option at ih
     rw [remover_over'] at ih
@@ -273,9 +273,9 @@ theorem grid_of_PartialGrid' (h : PartialGrid' a b d 1 c) : grid_option a.revers
     rename_i e f g i j k l m n o p q r
     have H := grid_option_append_vert (g1_ih h4.2.symm) (g2_ih h5.1.symm)
     rw [h5.2] at H
-    simp only [FreeMonoid'.length_one, FreeMonoid'.reverse_length,
-      FreeMonoid'.eq_one_of_length_eq_zero, mul_one] at H
-    simp only [FreeMonoid'.reverse_mul]
+    simp only [FreeMonoid.length_one, FreeMonoid.reverse_length,
+      FreeMonoid.length_eq_zero.mp, mul_one] at H
+    simp only [FreeMonoid.reverse_mul]
     exact H
 
 -- theorem middle_starts_up (h : PartialGrid a b d mid c) : mid = 1 ∨ ∃ first, mid.get? 0 = some (first, false) := by
@@ -288,19 +288,19 @@ theorem grid_of_PartialGrid' (h : PartialGrid' a b d 1 c) : grid_option a.revers
 --     use none
 --     rfl
 --   | empty_side a ha =>
---     induction a using FreeMonoid'.inductionOn'
+--     induction a using FreeMonoid.inductionOn'
 --     · left
 --       exfalso
---       simp only [FreeMonoid'.length_one, gt_iff_lt, lt_self_iff_false] at ha
+--       simp only [FreeMonoid.length_one, gt_iff_lt, lt_self_iff_false] at ha
 --     right
 --     rename_i b _ _
 --     use b
 --     rfl
 --   | empty a b h =>
 --     right
---     induction a using FreeMonoid'.inductionOn'
+--     induction a using FreeMonoid.inductionOn'
 --     · exfalso
---       simp only [FreeMonoid'.length_one, gt_iff_lt, lt_self_iff_false] at h
+--       simp only [FreeMonoid.length_one, gt_iff_lt, lt_self_iff_false] at h
 --       exact h.1
 --     rename_i _ h1 ta _
 --     use h1
@@ -315,15 +315,15 @@ theorem grid_of_PartialGrid' (h : PartialGrid' a b d 1 c) : grid_option a.revers
 --     right
 --     rcases g1_ih with h1 | h2
 --     · exfalso
---       apply congr_arg FreeMonoid'.length at h1
---       simp only [FreeMonoid'.length_one] at h1
+--       apply congr_arg FreeMonoid.length at h1
+--       simp only [FreeMonoid.length_one] at h1
 --       rw [h1] at g1
 --       exact Nat.not_succ_le_zero 0 g1
 --     rcases h2 with ⟨firstie, hf⟩
 --     use firstie
 --     rw [← hf]
 --     rename_i mid _ _ _ _ _
---     induction mid using FreeMonoid'.inductionOn'
+--     induction mid using FreeMonoid.inductionOn'
 --     · change List.get? [] _ = _ at hf
 --       simp only [List.get?_nil] at hf
 --     rw [mul_assoc, mul_assoc]
@@ -338,7 +338,7 @@ theorem middle_starts_up' (h : PartialGrid' a b d mid c) : mid = 1 ∨ ∃ first
     rfl
   | empty a b =>
     right
-    induction a using FreeMonoid'.inductionOn'
+    induction a using FreeMonoid.inductionOn'
     · use none
       rfl
     rename_i _ h1 ta _
@@ -360,15 +360,15 @@ theorem middle_starts_up' (h : PartialGrid' a b d mid c) : mid = 1 ∨ ∃ first
     right
     rcases g1_ih with h1 | h2
     · exfalso
-      apply congr_arg FreeMonoid'.length at h1
-      simp only [FreeMonoid'.length_one] at h1
+      apply congr_arg FreeMonoid.length at h1
+      simp only [FreeMonoid.length_one] at h1
       rw [h1] at g1
       exact Nat.not_succ_le_zero 0 g1
     rcases h2 with ⟨firstie, hf⟩
     use firstie
     rw [← hf]
     rename_i mid _ _ _ _ _
-    induction mid using FreeMonoid'.inductionOn'
+    induction mid using FreeMonoid.inductionOn'
     · change List.get? [] _ = _ at hf
       simp only [List.get?_nil] at hf
     rw [mul_assoc, mul_assoc]
@@ -384,15 +384,15 @@ theorem middle_starts_up' (h : PartialGrid' a b d mid c) : mid = 1 ∨ ∃ first
     right
     rcases g1_ih with h1 | h2
     · exfalso
-      apply congr_arg FreeMonoid'.length at h1
-      simp only [FreeMonoid'.length_one] at h1
+      apply congr_arg FreeMonoid.length at h1
+      simp only [FreeMonoid.length_one] at h1
       rw [h1] at g1
       exact Nat.not_succ_le_zero 0 g1
     rcases h2 with ⟨firstie, hf⟩
     use firstie
     rw [← hf]
     rename_i mid _ _ _ _ _
-    induction mid using FreeMonoid'.inductionOn'
+    induction mid using FreeMonoid.inductionOn'
     · change List.get? [] _ = _ at hf
       simp only [List.get?_nil] at hf
     rw [mul_assoc]
@@ -402,16 +402,16 @@ theorem middle_starts_up' (h : PartialGrid' a b d mid c) : mid = 1 ∨ ∃ first
 theorem false_not_in_to_over' (h : (x, false) ∈ to_over' b) : False := by
   unfold to_over' at h
   induction b
-  · simp only [FreeMonoid'.mem_of, Prod.mk.injEq, Bool.false_eq_true, and_false] at h
-  simp only [FreeMonoid'.mem_map, Prod.mk.injEq, Bool.true_eq_false, and_false, exists_const] at h
+  · simp only [FreeMonoid.mem_of, Prod.mk.injEq, Bool.false_eq_true, and_false] at h
+  simp only [FreeMonoid.mem_map, Prod.mk.injEq, Bool.true_eq_false, and_false, exists_const] at h
 
 theorem true_not_in_to_up' (h : (x, true) ∈ to_up' b) : False := by
   unfold to_up' at h
   induction b
-  · simp only [FreeMonoid'.mem_of, Prod.mk.injEq, Bool.true_eq_false, and_false] at h
-  simp only [FreeMonoid'.mem_map, Prod.mk.injEq, Bool.false_eq_true, and_false, exists_const] at h
+  · simp only [FreeMonoid.mem_of, Prod.mk.injEq, Bool.true_eq_false, and_false] at h
+  simp only [FreeMonoid.mem_map, Prod.mk.injEq, Bool.false_eq_true, and_false, exists_const] at h
 
-theorem grid_style_to_partial {a b : FreeMonoid' ℕ}
+theorem grid_style_to_partial {a b : FreeMonoid ℕ}
     (h : SemiThue_one_step grid_style (to_up' a * to_over' b) c) :
     ∃ d e f, PartialGrid' (to_up' a) (to_over' b) d e f ∧ c = d * e * f := by
   generalize he : (to_up' a * to_over' b) = e at h
@@ -437,44 +437,44 @@ theorem grid_style_to_partial {a b : FreeMonoid' ℕ}
       induction hf with
       | single_grid h =>
         exfalso
-        apply congr_arg FreeMonoid'.length at he12
+        apply congr_arg FreeMonoid.length at he12
         change List.length _ = _ at he12
         simp only [List.append_assoc, List.cons_append, List.singleton_append, List.length_append,
-          List.length_cons, Nat.succ_eq_add_one, FreeMonoid'.length_one, add_eq_zero,
+          List.length_cons, Nat.succ_eq_add_one, FreeMonoid.length_one, add_eq_zero,
           List.length_eq_zero, one_ne_zero, and_false, and_self] at he12
       | empty a b =>
-        induction a using FreeMonoid'.inductionOn'
+        induction a using FreeMonoid.inductionOn'
         · exfalso
           have H : (some n, false) ∈ e1 ++ [(some n, false), (some n, true)] ++ e2 := by
             simp only [List.append_assoc, List.cons_append, List.singleton_append, List.mem_append,
               List.mem_cons, Prod.mk.injEq, Bool.false_eq_true, and_false, false_or, true_or,
               or_true]
           rw [he12] at H
-          rcases FreeMonoid'.mem_mul.mp H with h5 | h6
+          rcases FreeMonoid.mem_mul.mp H with h5 | h6
           · unfold to_up' at h5
-            have H6 : (some n, false) ∈  FreeMonoid'.of (none, false) := h5
-            simp only [FreeMonoid'.mem_of, Prod.mk.injEq, and_true] at H6
+            have H6 : (some n, false) ∈  FreeMonoid.of (none, false) := h5
+            simp only [FreeMonoid.mem_of, Prod.mk.injEq, and_true] at H6
           exact false_not_in_to_over' h6
         rename_i head_a tail_a ih_a
-        induction b using FreeMonoid'.inductionOn'
+        induction b using FreeMonoid.inductionOn'
         · exfalso
           have H : (some n, true) ∈ e1 ++ [(some n, false), (some n, true)] ++ e2 := by
             simp only [List.append_assoc, List.cons_append, List.singleton_append, List.mem_append,
               List.mem_cons, Prod.mk.injEq, Bool.false_eq_true, and_false, false_or, true_or,
               or_true]
           rw [he12] at H
-          rcases FreeMonoid'.mem_mul.mp H with h5 | h6
+          rcases FreeMonoid.mem_mul.mp H with h5 | h6
           · exact true_not_in_to_up' h5
           unfold to_over' at h6
-          have H6 : (some n, true) ∈  FreeMonoid'.of (none, true) := h6
-          simp only [FreeMonoid'.mem_of, Prod.mk.injEq, and_true] at H6
+          have H6 : (some n, true) ∈  FreeMonoid.of (none, true) := h6
+          simp only [FreeMonoid.mem_of, Prod.mk.injEq, and_true] at H6
         rename_i head_b tail_b ih_b
         unfold to_up' at he12
         have H13 : e1 ++ [(some n, false), (some n, true)] ++ e2 =
-            (FreeMonoid'.map fun x ↦ (some x, false)) (FreeMonoid'.of head_a * tail_a) *
-            to_over' (FreeMonoid'.of head_b * tail_b) := by
+            (FreeMonoid.map fun x ↦ (some x, false)) (FreeMonoid.of head_a * tail_a) *
+            to_over' (FreeMonoid.of head_b * tail_b) := by
           rw [he12]
-          simp only [map_mul, FreeMonoid'.map_of, mul_left_inj]
+          simp only [map_mul, FreeMonoid.map_of, mul_left_inj]
           sorry
 
 
@@ -485,7 +485,7 @@ theorem grid_style_to_partial {a b : FreeMonoid' ℕ}
           have H_side := PartialGrid'.empty 1 tail_b
           have H_top := PartialGrid'.horizontal_append_one (grid_of_PartialGrid' H_corner) H_side
           have H_bot := PartialGrid'.empty tail_a 1
-          have H_len : ((to_up' (1 : FreeMonoid' ℕ) : FreeMonoid' (Option ℕ × Bool)) * to_over' tail_b).length > 0 := by apply?
+          have H_len : ((to_up' (1 : FreeMonoid ℕ) : FreeMonoid (Option ℕ × Bool)) * to_over' tail_b).length > 0 := by apply?
           rw [mul_one] at H_top
           sorry -- have H := PartialGrid'.vertical_append H_len H_top H_bot
         sorry
@@ -500,14 +500,14 @@ theorem grid_style_to_partial {a b : FreeMonoid' ℕ}
     | close h => sorry
 
 #exit
-theorem rev'_to_grid'' {a b c d : FreeMonoid' ℕ} (h : SemiThue_one_step reversing_rels'
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid'.reverse a) *
+theorem rev'_to_grid'' {a b c d : FreeMonoid ℕ} (h : SemiThue_one_step reversing_rels'
+    (FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse a) *
     FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) b)
     (FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) d *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid'.reverse c))) : PartialGrid (to_up a) (to_over b) (to_over d) 1 (to_up c) := by
-  have H : ∀ e f, SemiThue_one_step reversing_rels' e f → ∀ a b c d, e = (FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid'.reverse a) *
+    FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse c))) : PartialGrid (to_up a) (to_over b) (to_over d) 1 (to_up c) := by
+  have H : ∀ e f, SemiThue_one_step reversing_rels' e f → ∀ a b c d, e = (FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse a) *
       FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) b) → f = (FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) d *
-      FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid'.reverse c)) → PartialGrid (to_up a) (to_over b) (to_over d) 1 (to_up c) := by
+      FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse c)) → PartialGrid (to_up a) (to_over b) (to_over d) 1 (to_up c) := by
     intro e f hef
     induction hef with
     | refl a =>
@@ -550,9 +550,9 @@ with
           constructor
           · have H := (FreeMonoid.prod_eq_one i_is.symm).2
             have H2 : c.reverse = 1 := FreeMonoid.lift_bool_one H
-            have H3 := congr_arg FreeMonoid'.reverse H2
-            simp only [FreeMonoid'.reverse_reverse, FreeMonoid'.length_one,
-              FreeMonoid'.reverse_length, FreeMonoid'.eq_one_of_length_eq_zero] at H3
+            have H3 := congr_arg FreeMonoid.reverse H2
+            simp only [FreeMonoid.reverse_reverse, FreeMonoid.length_one,
+              FreeMonoid.reverse_length, FreeMonoid.length_eq_zero.mp] at H3
             exact H3
           sorry
         rw [H.1, H.2.1, H.2.2]
@@ -569,7 +569,7 @@ with
         exact or_dist_iff.mp h
     | left g h =>
       rename_i i j k
-      induction k using FreeMonoid'.inductionOn'
+      induction k using FreeMonoid.inductionOn'
       · intro a b c d h1 h2
         rw [one_mul] at h1
         rw [one_mul] at h2
