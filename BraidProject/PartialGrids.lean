@@ -121,7 +121,7 @@ theorem remover_up : remover (to_up a) = a.reverse := by
   · rfl
   rename_i a b hb
   unfold to_up
-  simp
+  simp only [List.reverse_cons, List.map_append, List.map_reverse, List.map_cons, List.map_nil]
   --change remover (_ :: _) = _
   rw [remover_split]
   --simp only [List.cons.injEq, true_and]
@@ -311,6 +311,7 @@ theorem List.append_eq_len_two (h1 : a.length > 0) (h2 : b.length > 0) (h3 : a +
       omega
     exact append_inj h3 (Nat.le_antisymm h1 (Nat.le_of_not_lt H)).symm
 
+namespace PartialGrid
 theorem right_frontier_is_false (h : PartialGrid a b c d e) : is_false e := by
   induction h with
   | single_grid  => exact is_false_up
@@ -412,6 +413,8 @@ theorem equiv_paths (h : PartialGrid a b c d e) : SemiThue_one_step grid_style' 
   | horizontal_append h g1 g2 g1_ih g2_ih => sorry
   | vertical_append_one g1 g2 g1_ih g2_ih => sorry
   | vertical_append g1 g2 h g1_ih g2_ih => sorry
+
+end PartialGrid
 
 theorem over_up_neq_false_true (h : to_over d ++ to_up c = k ++ [(a1, false), (b1, true)] ++ l) : False := by
   induction k generalizing d with
