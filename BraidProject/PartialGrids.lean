@@ -122,9 +122,7 @@ theorem remover_up : remover (to_up a) = a.reverse := by
   rename_i a b hb
   unfold to_up
   simp only [List.reverse_cons, List.map_append, List.map_reverse, List.map_cons, List.map_nil]
-  --change remover (_ :: _) = _
   rw [remover_split]
-  --simp only [List.cons.injEq, true_and]
   cases b with
   | nil =>
     simp [remover, List.nil_append]
@@ -464,8 +462,8 @@ theorem List.append_singleton_eq_append_singleton (h : a ++ [b] = c ++ [d]) : a 
       exact ⟨rfl, ih.2⟩
 
 theorem List.length_geq_one_eq_cons_cons (b) (h : a ++ b = c :: d :: e) (h2 : a.length > 1) : ∃ f, a = c :: d :: f := by
-  induction e using List.list_reverse_induction generalizing b with
-  | base =>
+  induction e using List.reverseRecOn generalizing b with
+  | nil =>
     use []
     have H : a.length = 2 := by
       apply congr_arg List.length at h
@@ -473,13 +471,13 @@ theorem List.length_geq_one_eq_cons_cons (b) (h : a ++ b = c :: d :: e) (h2 : a.
         Nat.reduceAdd, List.length_nil] at h
       omega
     exact append_inj_left h H
-  | ind front caboose ih =>
-    induction b using List.list_reverse_induction with
-    | base =>
+  | append_singleton front caboose ih =>
+    induction b using List.reverseRecOn with
+    | nil =>
       use front ++ [caboose]
       rw [List.append_nil] at h
       exact h
-    | ind head tail =>
+    | append_singleton head tail =>
       apply ih head
       rw [← List.append_assoc] at h
       change (a++head) ++ [tail] = (c :: d :: front) ++ [caboose] at h
@@ -515,7 +513,7 @@ theorem over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a.length > 
         specialize h2 (a3, false)
         have H : (a3, false).2 = true := by
           apply h2
-          apply List.mem_append_of_mem_right tail
+          apply List.mem_append_right tail
           exact List.mem_cons_self (a3, false) ((b3, true) :: l)
         exact (Bool.eq_not_self (a3, false).2).mp H
       | cons headaa tailaa =>
@@ -749,18 +747,18 @@ theorem big_split (hup2 : is_false up2)
     (h : bot3 ++ mid3 ++ (up3 ++ up2) = k ++ [(a1, false), (b1, true)] ++ l) :
     ∃ l₁ l₂, l = l₁ ++ l₂ ∧ bot3 ++ mid3 ++ up3 = k ++ [(a1, false), (b1, true)] ++ l₁ ∧
     l₂ = up2 := by
-  induction l using List.list_reverse_induction generalizing up2 with
-  | base =>
+  induction l using List.reverseRecOn generalizing up2 with
+  | nil =>
     use [], []
     have H : up2 = [] := by
-      induction up2 using List.list_reverse_induction with
-      | base => rfl
-      | ind l e _ =>
+      induction up2 using List.reverseRecOn with
+      | nil => rfl
+      | append_singleton l e _ =>
         have h3 := congr_arg List.getLast? h
         rw [← List.append_assoc, ← List.append_assoc, List.getLast?_concat, List.append_nil,
           List.getLast?_append_cons, List.getLast?_cons_cons, List.getLast?_singleton, Option.some.injEq] at h3
         rw [h3] at hup2
-        specialize hup2 (b1, true) (List.mem_append_of_mem_right l (List.mem_singleton.mpr rfl))
+        specialize hup2 (b1, true) (List.mem_append_right l (List.mem_singleton.mpr rfl))
         simp at hup2
     rw [H] at h
     constructor
@@ -770,15 +768,15 @@ theorem big_split (hup2 : is_false up2)
       simp
       exact h
     exact H.symm
-  | ind front caboose ih =>
-    induction up2 using List.list_reverse_induction with
-    | base =>
+  | append_singleton front caboose ih =>
+    induction up2 using List.reverseRecOn with
+    | nil =>
       simp at h
       use front ++ [caboose], []
       constructor
       · simp
       simp [h]
-    | ind up2front up2back _ =>
+    | append_singleton up2front up2back _ =>
       specialize @ih up2front (is_false_append hup2).1
       rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc] at h
       have h1 := List.append_inj_left' h rfl
