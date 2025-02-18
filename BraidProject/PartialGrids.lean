@@ -310,6 +310,7 @@ theorem List.append_eq_len_two (h1 : a.length > 0) (h2 : b.length > 0) (h3 : a +
     exact append_inj h3 (Nat.le_antisymm h1 (Nat.le_of_not_lt H)).symm
 
 namespace PartialGrid
+
 theorem right_frontier_is_false (h : PartialGrid a b c d e) : is_false e := by
   induction h with
   | single_grid  => exact is_false_up

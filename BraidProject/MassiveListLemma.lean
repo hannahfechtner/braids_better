@@ -1,11 +1,16 @@
 import BraidProject.PartialGrids
 import Mathlib.Data.List.Infix
 
-
+open PartialGrid
 theorem List.prefix_of_append {α : Type} {l1 l2 l3: List α} (h : l1 <+: l2) : l1 <+: l2 ++ l3 := by
   rcases h with ⟨rest, spec⟩
   use rest ++ l3
   rw [← spec, List.append_assoc]
+
+theorem suffix_of_append (h : l₁ <:+ l2) : l₁ <:+ l3 ++ l2 := by
+  rcases h with ⟨rest, spec⟩
+  use l3 ++ rest
+  simp [spec]
 
 theorem List.suffix_append_right (h : l1 <:+ l2) : l1 ++ l3 <:+ l2 ++ l3 := by
   rcases h with ⟨rest, spec⟩
@@ -34,7 +39,8 @@ theorem is_false_singleton (h : is_false [a]) : ∃ a', a = (a', false) := by
   specialize h (c, b) (List.mem_singleton.mpr rfl)
   exact h
 
-def PartialGrid.extend_bottom (h : PartialGrid a b c d e) (a2) (h2 : is_false a2) (h3 : a2 ≠ []) : PartialGrid (a2 ++ a) b [] (a2 ++ c ++ d) e := by
+def PartialGrid.extend_bottom (h : PartialGrid a b c d e) (a2) (h2 : is_false a2) (h3 : a2 ≠ []) :
+    PartialGrid (a2 ++ a) b [] (a2 ++ c ++ d) e := by
   induction h with
   | single_grid h =>
     cases a2 with
@@ -67,6 +73,42 @@ def PartialGrid.extend_bottom (h : PartialGrid a b c d e) (a2) (h2 : is_false a2
   | vertical_append g1 g2 h ih1 ih2 =>
     have H := PartialGrid.vertical_append g1 ih2 h
     rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc]
+    exact H
+
+def PartialGrid.extend_side (h : PartialGrid a b c d e) (b2) (h2 : is_true b2) (h3 : b2 ≠ []) :
+    PartialGrid a (b ++ b2) c (d ++ e ++ b2) [] := by
+  induction h with
+  | single_grid h =>
+    cases b2 with
+    | nil => simp at h3
+    | cons head tail =>
+      rename_i c _
+      have H := PartialGrid.horizontal_append_one (PartialGrid.single_grid h)
+          (PartialGrid.empty (to_up c) (head :: tail) to_up_len_pos is_false_up (by simp) h2)
+      rw [List.append_nil] at H
+      rw [List.nil_append]
+      exact H
+  | empty a b ha ha1 hb hb =>
+    rw [List.append_nil, List.append_assoc]
+    apply PartialGrid.empty a (b ++ b2) ha ha1 _ (is_true_of_true_true hb h2)
+    rw [List.length_append]
+    omega
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    have H := PartialGrid.horizontal_append_one g1 g2_ih
+    rw [← List.append_assoc] at H
+    exact H
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    have H := PartialGrid.horizontal_append h g1 g2_ih
+    rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc] at H
+    exact H
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (List.length_pos.mpr h3))
+    rw [← List.append_assoc, ← List.append_assoc, List.append_nil] at H
+    rw [← List.append_assoc]
+    exact H
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (Or.inr (List.length_pos.mpr h3)))
+    rw [← List.append_assoc, ← List.append_assoc] at H
     exact H
 
 def middle_spec (d : List (α × Bool)) := d = [] ∨ ∃ front mid caboose, d = [(front, false)] ++ mid ++ [(caboose, true)]
@@ -878,11 +920,81 @@ def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style' i j) (fe : bot +
     have := double_split_horiz' (bottom_frontier_is_true g2) (Or.inr (right_frontier_is_false g2))
       (right_frontier_is_false g1) fe (middle_frontier_nil_or_caps g2) (middle_frontier_nil_or_caps g1)
     rcases this with ⟨k1, k2, k_is, k1_is, k2_is⟩ | ⟨l1, l2, l_is, l1_is, l2_is⟩
-    · sorry
+    · specialize @g1_ih (bot ++ k2) l (by rw [List.append_assoc, ← k2_is]; simp)
+      rcases g1_ih with ⟨nb, nm, nu, pg, fe', upp, botp⟩
+      rcases botp with ⟨to_add, spec⟩
+      cases to_add with
+      | nil =>
+        rw [List.append_nil] at spec
+        rw [← spec] at pg
+        rw [spec] at fe'
+        cases nm with
+        | nil =>
+          use bot2, mid2, up2++nu
+          constructor
+          · exact PartialGrid.vertical_append_one pg g2
+          simp at fe'
+          constructor
+          · rw [fe', k_is, k1_is]
+            simp
+          constructor
+          · exact suffix_of_append upp
+          exact List.prefix_rfl
+        | cons head tail =>
+          use bot2, mid2 ++ up2 ++ head :: tail, nu
+          constructor
+          · exact PartialGrid.vertical_append pg g2 (by simp)
+          constructor
+          · rw [k_is]
+            simp at fe'
+            conv => rhs; rw [List.append_assoc, List.append_assoc, ← fe', k1_is]
+            simp
+          exact ⟨upp, List.prefix_rfl⟩
+      | cons head tail =>
+        cases nm with
+        | nil =>
+          use bot2, mid2 ++ up2 ++ head :: tail, nu
+          constructor
+          · have H1 : is_true (head:: tail) := by
+              have H : is_true nb := bottom_frontier_is_true pg
+              rw [← spec] at H
+              exact (is_true_append H).2
+            have H2 := (extend_side g2 (head::tail) H1 (by simp))
+            rw [spec] at H2
+            have H := PartialGrid.vertical_append_one pg H2
+            exact H
+          constructor
+          · rw [← spec] at fe'
+            simp at fe'
+            simp [k_is, k1_is, spec, fe']
+          exact ⟨upp, List.prefix_rfl⟩
+        | cons head1 tail1 =>
+          use bot2, mid2 ++ up2 ++ head :: tail ++ head1 :: tail1, nu
+          constructor
+          · have H1 : is_true (head:: tail) := by
+              have H : is_true nb := bottom_frontier_is_true pg
+              rw [← spec] at H
+              exact (is_true_append H).2
+            have H2 := (extend_side g2 (head::tail) H1 (by simp))
+            rw [spec] at H2
+            have H := PartialGrid.vertical_append pg H2 (by simp)
+            rw [List.append_nil] at H
+            exact H
+          constructor
+          · rw [← spec] at fe'
+            simp at fe'
+            simp [k_is, k1_is, spec, fe']
+          exact ⟨upp, List.prefix_rfl⟩
     specialize @g2_ih k l1
     rw [← l2_is] at g2_ih
     specialize g2_ih (by simp)
-    sorry
+    rcases g2_ih with ⟨nb, nm, nu, pg, fe', upp, botp⟩
+    use nb, nm ++ nu ++mid, up
+    constructor
+    · exact PartialGrid.vertical_append g1 pg h
+    constructor
+    · rw [l_is, l1_is, ← List.append_assoc, ← List.append_assoc, fe', ← List.append_assoc, ← List.append_assoc]
+    exact ⟨List.suffix_refl up, botp⟩
 
 
 theorem step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : b.length > 0) :
