@@ -536,6 +536,162 @@ theorem double_split_horiz {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bo
   simp [hm34]
   exact l_is
 
+theorem prefix_true (h1 : is_true bot3) (h : k₂ ++ [(a1, false), (b1, true)] ++ l = bot3 ++ mid3 ++ up3) :
+    bot3 <+: k₂ := by
+  induction k₂ generalizing bot3 with
+  | nil =>
+    cases bot3 with
+    | nil => exact List.nil_prefix
+    | cons head tail =>
+      simp at h
+      rw [← h.1] at h1
+      simp [is_true] at h1
+  | cons head tail ih =>
+    cases bot3 with
+    | nil => exact List.nil_prefix
+    | cons head1 tail1 =>
+      simp only [List.cons_append, List.nil_append, List.cons.injEq] at h
+      specialize @ih tail1 (is_true_cons h1).2 h.2
+      rw [h.1]
+      exact (List.prefix_cons_inj head1).mpr ih
+
+theorem prefix_false (h1 : is_false t3) (h : tk ++ [(a1, false), (b1, true)] ++ l = t3 ++ (f, false) :: (m ++ [(c, true)]) ++ up3) :
+    t3 <+: tk := by
+  induction tk generalizing t3 with
+  | nil =>
+    cases t3 with
+    | nil => exact List.nil_prefix
+    | cons head tail =>
+      cases tail with
+      | nil =>
+        simp at h
+      | cons ht tt =>
+        simp at h
+        rw [← h.2.1] at h1
+        simp [is_false] at h1
+  | cons head tail ih =>
+    cases t3 with
+    | nil =>
+      exact List.nil_prefix
+    | cons ht tt =>
+      simp at h
+      specialize @ih tt (is_false_cons h1).2 (by simp [h.2])
+      rw [h.1]
+      exact (List.prefix_cons_inj ht).mpr ih
+
+
+theorem double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)} {a1 b1 : Option ℕ}
+    (hbot2 : is_true bot2) (hbot3 : is_true bot3 ∨ is_false bot3) (hup3 : is_false up3)
+    (h : bot2 ++ (mid2 ++ bot3 ++ mid3) ++ up3 = k ++ [(a1, false), (b1, true)] ++ l)
+    (hm : middle_spec mid2)
+    (hm3 : middle_spec mid3) :
+    (∃ k₁ k₂, k = k₁ ++ k₂ ∧ k₁ = bot2 ++ mid2 ++ bot3 ∧ k₂ ++ [(a1, false), (b1, true)] ++ l =  mid3 ++ up3) ∨
+    (∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₂ = mid3 ++ up3 ∧ k ++ [(a1, false), (b1, true)] ++ l₁ = bot2 ++ mid2 ++ bot3) := by
+  have H := double_split_horiz hbot2 hbot3 hup3 h hm hm3
+  rcases H with ⟨k₁, k₂, k_is, k12_is⟩ | ⟨l₁, l₂, l_is, l12_is⟩
+  · left
+    cases k₂
+    · rw [k12_is.1, List.append_nil] at k_is
+      rw [k_is]
+      rcases hm3 with h1 | ⟨f, m, c, spec⟩
+      · rw [h1, List.nil_append, List.append_nil] at k12_is
+        rw [h1, List.nil_append]
+        use k₁, []
+        constructor
+        · rw [List.append_nil]
+          exact k12_is.1.symm
+        rcases hbot3 with h3 | h4
+        · exfalso
+          cases bot3 with
+          | nil =>
+            rw [List.nil_append] at k12_is
+            rw [← k12_is.2] at hup3
+            simp [is_false] at hup3
+          | cons head tail =>
+            simp at k12_is
+            rw [← k12_is.2.1] at h3
+            simp [is_true] at h3
+        exfalso
+        have H : is_false (bot3 ++ up3) := is_false_of_false_false h4 hup3
+        rw [← k12_is.2] at H
+        simp [is_false] at H
+      have H : bot3 = [] := by
+        cases bot3 with
+        | nil => rfl
+        | cons head tail =>
+          cases tail with
+          | nil =>
+            simp [spec] at k12_is
+          | cons head2 tail2 =>
+            simp [spec] at k12_is
+            rcases hbot3 with h3 | h4
+            · rw [← k12_is.2.1] at h3
+              simp [is_true] at h3
+            rw [← k12_is.2.2.1] at h4
+            simp [is_false] at h4
+      use k₁, bot3
+      constructor
+      · rw [H, List.append_nil]
+        exact k12_is.1.symm
+      rw [H, List.append_nil, List.nil_append]
+      rw [H, List.nil_append, List.nil_append] at k12_is
+      exact k12_is
+    rename_i hk tk
+    cases bot3
+    · use k₁, hk :: tk
+      constructor
+      · exact k_is
+      rw [List.nil_append] at k12_is
+      rw [List.append_nil]
+      exact k12_is
+    rename_i h3 t3
+    have : ∃ ender, hk::tk = h3 :: t3 ++ ender := by
+      rcases hbot3 with h3 | h4
+      · have H := prefix_true h3 k12_is.2
+        rcases H with ⟨w, hw⟩
+        use w; exact hw.symm
+      rcases hm3 with h5 | ⟨f, m ,c, spec⟩
+      · have H := is_false_of_false_false h4 hup3
+        rw [h5, List.append_nil] at k12_is
+        rw [← k12_is.2] at H
+        apply is_false_append at H
+        have H2 := is_false_append H.1
+        simp [is_false] at H2
+      rw [spec] at k12_is
+      simp only [List.cons_append, List.nil_append, List.cons.injEq] at k12_is
+      rw [k12_is.2.1]
+      simp
+      rcases prefix_false (is_false_cons h4).2 k12_is.2.2 with ⟨f, spec⟩
+      rw [← spec]
+      use f
+    rcases this with ⟨e, he⟩
+    use k₁ ++ h3::t3, e
+    constructor
+    · rw [List.append_assoc, ← he]
+      exact k_is
+    constructor
+    · rw [k12_is.1]
+    rw [he] at k12_is
+    simp at k12_is
+    simp [k12_is.2]
+  right
+  use l₁ ++ bot3
+  have H : bot3 <+: l₂ := by
+    use mid3 ++ up3
+    rw [← List.append_assoc]
+    exact l12_is.1.symm
+  rcases H with ⟨f, spec⟩
+  use f
+  rw [← spec] at l12_is
+  simp at l12_is
+  constructor
+  · rw [List.append_assoc, spec]
+    exact l_is
+  constructor
+  · exact l12_is.1
+  rw [← l12_is.2]
+  simp
+
 def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style' i j) (fe : bot ++ mid ++ up = k ++ i ++ l) :
     ∃ nb nm nu, PartialGrid a b nb nm nu ∧ nb ++ nm ++ nu = k ++ j ++ l ∧ up <:+ nu ∧ bot <+: nb := by
   rcases grid_style_split hg with ⟨a1, b1, i_is⟩
@@ -719,10 +875,13 @@ def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style' i j) (fe : bot +
       exact ⟨List.suffix_append_right h5, h6⟩
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i a b bot mid up a2 bot2 mid2 up2
-    have := double_split_horiz (bottom_frontier_is_true g2) (Or.inr (right_frontier_is_false g2))
+    have := double_split_horiz' (bottom_frontier_is_true g2) (Or.inr (right_frontier_is_false g2))
       (right_frontier_is_false g1) fe (middle_frontier_nil_or_caps g2) (middle_frontier_nil_or_caps g1)
     rcases this with ⟨k1, k2, k_is, k1_is, k2_is⟩ | ⟨l1, l2, l_is, l1_is, l2_is⟩
     · sorry
+    specialize @g2_ih k l1
+    rw [← l2_is] at g2_ih
+    specialize g2_ih (by simp)
     sorry
 
 

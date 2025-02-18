@@ -388,29 +388,29 @@ theorem mid_length_neq_one (h : PartialGrid a b c d e) : d.length ≠ 1 := by
     rw [List.length_append] at hd
     exact g1_ih (by omega)
 
-theorem equiv_paths (h : PartialGrid a b c d e) : SemiThue_one_step grid_style' (a ++ b) (c ++ d ++ e) := by
-  induction h with
-  | single_grid h =>
-    cases h with
-    | empty =>
-      simp
-      apply one_step_equiv_reg.mp
-      sorry
-    | top_bottom i => sorry
-    | sides i => sorry
-    | top_left i => sorry
-    | adjacent i k h => sorry
-    | separated i j h => sorry
-  | empty a b ha ha1 hb hb =>
-    simp
-    exact SemiThue_one_step.refl _
-  | horizontal_append_one g1 g2 g1_ih g2_ih =>
-    simp at g1_ih
-    simp at g2_ih
-    sorry
-  | horizontal_append h g1 g2 g1_ih g2_ih => sorry
-  | vertical_append_one g1 g2 g1_ih g2_ih => sorry
-  | vertical_append g1 g2 h g1_ih g2_ih => sorry
+-- theorem equiv_paths (h : PartialGrid a b c d e) : SemiThue_one_step grid_style' (a ++ b) (c ++ d ++ e) := by
+--   induction h with
+--   | single_grid h =>
+--     cases h with
+--     | empty =>
+--       simp
+--       apply one_step_equiv_reg.mp
+--       sorry
+--     | top_bottom i => sorry
+--     | sides i => sorry
+--     | top_left i => sorry
+--     | adjacent i k h => sorry
+--     | separated i j h => sorry
+--   | empty a b ha ha1 hb hb =>
+--     simp
+--     exact SemiThue_one_step.refl _
+--   | horizontal_append_one g1 g2 g1_ih g2_ih =>
+--     simp at g1_ih
+--     simp at g2_ih
+--     sorry
+--   | horizontal_append h g1 g2 g1_ih g2_ih => sorry
+--   | vertical_append_one g1 g2 g1_ih g2_ih => sorry
+--   | vertical_append g1 g2 h g1_ih g2_ih => sorry
 
 end PartialGrid
 
