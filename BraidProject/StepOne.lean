@@ -91,7 +91,7 @@ theorem reversing_iff_option : reversing a b ↔ reversing_option (List.map (fun
         ext
         · exact m_is.2.1.symm
         exact m_is.2.2
-      rw [ha, List.map_eq_nil.mp n_is.symm]
+      rw [ha, List.map_eq_nil_iff.mp n_is.symm]
       exact reversing.basic
     · intro h1 h2
       rcases List.map_eq_two h1 with ⟨d, e, hde⟩
@@ -127,88 +127,32 @@ theorem reversing_iff_option_other_way : reversing_option a b  → reversing (re
   simp only [remove_ones]
   exact reversing.close (by assumption)
 
-def option_rel : Option ℕ → Option ℕ → Prop := fun a b =>
-  match (a, b) with
-  | (_, none) => False
-  | (none, some _) => True
-  | (some i, some j) => i < j
+def find_it (L : List α) (r : List α) : Option (List α × List α) := sorry
 
-instance bye : WellFoundedRelation (Option ℕ) where
-  rel := option_rel
-  wf := by
-    apply WellFounded.intro
-    intro a
-    induction a with
-    | none =>
-      apply Acc.intro
-      intro y y_lt
-      unfold option_rel at y_lt
-      simp only at y_lt
-    | some val =>
-      induction val with
-      | zero =>
-        apply Acc.intro
-        intro y y_lt
-        induction y with
-        | none =>
-          apply Acc.intro
-          intro y y_lt
-          unfold option_rel at y_lt
-          simp only at y_lt
-        | some val =>
-          unfold option_rel at y_lt
-          simp only at y_lt
-          linarith [y_lt]
-      | succ n ih =>
-        apply Acc.intro
-        intro y
-        intro y_lt
-        rcases ih
-        rename_i acc_n
-        rcases y
-        · apply Acc.intro
-          intro y y_lt
-          unfold option_rel at y_lt
-          simp only at y_lt
-        rename_i m
-        rcases Nat.lt_or_ge m n with h1 | h2
-        · exact acc_n m h1
-        rcases LE.le.eq_or_gt h2 with h3 | h4
-        · apply Acc.intro
-          intro y' y'lt
-          rw [h3] at y'lt
-          exact acc_n y' y'lt
-        unfold option_rel at y_lt
-        simp only [lt_self_iff_false] at y_lt
-        linarith
+instance hi2 : WellFounded (Shortlex lt_a) := @Shortlex.wf _ _ wf_ar
 
-def find_it (L : List α) (r : List α) : Option (List α × List α × List α) := sorry
+instance hi : WellFoundedRelation (List (Option ℕ × Bool)) where
+  rel := Shortlex (lt_a)
+  wf := @Shortlex.wf _ _ wf_ar
 
-instance hi : WellFounded (Shortlex lt_a) := by
-  apply Shortlex.wf
-  exact wf_ar
+theorem find_it_spec (h : find_it L r = some (c, e)) : L = c ++ r ++ e := by sorry
+
 def move_ones (a : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
+  have H := @find_it_spec _ a [(none, false), (none, true)]
   match find_it a [(none, false), (none, true)] with
   | none => a
-  | some (c, d, e) =>
+  | some (c, e) =>
     have ha : Shortlex lt_a (c++ [(none, true), (none, false)] ++e) a := by sorry
-    have hb : Shortlex lt_a (c++ [(none, true), (none, false)] ++e) (c++ [(none, false), (none, true)] ++e) := by sorry
-    have hc : Shortlex lt_a [(none, true), (none, false)] [((none : Option ℕ), false), (none, true)]:= by sorry
-    have H : (invImage (fun x ↦ Shortlex lt_a) instWellFoundedRelationOfSizeOf).1 (c ++ [(none, true), (none, false)] ++ e) a := by
-      simp
-      sorry --refine ha
+    have hb : Shortlex lt_a (c++ [(none, true), (none, false)] ++e) (c++ [(none, false), (none, true)] ++e) := by
+      sorry
+    have hc : Shortlex lt_a [(none, true), (none, false)] [((none : Option ℕ), false), (none, true)]:= by
+      apply?
     move_ones (c++ [(none, true), (none, false)] ++e)
-    termination_by (Shortlex lt_a)
-    decreasing_by exact H --sorry
+    termination_by a
+    decreasing_by exact ha
 
-  --   move_ones (c++ [(true, none), (false, none)] ++e)
-  -- | none => sorry
-  -- termination_by (List.Lex symbol_lt)
-  -- decreasing_by sorry
-  -- -- simp
-
-
-
+    --  (Shortlex lt_a)
+    -- decreasing_by simp only [sizeOf_default, lt_self_iff_false]; sorry -- exact H --sorry
 
 
 -- theorem add_ones (h : SemiThue reversing a b) : ∃ d, SemiThue grid_style
