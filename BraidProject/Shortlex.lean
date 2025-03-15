@@ -1,122 +1,300 @@
+/-
+Copyright (c) 2024 Hannah Fechtner. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Hannah Fechtner
+-/
+
 import Mathlib.Data.List.Lex
 import Mathlib.Tactic.Linarith
-import Mathlib.Data.List.Indexes
-import Mathlib.Data.DFinsupp.Lex
-import Mathlib.Data.DFinsupp.WellFounded
 
+/-!
+# Shortlex ordering of lists.
+
+Given a relation `r` on `α`, the shortlex order on `List α` is defined by `L < M` iff
+* `L.length < M.length`
+* `L.length = M.length` and `L < M` under the lexicographic ordering over `r` on lists
+
+## Main results
+
+We show that if `r` is well-founded, so too is the shortlex order over `r`
+
+## See also
+
+Related files are:
+* `Mathlib/Data/List/Lex`: Lexicographic order on `List α`.
+* `Mathlib/Data/DFinsupp/WellFounded`: Well-foundedness of lexicographic orders on `DFinsupp` and
+  `Pi`.
+-/
+
+/-! ### shortlex ordering -/
+
+--to add to another file
+theorem InvImage.trichotomous {α β : Type*} {r : α → α → Prop} [IsTrichotomous α r] {f : β → α}
+    (h : Function.Injective f) : ∀ a b, (InvImage r f) a b ∨ a = b ∨ (InvImage r f) b a := by
+  intro a b
+  rw [← Function.Injective.eq_iff h]
+  exact IsTrichotomous.trichotomous (f a) (f b)
+
+instance InvImage.isAsymm {α β : Type*} {r : α → α → Prop} [IsAsymm α r] (f : β → α) :
+    IsAsymm β (InvImage r f) where
+  asymm := fun a b h h2 => IsAsymm.asymm (f a) (f b) h h2
+
+/-- Given a relation `r` on `α`, the shortlex order on `List α`, for which
+`[a0, ..., an] < [b0, ..., b_k]` if `n < k` or `n = k` and `[a0, ..., an] < [b0, ..., bk]`
+under the lexicographic order induced by `r`. -/
 def Shortlex {α : Type*} (r : α → α → Prop) : List α → List α → Prop :=
-  fun a b => Prod.Lex (fun n1 n2 => n1 < n2) (fun a b => List.Lex r a b) (a.length, a) (b.length, b)
+  InvImage (Prod.Lex (· < ·) (List.Lex r)) fun a ↦ (a.length, a)
 
 namespace Shortlex
 
-theorem not_nil_nil (h : Shortlex r [] []) : False := by
-  cases h with
-  | left b₁ b₂ h => exact Nat.not_succ_le_zero 0 h
-  | right a h => exact List.not_lex_nil h
+variable {α : Type*} {r : α → α → Prop}
 
-theorem not_nil_right (h : Shortlex r l []) : False := by
-  unfold Shortlex at h
-  generalize hl : (l.length, l) = l' at h
-  cases h with
-  | left b₁ b₂ h => simp only [List.length_nil, not_lt_zero'] at h
-  | right a h => exact List.not_lex_nil h
+/-- If a list `s` is shorter than a list `t`, then `s` is smaller than `t` under any shortlex
+order. -/
+theorem of_length_lt {s t : List α} (h : s.length < t.length) : Shortlex r s t :=
+  Prod.Lex.left _ _ h
 
-theorem acc_empty {α : Type*} (r : α → α → Prop) : Acc (Shortlex r) [] := by
-  apply Acc.intro
-  intro y ylt
-  exact (Shortlex.not_nil_right ylt).elim
+/-- If two lists `s` and `t` have the same length, `s` is smaller than `t` under the shortlex order
+over a relation `r`  when `s` is smaller than `t` under the lexicographic order over `r` -/
+theorem of_lex {s t : List α} (h : s.length = t.length) (h2 : List.Lex r s t) :
+    Shortlex r s t := by
+  apply Prod.lex_def.mpr
+  right
+  exact ⟨h, h2⟩
 
-variable {α : Type*} (r : α → α → Prop) {h : WellFounded r}
+/-- If two lists `s` and `t` have the same length, `s` is smaller than `t` under the shortlex order
+over a relation `r` exactly when `s` is smaller than `t` under the lexicographic order over `r`.-/
+theorem _root_.List.shortlex_iff_lex {s t : List α} (h : s.length = t.length) :
+    Shortlex r s t ↔ List.Lex r s t := by
+  constructor
+  · intro h2
+    rw [Shortlex, InvImage, Prod.lex_def, h, lt_self_iff_false, false_or] at h2
+    simp only [true_and] at h2
+    exact h2
+  exact fun h1 => of_lex h h1
 
-theorem acc_singleton {α : Type*} (r : α → α → Prop) {h : WellFounded r} {i : α} : Acc (Shortlex r) [i] := by
-  apply WellFounded.induction h i
-  intro x ih
-  apply Acc.intro
-  intro y ylt
-  unfold Shortlex at ylt
-  generalize hy : (y.length, y) = z at ylt
-  cases ylt with
-  | left b₁ b₂ h =>
-    simp only [List.length_singleton, Nat.lt_one_iff] at h
-    rw [h] at hy
-    simp only [Prod.mk.injEq, List.length_eq_zero] at hy
-    rw [hy.1]
-    apply acc_empty
-  | right a h' =>
-    simp only [List.length_singleton, Prod.mk.injEq] at hy
-    rcases List.length_eq_one.mp hy.1 with ⟨j, hj⟩
-    rw [hj]
-    rw [← hy.2, hj, List.Lex.singleton_iff] at h'
-    exact ih j h'
+theorem _root_.List.shortlex_def {s t : List α} : Shortlex r s t ↔
+    s.length < t.length ∨ s.length = t.length ∧ List.Lex r s t := by
+  constructor
+  · intro hs
+    unfold Shortlex InvImage at hs
+    simp only at hs
+    generalize hp : (s.length, s) = p at hs
+    generalize hq : (t.length, t) = q at hs
+    cases hs with
+    | left b₁ b₂ h =>
+      left
+      rw [Prod.mk.injEq] at hp hq
+      rw [← hp.1, ← hq.1] at h
+      exact h
+    | right a h =>
+      right
+      rw [Prod.mk.injEq] at hp hq
+      rw [← hp.2, ← hq.2] at h
+      exact ⟨hp.1.trans hq.1.symm, h⟩
+  intro hpq
+  rcases hpq with h1 | h2
+  · exact of_length_lt h1
+  exact of_lex h2.1 h2.2
 
+open List
+theorem cons_iff [IsIrrefl α r] {a : α} {s t : List α} : Shortlex r (a :: s) (a :: t) ↔
+    Shortlex r s t := by
+  simp only [shortlex_def, length_cons, add_lt_add_iff_right, add_left_inj, List.Lex.cons_iff]
 
-theorem shorter_than {m n : List α} (h : m.length < n.length) : Shortlex r m n := Prod.Lex.left m n h
+@[simp]
+theorem not_nil_right {s : List α} : ¬ Shortlex r s [] := by
+  rw [shortlex_def]
+  rintro (h1 | h2)
+  · simp only [List.length_nil, not_lt_zero'] at h1
+  · exact List.not_lex_nil h2.2
 
-theorem acc_lt (h : Acc (Shortlex r) l) (m : List α) (hl : m.length < l.length) :
-    Acc (Shortlex r) m := by
-  apply Acc.inv h
-  exact shorter_than _ hl
+theorem nil_left_or_eq_nil (s : List α) : Shortlex r [] s ∨ s = [] := by
+  cases s with
+  | nil => right; rfl
+  | cons head tail => exact Or.inl (of_length_lt (Nat.succ_pos tail.length))
 
-theorem acc_length_one {h : WellFounded r} (m : List α) (hl : m.length =1) :
-    Acc (Shortlex r) m := by
-  rcases List.length_eq_one.mp hl with ⟨q, hq⟩
-  rw [hq]
-  apply acc_singleton
-  exact h
+@[simp]
+theorem singleton_iff (a b : α) : Shortlex r [a] [b] ↔ r a b := by
+  simp only [shortlex_def, length_singleton, lt_self_iff_false, Lex.singleton_iff, true_and,
+    false_or]
 
-theorem lexAccessible2 {a : α} {h : WellFounded r} (aca : Acc r a) (acb : (b : α) → Acc r b) (b : α) :
-    Acc (Shortlex r) [a, b] := by
-  induction aca generalizing b with
-  | intro xa _ iha =>
-    induction (acb b) with
-    | intro xb _ ihb =>
-      apply Acc.intro [xa, xb]
-      intro p lt
-      unfold Shortlex at lt
-      generalize hp : (p.length, p) = p' at lt
-      cases lt with
-      | left  _ _ h =>
-        simp at hp
+instance isTrichotomous [IsTrichotomous α r] : IsTrichotomous (List α) (Shortlex r) where
+  trichotomous := fun a b => InvImage.trichotomous (by simp [Function.Injective]) _ _
+
+theorem append_right {s₁ s₂ : List α} (t : List α) : Shortlex r s₁ s₂ →
+    Shortlex r s₁ (s₂ ++ t) := by
+  intro h
+  rcases shortlex_def.mp h with h1 | h2
+  · apply of_length_lt
+    rw [List.length_append]
+    omega
+  cases t with
+  | nil =>
+    rw [List.append_nil]
+    exact h
+  | cons head tail =>
+    apply of_length_lt
+    rw [List.length_append, List.length_cons]
+    omega
+
+theorem List.Lex.ne [IsIrrefl α r] (h : a = b) : ¬ List.Lex r a b := by
+  intro h
+  induction h with
+  | nil => simp at h
+  | cons h1 ih =>
+    simp at h
+    exact ih h
+  | rel hr =>
+    simp at h
+    rw [h.1] at hr
+    rename_i hi _ _ _ _
+    exact @IsIrrefl.irrefl _ _ hi _ hr
+
+theorem List.lex_append_right_iff {s₁ s₂ : List α} (t : List α) [IsIrrefl α r] (h : s₁.length = s₂.length) :
+    List.Lex r s₁ s₂ ↔ List.Lex r (s₁ ++ t) (s₂ ++ t) := by
+  constructor
+  · intro h
+    induction h with
+    | nil => simp at h
+    | cons h ih =>
+      apply Lex.cons
+      simp at h
+      specialize ih h
+      exact ih
+    | rel h =>
+      apply Lex.rel (by assumption)
+  intro h
+  generalize h1 : s₁ ++ t = s1'
+  generalize h2 : s₂ ++ t = s2'
+  rw [h1, h2] at h
+  induction h generalizing s₁ s₂ with
+  | nil =>
+    simp at h1
+    rw [h1.1]
+    rw [h1.2] at h2
+    simp at h2
+    rw [h2, h1.1] at h
+    simp at h
+  | cons h4 ih =>
+    cases s₁ with
+    | nil =>
+      cases s₂ with
+      | cons head tail => simp at h
+      | nil =>
+        simp at h1
+        simp at h2
+        have h3 := h1.symm.trans h2
+        simp at h3
+        rw [h3] at h4
+        exfalso
+        rename_i hi _ _ _
+        apply List.Lex.ne rfl h4
+    | cons head tail =>
+      cases s₂ with
+      | nil => simp at h
+      | cons head1 tail1 =>
+        simp at h2
+        simp at h1
         simp at h
-        cases h with
-        | refl =>
-          rcases List.length_eq_one.mp hp.1 with ⟨w, hw⟩
-          rw [hw]
-          apply acc_singleton
-          exact h
-        | step n =>
-          simp only [Nat.succ_eq_add_one, zero_add, Nat.le_eq, add_le_iff_nonpos_left,
-            nonpos_iff_eq_zero] at n
-          rw [n, List.length_eq_zero] at hp
-          rw [hp.1]
-          exact acc_empty r
-      | right _ h   =>
-        simp at hp
-        rw [← hp.2] at h
-        rcases List.length_eq_two.mp hp.1 with ⟨p1, p2, h12⟩
-        rw [h12] at h
-        cases h with
-        | cons h =>
-          cases h with
-          | cons h => simp only [List.not_lex_nil] at h
-          | rel h =>
-            rw [h12]
-            apply ihb
-            exact h
-        | rel h =>
-          rw [h12]
-          apply iha _ h
+        specialize ih h h1.2 h2.2
+        rw [h2.1, h1.1]
+        exact Lex.cons ih
+  | rel hr =>
+    cases s₁ with
+    | nil =>
+      cases s₂ with
+      | nil =>
+        simp at h1
+        simp at h2
+        have h3 := h1.symm.trans h2
+        simp at h3
+        rw [h3.1] at hr
+        exfalso
+        rename_i hi _ _ _ _
+        apply @IsIrrefl.irrefl _ _ hi _ hr
+      | cons head tail => simp at h
+    | cons head tail =>
+      cases s₂ with
+      | nil => simp at h
+      | cons head tail =>
+        simp at h1
+        simp at h2
+        rw [h1.1, h2.1]
+        exact Lex.rel hr
 
-theorem acc_pair {α : Type*} (r : α → α → Prop) {h : WellFounded r} (i j : α) :
-    Acc (Shortlex r) [i, j] := by
-  apply lexAccessible2
-  exact h
-  exact WellFounded.apply h i
-  exact fun j => WellFounded.apply h j
+theorem append_right_iff {s₁ s₂ : List α} (t : List α) [IsIrrefl α r] : Shortlex r s₁ s₂ ↔
+    Shortlex r (s₁ ++ t) (s₂ ++ t) := by
+  constructor
+  · intro h
+    rcases shortlex_def.mp h with h1 | h2
+    · apply of_length_lt
+      rw [List.length_append, List.length_append]
+      omega
+    apply of_lex
+    · simp [h2.1]
+    exact (List.lex_append_right_iff _ h2.1).mp h2.2
+  intro h
+  rcases shortlex_def.mp h with h1 | h2
+  · apply of_length_lt
+    rw [List.length_append, List.length_append] at h1
+    omega
+  apply of_lex
+  · simp at h2
+    simp [h2.1]
+  simp at h2
+  exact (List.lex_append_right_iff _ h2.1).mpr h2.2
 
-theorem lexAccessible' {a : α} (n : ℕ) (aca : Acc r a)
+theorem append_left {t₁ t₂ : List α} (h : Shortlex r t₁ t₂) (s : List α) :
+    Shortlex r (s ++ t₁) (s ++ t₂) := by
+  rcases shortlex_def.mp h with h1 | h2
+  · apply of_length_lt
+    rw [List.length_append, List.length_append]
+    omega
+  cases s with
+  | nil =>
+    rw [List.nil_append, List.nil_append]
+    exact h
+  | cons head tail =>
+    apply of_lex
+    · simp only [List.cons_append, List.length_cons, List.length_append, Nat.succ_eq_add_one,
+      add_left_inj, add_right_inj]
+      exact h2.1
+    exact List.Lex.append_left r h2.2 (head :: tail)
+
+
+theorem List.Lex.append_left_iff [IsIrrefl α r] : List.Lex r (s ++ t₁) (s ++ t₂) ↔ List.Lex r t₁ t₂ := by
+  constructor
+  · intro h
+    induction s with
+    | nil =>
+      simp only [List.nil_append] at h
+      exact h
+    | cons head tail ih =>
+      simp only [List.cons_append, List.Lex.cons_iff] at h
+      exact ih h
+  intro h
+  apply List.Lex.append_left r h
+
+theorem append_left_iff [IsIrrefl α r] {t₁ t₂ : List α} (s : List α) : Shortlex r t₁ t₂ ↔
+    Shortlex r (s ++ t₁) (s ++ t₂) := by
+  constructor
+  · exact fun h => append_left h _
+  intro h
+  rcases shortlex_def.mp h with h1 | h2
+  · apply of_length_lt
+    simp at h1
+    omega
+  simp at h2
+  apply of_lex h2.1
+  apply List.Lex.append_left_iff.mp h2.2
+section WellFounded
+
+variable {h : WellFounded r}
+
+theorem _root_.Acc.shortlex {a : α} (n : ℕ) (aca : Acc r a)
     (acb : (b : List α) → b.length < n → Acc (Shortlex r) b) (b : List α) (hb : b.length < n)
-    (ih : ∀ l : List α, l.length < (a::b).length → Acc (Shortlex r) l) :
+    (ih : ∀ s : List α, s.length < (a::b).length → Acc (Shortlex r) s) :
     Acc (Shortlex r) ([a] ++ b) := by
   induction aca generalizing b with
   | intro xa _ iha =>
@@ -124,88 +302,59 @@ theorem lexAccessible' {a : α} (n : ℕ) (aca : Acc r a)
     | intro xb _ ihb =>
       apply Acc.intro ([xa] ++ xb)
       intro p lt
-      unfold Shortlex at lt
-      generalize hp : (p.length, p) = p' at lt
-      cases lt with
-      | left  _ _ h =>
-        simp at hp
-        simp at h
-        apply ih
-        simp
-        rw [hp.1]
-        exact h
-      | right _ h   =>
-        simp at hp
-        rw [← hp.2] at h
-        cases p with
-        | nil => simp at hp
+      rcases shortlex_def.mp lt with h1 | h2
+      · exact ih _ h1
+      · cases p with
+        | nil => simp only [List.length_nil, List.singleton_append, List.length_cons,
+          Nat.succ_eq_add_one, self_eq_add_left, add_eq_zero, List.length_eq_zero, one_ne_zero,
+          and_false, false_and] at h2
         | cons headp tailp =>
-          cases h with
+          cases h2.2 with
           | cons h =>
-            simp at h
-            apply ihb
-            unfold Shortlex
-            apply (Prod.lex_def).mpr
-            right
-            constructor
-            · simp at hp
-              exact hp.1
-            exact h
-            · simp at hp
-              rw [hp.1]
-              exact hb
+            rw [List.append_eq, List.nil_append] at h
+            simp only [List.length_cons, Nat.succ_eq_add_one, List.singleton_append,
+              add_left_inj] at h2
+            rw [← h2.1] at hb
+            apply ihb _ (of_lex (h2.1) h) hb
             intro l hl
             apply ih
-            simp
-            simp at hl
-            simp at hp
-            rw [← hp.1]
+            rw [List.length_cons, ← h2.1]
             exact hl
           | rel h =>
-            apply iha
-            exact h
-            · simp at hp
-              rw [hp.1]
-              exact hb
+            simp only [List.length_cons, Nat.succ_eq_add_one, List.singleton_append,
+              add_left_inj] at h2
+            rw [← h2.1] at hb
+            apply iha headp h _ hb
             intro l hl
             apply ih
-            simp
-            simp at hl
-            simp at hp
-            rw [← hp.1]
+            rw [List.length_cons, ← h2.1]
             exact hl
 
-theorem wf {α : Type*} (r : α → α → Prop) {h : WellFounded r} : WellFounded (Shortlex r) := by
-  apply WellFounded.intro
-  have H : ∀ n, ∀ (a : List α), a.length = n → Acc (Shortlex r) a := by
-    intro n
-    induction n using Nat.strongRecOn
-    rename_i n ih
+theorem wf (h : WellFounded r) : WellFounded (Shortlex r) := by
+  suffices h : ∀ n, ∀ (a : List α), a.length = n → Acc (Shortlex r) a from
+    WellFounded.intro (fun a => h a.length a rfl)
+  intro n
+  induction n using Nat.strongRecOn with
+  | ind n ih =>
     cases n with
     | zero =>
       intro a len_a
-      simp only [List.length_eq_zero] at len_a
+      rw [List.length_eq_zero] at len_a
       rw [len_a]
-      exact acc_empty r
+      exact Acc.intro _ <| fun _ ylt => (Shortlex.not_nil_right ylt).elim
     | succ n =>
-      intro a
-      cases a with
-      | nil =>
-        intro len_a
-        simp only [List.length_nil, self_eq_add_left, add_eq_zero, one_ne_zero, and_false]
-          at len_a
-      | cons head tail =>
-        intro len_a
-        simp only [List.length_cons, Nat.succ_eq_add_one, add_left_inj] at len_a
-        apply lexAccessible' r (n+1)
-        · exact WellFounded.apply h head
-        · exact fun b bl =>ih b.length bl _ rfl
-        · rw [len_a]
-          exact lt_add_one n
-        · intro l ll
-          apply ih l.length
-          simp only [List.length_cons, Nat.succ_eq_add_one] at ll
-          · rw [← len_a]
-            exact ll
-          rfl
-  exact fun a => H a.length _ rfl
+      intro a len_a
+      rcases List.exists_of_length_succ a len_a with ⟨head, tail, a_is⟩
+      rw [a_is]
+      rw [a_is, List.length_cons, add_left_inj] at len_a
+      apply Acc.shortlex (n+1) (WellFounded.apply h head) (fun b bl => ih b.length bl _ rfl)
+      · rw [len_a]
+        exact lt_add_one n
+      intro l ll
+      apply ih l.length _ _ rfl
+      rw [← len_a]
+      exact ll
+
+end WellFounded
+
+end Shortlex

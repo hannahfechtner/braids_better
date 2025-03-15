@@ -63,3 +63,45 @@ theorem one_step_equiv_reg {a b : List α} : SemiThue rels a b ↔ SemiThue_one_
   rename_i h1 h2
   apply h2.trans
   exact SemiThue.reduction h1
+
+theorem SemiThue_cons (h : SemiThue rels a b) : SemiThue rels (c :: a) (c :: b) := by
+  induction h with
+  | refl a => exact SemiThue.refl (c :: a)
+  | reduction h =>
+    rename_i e f g i
+    change SemiThue rels ((c :: g) ++ e ++ i) ((c :: g) ++ f ++ i)
+    exact SemiThue.reduction h
+  | trans e f g h1 h2 ih1 ih2 =>
+    exact SemiThue.trans (c :: e) (c :: f) (c :: g) ih1 ih2
+
+theorem SemiThue_caboose (h : SemiThue rels a b) : SemiThue rels (a ++ [c]) (b ++ [c]) := by
+  induction h with
+  | refl a => exact SemiThue.refl _
+  | reduction h =>
+    rename_i e f g i
+    rw [List.append_assoc, List.append_assoc _ i]
+    exact SemiThue.reduction h
+  | trans e f g h1 h2 ih1 ih2 =>
+    exact SemiThue.trans _ _ _ ih1 ih2
+
+theorem SemiThue_append_left (h : SemiThue rels a b) : SemiThue rels (c ++ a) (c ++ b) := by
+  induction c
+  · simp
+    exact h
+  apply SemiThue_cons
+  assumption
+
+theorem SemiThue_append_right (h : SemiThue rels a b) : SemiThue rels (a ++ c) (b ++ c) := by
+  induction c using List.reverseRecOn
+  · simp
+    exact h
+  rw [← List.append_assoc, ← List.append_assoc]
+  apply SemiThue_caboose
+  assumption
+
+theorem SemiThue_center (h : SemiThue rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d) :=
+  SemiThue_append_right (SemiThue_append_left h)
+
+theorem SemiThue_rel (h : rels a b) : SemiThue rels a b := by
+  rw [← List.nil_append a, ← List.nil_append b, ← List.append_nil ([] ++ a), ← List.append_nil ([] ++ b)]
+  exact SemiThue.reduction h

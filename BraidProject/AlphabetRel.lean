@@ -8,6 +8,15 @@ def lt_a : (Option ℕ × Bool) → Option ℕ × Bool →  Prop
   | (some _, false), (none, false) => true
   | (_, _), (_, _) => false
 
+instance : LT ((Option ℕ × Bool)) where
+  lt := lt_a
+
+instance (a b) : Decidable (lt_a a b) := by
+  unfold lt_a
+  simp [DecidableLT]
+  split
+  all_goals exact inferInstance
+
 theorem lt_acc_none : Acc lt_a (none, true) := by
   apply Acc.intro
   intro y hy
