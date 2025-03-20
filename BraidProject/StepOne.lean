@@ -2,136 +2,29 @@ import BraidProject.SemiThue
 import BraidProject.ListFact
 import BraidProject.AlphabetRel
 
-section ListMap
-theorem List.map_eq_two (h : [a, b] = List.map f c) : ∃ d e, c = [d, e] ∧ f d = a ∧ f e = b := by
-    have part_one := congr_arg List.length h
-    simp at part_one
-    have H2 := List.length_eq_two.mp part_one.symm
-    rcases H2 with ⟨a1, a2, a_is⟩
-    rw [a_is] at h
-    simp at h
-    rw [a_is]
-    use a1, a2
-    constructor
-    · rfl
-    exact ⟨h.1.symm, h.2.symm⟩
-
-theorem List.length_eq_four {l : List α} : l.length = 4 ↔ ∃ a b c d, l = [a, b, c, d] :=
-  ⟨fun _ => let [a, b, c, d] := l; ⟨a, b, c, d, rfl⟩, fun ⟨_, _, _, _, e⟩ => e ▸ rfl⟩
-
-theorem List.map_eq_four (h : [a, b, c, d] = List.map f e) : ∃ i j k l, e = [i, j, k, l] ∧
-    f i = a ∧ f j = b ∧ f k = c ∧ f l = d := by
-  have part_one := congr_arg List.length h
-  simp at part_one
-  have H2 := List.length_eq_four.mp part_one.symm
-  rcases H2 with ⟨a1, a2, a3, a4, a_is⟩
-  rw [a_is] at h
-  simp at h
-  rw [a_is]
-  use a1, a2, a3, a4
-  constructor
-  · rfl
-  exact ⟨h.1.symm, ⟨h.2.1.symm, ⟨h.2.2.1.symm, h.2.2.2.symm⟩⟩⟩
-
-end ListMap
-
 inductive reversing : List (ℕ × Bool) → List (ℕ × Bool) → Prop
 | basic {n : ℕ} : reversing [(n, false), (n, true)] []
 | apart {i j : ℕ} (h : Nat.dist i j > 1) : reversing [(i, false), (j, true)] [(j, true), (i, false)]
 | close {i j : ℕ} (h : Nat.dist i j = 1) : reversing [(i, false), (j, true)]
     [(j, true), (i, true), (j, false), (i, false)]
 
-inductive reversing_option : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Prop
-| basic {n : ℕ} : reversing_option [(n, false), (n, true)] []
-| apart {i j : ℕ} (h : Nat.dist i j > 1) : reversing_option [(i, false), (j, true)]
-    [(j, true), (i, false)]
-| close {i j : ℕ} (h : Nat.dist i j = 1) : reversing_option [(i, false), (j, true)]
+inductive grid_style : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Prop
+| basic (n : ℕ) : grid_style [(some n, false), (some n, true)] [(none, true), (none, false)]
+| over (n : ℕ) : grid_style [(n, false), (none, true)] [(none, true), (n, false)]
+| up (n : ℕ) : grid_style [(none, false), (some n, true)] [(n, true), (none, false)]
+| empty : grid_style [(none, false), (none, true)] [(none, true), (none, false)]
+| apart {i j : ℕ} (h : Nat.dist i j > 1) : grid_style [(i, false), (j, true)] [(j, true), (i, false)]
+| close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style [(i, false), (j, true)]
     [(j, true), (i, true), (j, false), (i, false)]
 
-inductive grid_style' : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Prop
-| basic (n : ℕ) : grid_style' [(some n, false), (some n, true)] [(none, true), (none, false)]
-| over (n : ℕ) : grid_style' [(n, false), (none, true)] [(none, true), (n, false)]
-| up (n : ℕ) : grid_style' [(none, false), (some n, true)] [(n, true), (none, false)]
-| empty : grid_style' [(none, false), (none, true)] [(none, true), (none, false)]
-| apart {i j : ℕ} (h : Nat.dist i j > 1) : grid_style' [(i, false), (j, true)] [(j, true), (i, false)]
-| close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style' [(i, false), (j, true)]
-    [(j, true), (i, true), (j, false), (i, false)]
-
-theorem prod_some (h : (some i.1, i.2) = (some j, b)) : i = (j, b) := by
-  simp at h
-  rw [← h.1, ← h.2]
-
--- theorem reversing_iff_option : reversing a b ↔ reversing_option (List.map (fun (x, y) =>
---     (some x, y)) a) (List.map (fun (x, y) => (some x, y)) b) := by
---   constructor
---   · intro h
---     induction h
---     · exact reversing_option.basic
---     · exact reversing_option.apart (by assumption)
---     exact reversing_option.close (by assumption)
---   intro h
---   have H : ∀ m n, reversing_option m n → m = List.map (fun x ↦ (some x.1, x.2)) a →
---       n = (List.map (fun x ↦ (some x.1, x.2)) b) → reversing a b := by
---     intro m n
---     intro h
---     induction h
---     · intro m_is n_is
---       rename_i k
---       have ha : a = [(k, false), (k, true)] := by
---         have part_one := congr_arg List.length m_is
---         simp at part_one
---         have H2 := List.length_eq_two.mp part_one.symm
---         rcases H2 with ⟨a1, a2, a_is⟩
---         rw [a_is] at m_is
---         simp at m_is
---         rw [a_is]
---         apply List.cons_eq_cons.mpr
---         constructor
---         · ext
---           · exact m_is.1.1.symm
---           exact m_is.1.2
---         simp
---         ext
---         · exact m_is.2.1.symm
---         exact m_is.2.2
---       rw [ha, List.map_eq_nil_iff.mp n_is.symm]
---       exact reversing.basic
---     · intro h1 h2
---       rcases List.map_eq_two h1 with ⟨d, e, hde⟩
---       rcases List.map_eq_two h2 with ⟨f, g, hfg⟩
---       rw [hde.1, hfg.1]
---       rw [prod_some hde.2.1, prod_some hde.2.2, prod_some hfg.2.1, prod_some hfg.2.2]
---       exact reversing.apart (by assumption)
---     intro h
---     rcases List.map_eq_two h with ⟨d, e, hde⟩
---     rw [hde.1]
---     rename_i i j dist
---     rw [prod_some hde.2.1, prod_some hde.2.2]
---     intro hb
---     rcases List.map_eq_four hb with ⟨i, j, k, l, hijkl⟩
---     rw [hijkl.1, prod_some hijkl.2.1, prod_some hijkl.2.2.1, prod_some hijkl.2.2.2.1,
---       prod_some hijkl.2.2.2.2]
---     exact reversing.close dist
---   exact H _ _ h rfl rfl
-
-def remove_ones : List (Option α × Bool) → List (α × Bool) :=
-  fun a => match a with
+def remove_ones (L : List (Option α × Bool)) : List (α × Bool) :=
+  match L with
   | [] => []
   | (some a, b) :: c => (a, b) :: remove_ones c
   | (none, _) :: c => remove_ones c
 
 @[simp]
 theorem remove_ones_nil : remove_ones ([] : List (Option α × Bool)) = [] := rfl
-
-theorem reversing_iff_option_other_way : reversing_option a b → reversing (remove_ones a) (remove_ones b) := by
-    intro h
-    induction h
-    · simp only [remove_ones]
-      exact reversing.basic
-    · simp only [remove_ones]
-      exact reversing.apart (by assumption)
-    simp only [remove_ones]
-    exact reversing.close (by assumption)
 
 def insert_one (a : Option ℕ × Bool) (L : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
   match L with
@@ -148,13 +41,14 @@ def insert_one (a : Option ℕ × Bool) (L : List (Option ℕ × Bool)) : List (
     | (_, _) => a :: L
   | _ => a :: L
 
+@[simp]
+theorem insert_one_nil : insert_one a [] = [a] := rfl
+
 def move_ones_ind (L : List (Option ℕ × Bool)) :=
   match L with
   | [] => []
   | head :: tail => insert_one head (move_ones_ind tail)
 
-@[simp]
-theorem insert_one_nil : insert_one a [] = [a] := rfl
 @[simp]
 theorem moves_ones_nil : move_ones_ind [] = [] := rfl
 
@@ -164,33 +58,33 @@ theorem move_ones_singleton : move_ones_ind [a] = [a] := by
   unfold insert_one
   simp
 
-theorem lt_of_none_true (h : lt_a a (none, true)) : a = (none, true) := by
-  match a with
-  | (none, true) => rfl
-  | (_, false) => simp [lt_a] at h
-  | (some a, true) => simp [lt_a] at h
+-- theorem lt_of_none_true (h : lt_a a (none, true)) : a = (none, true) := by
+--   match a with
+--   | (none, true) => rfl
+--   | (_, false) => simp [lt_a] at h
+--   | (some a, true) => simp [lt_a] at h
 
 
-theorem move_ones_pair (h : lt_a a b) : move_ones_ind [a, b] = [a, b] := by
-  unfold move_ones_ind
-  simp
-  unfold insert_one
-  split
-  · aesop
-  · rename_i _ _ h2
-    simp at h2
-    rw [h2.2, h2.1]
-    rw [h2.1] at h
-    apply lt_of_none_true at h
-    rw [h]
-  all_goals
-    rename_i h1
-    simp at h1
-    simp [h1]
-  · split
-    any_goals rfl
-    rw [h1.1] at h
-    simp [lt_a] at h
+-- theorem move_ones_pair (h : lt_a a b) : move_ones_ind [a, b] = [a, b] := by
+--   unfold move_ones_ind
+--   simp
+--   unfold insert_one
+--   split
+--   · aesop
+--   · rename_i _ _ h2
+--     simp at h2
+--     rw [h2.2, h2.1]
+--     rw [h2.1] at h
+--     apply lt_of_none_true at h
+--     rw [h]
+--   all_goals
+--     rename_i h1
+--     simp at h1
+--     simp [h1]
+--   · split
+--     any_goals rfl
+--     rw [h1.1] at h
+--     simp [lt_a] at h
 
 def pairsTogether  (L : List (Option ℕ × Bool)) := ∀ a b, [(a, false), (b, true)] <:+: remove_ones L →
     [(some a, false), (some b, true)] <:+: L
@@ -1218,8 +1112,8 @@ theorem pt_move_ones : pairsTogether (move_ones_ind L) := pt_of_irr big_attempt
 
 theorem pts_move_ones : pts (move_ones_ind L) := pts_of_irr big_attempt
 
-theorem equiv_insert : SemiThue grid_style' (a :: L) (insert_one a L) := by
-  have H : ∀ t L a, L.length ≤ t → SemiThue grid_style' (a :: L) (insert_one a L) := by
+theorem equiv_insert : SemiThue grid_style (a :: L) (insert_one a L) := by
+  have H : ∀ t L a, L.length ≤ t → SemiThue grid_style (a :: L) (insert_one a L) := by
     intro t
     induction t
     · intro L a len
@@ -1237,12 +1131,12 @@ theorem equiv_insert : SemiThue grid_style' (a :: L) (insert_one a L) := by
       | [] => exact SemiThue.refl [(none, false)]
       | (none, true) :: tail =>
         simp at len
-        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel grid_style'.empty)) (SemiThue_cons (ih tail _ len))
+        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel grid_style.empty)) (SemiThue_cons (ih tail _ len))
       | (none, false) :: tail => exact SemiThue.refl ((none, false) :: (none, false) :: tail)
       | (some c, true) :: tail1 =>
         simp at len
         specialize ih tail1 (none, false) len
-        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel (grid_style'.up c))) (SemiThue_cons ih)
+        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel (grid_style.up c))) (SemiThue_cons ih)
       | (some c, false) :: tail1 =>
         exact SemiThue.refl ((none, false) :: (some c, false) :: tail1)
     | (some b, true) =>
@@ -1258,14 +1152,14 @@ theorem equiv_insert : SemiThue grid_style' (a :: L) (insert_one a L) := by
       | (none, true) :: tail =>
         simp at len
         specialize ih tail (some b, false) len
-        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel (grid_style'.over b))) (SemiThue_cons ih)
+        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel (grid_style.over b))) (SemiThue_cons ih)
       | (none, false) :: tail => exact SemiThue.refl _
       | (some c, true) :: tail1 => exact SemiThue.refl _
       | (some c, false) :: tail1 => exact SemiThue.refl _
   exact H L.length _ _ (by simp)
 
 
-theorem equiv_move_ones : SemiThue grid_style' L (move_ones_ind L) := by
+theorem equiv_move_ones : SemiThue grid_style L (move_ones_ind L) := by
   induction L
   · exact SemiThue.refl []
   rename_i head tail ih
@@ -1443,8 +1337,8 @@ theorem pts_chop_right (h : pts (a ++ b)) : pts a := fun L1 hl c d hcd ↦ h L1 
 theorem pts_chop_left (h : pts (a ++ b)) : pts b := fun L1 hl c d hcd ↦ h L1 (infix_append_left hl) c d hcd
 
 -- (h : SemiThue reversing g (e ++ (remove_ones d1) ++ f))
-theorem rg_of_rev_rel (d1) (gr : SemiThue grid_style' (to_option a) b')
-    (b'_is : remove_ones b' = e ++ [(c1, false), (c2, true)] ++ f) (pt_b : irreducible b') (rel_holds : grid_style' [(some c1, false), (some c2, true)] d1): ∃ b', SemiThue grid_style' (to_option a) b' ∧
+theorem rg_of_rev_rel (d1) (gr : SemiThue grid_style (to_option a) b')
+    (b'_is : remove_ones b' = e ++ [(c1, false), (c2, true)] ++ f) (pt_b : irreducible b') (rel_holds : grid_style [(some c1, false), (some c2, true)] d1): ∃ b', SemiThue grid_style (to_option a) b' ∧
     remove_ones b' = e ++ (remove_ones d1) ++ f ∧ irreducible b' := by
     rcases (pts_of_irr pt_b) b' (by exact List.infix_refl b') c1 c2 (by use e; use f; exact b'_is.symm) with ⟨w, t, hwt⟩
     rw [← hwt] at b'_is
@@ -1474,7 +1368,7 @@ theorem rg_of_rev_rel (d1) (gr : SemiThue grid_style' (to_option a) b')
       constructor
       · apply SemiThue.trans _ _ _ gr
         rw [← hwt]
-        have H : SemiThue grid_style' (w ++ [(some c1, false), (some c2, true)] ++ t)
+        have H : SemiThue grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
           (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t) := by
           apply SemiThue_append_right
           rw [hw.1]
@@ -1493,7 +1387,7 @@ theorem rg_of_rev_rel (d1) (gr : SemiThue grid_style' (to_option a) b')
     constructor
     · apply SemiThue.trans _ _ _ gr
       rw [← hwt]
-      have H : SemiThue grid_style' (w ++ [(some c1, false), (some c2, true)] ++ t)
+      have H : SemiThue grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
         (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2) := by
         rw [List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
         apply SemiThue_append_left
@@ -1590,7 +1484,7 @@ theorem irr_to_option : irreducible (to_option a) := by
     simp at hx
     exact (ih x).2.2 hx
 
-theorem rev_to_grid (h : SemiThue reversing a b) : ∃ b', SemiThue grid_style' (to_option a) b' ∧
+theorem rev_to_grid (h : SemiThue reversing a b) : ∃ b', SemiThue grid_style (to_option a) b' ∧
   remove_ones b' = b ∧ irreducible b':= by
   induction one_step_equiv_reg.mp h with
   | refl a =>
@@ -1606,13 +1500,13 @@ theorem rev_to_grid (h : SemiThue reversing a b) : ∃ b', SemiThue grid_style' 
     rcases ih with ⟨b', gr, b'_is, pt_b⟩
     cases h2 with
     | basic =>
-      apply rg_of_rev_rel ([(none, true), (none, false)]) gr  b'_is pt_b (grid_style'.basic _)
+      apply rg_of_rev_rel ([(none, true), (none, false)]) gr  b'_is pt_b (grid_style.basic _)
     | apart h_dist =>
       rename_i i j
-      exact rg_of_rev_rel ([(some j, true), (some i, false)]) gr b'_is pt_b (grid_style'.apart h_dist)
+      exact rg_of_rev_rel ([(some j, true), (some i, false)]) gr b'_is pt_b (grid_style.apart h_dist)
     | close h_dist =>
       rename_i i j
-      exact rg_of_rev_rel ([(some j, true), (some i, true), (some j, false), (some i, false)]) gr b'_is pt_b (grid_style'.close h_dist)
+      exact rg_of_rev_rel ([(some j, true), (some i, true), (some j, false), (some i, false)]) gr b'_is pt_b (grid_style.close h_dist)
 
 def is_false (a : List (α × Bool)) := ∀ x ∈ a, x.2 = false
 
