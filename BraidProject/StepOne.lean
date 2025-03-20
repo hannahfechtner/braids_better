@@ -1,7 +1,5 @@
 import BraidProject.SemiThue
-import BraidProject.Shortlex
 import BraidProject.ListFact
-
 import BraidProject.AlphabetRel
 
 inductive reversing : List (ℕ × Bool) → List (ℕ × Bool) → Prop
@@ -194,7 +192,11 @@ theorem move_ones_pair (h : lt_a a b) : move_ones_ind [a, b] = [a, b] := by
 def pairsTogether  (L : List (Option ℕ × Bool)) := ∀ a b, [(a, false), (b, true)] <:+: remove_ones L →
     [(some a, false), (some b, true)] <:+: L
 
+def pts (L) := ∀ L1, L1 <:+: L → pairsTogether L1
+
 theorem pairsTogether_empty : pairsTogether [] := by unfold pairsTogether; simp
+
+theorem pts_empty : pts [] := by unfold pts; intro L1 hl; unfold pairsTogether; simp at hl; simp [hl]
 
 theorem pairs_together_singleton : pairsTogether [a] := by
   intro c d hcd
@@ -209,6 +211,21 @@ theorem pairs_together_singleton : pairsTogether [a] := by
     apply congr_arg List.length at hwt
     simp at hwt
     omega
+
+-- theorem pairs_together'_singleton : pts [a] := by
+--   intro L1 hl c d hcd
+--   exfalso
+--   sorry
+  -- match a with
+  -- | (none, _) =>
+  --   change [(c, false), (d, true)] <:+: [] at hcd
+  --   simp at hcd
+  -- | (some a, b) =>
+  --   change [(c, false), (d, true)] <:+: [(a, b)] at hcd
+  --   rcases hcd with ⟨w, t, hwt⟩
+  --   apply congr_arg List.length at hwt
+  --   simp at hwt
+  --   omega
 
 @[simp]
 theorem insert_one_singleton : insert_one (none, true) L = (none, true) :: L := by
@@ -711,6 +728,57 @@ theorem pt_true (h : pairsTogether L) : pairsTogether ((a, true) :: L) := by
     specialize h _ _ hbc
     exact List.infix_cons h
 
+theorem List.infix_singleton (h : L <:+: [a]) : L = [] ∨ L = [a] := by
+  match L with
+  | [] => left; rfl
+  | head :: tail =>
+    match tail with
+    | [] =>
+      right
+      rcases h with ⟨w, t, hwt⟩
+      have H := congr_arg List.length hwt
+      simp at H
+      have hw : w = [] := length_eq_zero.mp (by omega)
+      have ht : t = [] := length_eq_zero.mp (by omega)
+      rw [hw, List.nil_append, ht, List.append_nil] at hwt
+      exact hwt
+    | t1 :: t2 =>
+      rcases h with ⟨w, t, hwt⟩
+      have H := congr_arg List.length hwt
+      simp at H
+      omega
+
+theorem List.infix_cons_concat (h : L <:+: a :: b ++ [c]) : L =  a :: b ++ [c] ∨ L <:+: a :: b ∨ L <:+: a :: b ++ [c] := by
+  induction L
+  · right; left; exact nil_infix
+  rename_i head tail ih
+  rcases h with ⟨w, t, hwt⟩
+  match w with
+  | [] =>
+    cases t using List.reverseRecOn
+    · left; rw [List.append_nil, List.nil_append] at hwt; exact hwt
+    rename_i tf tl _
+    right; left
+    use [], tf
+    simp at hwt
+    rw [hwt.1, List.nil_append]
+    rw [← List.append_assoc, ← List.concat_eq_append, ← List.concat_eq_append] at hwt
+    rw [← (List.concat_inj.mp hwt.2).1]
+    rfl
+  | w1 :: wr =>
+    cases t using List.reverseRecOn
+    · right; right; rw [List.append_nil] at hwt; simp at hwt; use a :: wr; use []; simp [hwt.2]
+    rename_i tf tl _
+    right; left
+    use a :: wr, tf
+    simp at hwt
+    simp
+    have H : wr ++ head :: (tail ++ (tf ++ [tl])) = wr ++ head :: tail ++ tf ++ [tl] := by simp
+    rw [H] at hwt
+    rw [← List.concat_eq_append, ← List.concat_eq_append] at hwt
+    rw [← (List.concat_inj.mp hwt.2).1]
+    simp
+
 theorem pt_some_false (h : pairsTogether ((some b, false) :: L)) : pairsTogether ((a, b0) :: (some b, false) :: L) := by
   intro c d hcd
   match a with
@@ -737,10 +805,9 @@ theorem pt_nf_nf (h : pairsTogether ((none, false) :: L)) : pairsTogether ((none
   specialize h _ _ hcd
   exact List.infix_cons h
 
--- theorem pt_less (h : pairsTogether (head :: tail)) : pairsTogether tail := by
---   intro c d hcd
---   have H := h c d
---   sorry
+theorem pts_less (h : pts (a :: L)) : pts L := by
+  intro L1 hl c d hcd
+  exact h L1 (List.infix_cons hl) c d hcd
 
 theorem irr_helper (h : irreducible ((none, false) :: tail)) (h2 : remove_ones tail = (a, true) :: rest) : False := by
   have H : ∀ t L rest, L.length = t → irreducible ((none, false) :: L) → remove_ones L = (a, true) :: rest → False := by
@@ -954,7 +1021,199 @@ theorem pt_of_irr (h : irreducible L) : pairsTogether L := by
           exact h
   exact H L.length L (by simp) h
 
+theorem List.infix_trans (h : L1 <:+: L2) (h2 : L2 <:+: L3) : L1 <:+: L3 := by
+  rcases h with ⟨w1, t1, hwt1⟩
+  rcases h2 with ⟨w2, t2, hwt2⟩
+  rw [← hwt1] at hwt2
+  use w2 ++ w1
+  use t1 ++ t2
+  rw [← hwt2]
+  simp
+
+theorem irr_infix (h : irreducible L) (h2 : L1 <:+: L) : irreducible L1 := by
+  intro a
+  constructor
+  · exact fun ha => (h a).1 (List.infix_trans ha h2)
+  constructor
+  · exact fun ha => (h a).2.1 (List.infix_trans ha h2)
+  exact fun ha => (h a).2.2 (List.infix_trans ha h2)
+
+theorem pts_of_irr (h : irreducible L) : pts L := by
+  intro L1 hl
+  apply pt_of_irr
+  exact irr_infix h hl
+-- theorem irr_of_pt (h : pairsTogether L) : irreducible L := by
+--   have H : ∀ t L, L.length ≤ t → pairsTogether L → irreducible L := by
+--     intro t
+--     induction t
+--     · intro L len
+--       simp at len
+--       intro h
+--       rw [len]
+--       exact irreducible_nil
+--     rename_i n ih
+--     intro L len pt
+--     cases L with
+--     | nil =>
+--       exact irreducible_nil
+--     | cons head tail =>
+--       match head with
+--       | (none, true) =>
+--         simp at len
+--         apply irreducible_cons_true
+--         apply ih _ len
+--         exact List.infix_cons <| ih tail len (irreducible_rest irr) c d h
+--       | (none, false) =>
+--         match tail with
+--         | [] =>
+--           apply infix_length_le at h
+--           simp [remove_ones] at h
+--         | (none, true) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply List.infix_cons
+--           exact ih tail1 (by omega) (irreducible_rest (irreducible_rest irr)) c d h
+--         | (none, false) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply List.infix_cons
+--           exact ih tail1 (by omega) (irreducible_rest (irreducible_rest irr)) c d h
+--         | (some e, true) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply ih ((some e, true) :: tail1)
+--           · simp [len]
+--           apply irreducible_rest irr
+--           exact h
+--         | (some e, false) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply ih ((some e, false) :: tail1)
+--           · simp [len]
+--           apply irreducible_rest irr
+--           exact h
+--       | (some b, true) =>
+--         match tail with
+--         | [] =>
+--           apply infix_length_le at h
+--           simp [remove_ones] at h
+--         | (none, true) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply List.infix_cons
+--           apply ih tail1
+--           · omega
+--           apply irreducible_rest (irreducible_rest irr)
+--           apply infix_cons_cons_ne at h
+--           simp at h
+--           exact h
+--         | (none, false) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply List.infix_cons
+--           apply ih tail1
+--           · omega
+--           apply irreducible_rest (irreducible_rest irr)
+--           apply infix_cons_cons_ne at h
+--           simp at h
+--           exact h
+--         | (some e, true) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply List.infix_cons
+--           apply ih tail1
+--           · omega
+--           apply irreducible_rest (irreducible_rest irr)
+--           apply infix_cons_cons_ne at h
+--           simp at h
+--           apply infix_cons_cons_ne at h
+--           simp at h
+--           exact h
+--         | (some c, false) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply ih ((some c, false) :: tail1)
+--           · simp [len]
+--           apply irreducible_rest irr
+--           apply infix_cons_cons_ne at h
+--           simp at h
+--           exact h
+--       | (some b, false) =>
+--         match tail with
+--         | [] =>
+--           apply infix_length_le at h
+--           simp [remove_ones] at h
+--         | (none, true) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply List.infix_cons
+--           specialize irr b
+--           exfalso
+--           apply irr.1
+--           use [], tail1
+--           simp
+--         | (none, false) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply List.infix_cons
+--           apply ih tail1
+--           · omega
+--           apply irreducible_rest (irreducible_rest irr)
+--           exact funky_helper (irreducible_rest irr) h
+--         | (some e, true) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           have H : (c = b ∧ e = d) ∨ (c ≠ b ∨ e ≠ d) := by
+--             rcases eq_or_ne c b with h1 | h2
+--             · rcases eq_or_ne e d with h3 | h4
+--               · left; simp [h1, h3]
+--               right; simp [h4]
+--             right; simp [h2]
+--           rcases H with h1 | h2 | h3
+--           · rw [h1.1, h1.2]
+--             use [], tail1
+--             simp
+--           · apply infix_cons_cons_ne at h
+--             simp [h2] at h
+--             apply infix_cons_cons_ne at h
+--             simp at h
+--             apply List.infix_cons
+--             apply List.infix_cons
+--             apply ih tail1 (by omega) (irreducible_rest (irreducible_rest irr))
+--             exact h
+--           apply infix_cons_cons_ne_double at h
+--           simp [h3.symm] at h
+--           apply infix_cons_cons_ne at h
+--           simp at h
+--           apply List.infix_cons
+--           apply List.infix_cons
+--           apply ih tail1
+--           · omega
+--           apply irreducible_rest (irreducible_rest irr)
+--           exact h
+--         | (some e, false) :: tail1 =>
+--           simp [remove_ones] at h
+--           simp at len
+--           apply List.infix_cons
+--           apply ih ((some e, false) :: tail1) (by simp [len]) (irreducible_rest irr)
+--           apply infix_cons_cons_ne_double at h
+--           simp at h
+--           exact h
+--   exact H L.length L (by simp) h
+
 theorem pt_move_ones : pairsTogether (move_ones_ind L) := pt_of_irr big_attempt
+
+theorem pts_move_ones : pts (move_ones_ind L) := pts_of_irr big_attempt
 
 theorem equiv_insert : SemiThue grid_style' (a :: L) (insert_one a L) := by
   have H : ∀ t L a, L.length ≤ t → SemiThue grid_style' (a :: L) (insert_one a L) := by
@@ -1062,57 +1321,6 @@ theorem remove_ones_append : remove_ones (L1 ++ L2) = remove_ones L1 ++ remove_o
   | (none, _) => simp [remove_ones, ih]
   | (some _, _) => simp [remove_ones, ih]
 
--- theorem helper : reversing_option a b → ∃ a' b', SemiThue grid_style' a' b' ∧
---   remove_ones a' = remove_ones a ∧ remove_ones b' = remove_ones b := by
---   intro h
---   cases h with
---   | basic =>
---     rename_i n
---     have H := @SemiThue.reduction _ _ _ _ [] [] (grid_style'.basic n)
---     simp at H
---     use [(some n, false), (some n, true)]
---     use [(none, true), (none, false)]
---     exact ⟨H, ⟨rfl, rfl⟩⟩
---   | apart h =>
---     have H := @SemiThue.reduction _ _ _ _ [] [] (grid_style'.apart h)
---     simp at H
---     rename_i i j
---     use [(some i, false), (some j, true)]
---     use [(some j, true), (some i, false)]
---   | close h =>
---     have H := @SemiThue.reduction _ _ _ _ [] [] (grid_style'.close h)
---     simp at H
---     rename_i i j
---     use [(some i, false), (some j, true)]
---     use [(some j, true), (some i, true), (some j, false), (some i, false)]
-
--- theorem helper' : reversing a b → ∃ a' b', SemiThue grid_style' a' b' ∧
---   remove_ones a' = a ∧ remove_ones b' = b := by
---   intro h
---   cases h with
---   | basic =>
---     rename_i n
---     have H := @SemiThue.reduction _ _ _ _ [] [] (grid_style'.basic n)
---     simp at H
---     use [(some n, false), (some n, true)]
---     use [(none, true), (none, false)]
---     exact ⟨H, ⟨rfl, rfl⟩⟩
---   | apart h =>
---     have H := @SemiThue.reduction _ _ _ _ [] [] (grid_style'.apart h)
---     simp at H
---     rename_i i j
---     use [(some i, false), (some j, true)]
---     use [(some j, true), (some i, false)]
---     exact ⟨H, ⟨rfl, rfl⟩⟩
---   | close h =>
---     have H := @SemiThue.reduction _ _ _ _ [] [] (grid_style'.close h)
---     simp at H
---     rename_i i j
---     use [(some i, false), (some j, true)]
---     use [(some j, true), (some i, true), (some j, false), (some i, false)]
---     exact ⟨H, ⟨rfl, rfl⟩⟩
-
-
 def to_option (L : List (ℕ × Bool)) : List (Option ℕ × Bool) := (List.map (fun x ↦ (some x.1, x.2)) L)
 
 theorem remove_map_helper {a : List (ℕ × Bool)} : remove_ones (to_option a) = a := by
@@ -1122,33 +1330,283 @@ theorem remove_map_helper {a : List (ℕ × Bool)} : remove_ones (to_option a) =
   simp [to_option, remove_ones]
   exact ih
 
-theorem rg_of_rev_rel (d1) (h : SemiThue reversing g (e ++ (remove_ones d1) ++ f)) (gr : SemiThue grid_style' a' b') (a'_is : remove_ones a' = g)
-    (b'_is : remove_ones b' = e ++ [(c1, false), (c2, true)] ++ f) (pt_b : pairsTogether b') (rel_holds : grid_style' [(some c1, false), (some c2, true)] d1): ∃ a' b', SemiThue grid_style' a' b' ∧
-    remove_ones a' = g ∧ remove_ones b' = e ++ (remove_ones d1) ++ f ∧ pairsTogether b' := by
-    rcases pt_b c1 c2 (by use e; use f; exact b'_is.symm) with ⟨w, t, hwt⟩
-    use a'
+theorem five_cases (b_ne : b1 ≠ b2) (h : a ++ [b1, b2] ++ c = d ++ [b1, b2] ++ e) :
+  (a = d ∧ c = e) ∨ (∃ a1 a2, a = a1 ++ [b1, b2] ++ a2 ∧ d = a1 ∧ e = a2 ++ [b1, b2] ++ c) ∨
+  (∃ c1 c2, c = c1 ++ [b1, b2] ++ c2 ∧ d = a ++ [b1, b2] ++ c1 ∧ e = c2) := by
+  induction a generalizing b1 b2 c d e
+  · simp at h
+    simp
+    match d with
+    | [] =>
+      left
+      simp at h
+      exact ⟨rfl, h⟩
+    | d1 :: [] =>
+      simp at h
+      simp
+      apply b_ne
+      rw [h.2.1]
+    | d1 :: d2 :: dr =>
+      simp at h
+      simp [h.1]
+      constructor
+      · rw [← h.1]
+        exact h.2.2
+      exact h.2.1.symm
+  rename_i a1 ar ih
+  match d with
+  | [] =>
+    simp at h
+    simp [h.1, h.2]
+    use []
+    simp
+    match ar with
+    | [] => simp [b_ne] at h
+    | a2 :: arr =>
+      simp at h
+      use arr
+      simp [h.2.1, h.2.2]
+  | d1 :: [] =>
+    simp at h
+    simp [h.1]
+    match ar with
+    | [] => left; simp at h; exact ⟨rfl, h.2⟩
+    | a2 :: a3 :: arr =>
+      simp at h
+      simp
+      use [d1]
+      simp [h.1, h.2.1]
+      use arr
+      simp [h.2.1, h.2.2]
+    | a2 :: [] =>
+      simp at h
+      exfalso
+      apply b_ne
+      exact h.2.2.1
+  | d1 :: d2 :: dr =>
+    simp at h
+    simp [h.1]
+    have H1 : ar ++ b1 :: b2 :: c  = ar ++ [b1, b2] ++ c := by simp
+    have H : d2 :: (dr ++ b1 :: b2 :: e) = (d2 :: dr) ++ [b1, b2] ++ e := by simp
+    rw [H1, H] at h
+    specialize ih b_ne h.2
+    rcases ih with h1 | h2 | h3
+    · left
+      exact h1
+    · rcases h2 with ⟨a1', a2', spec⟩
+      right; left
+      use d1 :: a1'
+      use a2'
+      simp [spec.1, spec.2]
+    rcases h3 with ⟨c1', c2', spec⟩
+    right; right
+    use c1'
+    simp [spec.1, spec.2]
+
+
+  -- rcases list_splits_somewhere h with h1 | ⟨to_middle, spec⟩ | ⟨to_middle, spec⟩
+  -- · left;
+  --   simp [h1] at h
+  --   simp at h1
+  --   aesop
+  -- · match to_middle with
+  --   | [] =>
+  --     left
+  --     simp  at h
+  --     simp at spec
+  --     aesop
+  --   | head :: tail =>
+  --     right
+  --     left
+  --     use d
+  --     simp [spec.2]
+  --     sorry
+  -- sorry
+
+theorem giant_list_split {w : List (Option ℕ × Bool)} (h : remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t =
+    e ++ [(c1, false), (c2, true)] ++ f) (ptw : pairsTogether w) (ptt : pairsTogether t): (remove_ones w = e ∧ remove_ones t = f) ∨
+    (∃ w1 w2, w = w1 ++ [(some c1, false), (some c2, true)] ++ w2 ∧ e = remove_ones w1 ∧
+    f = remove_ones w2 ++ [(c1, false), (c2, true)] ++ remove_ones t) ∨
+    (∃ t1 t2, t = t1 ++ [(some c1, false), (some c2, true)] ++ t2 ∧
+    e = remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t1 ∧ f = remove_ones t2) := by
+  rcases (five_cases (by simp) h) with h1 | ⟨w1, w2, hw⟩ | ⟨t1, t2, ht⟩
+  · left; exact h1
+  · right; left
+    use to_option w1
+    use to_option w2
+    constructor
+    sorry
+    sorry
+  sorry
+
+theorem giant_list_split' {w : List (Option ℕ × Bool)} (h : remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t =
+    e ++ [(c1, false), (c2, true)] ++ f) (ptw : pts w) (ptt : pts t): (remove_ones w = e ∧ remove_ones t = f) ∨
+    (∃ w1 w2, w = w1 ++ [(some c1, false), (some c2, true)] ++ w2 ∧ e = remove_ones w1 ∧
+    f = remove_ones w2 ++ [(c1, false), (c2, true)] ++ remove_ones t) ∨
+    (∃ t1 t2, t = t1 ++ [(some c1, false), (some c2, true)] ++ t2 ∧
+    e = remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t1 ∧ f = remove_ones t2) := by
+  rcases (five_cases (by simp) h) with h1 | ⟨w1, w2, hw⟩ | ⟨t1, t2, ht⟩
+  · left; exact h1
+  · right; left
+    use to_option w1
+    use to_option w2
+    constructor
+    sorry
+    sorry
+  sorry
+  -- rcases list_splits_somewhere h with h1 | ⟨to_middle, spec⟩ | ⟨to_middle, spec⟩
+  -- · simp at h1
+  --   rw [h1] at h
+  --   simp at h
+  --   left
+  --   exact ⟨h1, h⟩
+  -- · match to_middle with
+  --   | [] =>
+  --     simp at spec
+  --     left
+  --     aesop
+  --   | head :: tail =>
+  --     right
+  --     sorry
+  -- sorry
+
+-- theorem pt_chop_left (h : pairsTogether (a ++ b)) : pairsTogether b := fun c d hcd ↦ h L1 (infix_append_left hl) c d hcd
+
+
+-- theorem rg_of_rev_rel (d1) (h : SemiThue reversing g (e ++ (remove_ones d1) ++ f)) (gr : SemiThue grid_style' a' b') (a'_is : remove_ones a' = g)
+--     (b'_is : remove_ones b' = e ++ [(c1, false), (c2, true)] ++ f) (pt_b : pairsTogether b') (rel_holds : grid_style' [(some c1, false), (some c2, true)] d1): ∃ a' b', SemiThue grid_style' a' b' ∧
+--     remove_ones a' = g ∧ remove_ones b' = e ++ (remove_ones d1) ++ f ∧ pairsTogether b' := by
+--     rcases pt_b c1 c2 (by use e; use f; exact b'_is.symm) with ⟨w, t, hwt⟩
+--     use a'
+--     rw [← hwt] at b'_is
+--     rw [remove_ones_append, remove_ones_append] at b'_is
+--     simp only [remove_ones] at b'_is
+--     have ptw : pairsTogether w := by sorry
+--       -- rw [← hwt] at pt_b
+--       -- exact pts_chop_right (pts_chop_right pt_b)
+--     have ptt : pairsTogether t := by sorry
+--     have splits : (remove_ones w = e ∧ remove_ones t = f) ∨
+--         (∃ w1 w2, w = w1 ++ [(some c1, false), (some c2, true)] ++ w2 ∧ e = remove_ones w1 ∧
+--         f = remove_ones w2 ++ [(c1, false), (c2, true)] ++ remove_ones t) ∨
+--         (∃ t1 t2, t = t1 ++ [(some c1, false), (some c2, true)] ++ t2 ∧
+--         e = remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t1 ∧ f = remove_ones t2) :=
+--       giant_list_split b'_is ptw ptt
+--     rcases splits with h2 | ⟨w1, w2, hw⟩ | ⟨t1, t2, ht⟩
+--     · use move_ones_ind (w ++ d1 ++ t)
+--       constructor
+--       · apply SemiThue.trans _ _ _ gr
+--         rw [← hwt]
+--         exact SemiThue.trans _ _ _ (SemiThue.reduction rel_holds) equiv_move_ones
+--       exact ⟨a'_is, ⟨by rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, h2.1,
+--           h2.2], pt_move_ones⟩⟩
+--     · use move_ones_ind (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t)
+--       constructor
+--       · apply SemiThue.trans _ _ _ gr
+--         rw [← hwt]
+--         have H : SemiThue grid_style' (w ++ [(some c1, false), (some c2, true)] ++ t)
+--           (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t) := by
+--           apply SemiThue_append_right
+--           rw [hw.1]
+--           apply SemiThue_append_right
+--           apply SemiThue_append_right
+--           apply SemiThue_append_left
+--           apply SemiThue_rel
+--           exact rel_holds
+--         apply H.trans
+--         exact equiv_move_ones
+--       constructor
+--       · exact a'_is
+--       constructor
+--       · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, hw.2.1, hw.2.2]
+--         simp [remove_ones, remove_ones_append]
+--       exact pt_move_ones
+--     use move_ones_ind (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2)
+--     constructor
+--     · apply SemiThue.trans _ _ _ gr
+--       rw [← hwt]
+--       have H : SemiThue grid_style' (w ++ [(some c1, false), (some c2, true)] ++ t)
+--         (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2) := by
+--         rw [List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
+--         apply SemiThue_append_left
+--         rw [List.append_assoc, List.append_assoc] at ht
+--         rw [ht.1]
+--         apply SemiThue_append_left
+--         apply SemiThue_append_left
+--         apply SemiThue_append_right
+--         exact SemiThue_rel rel_holds
+--       exact H.trans _ _ _ equiv_move_ones
+--     constructor
+--     · exact a'_is
+--     constructor
+--     · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, ht.2.1, ht.2.2]
+--       simp [remove_ones, remove_ones_append]
+--     exact pt_move_ones
+
+-- theorem rev_to_grid (h : SemiThue reversing a b) : ∃ a' b', SemiThue grid_style' a' b' ∧
+--   remove_ones a' = a ∧ remove_ones b' = b ∧ pairsTogether b':= by
+--   induction one_step_equiv_reg.mp h with
+--   | refl a =>
+--     use to_option a
+--     use to_option a
+--     constructor
+--     · exact SemiThue.refl _
+--     constructor
+--     · exact remove_map_helper
+--     constructor
+--     · exact remove_map_helper
+--     intro c d rm
+--     rw [remove_map_helper] at rm
+--     rcases rm with ⟨w, t, hwt⟩
+--     use to_option w
+--     use to_option t
+--     rw [← hwt]
+--     simp [to_option]
+--   | one_step h1 h2 ih =>
+--     rename_i c d e f g
+--     specialize ih (one_step_equiv_reg.mpr h1)
+--     rcases ih with ⟨a', b', gr, a'_is, b'_is, pt_b⟩
+--     cases h2 with
+--     | basic =>
+--       exact rg_of_rev_rel ([(none, true), (none, false)]) h gr a'_is b'_is pt_b (grid_style'.basic _)
+--     | apart h_dist =>
+--       rename_i i j
+--       exact rg_of_rev_rel ([(some j, true), (some i, false)]) h gr a'_is b'_is pt_b (grid_style'.apart h_dist)
+--     | close h_dist =>
+--       rename_i i j
+--       exact rg_of_rev_rel ([(some j, true), (some i, true), (some j, false), (some i, false)]) h gr a'_is b'_is pt_b (grid_style'.close h_dist)
+
+theorem pts_chop_right (h : pts (a ++ b)) : pts a := fun L1 hl c d hcd ↦ h L1 (infix_append_right hl) c d hcd
+
+theorem pts_chop_left (h : pts (a ++ b)) : pts b := fun L1 hl c d hcd ↦ h L1 (infix_append_left hl) c d hcd
+
+-- (h : SemiThue reversing g (e ++ (remove_ones d1) ++ f))
+theorem rg_of_rev_rel' (d1) (gr : SemiThue grid_style' (to_option a) b')
+    (b'_is : remove_ones b' = e ++ [(c1, false), (c2, true)] ++ f) (pt_b : pts b') (rel_holds : grid_style' [(some c1, false), (some c2, true)] d1): ∃ b', SemiThue grid_style' (to_option a) b' ∧
+    remove_ones b' = e ++ (remove_ones d1) ++ f ∧ pts b' := by
+    rcases pt_b b' (by exact List.infix_refl b') c1 c2 (by use e; use f; exact b'_is.symm) with ⟨w, t, hwt⟩
     rw [← hwt] at b'_is
     rw [remove_ones_append, remove_ones_append] at b'_is
-    have splits : (remove_ones w = e ∧ remove_ones t = f) ∨
-      (∃ w1 w2, w = w1 ++ [(some c1, false), (some c2, true)] ++ w2 ∧ e = remove_ones w1 ∧ f = remove_ones w2 ++ [(c1, false), (c2, true)] ++ remove_ones t) ∨
-      (∃ t1 t2, t = t1 ++ [(some c1, false), (some c2, true)] ++ t2 ∧ e = remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t1 ∧ f = remove_ones t2) := by sorry
     simp only [remove_ones] at b'_is
+    have ptw : pts w := by
+      rw [← hwt] at pt_b
+      exact pts_chop_right (pts_chop_right pt_b)
+    have ptt : pts t := by
+      rw [← hwt, List.append_assoc] at pt_b
+      exact pts_chop_left (pts_chop_left pt_b)
+    have splits : (remove_ones w = e ∧ remove_ones t = f) ∨
+        (∃ w1 w2, w = w1 ++ [(some c1, false), (some c2, true)] ++ w2 ∧ e = remove_ones w1 ∧
+        f = remove_ones w2 ++ [(c1, false), (c2, true)] ++ remove_ones t) ∨
+        (∃ t1 t2, t = t1 ++ [(some c1, false), (some c2, true)] ++ t2 ∧
+        e = remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t1 ∧ f = remove_ones t2) :=
+      giant_list_split' b'_is ptw ptt
     rcases splits with h2 | ⟨w1, w2, hw⟩ | ⟨t1, t2, ht⟩
     · use move_ones_ind (w ++ d1 ++ t)
       constructor
       · apply SemiThue.trans _ _ _ gr
-        have H : SemiThue grid_style' b' (w ++ d1 ++ t) := by
-          rw [← hwt]
-          apply SemiThue.reduction
-          exact rel_holds
-        apply SemiThue.trans _ _ _ H
-        exact equiv_move_ones
-      constructor
-      · exact a'_is
-      constructor
-      · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, h2.1, h2.2]
-        --simp [remove_ones]
-      exact pt_move_ones
+        rw [← hwt]
+        exact SemiThue.trans _ _ _ (SemiThue.reduction rel_holds) equiv_move_ones
+      exact ⟨by rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, h2.1,
+          h2.2], pts_move_ones⟩
     · use move_ones_ind (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t)
       constructor
       · apply SemiThue.trans _ _ _ gr
@@ -1165,11 +1623,9 @@ theorem rg_of_rev_rel (d1) (h : SemiThue reversing g (e ++ (remove_ones d1) ++ f
         apply H.trans
         exact equiv_move_ones
       constructor
-      · exact a'_is
-      constructor
       · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, hw.2.1, hw.2.2]
         simp [remove_ones, remove_ones_append]
-      exact pt_move_ones
+      exact pts_move_ones
     use move_ones_ind (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2)
     constructor
     · apply SemiThue.trans _ _ _ gr
@@ -1183,46 +1639,618 @@ theorem rg_of_rev_rel (d1) (h : SemiThue reversing g (e ++ (remove_ones d1) ++ f
         apply SemiThue_append_left
         apply SemiThue_append_left
         apply SemiThue_append_right
-        apply SemiThue_rel
-        exact rel_holds
-      apply H.trans
-      exact equiv_move_ones
-    constructor
-    · exact a'_is
+        exact SemiThue_rel rel_holds
+      exact H.trans _ _ _ equiv_move_ones
     constructor
     · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, ht.2.1, ht.2.2]
       simp [remove_ones, remove_ones_append]
-    exact pt_move_ones
+    exact pts_move_ones
 
-theorem rev_to_grid (h : SemiThue reversing a b) : ∃ a' b', SemiThue grid_style' a' b' ∧
-  remove_ones a' = a ∧ remove_ones b' = b ∧ pairsTogether b':= by
+-- (h : SemiThue reversing g (e ++ (remove_ones d1) ++ f))
+theorem rg_of_rev_rel (d1) (gr : SemiThue grid_style' (to_option a) b')
+    (b'_is : remove_ones b' = e ++ [(c1, false), (c2, true)] ++ f) (pt_b : irreducible b') (rel_holds : grid_style' [(some c1, false), (some c2, true)] d1): ∃ b', SemiThue grid_style' (to_option a) b' ∧
+    remove_ones b' = e ++ (remove_ones d1) ++ f ∧ irreducible b' := by
+    rcases (pts_of_irr pt_b) b' (by exact List.infix_refl b') c1 c2 (by use e; use f; exact b'_is.symm) with ⟨w, t, hwt⟩
+    rw [← hwt] at b'_is
+    rw [remove_ones_append, remove_ones_append] at b'_is
+    simp only [remove_ones] at b'_is
+    have ptw : pts w := by
+      rw [← hwt] at pt_b
+      exact pts_chop_right (pts_chop_right (pts_of_irr pt_b))
+    have ptt : pts t := by
+      rw [← hwt, List.append_assoc] at pt_b
+      exact pts_chop_left (pts_chop_left (pts_of_irr pt_b))
+    have splits : (remove_ones w = e ∧ remove_ones t = f) ∨
+        (∃ w1 w2, w = w1 ++ [(some c1, false), (some c2, true)] ++ w2 ∧ e = remove_ones w1 ∧
+        f = remove_ones w2 ++ [(c1, false), (c2, true)] ++ remove_ones t) ∨
+        (∃ t1 t2, t = t1 ++ [(some c1, false), (some c2, true)] ++ t2 ∧
+        e = remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t1 ∧ f = remove_ones t2) :=
+      giant_list_split' b'_is ptw ptt
+    rcases splits with h2 | ⟨w1, w2, hw⟩ | ⟨t1, t2, ht⟩
+    · use move_ones_ind (w ++ d1 ++ t)
+      constructor
+      · apply SemiThue.trans _ _ _ gr
+        rw [← hwt]
+        exact SemiThue.trans _ _ _ (SemiThue.reduction rel_holds) equiv_move_ones
+      exact ⟨by rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, h2.1,
+          h2.2], big_attempt⟩
+    · use move_ones_ind (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t)
+      constructor
+      · apply SemiThue.trans _ _ _ gr
+        rw [← hwt]
+        have H : SemiThue grid_style' (w ++ [(some c1, false), (some c2, true)] ++ t)
+          (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t) := by
+          apply SemiThue_append_right
+          rw [hw.1]
+          apply SemiThue_append_right
+          apply SemiThue_append_right
+          apply SemiThue_append_left
+          apply SemiThue_rel
+          exact rel_holds
+        apply H.trans
+        exact equiv_move_ones
+      constructor
+      · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, hw.2.1, hw.2.2]
+        simp [remove_ones, remove_ones_append]
+      exact big_attempt
+    use move_ones_ind (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2)
+    constructor
+    · apply SemiThue.trans _ _ _ gr
+      rw [← hwt]
+      have H : SemiThue grid_style' (w ++ [(some c1, false), (some c2, true)] ++ t)
+        (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2) := by
+        rw [List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
+        apply SemiThue_append_left
+        rw [List.append_assoc, List.append_assoc] at ht
+        rw [ht.1]
+        apply SemiThue_append_left
+        apply SemiThue_append_left
+        apply SemiThue_append_right
+        exact SemiThue_rel rel_holds
+      exact H.trans _ _ _ equiv_move_ones
+    constructor
+    · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, ht.2.1, ht.2.2]
+      simp [remove_ones, remove_ones_append]
+    exact big_attempt
+
+theorem pt_to_option : pairsTogether (to_option c) := by
+  intro a b hab
+  simp [remove_map_helper] at hab
+  rcases hab with ⟨w, t, hwt⟩
+  use to_option w
+  use to_option t
+  rw [← hwt]
+  simp [to_option]
+
+theorem pts_to_option : pts (to_option a) := by
+  have H : irreducible (to_option a) := by
+    intro c
+    constructor
+    · intro h
+      induction a
+      · simp [to_option] at h
+      rename_i ha ta iha
+      apply iha
+      match ta with
+      | [] =>
+        simp [to_option] at h
+        apply infix_length_le at h
+        simp at h
+      | t :: taa =>
+        simp [to_option] at h
+        apply infix_cons_cons_ne_double at h
+        simp at h
+        exact h
+    constructor
+    · intro h
+      induction a
+      · simp [to_option] at h
+      rename_i ha ta iha
+      apply iha
+      simp [to_option] at h
+      apply infix_cons_cons_ne at h
+      simp at h
+      exact h
+    intro h
+    induction a
+    · simp [to_option] at h
+    rename_i ha ta iha
+    apply iha
+    simp [to_option] at h
+    apply infix_cons_cons_ne at h
+    simp at h
+    exact h
+  exact pts_of_irr H
+
+theorem infix_cons_ne (h : a :: b <:+: c :: d) (h2 : a ≠ c) : a :: b <:+: d := by
+  apply infix_cons_cons_ne at h
+  simp [h2] at h
+  exact h
+
+theorem irr_to_option : irreducible (to_option a) := by
+  induction a with
+  | nil => simp [to_option, irreducible_nil]
+  | cons head tail ih =>
+    simp [to_option]
+    intro x
+    constructor
+    · intro hx
+      match tail with
+      | [] =>
+        apply infix_length_le at hx
+        simp at hx
+      | t1 :: tr =>
+        apply infix_cons_cons_ne_double at hx
+        simp only [ne_eq, Prod.mk.injEq, reduceCtorEq, Bool.true_eq, false_and, not_false_eq_true,
+          forall_const] at hx
+        exact (ih x).1 hx
+    constructor
+    · intro hx
+      apply infix_cons_ne at hx
+      simp at hx
+      exact (ih x).2.1 hx
+    intro hx
+    apply infix_cons_ne at hx
+    simp at hx
+    exact (ih x).2.2 hx
+
+
+theorem rev_to_grid' (h : SemiThue reversing a b) : ∃ b', SemiThue grid_style' (to_option a) b' ∧
+  remove_ones b' = b ∧ pts b':= by
   induction one_step_equiv_reg.mp h with
   | refl a =>
-    use to_option a
     use to_option a
     constructor
     · exact SemiThue.refl _
     constructor
     · exact remove_map_helper
-    constructor
-    · exact remove_map_helper
-    intro c d rm
-    rw [remove_map_helper] at rm
-    rcases rm with ⟨w, t, hwt⟩
-    use to_option w
-    use to_option t
-    rw [← hwt]
-    simp [to_option]
+    exact pts_to_option
   | one_step h1 h2 ih =>
     rename_i c d e f g
     specialize ih (one_step_equiv_reg.mpr h1)
-    rcases ih with ⟨a', b', gr, a'_is, b'_is, pt_b⟩
+    rcases ih with ⟨b', gr, b'_is, pt_b⟩
     cases h2 with
     | basic =>
-      exact rg_of_rev_rel ([(none, true), (none, false)]) h gr a'_is b'_is pt_b (grid_style'.basic _)
+      apply rg_of_rev_rel' ([(none, true), (none, false)]) gr  b'_is pt_b (grid_style'.basic _)
     | apart h_dist =>
       rename_i i j
-      exact rg_of_rev_rel ([(some j, true), (some i, false)]) h gr a'_is b'_is pt_b (grid_style'.apart h_dist)
+      exact rg_of_rev_rel' ([(some j, true), (some i, false)]) gr b'_is pt_b (grid_style'.apart h_dist)
     | close h_dist =>
       rename_i i j
-      exact rg_of_rev_rel ([(some j, true), (some i, true), (some j, false), (some i, false)]) h gr a'_is b'_is pt_b (grid_style'.close h_dist)
+      exact rg_of_rev_rel' ([(some j, true), (some i, true), (some j, false), (some i, false)]) gr b'_is pt_b (grid_style'.close h_dist)
+
+theorem rev_to_grid (h : SemiThue reversing a b) : ∃ b', SemiThue grid_style' (to_option a) b' ∧
+  remove_ones b' = b ∧ irreducible b':= by
+  induction one_step_equiv_reg.mp h with
+  | refl a =>
+    use to_option a
+    constructor
+    · exact SemiThue.refl _
+    constructor
+    · exact remove_map_helper
+    apply irr_to_option
+  | one_step h1 h2 ih =>
+    rename_i c d e f g
+    specialize ih (one_step_equiv_reg.mpr h1)
+    rcases ih with ⟨b', gr, b'_is, pt_b⟩
+    cases h2 with
+    | basic =>
+      apply rg_of_rev_rel ([(none, true), (none, false)]) gr  b'_is pt_b (grid_style'.basic _)
+    | apart h_dist =>
+      rename_i i j
+      exact rg_of_rev_rel ([(some j, true), (some i, false)]) gr b'_is pt_b (grid_style'.apart h_dist)
+    | close h_dist =>
+      rename_i i j
+      exact rg_of_rev_rel ([(some j, true), (some i, true), (some j, false), (some i, false)]) gr b'_is pt_b (grid_style'.close h_dist)
+
+def is_false (a : List (α × Bool)) := ∀ x ∈ a, x.2 = false
+
+theorem is_false_cons (a : List (α × Bool)) (h : is_false a): is_false ((b, false) :: a) := by
+  intro x hx
+  rcases List.mem_cons.mp hx with h1 | h2
+  · simp [h1]
+  exact h _ h2
+
+def is_true (a : List (α × Bool)) := ∀ x ∈ a, x.2 = true
+
+theorem is_true_cons (a : List (α × Bool)) (h : is_true a): is_true ((b, true) :: a) := by
+  intro x hx
+  rcases List.mem_cons.mp hx with h1 | h2
+  · simp [h1]
+  exact h _ h2
+
+def in_order (a : List (α × Bool)) := ∃ a1 a2, is_true a1 ∧ is_false a2 ∧ a = a1 ++ a2
+
+theorem in_order_rest (h : in_order (head :: t)) : in_order t := by
+  rcases h with ⟨a1, a2, ha⟩
+  match a1 with
+  | [] => match a2 with
+    | [] => simp at ha
+    | heada :: taila =>
+      use []
+      use taila
+      constructor
+      · exact ha.1
+      constructor
+      · intro x hx
+        apply ha.2.1
+        exact List.mem_cons_of_mem heada hx
+      simp at ha
+      simp [ha.2.2.2]
+  | heada :: taila =>
+    use taila
+    use a2
+    constructor
+    · intro x hx
+      apply ha.1
+      exact List.mem_cons_of_mem heada hx
+    constructor
+    · exact ha.2.1
+    simp at ha
+    exact ha.2.2.2
+
+theorem in_order_of_true (h : is_true L) : in_order L := by
+  use L
+  use []
+  constructor
+  · exact h
+  constructor
+  · intro x hx
+    simp at hx
+  simp
+
+theorem in_order_of_false (h : is_false L) : in_order L := by
+  use []
+  use L
+  constructor
+  · intro x hx
+    simp at hx
+  constructor
+  · exact h
+  simp
+
+theorem in_order_append (h : in_order (a++b)) : in_order a ∧ in_order b := by
+  rcases h with ⟨a1, a2, a1_true, a2_false, ha⟩
+  rcases list_splits_somewhere ha with h1 | ⟨to_middle, spec⟩ | ⟨to_middle, spec⟩
+  · rw [h1] at ha
+    simp at ha
+    rw [h1, ha]
+    constructor
+    · exact in_order_of_true a1_true
+    exact in_order_of_false a2_false
+  · constructor
+    · rw [spec.1] at ha
+      simp at ha
+      rw [spec.1]
+      use a1
+      use to_middle
+      constructor
+      · exact a1_true
+      constructor
+      · intro x hx
+        apply a2_false
+        rw [spec.2]
+        exact List.mem_append_left _ hx
+      rfl
+    use []
+    use b
+    constructor
+    · intro x hx
+      simp at hx
+    constructor
+    · rw [spec.2] at a2_false
+      intro x hx
+      apply a2_false
+      exact List.mem_append_right to_middle hx
+    rfl
+  constructor
+  · use a
+    use []
+    constructor
+    · intro x hx
+      rw [← spec.1] at a1_true
+      apply a1_true
+      exact List.mem_append_left to_middle hx
+    constructor
+    · intro x hx
+      simp at hx
+    simp
+  use to_middle
+  use a2
+  constructor
+  · rw [← spec.1] at a1_true
+    intro x hx
+    apply a1_true
+    exact List.mem_append_right _ hx
+  constructor
+  · exact a2_false
+  exact spec.2
+
+@[simp]
+theorem is_true_nil : is_true ([] : List (α × Bool)) := by
+  intro x hx
+  simp at hx
+
+@[simp]
+theorem is_false_nil : is_false ([] : List (α × Bool)) := by
+  intro x hx
+  simp at hx
+
+theorem in_order_nil {α} : in_order ([] : List (α × Bool)) := by
+  use []
+  use []
+  simp
+
+theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) : in_order L := by
+  induction L
+  · exact in_order_nil
+  rename_i head tail ih
+  have h_pts : irreducible tail := irreducible_rest h2
+  have h_io : in_order (remove_ones tail) := by
+    match head with
+    | (none, _) =>
+      simp [remove_ones] at h
+      exact h
+    | (some _, _) =>
+      simp [remove_ones] at h
+      exact in_order_rest h
+  specialize ih h_io h_pts
+  rcases ih with ⟨a1, a2, ha⟩
+  match head with
+  | (none, true) =>
+    use (none, true) :: a1
+    use a2
+    constructor
+    · intro x hx
+      simp at hx
+      rcases hx with h1 | h2
+      · simp [h1]
+      exact ha.1 _ h2
+    constructor
+    · exact ha.2.1
+    simp [ha.2.2]
+  | (none, false) =>
+    use []
+    use (none, false) :: a2
+    constructor
+    · intro x hx
+      simp at hx
+    constructor
+    · apply is_false_cons
+      exact ha.2.1
+    simp [ha.2.2]
+    match a1 with
+    | [] => rfl
+    | head :: tail1 =>
+      exfalso
+      match head with
+      | (_, false) => simp [is_true] at ha
+      | (none, true) =>
+        simp [remove_ones] at h
+        simp [is_true] at ha
+        rw [ha.2.2] at h2
+        specialize h2 0
+        apply h2.2.2
+        use []
+        use tail1 ++ a2
+        simp
+      | (some c, true) =>
+        simp [remove_ones] at h
+        simp [is_true] at ha
+        rw [ha.2.2] at h2
+        specialize h2 c
+        apply h2.2.1
+        use []
+        use tail1 ++ a2
+        simp
+  | (some a, true) =>
+    simp [remove_ones] at h
+    use (some a, true) :: a1
+    use a2
+    constructor
+    · intro x hx
+      simp at hx
+      rcases hx with h1 | h2
+      · simp [h1]
+      exact ha.1 _ h2
+    constructor
+    · exact ha.2.1
+    simp [ha.2.2]
+  | (some a, false) =>
+    simp [remove_ones] at h
+    use []
+    use (some a, false) :: a2
+    constructor
+    · intro x hx
+      simp at hx
+    constructor
+    · apply is_false_cons
+      exact ha.2.1
+    simp [ha.2.2]
+    match tail with
+    | [] =>
+      simp at ha
+      exact ha.2.2.1
+    | (none, true) :: tail2 =>
+      apply (h2 a).1.elim
+      use []
+      use tail2
+      simp
+    | (_, false) :: tail2 =>
+      match a1 with
+      | [] => rfl
+      | (_, true) :: rest => simp at ha
+      | (_, false) :: rest => simp [is_true] at ha
+    | (some c, true) :: tail2 =>
+      simp [remove_ones] at h
+      change in_order ([(a, false), (c, true)]++_) at h
+      apply in_order_append at h
+      exfalso
+      rcases h.1 with ⟨a3, a4, ha34⟩
+      match a3 with
+      | [] =>
+        have H := ha34.2.2
+        simp at H
+        rw [← H] at ha34
+        simp [is_false] at ha34
+      | head :: tail =>
+        have H := ha34.2.2
+        simp at H
+        rw [← H.1] at ha34
+        simp [is_true] at ha34
+
+-- theorem in_order_insert_none_false (h : in_order L) : in_order (insert_one (none, false) L) := by
+--   induction L
+--   · simp; use []; use [(none, false)]; simp [is_true, is_false]
+--   rename_i head tail ih
+--   match head with
+--   | (none, true) =>
+--     simp [insert_one]
+--     specialize ih (in_order_rest h)
+--     rcases ih with ⟨a1, a2, ha⟩
+--     use (none, true):: a1
+--     use a2
+--     constructor
+--     · intro x hx
+--       simp at hx
+--       rcases hx with h1 | h2
+--       · simp [h1]
+--       exact ha.1 _ h2
+--     constructor
+--     · exact ha.2.1
+--     simp [ha.2.2]
+--   | (none, false) =>
+--     simp
+--     rcases h with ⟨a1, a2, ha⟩
+--     match a1 with
+--     | [] =>
+--       use []
+--       use (none, false) :: a2
+--       simp [ha]
+--       intro x hx
+--       simp at hx
+--       rcases hx with h1 | h2
+--       · simp [h1]
+--       apply ha.2.1 _ h2
+--     | heada :: taila =>
+--       exfalso
+--       simp at ha -- ask on zulip about this
+--       rw [← ha.2.2.1] at ha
+--       simp [is_true] at ha
+--   | (some a, true) =>
+--     simp [insert_one]
+--     specialize ih (in_order_rest h)
+--     rcases ih with ⟨a1, a2, ha⟩
+--     use (some a, true) :: a1
+--     use a2
+--     simp [ha]
+--     intro x hx
+--     simp at hx
+--     rcases hx with h1 | h2
+--     · simp [h1]
+--     apply ha.1 _ h2
+--   | (some a, false) =>
+--     simp [insert_one]
+--     specialize ih (in_order_rest h)
+--     rcases h with ⟨a1, a2, ha⟩
+--     use []
+--     use (none, false) :: a2
+--     match a1 with
+--     | [] =>
+--       simp [ha]
+--       intro x hx
+--       simp at hx
+--       rcases hx with h1 | h2
+--       · simp [h1]
+--       apply ha.2.1 _ h2
+--     | heada :: taila =>
+--       exfalso
+--       simp at ha -- ask on zulip about this
+--       rw [← ha.2.2.1] at ha
+--       simp [is_true] at ha
+
+-- theorem in_order_insert (h : in_order (a :: L)) : in_order (insert_one a L) := by
+--   match a with
+--   | (none, true) =>
+--     simp [insert_one]
+--     exact h
+--   | (none, false) =>
+--     exact in_order_insert_none_false (in_order_rest h)
+--   | (some a, true) =>
+--     match L with
+--     | [] =>
+--       simp
+--       exact h
+--     | (none, true) :: tail =>
+--       simp [insert_one]
+--       exact h
+--     | (none, false) :: tail =>
+--       simp [insert_one]
+--       exact h
+--     | (some b, true) :: tail =>
+--       simp [insert_one]
+--       exact h
+--     | (some b, false) :: tail =>
+--       simp [insert_one]
+--       exact h
+--   | (some a, false) =>
+--     match L with
+--     | [] =>
+--       simp
+--       exact h
+--     | (none, true) :: tail =>
+--       simp [insert_one]
+--       exfalso
+--       change in_order ([(some a, false), (none, true)] ++ tail) at h
+--       apply in_order_append at h
+--       rcases h.1 with ⟨a1, a2, ha⟩
+--       match a1 with
+--       | [] =>
+--         have H := ha.2.2
+--         simp at H
+--         rw [← H] at ha
+--         simp [is_false] at ha
+--       | head :: tail =>
+--         have H := ha.2.2
+--         simp at H
+--         rw [← H.1] at ha
+--         simp [is_true] at ha
+--     | (none, false) :: tail =>
+--       simp [insert_one]
+--       exact h
+--     | (some b, true) :: tail =>
+--       simp [insert_one]
+--       exact h
+--     | (some b, false) :: tail =>
+--       simp [insert_one]
+--       exact h
+
+
+-- theorem in_order_move_ones (h : in_order L) : in_order (move_ones_ind L) := by
+--   induction L
+--   · simp [h]
+--   rename_i head tail ih
+--   specialize ih (in_order_rest h)
+--   simp [move_ones_ind]
+--   have H := in_order_insert h
+--   match head with
+--   | (none, true) =>
+--     simp [insert_one]
+--     rcases ih with ⟨a1, a2, ha⟩
+--     use (none, true) :: a1
+--     use a2
+--     simp [ha]
+--     apply is_true_cons _ ha.1
+--   | (none, false) =>
+--     apply in_order_insert_none_false ih
+--   | (some a, true) =>
+--     sorry
+--   | (some a, false) =>
+--     match tail with
+--     | [] =>
+--       simp
+--       use []
+--       use [(some a, false)]
+--       simp [is_true, is_false]
+--     | ht :: ttt =>
+--       sorry

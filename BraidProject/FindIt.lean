@@ -2,6 +2,7 @@ import BraidProject.StepOne
 import BraidProject.Shortlex
 
 
+
 def find_it (L : List (Option ℕ × Bool)) :
     Option (List (Option ℕ × Bool) × ((Option ℕ) × (Option ℕ)) × List (Option ℕ × Bool)) :=
   match L with
