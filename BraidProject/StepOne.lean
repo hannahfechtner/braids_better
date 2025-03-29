@@ -1,6 +1,6 @@
 import BraidProject.SemiThue
-import BraidProject.ListFact
 import BraidProject.AlphabetRel
+import BraidProject.TrueFalse
 
 section toAdd
 
@@ -110,124 +110,6 @@ theorem infix_length_le (h : l1 <:+: l2) : l1.length ≤ l2.length := by
 --     simp
 
 end toAdd
-
-section anotherFile
-
-def is_false (a : List (α × Bool)) := ∀ x ∈ a, x.2 = false
-
-@[simp]
-theorem is_false_nil : is_false ([] : List (α × Bool)) := by
-  intro x hx
-  simp at hx
-
-theorem is_false_cons (a : List (α × Bool)) (h : is_false a): is_false ((b, false) :: a) := by
-  intro x hx
-  rcases List.mem_cons.mp hx with h1 | h2
-  · simp [h1]
-  exact h _ h2
-
-def is_true (a : List (α × Bool)) := ∀ x ∈ a, x.2 = true
-
-@[simp]
-theorem is_true_nil : is_true ([] : List (α × Bool)) := by
-  intro x hx
-  simp at hx
-
-theorem is_true_cons (a : List (α × Bool)) (h : is_true a): is_true ((b, true) :: a) := by
-  intro x hx
-  rcases List.mem_cons.mp hx with h1 | h2
-  · simp [h1]
-  exact h _ h2
-
-def in_order (a : List (α × Bool)) := ∃ a1 a2, is_true a1 ∧ is_false a2 ∧ a = a1 ++ a2
-
-theorem in_order_rest (h : in_order (head :: t)) : in_order t := by
-  rcases h with ⟨a1, a2, ha⟩
-  match a1 with
-  | [] => match a2 with
-    | [] => simp at ha
-    | heada :: taila =>
-      use [], taila
-      constructor
-      · exact ha.1
-      constructor
-      · exact fun _ hx => ha.2.1 _ (List.mem_cons_of_mem heada hx)
-      simp only [is_true_nil, List.nil_append, List.cons.injEq, true_and] at ha
-      simp [ha.2.2]
-  | heada :: taila =>
-    use taila, a2
-    constructor
-    · exact fun _ hx => ha.1 _ (List.mem_cons_of_mem heada hx)
-    constructor
-    · exact ha.2.1
-    simp only [List.cons_append, List.cons.injEq] at ha
-    exact ha.2.2.2
-
-theorem in_order_of_true (h : is_true L) : in_order L := by
-  use L, []
-  constructor
-  · exact h
-  constructor
-  · intro x hx
-    simp at hx
-  simp
-
-theorem in_order_of_false (h : is_false L) : in_order L := by
-  use [], L
-  constructor
-  · intro x hx
-    simp at hx
-  constructor
-  · exact h
-  simp
-
-theorem in_order_append (h : in_order (a++b)) : in_order a ∧ in_order b := by
-  rcases h with ⟨a1, a2, a1_true, a2_false, ha⟩
-  rcases list_splits_somewhere ha with h1 | ⟨to_middle, spec⟩ | ⟨to_middle, spec⟩
-  · rw [h1] at ha
-    simp at ha
-    rw [h1, ha]
-    exact ⟨in_order_of_true a1_true, in_order_of_false a2_false⟩
-  · constructor
-    · rw [spec.1] at ha
-      simp only [List.append_assoc, List.append_cancel_left_eq] at ha
-      rw [spec.1]
-      use a1, to_middle
-      constructor
-      · exact a1_true
-      constructor
-      · intro x hx
-        apply a2_false
-        rw [spec.2]
-        exact List.mem_append_left _ hx
-      rfl
-    use [], b
-    constructor
-    · intro x hx
-      simp at hx
-    constructor
-    · rw [spec.2] at a2_false
-      exact fun _ hx => a2_false _ (List.mem_append_right to_middle hx)
-    rfl
-  constructor
-  · use a, []
-    constructor
-    · intro x hx
-      rw [← spec.1] at a1_true
-      exact a1_true _ (List.mem_append_left to_middle hx)
-    constructor
-    · intro x hx
-      simp at hx
-    simp
-  use to_middle, a2
-  constructor
-  · rw [← spec.1] at a1_true
-    exact fun _ hx => a1_true _ (List.mem_append_right _ hx)
-  exact ⟨a2_false, spec.right⟩
-
-theorem in_order_nil {α} : in_order ([] : List (α × Bool)) := by use [], []; simp
-
-end anotherFile
 
 inductive reversing : List (ℕ × Bool) → List (ℕ × Bool) → Prop
 | basic {n : ℕ} : reversing [(n, false), (n, true)] []
@@ -1051,6 +933,31 @@ theorem pts_of_irr (h : irreducible L) : pts L := fun _ hl ↦ pt_of_irr (irr_in
 
 def to_option (L : List (ℕ × Bool)) : List (Option ℕ × Bool) := (List.map (fun x ↦ (some x.1, x.2)) L)
 
+theorem is_false_to_option (ha : is_false a) : is_false (to_option a) := by
+  unfold to_option
+  intro x hx
+  simp only [List.mem_map, Prod.exists, Bool.exists_bool] at hx
+  rcases hx with ⟨a1, (spec1 | spec2)⟩
+  · rw [← spec1.2]
+  have := ha _ spec2.1
+  simp at this
+
+theorem is_true_to_option (ha : is_true a) : is_true (to_option a) := by
+  unfold to_option
+  intro x hx
+  simp only [List.mem_map, Prod.exists, Bool.exists_bool] at hx
+  rcases hx with ⟨a1, (spec1 | spec2)⟩
+  · have := ha _ spec1.1
+    simp at this
+  rw [← spec2.2]
+
+theorem skeleton_to_option (h : skeleton_order a) : skeleton_order (to_option a) := by
+  rcases h with ⟨a1, a2, spec⟩
+  use to_option a1, to_option a2
+  simp [is_false_to_option spec.1, is_true_to_option spec.2.1, spec.2.2]
+  unfold to_option
+  exact List.map_append (fun x ↦ (some x.1, x.2)) a1 a2
+
 theorem remove_map_helper {a : List (ℕ × Bool)} : remove_ones (to_option a) = a := by
   induction a
   · rfl
@@ -1390,7 +1297,6 @@ theorem helper (h : a ++ [(b1, false), (b2, true)] ++ c = remove_ones L)(hi : ir
       use L2
       simp [spec.1, spec.2, h.1, remove_ones]
 
-
 theorem giant_list_split {w : List (Option ℕ × Bool)} (h : remove_ones w ++ [(c1, false), (c2, true)] ++ remove_ones t =
     e ++ [(c1, false), (c2, true)] ++ f) (ptw : irreducible w) (ptt : irreducible t) : (remove_ones w = e ∧ remove_ones t = f) ∨
     (∃ w1 w2, w = w1 ++ [(some c1, false), (some c2, true)] ++ w2 ∧ e = remove_ones w1 ∧
@@ -1600,12 +1506,16 @@ theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) :
         rw [← H.1] at ha34
         simp [is_true] at ha34
 
-theorem stepOne (h : SemiThue reversing a b) (hb : in_order b) : ∃ b', SemiThue grid_style (to_option a) b' ∧
-    in_order b' := by
+theorem stepOne (h : SemiThue reversing a b) (ha : skeleton_order a) (hb : in_order b) : ∃ b', SemiThue grid_style (to_option a) b' ∧
+    skeleton_order (to_option a) ∧ in_order b' ∧ remove_ones b' = b := by
   rcases rev_to_grid h with ⟨b', gr, b'_is, pt_b⟩
   use b'
   constructor
   · exact gr
-  apply in_order_of_rm_irr _ pt_b
-  rw [b'_is]
-  exact hb
+  constructor
+  · exact skeleton_to_option ha
+  constructor
+  · apply in_order_of_rm_irr _ pt_b
+    rw [b'_is]
+    exact hb
+  exact b'_is

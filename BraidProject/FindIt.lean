@@ -338,7 +338,7 @@ local instance : WellFoundedRelation (List (Option ℕ × Bool)) where
   wf := @Shortlex.wf _ _ wf_ar
 
 
-def move_ones (a : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
+def move_ones' (a : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
   --let b := find_it a [(none, false), (none, true)]
   --have hb' : b = find_it a [(none, false), (none, true)] := rfl
   match hb': find_it a with

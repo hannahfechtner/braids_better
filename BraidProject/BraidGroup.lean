@@ -25,7 +25,7 @@ theorem alternate_two (a b : α) : alternate a b 2 = .of a * .of b := rfl
 theorem alternate_three (a b : α) : alternate a b 3 = .of a * .of b * .of a := rfl
 
 def M_braid (i j : ℕ) : ℕ :=
-  match j-i with
+  match i.dist j with
   | 0 => 0
   | Nat.succ n =>
     match n with
@@ -42,21 +42,27 @@ theorem succ_succ_of_ge_plus_two (h : i + 2 ≤ j) : ∃ n, j - i = Nat.succ (Na
   rw [← hw]
   exact (Nat.sub_add_cancel (Nat.one_le_of_lt H)).symm
 
-theorem M_braid_apart {i j : ℕ} (h : i + 2 ≤ j) : M_braid i j = 2 := by
+theorem M_braid_apart {i j : ℕ} (h : i.dist j ≥ 2) : M_braid i j = 2 := by
   unfold M_braid
-  rcases succ_succ_of_ge_plus_two h with ⟨w, hw⟩
-  rw [hw]
+  cases hd: i.dist j with
+  | zero => simp [hd] at h
+  | succ n => cases hn: n with
+    | zero => simp [hn, hd] at h
+    | succ _ => simp [hn]
 
 theorem M_braid_fin_apart (i j : Fin n) (h : i ≤ j) :
     M_braid_fin i.castSucc.castSucc j.succ.succ = 2 := by
   induction n
   · exact (Nat.not_succ_le_zero (↑i) i.2).elim
   unfold M_braid_fin
-  exact M_braid_apart <| Nat.add_le_of_le_sub (tsub_add_cancel_iff_le.mp rfl) h
+  apply M_braid_apart
+  simp only [Fin.coe_castSucc, Fin.val_succ, ge_iff_le]
+  unfold Nat.dist
+  omega
 
 theorem M_braid_close {i : ℕ} : M_braid i (i + 1) = 3 := by
   unfold M_braid
-  simp only [add_tsub_cancel_left]
+  simp [Nat.dist, add_tsub_cancel_left]
 
 theorem M_braid_fin_close (i : Fin n) : M_braid_fin i.castSucc i.succ = 3 := by
   induction n
@@ -140,7 +146,7 @@ theorem braid_group.comm {i j : Fin n} (h : i ≤ j) :
   rw [Function.uncurry_apply_pair, Braid.artin_tits_rel, M_braid_fin_apart i j h]
   simp only [alternate_two, mul_inv_rev, inv_inv, mul_one]
 
-theorem separated (h :e + 2 ≤ g) : FreeGroup.of e * .of g * (.of e)⁻¹ * (.of g)⁻¹ ∈ braid_rels_coexeter := by
+theorem separated (h : 2 ≤ e.dist g) : FreeGroup.of e * .of g * (.of e)⁻¹ * (.of g)⁻¹ ∈ braid_rels_coexeter := by
   unfold braid_rels_coexeter
   refine Set.mem_range.mpr ?_
   use (e, g)
@@ -150,7 +156,7 @@ theorem separated (h :e + 2 ≤ g) : FreeGroup.of e * .of g * (.of e)⁻¹ * (.o
   rfl
 
 
-theorem braid_group_inf.comm {i j : ℕ} (h : i + 2 ≤ j) :
+theorem braid_group_inf.comm {i j : ℕ} (h : 2 ≤ i.dist j) :
     σi i * σi j = σi j * σi i := by
   symm
   rw [←mul_inv_eq_one]
@@ -244,7 +250,8 @@ theorem generated_by (H : Subgroup braid_group_inf) (h : ∀ i : ℕ, σi i ∈ 
 
 theorem embed_inf_helper (a b : FreeMonoid ℕ) (h : braid_rels_m_inf a b) :
     (FreeMonoid.lift fun a => σi a) a = (FreeMonoid.lift fun a => σi a) b :=
-  braid_rels_m_inf.casesOn h braid_group_inf.braid (fun _ _ d => braid_group_inf.comm d)
+  braid_rels_m_inf.casesOn h braid_group_inf.braid (fun _ _ d => braid_group_inf.comm
+    (by unfold Nat.dist; omega))
 
 def embed_inf : BraidMonoidInf →* braid_group_inf :=
   PresentedMonoid.toMonoid (fun a => σi a) embed_inf_helper

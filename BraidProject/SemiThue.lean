@@ -1,7 +1,7 @@
 import Mathlib.Data.Nat.Dist
 import Mathlib.Data.List.Basic
 import Mathlib.Data.List.Lex
-import BraidProject.Cancellability
+import Mathlib.Data.List.Induction
 
 inductive SemiThue (rels : List α → List α → Prop) : List α → List α → Prop
 | refl (a : List α) : SemiThue rels a a

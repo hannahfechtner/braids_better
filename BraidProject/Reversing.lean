@@ -3,8 +3,10 @@ import Mathlib.Algebra.FreeMonoid.Basic
 --import BraidProject.BraidGroup
 import BraidProject.Cancellability
 import BraidProject.BraidGroup
+import BraidProject.TrueFalse
+import BraidProject.SemiThue
 
-def in_order (a : List (α × Bool)) := ∀ (i : Fin (a.length -1)),
+def in_order' (a : List (α × Bool)) := ∀ (i : Fin (a.length -1)),
   (List.get a ⟨i.val, Nat.lt_of_lt_pred i.2⟩).2 = true ∨
   (List.get a ⟨i.val + 1, Nat.add_lt_of_lt_sub i.2⟩).2 = false
 
@@ -153,21 +155,11 @@ theorem grid_to_rev' (h : grid a b c d) : second_rw_closure reversing_rels'
 
 
 
-theorem rev'_to_grid {a b c d : FreeMonoid ℕ} (h : second_rw_closure reversing_rels'
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse a) *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) b)
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) d *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse c))) : grid a b c d := by sorry
+theorem rev'_to_grid {a b c d : List ℕ} (h : SemiThue reversing_rels'
+    (to_up a ++ to_over b) (to_over d ++ to_up c)) : grid a b c d := by sorry
 
 theorem uniqueness {u v u₁ v₁ : FreeMonoid ℕ} {a b: FreeMonoid ℕ}
-    (h1 : second_rw_closure reversing_rels'
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse a) *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) b)
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) u *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse v)))
-    (h2 : second_rw_closure reversing_rels'
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse a) *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) b)
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) u₁ *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) v₁.reverse)) : u = u₁ ∧ v = v₁ :=
-  (unicity (rev'_to_grid h2) _ _ (rev'_to_grid h1)).symm
+    (h1 : SemiThue reversing_rels' (to_up a ++ to_over b) (to_over v ++ to_up u))
+    (h2 : SemiThue reversing_rels' (to_up a ++ to_over b) (to_over v₁ ++ to_up u₁))
+    : u = u₁ ∧ v = v₁ :=
+  (unicity (rev'_to_grid h2) _ _ (rev'_to_grid h1))
