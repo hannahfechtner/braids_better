@@ -155,7 +155,7 @@ def FreeMonoid.prod_eq_of' {a b : FreeMonoid α} {i : α} (h : a * b = FreeMonoi
     exact Sum.inr ⟨⟨a_eq⟩, ⟨b_eq⟩⟩
 
 def split_vertically (a b c d : FreeMonoid ℕ) := ∀ b₁ b₂, b = b₁ * b₂ →
-  Σ u d₁ d₂, {x : (grid a b₁ u d₁) × grid u b₂ c d₂ // d = d₁ * d₂}
+  Σ u d₁ d₂, (grid a b₁ u d₁) × grid u b₂ c d₂ × PLift (d = d₁ * d₂)
 
 -- theorem eq_of_length_eq {a b c d : FreeMonoid α} (h : a * b = c * d) (hl : a.length = c.length) :
 --     a = c := by
@@ -175,10 +175,42 @@ theorem FreeMonoid.prod_eq_prod {a b c d : FreeMonoid α} (h : a * b = c * d) :
     (∃ from_middle, c = a * from_middle ∧ b = from_middle * d) ∨
     (∃ to_middle, a = c * to_middle ∧ d = to_middle * b) := List.append_eq_append_iff.mp h
 
+/-- An induction principle for free monoids which mirrors induction on lists, with cases analogous
+to the empty list and cons -/
+@[to_additive (attr := elab_as_elim) "An induction principle for free monoids which mirrors
+induction on lists, with cases analogous to the empty list and cons"]
+def FreeMonoid.inductionOn''' {p : FreeMonoid α → Type} (a : FreeMonoid α)
+    (one : p (1 : FreeMonoid α)) (mul_of : ∀ b a, p a → p (of b * a)) : p a :=
+  List.rec one (fun _ _ tail_ih => mul_of _ _ tail_ih) a
+
 def FreeMonoid.prod_eq_prod' {a b c d : FreeMonoid α} (h : a * b = c * d) :
   (Σ from_middle, PLift (c = a * from_middle) × PLift (b = from_middle * d)) ⊕
-  (Σ to_middle, PLift (a = c * to_middle) × PLift (d = to_middle * b)) := --List.append_eq_append_iff.mp h
-  by sorry
+  (Σ to_middle, PLift (a = c * to_middle) × PLift (d = to_middle * b)) := by
+  induction a using FreeMonoid.inductionOn''' generalizing c with
+  | one =>
+    simp_all
+    left
+    use c
+    exact ⟨{down := rfl}, {down := rfl}⟩
+  | mul_of a as ih =>
+    cases c
+    · right
+      use of a * as
+      simp [h]
+      exact ⟨{down := trivial}, {down := trivial}⟩
+    rename_i x xs
+    cases ih (parts_eq h).2
+    · rename_i hv
+      left
+      use hv.1
+      simp [hv.2.1.1, hv.2.2.1, ← (parts_eq h).1]
+      exact ⟨{down := by rw [← mul_assoc]}, {down := trivial}⟩
+    rename_i hv
+    right
+    use hv.1
+    simp [hv.2.1.1, hv.2.2.1, ← (parts_eq h).1]
+    exact ⟨{down := by rw [← mul_assoc]}, {down := trivial}⟩
+
   -- have H := List.append_eq_append_iff.mp h
   -- match H with
   -- | Sum.inl ⟨middle, hc, hb⟩ =>
@@ -192,57 +224,57 @@ noncomputable def splittable_vertically_of_grid {a b c d : FreeMonoid ℕ} (h : 
   | empty =>
     intro _ _ b_is
     rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
-    use 1, 1, 1, ⟨grid.empty, grid.empty⟩
-    rfl
+    use 1, 1, 1
+    exact ⟨grid.empty, ⟨grid.empty, {down := rfl}⟩⟩
   | top_bottom i =>
     intro _ _ b_is
     rcases FreeMonoid.prod_eq_of' b_is.symm with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
     · rw [ha1, ha2]
-      use 1, 1, (of i), ⟨grid.empty, grid.top_bottom _⟩
-      rfl
+      use 1, 1, (of i)
+      exact ⟨grid.empty, ⟨grid.top_bottom _, {down := rfl}⟩⟩
     rw [ha1, ha2]
-    use 1, (of i), 1, ⟨grid.top_bottom _, grid.empty⟩
-    rfl
+    use 1, (of i), 1
+    exact ⟨grid.top_bottom _, ⟨grid.empty, {down := rfl}⟩⟩
   | sides i =>
     intro _ _ b_is
     use (of i), 1, 1
     rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
-    use ⟨grid.sides _, grid.sides _⟩; rfl
+    exact ⟨grid.sides _, ⟨grid.sides _, {down := rfl}⟩⟩
   | top_left i =>
     intro _ _ b_is
     rcases (FreeMonoid.prod_eq_of' b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
     · rw [ha1, ha2]
-      use (of i), 1, 1, ⟨grid.sides _, grid.top_left _⟩
-      rfl
+      use (of i), 1, 1
+      exact ⟨grid.sides _, ⟨grid.top_left _, {down := rfl}⟩⟩
     · rw [ha1, ha2]
-      use 1, 1, 1, ⟨grid.top_left _, grid.empty⟩
-      rfl
+      use 1, 1, 1
+      exact ⟨grid.top_left _, ⟨grid.empty, {down := rfl}⟩⟩
   | adjacent i =>
     intro _ _ b_is
     rcases (FreeMonoid.prod_eq_of' b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
     · rw [ha1, ha2]
       rename_i k l m n
-      use of i, 1, of (k) * of i, ⟨grid.sides i, grid.adjacent i k l⟩
-      rfl
+      use of i, 1, of (k) * of i
+      exact ⟨grid.sides i, ⟨grid.adjacent i k l, {down := rfl}⟩⟩
     · rw [ha1, ha2]
       rename_i k l m n
-      use of i * of k, of k * of i, 1, ⟨grid.adjacent i k l, grid_sides_word _⟩
-      rfl
+      use of i * of k, of k * of i, 1
+      exact ⟨grid.adjacent i k l, ⟨grid_sides_word _, {down := rfl}⟩⟩
   | separated i j h =>
     intro _ _ b_is
     rcases (FreeMonoid.prod_eq_of' b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
     · rw [ha1, ha2]
-      use of i, 1, of j, ⟨grid.sides _, grid.separated _ _ h⟩
-      rfl
+      use of i, 1, of j
+      exact ⟨grid.sides _, ⟨grid.separated _ _ h, {down := rfl}⟩⟩
     rw [ha1, ha2]
-    use of i, of j, 1, ⟨grid.separated _ _ h, grid.sides _⟩
-    rfl
+    use of i, of j, 1
+    exact ⟨grid.separated _ _ h, ⟨grid.sides _, {down := rfl}⟩⟩
   | vertical _ _ h1_ih h2_ih =>
     intro f₁ f₂ f_is
     rcases h1_ih f₁ f₂ f_is with ⟨l, m, n, hg1⟩
-    rcases h2_ih m n hg1.2 with ⟨o, p, q, hg3⟩
-    use l * o, p, q, ⟨grid.vertical hg1.1.1 hg3.1.1, grid.vertical hg1.1.2 hg3.1.2⟩
-    exact hg3.2
+    rcases h2_ih m n hg1.2.2.1 with ⟨o, p, q, hg3⟩
+    use l * o, p, q
+    exact ⟨grid.vertical hg1.1 hg3.1, ⟨grid.vertical hg1.2.1 hg3.2.1, {down := hg3.2.2.1}⟩⟩
   | horizontal h1 h2 h1_ih h2_ih =>
     rename_i e f g h i j k
     intro fi₁ fi₂ fi_is
@@ -251,17 +283,15 @@ noncomputable def splittable_vertically_of_grid {a b c d : FreeMonoid ℕ} (h : 
       rcases h2_ih m fi₂ hm2 with ⟨u, k₁, k₂, g1⟩
       use u, h * k₁, k₂
       rw [hm1]
-      use ⟨grid.horizontal h1 g1.1.1, g1.1.2⟩
-      rw [mul_assoc, g1.2]
+      exact ⟨grid.horizontal h1 g1.1, ⟨g1.2.1, {down := by rw [mul_assoc, g1.2.2.1]}⟩⟩
     rcases hb with ⟨m, ⟨hm1⟩, ⟨hm2⟩⟩
-    rcases h1_ih fi₁ m hm1 with ⟨u, h₁, h₂, ⟨⟨g1, g2⟩, hh⟩⟩
+    rcases h1_ih fi₁ m hm1 with ⟨u, h₁, h₂, g1, g2, ⟨hh⟩⟩
     use u, h₁, (h₂ * k)
     rw [hm2]
-    use ⟨g1, grid.horizontal g2 h2⟩
-    rw [← mul_assoc, hh]
+    exact ⟨g1, ⟨grid.horizontal g2 h2, {down := by rw [← mul_assoc, hh]}⟩⟩
 
 def split_horizontally (a b c d : FreeMonoid ℕ) := ∀ a₁ a₂, a = a₁ * a₂ →
-  Σ u c₁ c₂, {x : grid a₁ b c₁ u × grid a₂ u c₂ d // c = c₁ * c₂}
+  Σ u c₁ c₂, grid a₁ b c₁ u × grid a₂ u c₂ d × PLift (c = c₁ * c₂)
 
 noncomputable def splittable_horizontally_of_grid {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
     split_horizontally a b c d := by
@@ -269,69 +299,68 @@ noncomputable def splittable_horizontally_of_grid {a b c d : FreeMonoid ℕ} (h 
   | empty =>
     intro _ _ b_is
     rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
-    use 1, 1, 1, ⟨grid.empty, grid.empty⟩
-    rfl
+    use 1, 1, 1
+    exact ⟨grid.empty, ⟨grid.empty, {down := rfl}⟩⟩
   | top_bottom i =>
     intro _ _ b_is
     rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
-    use of i, 1, 1, ⟨grid.top_bottom _, grid.top_bottom _⟩
-    rfl
+    use of i, 1, 1
+    exact ⟨grid.top_bottom _, ⟨grid.top_bottom _, {down := rfl}⟩⟩
   | sides i =>
     intro _ _ b_is
     rcases FreeMonoid.prod_eq_of' b_is.symm with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨hb1⟩, ⟨hb2⟩⟩
     · rw [ha1, ha2]
-      use 1, 1, of i, ⟨grid.empty, grid.sides _⟩
-      rfl
+      use 1, 1, of i
+      exact ⟨grid.empty, ⟨grid.sides _, {down := rfl}⟩⟩
     rw [hb1, hb2]
-    use 1, of i, 1, ⟨grid.sides _, grid.empty⟩
-    rfl
+    use 1, of i, 1
+    exact ⟨grid.sides _, ⟨grid.empty, {down := rfl}⟩⟩
   | top_left i =>
     intro _ _ b_is
     rcases FreeMonoid.prod_eq_of' b_is.symm with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨hb1⟩, ⟨hb2⟩⟩
     · rw [ha1, ha2]
-      use of i, 1, 1, ⟨grid.top_bottom _, grid.top_left _⟩
-      rfl
+      use of i, 1, 1
+      exact ⟨grid.top_bottom _, ⟨grid.top_left _, {down := rfl}⟩⟩
     rw [hb1, hb2]
-    use 1, 1, 1, ⟨grid.top_left _, grid.empty⟩
-    rfl
+    use 1, 1, 1
+    exact ⟨grid.top_left _, ⟨grid.empty, {down := rfl}⟩⟩
   | adjacent i =>
     intro _ _ b_is
     rcases FreeMonoid.prod_eq_of' b_is.symm with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨hb1⟩, ⟨hb2⟩⟩
     · rw [ha1, ha2]
       rename_i k dist _ _
-      use of k, 1, of i * (of k), ⟨grid.top_bottom _, grid.adjacent i k dist⟩
-      rfl
+      use of k, 1, of i * (of k)
+      exact ⟨grid.top_bottom _, ⟨grid.adjacent i k dist, {down := rfl}⟩⟩
     rw [hb1, hb2]
     rename_i k dist _ _
-    use of k * of i, of i * of k, 1, ⟨grid.adjacent i k dist, grid_top_bottom_word _⟩
-    rfl
+    use of k * of i, of i * of k, 1
+    exact ⟨grid.adjacent i k dist, ⟨grid_top_bottom_word _, {down := rfl}⟩⟩
   | separated i j h =>
     intro _ _ b_is
     rcases FreeMonoid.prod_eq_of' b_is.symm with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨hb1⟩, ⟨hb2⟩⟩
     · rw [ha1, ha2]
-      use of j, 1, of i, ⟨grid.top_bottom _, grid.separated _ _ h⟩
-      rfl
+      use of j, 1, of i
+      exact ⟨grid.top_bottom _, ⟨grid.separated _ _ h, {down := rfl}⟩⟩
     rw [hb1, hb2]
-    use of j, of i, 1, ⟨grid.separated _ _ h, grid.top_bottom _⟩
-    rfl
+    use of j, of i, 1
+    exact ⟨grid.separated _ _ h, ⟨grid.top_bottom _, {down := rfl}⟩⟩
   | vertical h1 h2 h1_ih h2_ih =>
     rename_i e f g h i j k
     intro fi₁ fi₂ fi_is
     rcases FreeMonoid.prod_eq_prod' fi_is with ha | hb
     · rcases ha with ⟨m, ⟨hm1⟩, ⟨hm2⟩⟩
-      rcases h2_ih m fi₂ hm2 with ⟨u, k₁, k₂, ⟨⟨g1, g2⟩, hk⟩⟩
+      rcases h2_ih m fi₂ hm2 with ⟨u, k₁, k₂, g1, g2, ⟨hk⟩⟩
       use u, g * k₁, k₂
       rw [hm1]
-      use ⟨grid.vertical h1 g1, g2⟩
-      rw [mul_assoc, hk]
+      exact ⟨grid.vertical h1 g1, ⟨g2, {down := by rw [mul_assoc, hk]}⟩⟩
     rcases hb with ⟨m, ⟨hm1⟩, ⟨hm2⟩⟩
-    rcases h1_ih fi₁ m hm1 with ⟨u, h₁, h₂, ⟨⟨g1, g2⟩, hh⟩⟩
+    rcases h1_ih fi₁ m hm1 with ⟨u, h₁, h₂, g1, g2, ⟨hh⟩⟩
     use u, h₁, (h₂ * j)
     rw [hm2]
-    use ⟨g1, grid.vertical g2 h2⟩
-    rw [← mul_assoc, hh]
+    exact ⟨g1, ⟨grid.vertical g2 h2, {down := by rw [← mul_assoc, hh]}⟩⟩
   | horizontal _ _ h1_ih h2_ih =>
     intro f₁ f₂ f_is
-    rcases h1_ih f₁ f₂ f_is with ⟨l, m, n, ⟨⟨hg1, hg2⟩, heq⟩⟩
-    rcases h2_ih m n heq with ⟨o, p, q, ⟨⟨hg3, hg4⟩, heq'⟩⟩
-    use l * o, p, q, ⟨grid.horizontal hg1 hg3, grid.horizontal hg2 hg4⟩
+    rcases h1_ih f₁ f₂ f_is with ⟨l, m, n, hg1, hg2, ⟨heq⟩⟩
+    rcases h2_ih m n heq with ⟨o, p, q, hg3, hg4, ⟨heq'⟩⟩
+    use l * o, p, q
+    exact ⟨grid.horizontal hg1 hg3, ⟨grid.horizontal hg2 hg4, {down := heq'}⟩⟩

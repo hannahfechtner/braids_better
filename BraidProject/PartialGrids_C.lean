@@ -1,16 +1,16 @@
-import BraidProject.Grids
-import BraidProject.SemiThue
-import BraidProject.TrueFalse
+import BraidProject.Grids_C
+import BraidProject.SemiThue_C
+import BraidProject.TrueFalse_C
 
-inductive cell : List ℕ → List ℕ → List ℕ → List ℕ → Prop
-  | empty : (cell [] [] [] [] : Prop)
+inductive cell : List ℕ → List ℕ → List ℕ → List ℕ → Type
+  | empty : (cell [] [] [] [])
   | top_bottom (i : ℕ) : cell [] [i] [] [i]
   | sides (i : ℕ) : cell [i] [] [i] []
   | top_left (i : ℕ) : cell [i] [i] [] []
   | adjacent (i k : ℕ) (h : Nat.dist i k = 1) : cell [i] [k] [i, k] [k, i]
   | separated (i j : ℕ) (h : i +2 ≤ j ∨ j+2 <= i) : cell [i] [j] [i] [j]
 
-theorem grid_from_cell (h : cell a b c d) : grid a b c d := by
+noncomputable def grid_from_cell (h : cell a b c d) : grid a b c d := by
   induction h with
   | empty => exact grid.empty
   | top_bottom i => exact grid.top_bottom _
@@ -25,20 +25,20 @@ theorem List.map_rev_rev : (List.map f (L.reverse)).reverse = List.map f L := by
   | nil => rfl
   | cons h t ih => simp [List.reverse_cons, ih]
 
-def grid_option (a b c d : List (Option ℕ × Bool)) : Prop := grid (remover a.reverse) (remover b)
+def grid_option (a b c d : List (Option ℕ × Bool)) : Type := grid (remover a.reverse) (remover b)
   (remover c.reverse) (remover d)
 
-theorem grid_option_append_horiz (h1 : grid_option a b c d) (h2 : grid_option c e f g) : grid_option a (b ++ e) f (d ++ g) := by
+def grid_option_append_horiz (h1 : grid_option a b c d) (h2 : grid_option c e f g) : grid_option a (b ++ e) f (d ++ g) := by
   simp [grid_option, remover_split]
   exact grid.horizontal h1 h2
 
-theorem grid_option_append_vert (h1 : grid_option a b c d) (h2 : grid_option e d f g) : grid_option (e ++ a) b (f ++ c) g := by
+def grid_option_append_vert (h1 : grid_option a b c d) (h2 : grid_option e d f g) : grid_option (e ++ a) b (f ++ c) g := by
   simp [grid_option, remover_split]
   exact grid.vertical h1 h2
 
 /-- A partial grid generalizes the notion of a grid to include "unfinished" grids. -/
 inductive PartialGrid : List (Option ℕ × Bool) → List (Option ℕ × Bool) →
-  List (Option ℕ × Bool) → List (Option ℕ × Bool) → List (Option ℕ × Bool) → Prop
+  List (Option ℕ × Bool) → List (Option ℕ × Bool) → List (Option ℕ × Bool) → Type
   | single_grid (h : cell a b c d): PartialGrid (to_up a) (to_over b) (to_over d) [] (to_up c)
   | empty (a b : List (Option ℕ × Bool)) (ha : a.length > 0) (ha1 : is_false a)
       (hb : b.length > 0) (hb : is_true b) : PartialGrid a b [] (a ++ b) []
@@ -53,7 +53,7 @@ inductive PartialGrid : List (Option ℕ × Bool) → List (Option ℕ × Bool) 
   | vertical_append (g1 : PartialGrid a b bot mid up) (g2 : PartialGrid a1 bot bot2 mid2 up2) (h : mid.length > 0) :
       PartialGrid (a1 ++ a) b bot2 (mid2 ++ up2 ++ mid) up
 
-theorem grid_of_PartialGrid (h : PartialGrid a b d [] c) : grid_option a b c d := by
+noncomputable def grid_of_PartialGrid (h : PartialGrid a b d [] c) : grid_option a b c d := by
   generalize he : ([] : List (Option ℕ × Bool)) = e at h
   induction h with
   | single_grid h =>
