@@ -64,7 +64,7 @@ noncomputable def grid_of_PartialGrid (h : PartialGrid a b d [] c) : grid_option
     exfalso
     apply congr_arg List.length at he
     rename_i ha hb
-    simp [ha, hb] at he
+    simp [ha] at he
     linarith
   | horizontal_append_one _ _ ih1 ih2 =>
     specialize ih1 rfl

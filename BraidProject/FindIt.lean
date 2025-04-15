@@ -1,5 +1,5 @@
-import BraidProject.StepOne
-import BraidProject.Shortlex
+import BraidProject.StepOne_C
+--import BraidProject.Shortlex
 
 
 
@@ -210,7 +210,7 @@ theorem find_it_spec {L : List ((Option ℕ × Bool))} (h : find_it L = some (c,
           | true =>
             simp only [find_it, Option.some.injEq, Prod.mk.injEq, List.nil_eq] at h
             rw [h.1, h.2.2]
-            have H := Prod.mk.inj_iff.mp h.2.1
+            have H := Prod.mk.inj h.2.1
             rw [← H.1, ← H.2]
             simp
         | some val2 =>
@@ -233,7 +233,7 @@ theorem find_it_spec {L : List ((Option ℕ × Bool))} (h : find_it L = some (c,
           | true =>
             simp only [find_it, Option.some.injEq, Prod.mk.injEq, List.nil_eq] at h
             rw [h.1, h.2.2]
-            have H := Prod.mk.inj_iff.mp h.2.1
+            have H := Prod.mk.inj h.2.1
             rw [← H.1, ← H.2]
             simp
       | some val3 =>
@@ -258,7 +258,7 @@ theorem find_it_spec {L : List ((Option ℕ × Bool))} (h : find_it L = some (c,
           | true =>
             simp only [find_it, Option.some.injEq, Prod.mk.injEq, List.nil_eq] at h
             rw [h.1, h.2.2]
-            have H := Prod.mk.inj_iff.mp h.2.1
+            have H := Prod.mk.inj h.2.1
             rw [← H.1, ← H.2]
             simp
         | some val2 =>
@@ -333,46 +333,46 @@ instance : IsIrrefl (Option ℕ × Bool) lt_a := by
   | (none, false) => simp [lt_a] at h
 --local instance hi2 : WellFounded (Shortlex lt_a) := @Shortlex.wf _ _ wf_ar
 
-local instance : WellFoundedRelation (List (Option ℕ × Bool)) where
-  rel := Shortlex (lt_a)
-  wf := @Shortlex.wf _ _ wf_ar
+-- local instance : WellFoundedRelation (List (Option ℕ × Bool)) where
+--   rel := Shortlex (lt_a)
+--   wf := @Shortlex.wf _ _ wf_ar
 
 
-def move_ones' (a : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
-  --let b := find_it a [(none, false), (none, true)]
-  --have hb' : b = find_it a [(none, false), (none, true)] := rfl
-  match hb': find_it a with
-  | none => a
-  | some (c, d, e) =>
-    -- have hb : Shortlex lt_a (c++ [(none, true), (none, false)] ++e) (c++ [(none, false), (none, true)] ++e) := by
-    --   exact
-    --     (Shortlex.append_right_iff e).mp
-    --       ((Shortlex.append_left_iff c).mp (Shortlex.of_lex rfl (List.Lex.rel (Eq.refl true))))
-    -- have len_d := ((@find_it_spec _ _ _ a) (by rw [← hb']))
-    match hd : d with
-    | (none, none) => move_ones (c ++ [(none, true), (none, false)] ++ e)
-    | (none, some i) => move_ones (c ++ [(some i, true), (none, false)] ++ e)
-    | (some i, none) => move_ones (c ++ [(none, true), (some i, false)] ++ e)
-    | _ => a -- some i, some j
-    termination_by a
-    decreasing_by
-    · --rw [hd] at hb'
-      rw [((@find_it_spec _ _ _ a) (by rw [← hb'])).1]
-      apply (Shortlex.append_right_iff e).mp
-      apply (Shortlex.append_left_iff c).mp
-      apply Shortlex.of_lex (by rfl)
-      apply List.Lex.rel (by rfl)
-    · --rw [hd] at hb'
-      rw [((@find_it_spec _ _ _ a) (by rw [← hb'])).1]
-      exact (Shortlex.append_right_iff e).mp ((Shortlex.append_left_iff c).mp (Shortlex.of_lex
-      (Eq.refl [(none, true), (none, false)].length) (List.Lex.rel (Eq.refl true))))
-    · --rw [hd] at hb'
-      rw [((@find_it_spec _ _ _ a) (by rw [← hb'])).1]
-      apply (Shortlex.append_right_iff e).mp
-      apply (Shortlex.append_left_iff c).mp
-      apply Shortlex.of_lex (by rfl)
-      apply List.Lex.rel
-      rfl
+-- def move_ones' (a : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
+--   --let b := find_it a [(none, false), (none, true)]
+--   --have hb' : b = find_it a [(none, false), (none, true)] := rfl
+--   match hb': find_it a with
+--   | none => a
+--   | some (c, d, e) =>
+--     -- have hb : Shortlex lt_a (c++ [(none, true), (none, false)] ++e) (c++ [(none, false), (none, true)] ++e) := by
+--     --   exact
+--     --     (Shortlex.append_right_iff e).mp
+--     --       ((Shortlex.append_left_iff c).mp (Shortlex.of_lex rfl (List.Lex.rel (Eq.refl true))))
+--     -- have len_d := ((@find_it_spec _ _ _ a) (by rw [← hb']))
+--     match hd : d with
+--     | (none, none) => move_ones (c ++ [(none, true), (none, false)] ++ e)
+--     | (none, some i) => move_ones (c ++ [(some i, true), (none, false)] ++ e)
+--     | (some i, none) => move_ones (c ++ [(none, true), (some i, false)] ++ e)
+--     | _ => a -- some i, some j
+--     termination_by a
+--     decreasing_by
+--     · --rw [hd] at hb'
+--       rw [((@find_it_spec _ _ _ a) (by rw [← hb'])).1]
+--       apply (Shortlex.append_right_iff e).mp
+--       apply (Shortlex.append_left_iff c).mp
+--       apply Shortlex.of_lex (by rfl)
+--       apply List.Lex.rel (by rfl)
+--     · --rw [hd] at hb'
+--       rw [((@find_it_spec _ _ _ a) (by rw [← hb'])).1]
+--       exact (Shortlex.append_right_iff e).mp ((Shortlex.append_left_iff c).mp (Shortlex.of_lex
+--       (Eq.refl [(none, true), (none, false)].length) (List.Lex.rel (Eq.refl true))))
+--     · --rw [hd] at hb'
+--       rw [((@find_it_spec _ _ _ a) (by rw [← hb'])).1]
+--       apply (Shortlex.append_right_iff e).mp
+--       apply (Shortlex.append_left_iff c).mp
+--       apply Shortlex.of_lex (by rfl)
+--       apply List.Lex.rel
+--       rfl
 
 -- theorem move_one_spec (h : move_ones_ind L = L1 ++ L2) : ∀ l ∈ L1, ∀ m ∈ L2, l < m := by sorry
 -- def move_ones_mwe (a : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=

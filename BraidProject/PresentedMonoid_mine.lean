@@ -342,7 +342,7 @@ def toMonoid : MonoidHom (PresentedMonoid rels) M :=
 @[to_additive]
 theorem toMonoid.unique (g : MonoidHom (conGen rels).Quotient M)
     (hg : ∀ a : α, g (of rels a) = f a) : g = toMonoid f h :=
-  Con.lift_unique (proof_1 f h) g (FreeMonoid.hom_eq fun x ↦ let_fun this := hg x; this)
+  Con.lift_unique (Con.conGen_le h) g (FreeMonoid.hom_eq fun x ↦ let_fun this := hg x; this)
 
 @[to_additive (attr := simp)]
 theorem toMonoid.of {x : α} : (PresentedMonoid.toMonoid f h) (PresentedMonoid.of rels x) =
@@ -472,7 +472,7 @@ theorem equivPresentedMonoid_apply_of (rel : FreeMonoid β → FreeMonoid β →
   have : Con.comap (fun x => x) (fun x y => rfl) (conGen rel)= conGen rel :=
     Con.ext fun x y ↦ Con.comap_rel fun x y ↦ rfl
   rw [this] at helper
-  erw [helper, Con.congr_mk (equivPresentedMonoid.proof_3 e rel) (FreeMonoid.of x)]
+  erw [helper]
   rfl
 
 theorem equivPresentedMonoid_symm_apply_of (rel : FreeMonoid β → FreeMonoid β → Prop) (x : α) :

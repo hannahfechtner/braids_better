@@ -359,7 +359,7 @@ theorem bool_change_second (h : a.length > 0) (h1 : is_false a) (h3 : a ++ b = [
         simp only [List.length_append, List.length_cons, List.length_singleton, Nat.succ_eq_add_one,
           Nat.reduceAdd] at h3
         rw [h] at h3
-        exact List.length_eq_zero.mp (Nat.add_eq_left.mp h3)
+        exact List.length_eq_zero_iff.mp (Nat.add_eq_left.mp h3)
       rw [H, List.append_nil] at h3
       rw [h3] at h1
       simp only [is_false, List.mem_cons, List.mem_singleton, forall_eq_or_imp, forall_eq,
@@ -385,7 +385,7 @@ theorem bool_change_first (h : b.length > 0) (h1 : is_true b) (h3 : a ++ b = [(a
           Nat.reduceAdd] at h3
         rw [h] at h3
         simp only [List.length_nil, Nat.zero_add, Nat.reduceAdd, Nat.add_left_eq_self,
-          List.length_eq_zero] at h3
+          List.length_eq_zero_iff] at h3
         exact h3
       rw [H, List.nil_append] at h3
       rw [h3] at h1

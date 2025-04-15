@@ -1,6 +1,11 @@
 import Mathlib.Data.List.Basic
 import BraidProject.ListFact_C
 
+def List.Prefix' {α : Type} (l₁ l₂ : List α) : Type :=
+  Σ sx, PLift (l₁ ++ sx = l₂)
+
+def List.Suffix' {α : Type} (l₁ l₂ : List α) : Type :=
+  Σ pr, PLift (pr ++ l₁ = l₂)
 
 section ic
 def List.Infix' {α : Type} (l₁ l₂ : List α) : Type :=
@@ -9,6 +14,7 @@ def List.Infix' {α : Type} (l₁ l₂ : List α) : Type :=
 def List.infix_refl_C (a : List α) : List.Infix' a a := by
   use [], []
   exact {down := by simp}
+
 @[simp]
 def infix_nil_C (l : List α) : List.Infix' [] l := by
   use l, []
@@ -522,12 +528,12 @@ theorem bool_change_first (h : b.length > 0) (h1 : is_true b) (h3 : a ++ b = [(a
           Nat.reduceAdd] at h3
         rw [h] at h3
         simp only [List.length_nil, Nat.zero_add, Nat.reduceAdd, Nat.add_left_eq_self,
-          List.length_eq_zero] at h3
+          List.length_eq_zero_iff] at h3
         exact h3
       rw [H, List.nil_append] at h3
       rw [h3] at h1
       simp [is_true] at h1
-      specialize h1 (a1,false) ⟨List.mem_cons_self _ _⟩
+      specialize h1 (a1,false) ⟨List.mem_cons_self⟩
       simp at h1
       apply h1.1
     omega
@@ -544,6 +550,9 @@ theorem bool_split (ha : is_false a2) (hb : is_true b1) (h : [(a3, false), (b3, 
       rw [h1, List.nil_append] at h
       rw [← h] at hb
       simp [is_true] at hb
+      specialize hb (a3, false) ⟨List.mem_cons_self⟩
+      simp at hb
+      exact hb.1
     have H2 : ¬ a2.length = 2 := by
       intro h1
       have h2 := congr_arg List.length h
@@ -554,6 +563,7 @@ theorem bool_split (ha : is_false a2) (hb : is_true b1) (h : [(a3, false), (b3, 
       rw [h2, List.append_nil] at h
       rw [← h] at ha
       simp [is_false] at ha
+      exact ha.1
     have H3 : ¬ a2.length > 2 := by
       intro h1
       apply congr_arg List.length at h
@@ -584,35 +594,94 @@ def is_false_singleton (h : is_false [a]) : Σ a', PLift (a = (a', false)) := by
   simp
   exact ⟨ h.1 (c, b) (List.mem_singleton.mpr rfl)⟩
 
+@[simp]
+def List.nil_suffix_C : [].Suffix' u := by
+  use u
+  exact {down := by simp}
+
+@[simp]
+def List.nil_prefix_C : [].Prefix' u := by
+  use u
+  exact {down := by simp}
+
+@[simp]
+def List.prefix_refl_C {u : List α} : u.Prefix' u := by
+  use []
+  exact ⟨by simp⟩
+
+@[simp]
+def List.suffix_refl_C {u : List α} : u.Suffix' u := by
+  use []
+  exact ⟨by simp⟩
+
+def prefix_cons_inj (a) : List.Prefix' l₁ l₂ → List.Prefix' (a :: l₁) (a :: l₂) := by
+  intro h
+  rcases h with ⟨rest, ⟨spec⟩⟩
+  use rest
+  exact ⟨by simp [spec]⟩
+
+def List.prefix_append_self_C : List.Prefix' a (a ++ b) := by
+  use b
+  exact ⟨by simp⟩
+
+def List.suffix_append_self_C : List.Suffix' b (a ++ b) := by
+  use a
+  exact ⟨by simp⟩
+
+def List.suffix_append_right_C (h : List.Suffix' b c) : List.Suffix' (b ++ a) (c ++ a) := by
+  rcases h with ⟨t, ⟨ht⟩⟩
+  use t
+  constructor
+  simp [← ht]
+
+def List.prefix_append_right_inj_C : (List.Prefix' (l ++ l₁) (l ++ l₂) →  List.Prefix' l₁ l₂) ×
+    (List.Prefix' l₁ l₂ → List.Prefix' (l ++ l₁) (l ++ l₂)) := by
+  constructor
+  · induction l
+    · simp
+      exact fun a ↦ a
+    rename_i head tail ih
+    intro h
+    apply ih
+    rcases h with ⟨w, ⟨hwt⟩⟩
+    simp at hwt
+    use w
+    constructor
+    simp [hwt]
+  intro h
+  rcases h with ⟨w, ⟨hwt⟩⟩
+  use w
+  constructor
+  simp [hwt]
 
 def prefix_true (h1 : is_true bot3) (h : k₂ ++ [(a1, false), (b1, true)] ++ l = bot3 ++ mid3 ++ up3) :
-    List.Infix' bot3 k₂ := by
+    List.Prefix' bot3 k₂ := by
   induction k₂ generalizing bot3 with
   | nil =>
     cases bot3 with
-    | nil => exact infix_nil_C []
+    | nil => exact List.nil_prefix_C
     | cons head tail =>
       simp at h
       rw [← h.1] at h1
       simp [is_true] at h1
-      exfalso
-      sorry
+      specialize h1 (a1, false) { down := List.mem_cons_self}
+      simp at h1
+      apply h1.1.elim
   | cons head tail ih =>
     cases bot3 with
-    | nil => exact infix_nil_C (head :: tail)
+    | nil => exact List.nil_prefix_C
     | cons head1 tail1 =>
       simp only [List.cons_append, List.nil_append, List.cons.injEq] at h
       specialize @ih tail1 (is_true_split h1).2 h.2
       rw [h.1]
-      sorry
-     --exact (List.prefix_cons_inj head1).mpr ih
+      exact (prefix_cons_inj head1) ih
 
-theorem prefix_false (h1 : is_false t3) (h : tk ++ [(a1, false), (b1, true)] ++ l =
-    t3 ++ (f, false) :: (m ++ [(c, true)]) ++ up3) : t3 <+: tk := by
+def prefix_false (h1 : is_false t3) (h : tk ++ [(a1, false), (b1, true)] ++ l =
+    t3 ++ (f, false) :: (m ++ [(c, true)]) ++ up3) : List.Prefix' t3 tk := by
   induction tk generalizing t3 with
   | nil =>
     cases t3 with
-    | nil => exact List.nil_prefix
+    | nil => exact List.nil_prefix_C
     | cons head tail =>
       cases tail with
       | nil =>
@@ -621,12 +690,13 @@ theorem prefix_false (h1 : is_false t3) (h : tk ++ [(a1, false), (b1, true)] ++ 
         simp at h
         rw [← h.2.1] at h1
         simp [is_false] at h1
+        apply h1.1.elim
   | cons head tail ih =>
     cases t3 with
     | nil =>
-      exact List.nil_prefix
+      exact List.nil_prefix_C
     | cons ht tt =>
       simp at h
       specialize @ih tt (is_false_split h1).2 (by simp [h.2])
       rw [h.1]
-      exact (List.prefix_cons_inj ht).mpr ih
+      exact prefix_cons_inj ht ih

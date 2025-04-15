@@ -2,24 +2,6 @@ import BraidProject.PartialGrids_C
 import BraidProject.StepOne_C
 import Mathlib.Data.List.Infix
 
-
-def List.nil_suffix_C : [].Infix' u := by
-  use [], u
-  exact {down := by simp}
-
-def List.prefix_append_right_inj_C : (List.Infix' (l ++ l₁) (l ++ l₂) →  List.Infix' l₁ l₂) ×
-    (List.Infix' l₁ l₂ → List.Infix' (l ++ l₁) (l ++ l₂)) := by
-  constructor
-  · induction l
-    · simp
-      exact fun a ↦ a
-    rename_i head tail ih
-    intro h
-    apply ih
-    rcases h with ⟨w, t, ⟨hwt⟩⟩
-    sorry
-  sorry
-
 noncomputable def grid_style_split (h : grid_style i j) : Σ a b, PLift (i = [(a, false), (b, true)]) := by
   induction h with
   | basic =>
@@ -56,17 +38,17 @@ theorem List.append_eq_len_two (h1 : a.length > 0) (h2 : b.length > 0) (h3 : a +
 
 namespace PartialGrid
 
-theorem right_frontier_is_false (h : PartialGrid a b c d e) : is_false e := by
+noncomputable def right_frontier_is_false (h : PartialGrid a b c d e) : is_false e := by
   induction h with
   | single_grid  => exact is_false_up
-  | empty => simp
+  | empty => exact is_false_nil
   | horizontal_append_one => assumption
   | horizontal_append => assumption
   | vertical_append_one _ _ g1_ih g2_ih =>
     exact is_false_of_false_false g2_ih g1_ih
   | vertical_append => assumption
 
-theorem top_frontier_is_true (h : PartialGrid a b c d e) : is_true b := by
+noncomputable def  top_frontier_is_true (h : PartialGrid a b c d e) : is_true b := by
   induction h with
   | single_grid => exact is_true_over
   | empty  => assumption
@@ -75,7 +57,7 @@ theorem top_frontier_is_true (h : PartialGrid a b c d e) : is_true b := by
   | vertical_append_one => assumption
   | vertical_append => assumption
 
-theorem left_frontier_is_false (h : PartialGrid a b c d e) : is_false a := by
+noncomputable def left_frontier_is_false (h : PartialGrid a b c d e) : is_false a := by
   induction h with
     | single_grid => exact is_false_up
     | empty => assumption
@@ -85,10 +67,10 @@ theorem left_frontier_is_false (h : PartialGrid a b c d e) : is_false a := by
       exact is_false_of_false_false g2_ih g1_ih
     | vertical_append _ _ _ ih1 ih2 => exact is_false_of_false_false ih2 ih1
 
-theorem bottom_frontier_is_true (h : PartialGrid a b c d e) : is_true c := by
+noncomputable def bottom_frontier_is_true (h : PartialGrid a b c d e) : is_true c := by
   induction h with
     | single_grid => exact is_true_over
-    | empty => simp
+    | empty => exact is_true_nil
     | horizontal_append_one => exact is_true_of_true_true (by assumption) (by assumption)
     | horizontal_append => assumption
     | vertical_append_one => assumption
@@ -193,6 +175,7 @@ noncomputable def over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a
         rcases List.length_geq_one_eq_cons_cons _ h5 h with ⟨f, hf⟩
         rw [hf] at h1
         simp [is_false] at h1
+        exact h1.1
       omega
     change a.length = [(a3, false)].length at H
     exact {down := List.append_inj h5 H}
@@ -209,13 +192,18 @@ noncomputable def over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a
         rw [h5.2] at h2
         specialize h2 (a3, false)
         have H : (a3, false).2 = true := by
-          apply h2
-          apply List.mem_append_right tail
-          exact List.mem_cons_self (a3, false) ((b3, true) :: l)
+          have H2 : PLift ((a3, false).2 = true) := by
+            apply h2
+            exact {down := by
+                    apply List.mem_append_right tail
+                    exact List.mem_cons_self}
+          exact H2.1
         use [], []
         exact {down := (Bool.eq_not_self (a3, false).2).mp H}
       | cons headaa tailaa =>
-        have H1 : is_false (headaa :: tailaa) := fun x hx => h1 _ <| List.mem_cons_of_mem heada hx
+        have H1 : is_false (headaa :: tailaa) := by
+          constructor
+          exact fun x hx => h1.1 _ <| List.mem_cons_of_mem heada hx
         specialize ih H1 (by simp) h5.2
         rcases ih with ⟨a1', a2', b1', b2', f1, f2, f3, f4, f5⟩
         use heada :: a1', a2', b1', b2'
@@ -348,10 +336,10 @@ noncomputable def skeleton_cons_cons (gs : grid_style i j) (ha : is_false (head 
     exact H5
   exact {down := by simp [j_is]}
 
-theorem big_split (hup2 : is_false up2)
+def big_split (hup2 : is_false up2)
     (h : bot3 ++ mid3 ++ (up3 ++ up2) = k ++ [(a1, false), (b1, true)] ++ l) :
-    ∃ l₁ l₂, l = l₁ ++ l₂ ∧ bot3 ++ mid3 ++ up3 = k ++ [(a1, false), (b1, true)] ++ l₁ ∧
-    l₂ = up2 := by
+    Σ l₁ l₂, PLift (l = l₁ ++ l₂ ∧ bot3 ++ mid3 ++ up3 = k ++ [(a1, false), (b1, true)] ++ l₁ ∧
+    l₂ = up2) := by
   induction l using List.reverseRecOn generalizing up2 with
   | nil =>
     use [], []
@@ -363,9 +351,11 @@ theorem big_split (hup2 : is_false up2)
         rw [← List.append_assoc, ← List.append_assoc, List.getLast?_concat, List.append_nil,
           List.getLast?_append_cons, List.getLast?_cons_cons, List.getLast?_singleton, Option.some.injEq] at h3
         rw [h3] at hup2
-        specialize hup2 (b1, true) (List.mem_append_right l (List.mem_singleton.mpr rfl))
-        simp at hup2
+        unfold is_false at hup2
+        have H := hup2.1 (b1, true) (List.mem_append_right l (List.mem_singleton.mpr rfl))
+        simp at H
     rw [H] at h
+    constructor
     constructor
     · rfl
     constructor
@@ -379,6 +369,7 @@ theorem big_split (hup2 : is_false up2)
       simp at h
       use front ++ [caboose], []
       constructor
+      constructor
       · simp
       simp [h]
     | append_singleton up2front up2back _ =>
@@ -389,16 +380,17 @@ theorem big_split (hup2 : is_false up2)
       simp at h1
       simp at ih
       specialize ih h1
-      rcases ih with ⟨l₁, hl1, hl2⟩
-      use l₁, up2front ++ [caboose]
+      rcases ih with ⟨l₁, l₂, hl1, hl2⟩
+      use l₁, l₂ ++ [caboose]
+      constructor
       constructor
       · rw [hl1]
-        exact List.append_assoc l₁ up2front [caboose]
+        exact List.append_assoc l₁ l₂ [caboose]
       constructor
       · simp [hl2]
-      simp
       simp at h
-      exact h.symm
+      simp [h]
+      exact hl2.2
 
 def big_split_first (hbot2 : is_true bot2) (h : bot2 ++ bot3 ++ mid3 ++ up3 = k ++ [(a1, false), (b1, true)] ++ l)
     : Σ k₁ k₂, PLift (k = k₁ ++ k₂ ∧ bot3 ++ mid3 ++ up3 = k₂ ++ [(a1, false), (b1, true)] ++ l
@@ -413,6 +405,9 @@ def big_split_first (hbot2 : is_true bot2) (h : bot2 ++ bot3 ++ mid3 ++ up3 = k 
         simp at h
         rw [h.1] at hbot2
         simp [is_true]  at hbot2
+        specialize hbot2 (a1, false) ⟨List.mem_cons_self⟩
+        simp at hbot2
+        exact hbot2.1.elim
     simp [H] at h
     simp [H, h]
     exact {down := trivial}
@@ -474,12 +469,12 @@ noncomputable def PartialGrid.extend_bottom (h : PartialGrid a b c d e) (a2) (h2
     rw [List.length_append]
     omega
   | horizontal_append_one g1 g2 ih1 ih2 =>
-    have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos.mpr h3)) ih1 g2
+    have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos_iff.mpr h3)) ih1 g2
     rw [List.append_nil] at H
     rw [← List.append_assoc]
     exact H
   | horizontal_append h g1 g2 ih1 ih2 =>
-    have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos.mpr h3)) ih1 g2
+    have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos_iff.mpr h3)) ih1 g2
     rw [← List.append_assoc, ← List.append_assoc]
     exact H
   | vertical_append_one g1 g2 ih1 ih2 =>
@@ -518,12 +513,12 @@ noncomputable def PartialGrid.extend_side (h : PartialGrid a b c d e) (b2) (h2 :
     rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc] at H
     exact H
   | vertical_append_one g1 g2 g1_ih g2_ih =>
-    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (List.length_pos.mpr h3))
+    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (List.length_pos_iff.mpr h3))
     rw [← List.append_assoc, ← List.append_assoc, List.append_nil] at H
     rw [← List.append_assoc]
     exact H
   | vertical_append g1 g2 h g1_ih g2_ih =>
-    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (Or.inr (List.length_pos.mpr h3)))
+    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (Or.inr (List.length_pos_iff.mpr h3)))
     rw [← List.append_assoc, ← List.append_assoc] at H
     exact H
 
@@ -605,6 +600,7 @@ noncomputable def middle_frontier_nil_or_caps (h : PartialGrid a b c d e) : midd
         rw [hhbb]
         use hbb, td, cb
         simp
+        exact ⟨trivial⟩
   | horizontal_append_one g1 g2 g1_ih g2_ih => assumption
   | horizontal_append h1 g1 g2 g1_ih g2_ih =>
     rename_i bot2 _ _
@@ -650,7 +646,8 @@ noncomputable def middle_frontier_nil_or_caps (h : PartialGrid a b c d e) : midd
           exact (is_false_append (right_frontier_is_false g2)).1
         rcases is_false_singleton H with ⟨hf, spec2⟩
         use hf, tail ++ [(f1, false)] ++ m1, c1
-        simp [spec2, spec]
+        simp [spec2.1, spec.1]
+        exact ⟨trivial⟩
     rcases h2 with ⟨f1, m1, c1, spec1⟩
     rcases h4 with ⟨f2, m2, c2, spec2⟩
     rw [spec1.1, spec2.1]
@@ -658,13 +655,14 @@ noncomputable def middle_frontier_nil_or_caps (h : PartialGrid a b c d e) : midd
     use f2, m2 ++ [(c2, true)] ++ up2 ++ [(f1, false)] ++ m1, c1
     exact {down := by simp}
 
-theorem double_split_helper_two_one  (h : mid2 ++ bot3 = [(a1, false), (b1, true)] ++ b)
-    (hm2 : middle_end mid2) (hbot3 : is_true bot3 ∨ is_false bot3) :
-    (∃ m2, mid2 = [(a1, false), (b1, true)] ++ m2) := by
+def double_split_helper_two_one  (h : mid2 ++ bot3 = [(a1, false), (b1, true)] ++ b)
+    (hm2 : middle_end mid2) (hbot3 : is_true bot3 ⊕ is_false bot3) :
+    (Σ m2, PLift (mid2 = [(a1, false), (b1, true)] ++ m2)) := by
   induction bot3 using List.reverseRecOn generalizing b with
   | nil =>
     rw [List.append_nil] at h
     use b
+    exact ⟨by simp [h]⟩
   | append_singleton frontb cabooseb ihb =>
     induction b using List.reverseRecOn with
     | nil =>
@@ -673,30 +671,34 @@ theorem double_split_helper_two_one  (h : mid2 ++ bot3 = [(a1, false), (b1, true
       apply List.append_singleton_eq_append_singleton at h
       rcases hm2 with is_nil | ⟨frontm, endm, hfe⟩
       · exfalso
-        rw [is_nil, List.nil_append] at h
+        rw [is_nil.1, List.nil_append] at h
         rcases hbot3 with h3 | h4
         · rw [h.1] at h3
           apply is_true_append at h3
           simp [is_true] at h3
+          have H := h3.1 (a1, false) ⟨List.mem_singleton.mpr rfl⟩
+          simp at H
+          exact H.1
         rw [h.2] at h4
         apply is_false_append at h4
         simp [is_false] at h4
-      rw [hfe] at h
+        exact h4.2.1
+      rw [hfe.1] at h
       have H0 := congr_arg List.length h.1
       simp at H0
-      have H1 : frontm = [] := List.length_eq_zero.mp (by omega)
-      have H2 : frontb = [] := List.length_eq_zero.mp (by omega)
+      have H1 : frontm = [] := List.length_eq_zero_iff.mp (by omega)
+      have H2 : frontb = [] := List.length_eq_zero_iff.mp (by omega)
       rw [H1, H2] at h
       simp at h
     | append_singleton frontbb caboosebb _ =>
       rw [← List.append_assoc, ← List.append_assoc] at h
       apply List.append_singleton_eq_append_singleton at h
       rcases hbot3 with h3 | h4
-      · exact @ihb frontbb h.1 (Or.inl (is_true_append h3).1)
-      exact @ihb frontbb h.1 (Or.inr (is_false_append h4).1)
+      · exact @ihb frontbb h.1 (Sum.inl (is_true_append h3).1)
+      exact @ihb frontbb h.1 (Sum.inr (is_false_append h4).1)
 
 def double_split_helper_two_three (h : bot3 ++ mid3 = k ++ [(a1, false), (b1, true)] ++ l)
-    (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) (hm3 : middle_start mid3):
+    (hbot3 : is_true bot3 ⊕ is_false bot3) (hm3 : middle_start mid3):
     Σ m3 m4, PLift (mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ l = m4) := by
   induction bot3 generalizing k with
   | nil =>
@@ -713,13 +715,15 @@ def double_split_helper_two_three (h : bot3 ++ mid3 = k ++ [(a1, false), (b1, tr
       · rw [h.1] at h3
         simp [is_true] at h3
         exfalso
+        specialize h3 ⟨a1, false⟩ ⟨List.mem_cons_self⟩
+        simp at h3
         exact h3.1
       cases tail with
       | nil =>
         rcases hm3 with h5 | ⟨f1, m1, spec⟩
-        · rw [h5] at h
+        · rw [h5.1] at h
           simp at h
-        rw [spec] at h
+        rw [spec.1] at h
         simp at h
       | cons head tail =>
         simp at h
@@ -728,39 +732,39 @@ def double_split_helper_two_three (h : bot3 ++ mid3 = k ++ [(a1, false), (b1, tr
         exact h4.1.elim
     | cons headk tailk =>
       simp only [List.cons_append,List.cons.injEq] at h
-      have h2 : PLift (is_true tail) ⊕ PLift (is_false tail) := by
+      have h2 : is_true tail ⊕ is_false tail := by
         rcases hbot3 with h1 | h2
-        · exact Sum.inl {down := (is_true_split h1.1).2}
-        exact Sum.inr {down := (is_false_split h2.1).2}
+        · exact Sum.inl (is_true_split h1).2
+        exact Sum.inr (is_false_split h2).2
       exact @ih tailk h.2 h2
 
 theorem empty_middle_helper {b : Bool} (hm2 : middle_end mid2) (hm3 : middle_start mid3)
     (h : mid2 ++ [(a', b)] ++ mid3 = [(a1, false), (b1, true)]) : False := by
     rcases hm2 with h3 | h4
     · rcases hm3 with h5 | h6
-      · rw [h3, h5] at h
+      · rw [h3.1, h5.1] at h
         simp at h
       rcases h6 with ⟨f, m, spec2⟩
-      rw [spec2] at h
+      rw [spec2.1] at h
       have := congr_arg List.length h
       simp at this
       have : m.length = 0 ∧ mid2.length = 0 := by omega
-      have H : m = [] ∧ mid2 = [] := ⟨List.length_eq_zero.mp this.1, List.length_eq_zero.mp this.2⟩
+      have H : m = [] ∧ mid2 = [] := ⟨List.length_eq_zero_iff.mp this.1, List.length_eq_zero_iff.mp this.2⟩
       rw [H.1, H.2] at h
       simp at h
     rcases h4 with ⟨f, m, spec2⟩
-    rw [spec2] at h
+    rw [spec2.1] at h
     have := congr_arg List.length h
     simp at this
     have : f.length = 0 ∧ mid3.length = 0 := by omega
-    have H : f = [] ∧ mid3 = [] := ⟨List.length_eq_zero.mp this.1, List.length_eq_zero.mp this.2⟩
+    have H : f = [] ∧ mid3 = [] := ⟨List.length_eq_zero_iff.mp this.1, List.length_eq_zero_iff.mp this.2⟩
     rw [H.1, H.2] at h
     simp at h
 
-theorem double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)])
+def double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)])
     (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3) (hbot3 : is_true bot3 ∨ is_false bot3) :
-    (∃ m2, mid2 = [(a1, false), (b1, true)] ++ m2) ∨ ∃ m3, mid3 = m3 ++ [(a1, false), (b1, true)] := by
+    (hm3 : middle_start mid3) (hbot3 : is_true bot3 ⊕ is_false bot3) :
+    (Σ m2, PLift (mid2 = [(a1, false), (b1, true)] ++ m2)) ⊕ Σ m3, PLift (mid3 = m3 ++ [(a1, false), (b1, true)]) := by
   have len := congr_arg List.length h
   simp only [List.append_assoc, List.length_append, List.length_cons, List.length_singleton,
     Nat.succ_eq_add_one, Nat.reduceAdd, List.length_nil, zero_add, Nat.reduceAdd] at len
@@ -768,61 +772,76 @@ theorem double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false)
     intro h1
     have H1 : mid2.length = 0 := by omega
     have H2 : mid3.length = 0 := by omega
-    rw [List.length_eq_zero.mp H1, List.length_eq_zero.mp H2, List.nil_append, List.append_nil] at h
+    rw [List.length_eq_zero_iff.mp H1, List.length_eq_zero_iff.mp H2, List.nil_append, List.append_nil] at h
     rw [h] at hbot3
     simp [is_true, is_false] at hbot3
+    rcases hbot3 with h1 | h2
+    · specialize h1 (a1, false) ⟨List.mem_cons_self⟩
+      simp at h1
+      exact h1.1
+    exact h2.1
   have : bot3.length ≠ 1 := by
     intro h2
-    have Hb : ∃ a, bot3 = [a] := List.length_eq_one.mp h2
+    have Hb : ∃ a, bot3 = [a] := List.length_eq_one_iff.mp h2
     rcases Hb with ⟨a, ha⟩
     rcases hbot3 with h_t | h_f
     · rw [ha] at h_t
       rcases is_true_singleton h_t with ⟨a', spec⟩
-      rw [ha, spec] at h
+      rw [ha, spec.1] at h
       exact empty_middle_helper hm2 hm3 h
     rw [ha] at h_f
     rcases is_false_singleton h_f with ⟨a', spec⟩
-    rw [ha, spec] at h
+    rw [ha, spec.1] at h
     exact empty_middle_helper hm2 hm3 h
-  have H : bot3 = [] := List.length_eq_zero.mp (by omega)
+  have H : bot3 = [] := List.length_eq_zero_iff.mp (by omega)
   rw [H, List.append_nil] at h
   have H : mid2.length ≠ 1 := by
     intro hm_length
-    rcases List.length_eq_one.mp hm_length with ⟨a, ha⟩
+    rcases List.length_eq_one_iff.mp hm_length with ⟨a, ha⟩
     rw [ha] at h
     simp only [List.singleton_append, List.cons.injEq] at h
     rw [h.1] at ha
     rw [ha] at hm2
     rcases hm2 with h1 | ⟨a2, a3, ha2⟩
     · simp at h1
+      exact h1.1
     have h4 : a2 = [] := by
-      apply congr_arg List.length at ha2
-      simp only [List.length_singleton, List.length_append, self_eq_add_left,
-        List.length_eq_zero] at ha2
-      exact ha2
+      have ha2' := ha2.1
+      apply congr_arg List.length at ha2'
+      simp only [List.length_singleton, List.length_append, right_eq_add,
+        List.length_eq_zero_iff] at ha2'
+      exact ha2'
     rw [h4, List.nil_append] at ha2
     simp at ha2
-  have H2 : mid2.length = 0 ∨ mid2.length = 2 := by omega
-  rcases H2 with zero | two
-  · rw [List.length_eq_zero.mp zero, List.nil_append] at h
-    right; use []; rw [h]; rfl
-  have H3 : mid3.length = 0 := by omega
-  rw [List.length_eq_zero.mp H3, List.append_nil] at h
-  left; use []; rw [h]; rfl
+    exact ha2.1
+  match ml : mid2.length with
+  | 0 =>
+    rw [List.length_eq_zero_iff.mp ml, List.nil_append] at h
+    right; use []; rw [h]; exact ⟨rfl⟩
+  | 1 =>
+    cases H ml
+  | 2 =>
+      have H3 : mid3.length = 0 := by omega
+      rw [List.length_eq_zero_iff.mp H3, List.append_nil] at h
+      left; use []; rw [h]; exact ⟨rfl⟩
+  | Nat.succ (Nat.succ (Nat.succ n)) =>
+    rw [ml] at len
+    simp at len
+    omega
 
-theorem double_split_helper_three_one (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)])
+def double_split_helper_three_one (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)])
     (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3) (hbot3 : is_true bot3 ∨ is_false bot3) :
-    (∃ m2, mid2 = [(a1, false), (b1, true)] ++ m2) ∨ ∃ m3 m4, mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ [] = m4 := by
+    (hm3 : middle_start mid3) (hbot3 : is_true bot3 ⊕ is_false bot3) :
+    (Σ m2, PLift (mid2 = [(a1, false), (b1, true)] ++ m2)) ⊕ Σ m3 m4, PLift (mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ [] = m4) := by
   rcases double_split_helper_three_one_s h hm2 hm3 hbot3 with h1 | ⟨m3, hm3⟩
   · left; exact h1
-  right; use m3, []; simp [hm3]
+  right; use m3, []; simp; exact hm3
 
-theorem double_split_helper_three_two_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)] ++ l)
+def double_split_helper_three_two_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)] ++ l)
     (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3) (hbot3 : is_true bot3 ∨ is_false bot3) :
-    (∃ m2, mid2 = [(a1, false), (b1, true)] ++ m2) ∨
-    ∃ m3 m4, mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ l = m4 := by
+    (hm3 : middle_start mid3) (hbot3 : is_true bot3 ⊕ is_false bot3) :
+    (Σ m2, PLift (mid2 = [(a1, false), (b1, true)] ++ m2)) ⊕
+    Σ m3 m4,PLift (mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ l = m4) := by
   induction l using List.reverseRecOn generalizing mid3 with
   | nil => exact double_split_helper_three_one h hm2 hm3 hbot3
   | append_singleton head tail ih =>
@@ -838,23 +857,23 @@ theorem double_split_helper_three_two_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false)
       rcases ih with ha | ⟨m3, m4, hm34⟩
       · left; exact ha
       right
-      rw [hm34.1, hm34.2, ← h.2]
+      rw [hm34.1.1, hm34.1.2, ← h.2]
       use m3, m4 ++ [tailm]
-      simp
+      exact ⟨by simp⟩
 
 def double_split_helper_three_two (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)] ++ l)
     (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3) (hbot3 : is_true bot3 ∨ is_false bot3) :
+    (hm3 : middle_start mid3) (hbot3 : is_true bot3 ⊕ is_false bot3) :
     (Σ m1 m2, PLift (mid2 = m1 ++ [(a1, false), (b1, true)] ++ m2 ∧ [] = m1)) ⊕
     Σ m3 m4, PLift (mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ l = m4) := by
   rcases double_split_helper_three_two_s h hm2 hm3 hbot3 with ⟨m2, hm2⟩ | h2
   · left; use [], m2
-    rw [hm2]
-    simp
+    rw [hm2.1]
+    exact ⟨by simp⟩
   right; exact h2
 
 def double_split_helper_three {mid2 bot3 mid3 k l : List (Option ℕ × Bool)} {a1 b1 : Option ℕ}
-    (hbot3 : is_true bot3 ∨ is_false bot3)
+    (hbot3 : is_true bot3 ⊕ is_false bot3)
     (hm2 : middle_end mid2)
     (hm3 : middle_start mid3)
     (h : mid2 ++ bot3 ++ mid3 = k ++ [(a1, false), (b1, true)] ++ l) :
@@ -869,28 +888,32 @@ def double_split_helper_three {mid2 bot3 mid3 k l : List (Option ℕ × Bool)} {
       exact double_split_helper_two_three h hbot3 hm3 -- its own lemma
     | cons head tail =>
       simp at h
-      have Ht : tail = [] ∨ ∃ front a, tail = front ++ [(a, true)] := by
+      have Ht : PLift (tail = []) ⊕ Σ front a, PLift (tail = front ++ [(a, true)]) := by
         rcases hm2 with h1 | h2
         · simp at h1
+          exact h1.1.elim
         rcases h2 with ⟨f1, a1, spec⟩
         cases f1 with
-        | nil => left; simp at spec; exact spec.2
-        | cons head tail => right; simp at spec; use tail, a1; exact spec.2
+        | nil => left; simp at spec; exact ⟨spec.1.2⟩
+        | cons head tail => right; simp at spec; use tail, a1; exact ⟨spec.1.2⟩
       simp only [List.append_assoc, List.cons_append, List.singleton_append, List.nil_append,
         List.nil_eq_append_iff] at ih
-      specialize @ih tail Ht h.2
+      specialize @ih tail Ht
+      simp at ih
+      specialize ih h.2
       rcases ih with ⟨m1, m2, hm12⟩ | ⟨m3, m4, hm34⟩
       · left
         use head :: m1, m2
-        rw [hm12.1, hm12.2, h.1]
+        rw [hm12.1.1, hm12.1.2, h.1]
         simp
+        exact ⟨trivial⟩
       right
       use m3, m4
       simp
       exact hm34
 
 def double_split_helper_four {mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)} {a1 b1 : Option ℕ}
-     (hbot3 : is_true bot3 ∨ is_false bot3) (hup3 : is_false up3)
+     (hbot3 : is_true bot3 ⊕ is_false bot3) (hup3 : is_false up3)
     (h : (mid2 ++ bot3 ++ mid3) ++ up3 = k ++ [(a1, false), (b1, true)] ++ l)
         (hm2 : middle_spec mid2)
     (hm3 : middle_spec mid3) :
@@ -913,6 +936,7 @@ def double_split_helper_four {mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)
       rw [h.2] at hup3
       apply is_false_append at hup3
       simp [is_false] at hup3
+      exact hup3.2.1.elim
     | append_singleton headl taill =>
       have H : is_false front := (is_false_append hup3).1
       rw [← List.append_assoc, ← List.append_assoc] at h
@@ -929,7 +953,7 @@ def double_split_helper_four {mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)
       exact ⟨hm34, by simp [l_is, h.2]⟩
 
 def double_split_helper' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)} {a1 b1 : Option ℕ}
-    (hbot2 : is_true bot2) (hbot3 : is_true bot3 ∨ is_false bot3) (hup3 : is_false up3)
+    (hbot2 : is_true bot2) (hbot3 : is_true bot3 ⊕ is_false bot3) (hup3 : is_false up3)
         (hm2 : middle_spec mid2)
     (hm3 : middle_spec mid3)
     (h : bot2 ++ (mid2 ++ bot3 ++ mid3) ++ up3 = k ++ [(a1, false), (b1, true)] ++ l) :
@@ -945,6 +969,9 @@ def double_split_helper' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool
       simp at h
       rw [h.1] at hbot2
       simp [is_true] at hbot2
+      specialize hbot2 (a1, false) ⟨List.mem_cons_self⟩
+      simp at hbot2
+      exact hbot2.1.elim
     | cons headl taill =>
       simp at h
       simp only [List.append_assoc, List.cons_append, List.singleton_append] at ih
@@ -962,7 +989,7 @@ def double_split_helper' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool
       exact ⟨hm34, l_is⟩
 
 def double_split_horiz {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)} {a1 b1 : Option ℕ}
-    (hbot2 : is_true bot2) (hbot3 : is_true bot3 ∨ is_false bot3) (hup3 : is_false up3)
+    (hbot2 : is_true bot2) (hbot3 : is_true bot3 ⊕ is_false bot3) (hup3 : is_false up3)
     (h : bot2 ++ (mid2 ++ bot3 ++ mid3) ++ up3 = k ++ [(a1, false), (b1, true)] ++ l)
     (hm : middle_spec mid2)
     (hm3 : middle_spec mid3) :
@@ -986,13 +1013,13 @@ def double_split_horiz {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)}
   rw [← List.append_assoc]
   exact ⟨h.symm, by simp [l_is]⟩
 
-theorem double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)} {a1 b1 : Option ℕ}
-    (hbot2 : is_true bot2) (hbot3 : is_true bot3 ∨ is_false bot3) (hup3 : is_false up3)
+def double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)} {a1 b1 : Option ℕ}
+    (hbot2 : is_true bot2) (hbot3 : is_true bot3 ⊕ is_false bot3) (hup3 : is_false up3)
     (h : bot2 ++ (mid2 ++ bot3 ++ mid3) ++ up3 = k ++ [(a1, false), (b1, true)] ++ l)
     (hm : middle_spec mid2)
     (hm3 : middle_spec mid3) :
-    (∃ k₁ k₂, k = k₁ ++ k₂ ∧ k₁ = bot2 ++ mid2 ++ bot3 ∧ k₂ ++ [(a1, false), (b1, true)] ++ l =  mid3 ++ up3) ∨
-    (∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₂ = mid3 ++ up3 ∧ k ++ [(a1, false), (b1, true)] ++ l₁ = bot2 ++ mid2 ++ bot3) := by
+    (Σ k₁ k₂, PLift (k = k₁ ++ k₂ ∧ k₁ = bot2 ++ mid2 ++ bot3 ∧ k₂ ++ [(a1, false), (b1, true)] ++ l =  mid3 ++ up3)) ⊕
+    (Σ l₁ l₂, PLift (l = l₁ ++ l₂ ∧ l₂ = mid3 ++ up3 ∧ k ++ [(a1, false), (b1, true)] ++ l₁ = bot2 ++ mid2 ++ bot3)) := by
   have H := double_split_horiz hbot2 hbot3 hup3 h hm hm3
   rcases H with ⟨k₁, k₂, k_is, k12_is⟩ | ⟨l₁, l₂, l_is, l12_is⟩
   · left
@@ -1000,9 +1027,10 @@ theorem double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × B
     · rw [k12_is.1, List.append_nil] at k_is
       rw [k_is]
       rcases hm3 with h1 | ⟨f, m, c, spec⟩
-      · rw [h1, List.nil_append, List.append_nil] at k12_is
-        rw [h1, List.nil_append]
+      · rw [h1.1, List.nil_append, List.append_nil] at k12_is
+        rw [h1.1, List.nil_append]
         use k₁, []
+        constructor
         constructor
         · rw [List.append_nil]
           exact k12_is.1.symm
@@ -1013,29 +1041,39 @@ theorem double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × B
             rw [List.nil_append] at k12_is
             rw [← k12_is.2] at hup3
             simp [is_false] at hup3
+            exact hup3.1
           | cons head tail =>
             simp at k12_is
             rw [← k12_is.2.1] at h3
             simp [is_true] at h3
+            specialize h3 (a1, false) ⟨List.mem_cons_self⟩
+            simp at h3
+            exact h3.1
         exfalso
         have H : is_false (bot3 ++ up3) := is_false_of_false_false h4 hup3
         rw [← k12_is.2] at H
         simp [is_false] at H
+        exact H.1
       have H : bot3 = [] := by
         cases bot3 with
         | nil => rfl
         | cons head tail =>
           cases tail with
           | nil =>
-            simp [spec] at k12_is
+            simp [spec.1] at k12_is
           | cons head2 tail2 =>
-            simp [spec] at k12_is
+            simp [spec.1] at k12_is
             rcases hbot3 with h3 | h4
             · rw [← k12_is.2.1] at h3
               simp [is_true] at h3
+              specialize h3 (a1, false) ⟨List.mem_cons_self⟩
+              simp at h3
+              apply h3.1.elim
             rw [← k12_is.2.2.1] at h4
             simp [is_false] at h4
+            exact h4.1.elim
       use k₁, bot3
+      constructor
       constructor
       · rw [H, List.append_nil]
         exact k12_is.1.symm
@@ -1046,54 +1084,60 @@ theorem double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × B
     cases bot3
     · use k₁, hk :: tk
       constructor
+      constructor
       · exact k_is
       rw [List.nil_append] at k12_is
       rw [List.append_nil]
       exact k12_is
     rename_i h3 t3
-    have : ∃ ender, hk::tk = h3 :: t3 ++ ender := by
-      rcases hbot3 with h3 | h4
-      · have H := prefix_true h3 k12_is.2
+    have : Σ ender, PLift (hk::tk = h3 :: t3 ++ ender) := by
+      rcases hbot3 with h5 | h6
+      · have H := prefix_true h5 k12_is.2
         rcases H with ⟨w, hw⟩
-        use w; exact hw.symm
+        use w; exact ⟨hw.1.symm⟩
       rcases hm3 with h5 | ⟨f, m ,c, spec⟩
-      · have H := is_false_of_false_false h4 hup3
-        rw [h5, List.append_nil] at k12_is
+      · have H := is_false_of_false_false h6 hup3
+        rw [h5.1, List.append_nil] at k12_is
         rw [← k12_is.2] at H
         apply is_false_append at H
         have H2 := is_false_append H.1
         simp [is_false] at H2
-      rw [spec] at k12_is
+        exact H2.2.1.elim
+      rw [spec.1] at k12_is
       simp only [List.cons_append, List.nil_append, List.cons.injEq] at k12_is
       rw [k12_is.2.1]
       simp only [List.cons_append, List.cons.injEq, true_and]
-      rcases prefix_false (is_false_split h4).2 k12_is.2.2 with ⟨f, spec⟩
-      rw [← spec]
+      rcases prefix_false (is_false_split h6).2 k12_is.2.2 with ⟨f, spec⟩
+      rw [← spec.1]
       use f
+      exact ⟨rfl⟩
     rcases this with ⟨e, he⟩
     use k₁ ++ h3::t3, e
     constructor
-    · rw [List.append_assoc, ← he]
+    constructor
+    · rw [List.append_assoc, ← he.1]
       exact k_is
     constructor
     · rw [k12_is.1]
-    rw [he] at k12_is
+    rw [he.1] at k12_is
     simp only [List.cons_append, List.append_assoc, List.nil_append, List.cons.injEq,
       List.append_cancel_left_eq, true_and] at k12_is
     simp [k12_is.2]
   right
   use l₁ ++ bot3
-  have : bot3 <+: l₂ := by
+  have : List.Prefix' bot3 l₂ := by
     use mid3 ++ up3
     rw [← List.append_assoc]
+    constructor
     exact l12_is.1.symm
   rcases this with ⟨f, spec⟩
   use f
-  rw [← spec] at l12_is
+  constructor
+  rw [← spec.1] at l12_is
   simp only [List.append_assoc, List.append_cancel_left_eq, List.cons_append,
     List.nil_append] at l12_is
   constructor
-  · rw [List.append_assoc, spec]
+  · rw [List.append_assoc, spec.1]
     exact l_is
   constructor
   · exact l12_is.1
@@ -1101,7 +1145,7 @@ theorem double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × B
   simp
 
 noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j) (fe : bot ++ mid ++ up = k ++ i ++ l) :
-    Σ nb nm nu, PartialGrid a b nb nm nu × PLift (nb ++ nm ++ nu = k ++ j ++ l) × List.Infix' up nu × List.Infix' bot nb := by
+    Σ nb nm nu, PartialGrid a b nb nm nu × PLift (nb ++ nm ++ nu = k ++ j ++ l) × List.Suffix' up nu × List.Prefix' bot nb := by
   rcases grid_style_split hg with ⟨a1, b1, ⟨i_is⟩⟩
   rw [i_is] at fe
   induction h generalizing k l with
@@ -1129,7 +1173,7 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         have H := skeleton_one_one hg (by assumption) hb (by assumption) i_is
         rcases H with ⟨b, m, u, h3, h4⟩
         use b, m, u
-        exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_suffix_C⟩⟩⟩
+        exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_prefix_C⟩⟩⟩
       | cons head tail =>
         rw [← l_is]
         rw [← k_is, List.nil_append, ← l_is] at fe
@@ -1138,7 +1182,7 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
           (by assumption)
         rcases this with ⟨b, m, u, h3, h4⟩
         use b, m, u
-        exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_suffix_C⟩⟩⟩
+        exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_prefix_C⟩⟩⟩
     | cons head tail =>
       cases b2 with
       | nil =>
@@ -1147,7 +1191,7 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         have := skeleton_cons_one hg a_is ha1 hb1 i_is (by assumption) b_is hb
         rcases this with ⟨b, m, u, h3, h4⟩
         use b, m, u
-        exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_suffix_C⟩⟩⟩
+        exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_prefix_C⟩⟩⟩
       | cons headb tailb =>
         rw [a_is] at ha1
         rw [b_is] at hb1
@@ -1156,7 +1200,7 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         have := skeleton_cons_cons hg (is_false_append ha1).1 (is_true_append hb1).2 (by assumption)
         rcases this with ⟨b, m, u, h3, h4⟩
         use b, m, u
-        exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_suffix_C⟩⟩⟩
+        exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_prefix_C⟩⟩⟩
   | horizontal_append_one g1 g2 ih1 ih2 =>
     rename_i a2 b2 bot2 up2 b3 bot3 mid3 up3
     rcases big_split_first (bottom_frontier_is_true g1) fe with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
@@ -1171,7 +1215,7 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
     exact ⟨h5, (List.prefix_append_right_inj_C).2 h6⟩
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i a2 b2 bot2 mid2 up2 b3 bot3 mid3 up3
-    have := double_split_horiz (bottom_frontier_is_true g1) (Or.inl (bottom_frontier_is_true g2))
+    have := double_split_horiz (bottom_frontier_is_true g1) (Sum.inl (bottom_frontier_is_true g2))
       (right_frontier_is_false g2) fe (middle_frontier_nil_or_caps g1)
       (middle_frontier_nil_or_caps g2)
     rcases this with hl | hr
@@ -1180,12 +1224,18 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
       use bot2, mid2 ++ bot3++mid3, up3
       constructor
       · exact PartialGrid.horizontal_append h g1 hpg
-      simp [k_is, k1_is, k2_is, hf]
+      simp [k_is, k1_is, k2_is, hf.1.1]
+      constructor
+      · exact ⟨trivial⟩
+      constructor
+      · exact hf.2.1
+      exact bot2.prefix_refl_C
     rcases hr with ⟨l₁, l₂, l_is, l1_is, l2_is⟩
     have H3 : bot2 ++ mid2 ++ up2 = k ++ [(a1, false), (b1, true)] ++ (l₁ ++ up2) := by
       rw [← l2_is]
       simp
-    rcases @g1_ih k (l₁ ++ up2) H3 with ⟨bot4, mid4, up4, hpg, hf, ⟨to_add, spec⟩, h6⟩
+    have H := @g1_ih k (l₁ ++ up2) H3
+    rcases @g1_ih k (l₁ ++ up2) H3 with ⟨bot4, mid4, up4, hpg, ⟨hf⟩, ⟨to_add, ⟨spec⟩⟩, back2, ⟨h6⟩⟩
     cases mid4 with
     | nil =>
       cases to_add with
@@ -1199,8 +1249,14 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         · rw [spec, ← List.append_assoc, List.append_nil] at hf
           apply List.append_cancel_right at hf
           rw [hf, l_is, l1_is]
-          simp
-        exact ⟨List.suffix_refl up3, List.prefix_of_append h6⟩
+          exact ⟨by simp⟩
+        constructor
+        · exact List.suffix_refl_C
+        rw [← h6]
+        have H : bot2 = bot2 ++ [] := by simp
+        nth_rewrite 1 [H]
+        rw [List.append_assoc]
+        exact List.prefix_append_right_inj_C.2 List.nil_prefix_C
       | cons heade taile =>
         use bot4, (heade :: taile) ++ bot3 ++ mid3, up3
         constructor
@@ -1218,9 +1274,12 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         · rw [l_is, l1_is]
           rw [← spec, ← List.append_assoc, ← List.append_assoc] at hf
           apply List.append_cancel_right at hf
-          conv => rhs; rw [← List.append_assoc, ← List.append_assoc, ← hf]
-          simp
-        exact ⟨List.suffix_refl up3, h6⟩
+          conv => rhs; rw [← List.append_assoc, ← List.append_assoc (k ++ j), ← hf]
+          exact ⟨by simp⟩
+        rw [← h6]
+        have H : bot2 = bot2 ++ [] := by simp
+        nth_rewrite 1 [H]
+        exact ⟨List.suffix_refl_C, List.prefix_append_right_inj_C.2 List.nil_prefix_C⟩
     | cons head tail =>
       cases to_add with
       | nil =>
@@ -1233,10 +1292,12 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         · rw [spec, ← List.append_assoc] at hf
           change bot4 ++ ([head] ++ tail) ++ up4 = k ++ j ++ l₁ ++ up4 at hf
           rw [← List.append_assoc] at hf
+          constructor
           change bot4 ++ ([head] ++ tail ++ bot3 ++ mid3) ++ up3 = _
           rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc, List.append_cancel_right hf]
           simp [l_is, l1_is]
-        exact ⟨List.suffix_refl up3, h6⟩
+        rw [← h6]
+        exact ⟨List.suffix_refl_C, List.prefix_append_self_C⟩
       | cons heade taile =>
         use bot4, head::tail ++ (heade :: taile) ++ bot3 ++ mid3, up3
         constructor
@@ -1254,9 +1315,11 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         · rw [l_is, l1_is]
           rw [← spec, ← List.append_assoc, ← List.append_assoc] at hf
           apply List.append_cancel_right at hf
+          constructor
           conv => rhs; rw [← List.append_assoc, ← List.append_assoc, ← hf]
           simp
-        exact ⟨List.suffix_refl up3, h6⟩
+        rw [← h6]
+        exact ⟨List.suffix_refl_C, List.prefix_append_self_C⟩
   | vertical_append_one g1 g2 ih1 ih2 =>
       rename_i a2 b2 bot2 up2 b3 bot3 mid3 up3
       rcases big_split (right_frontier_is_false g1) fe with ⟨l₁, l₂, l_is, eq_rest, l₂_is⟩
@@ -1265,11 +1328,12 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
       constructor
       · exact PartialGrid.vertical_append_one g1 pg1
       constructor
-      · rw [l_is, l₂_is, ← List.append_assoc, fe1, ← List.append_assoc]
-      exact ⟨List.suffix_append_right h5, h6⟩
+      · constructor
+        rw [l_is, l₂_is, ← List.append_assoc, fe1.1, ← List.append_assoc]
+      exact ⟨List.suffix_append_right_C h5, h6⟩
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i a b bot mid up a2 bot2 mid2 up2
-    have := double_split_horiz' (bottom_frontier_is_true g2) (Or.inr (right_frontier_is_false g2))
+    have := double_split_horiz' (bottom_frontier_is_true g2) (Sum.inr (right_frontier_is_false g2))
       (right_frontier_is_false g1) fe (middle_frontier_nil_or_caps g2) (middle_frontier_nil_or_caps g1)
     rcases this with ⟨k1, k2, k_is, k1_is, k2_is⟩ | ⟨l1, l2, l_is, l1_is, l2_is⟩
     · specialize @g1_ih (bot ++ k2) l (by rw [List.append_assoc, ← k2_is]; simp)
@@ -1278,8 +1342,8 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
       cases to_add with
       | nil =>
         rw [List.append_nil] at spec
-        rw [← spec] at pg
-        rw [spec] at fe'
+        rw [← spec.1] at pg
+        rw [spec.1] at fe'
         cases nm with
         | nil =>
           use bot2, mid2, up2++nu
@@ -1287,9 +1351,11 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
           · exact PartialGrid.vertical_append_one pg g2
           simp only [List.append_nil, List.append_assoc, List.append_cancel_left_eq] at fe'
           constructor
-          · rw [fe', k_is, k1_is]
+          · constructor
+            rw [fe'.1, k_is, k1_is]
             simp
-          exact ⟨suffix_of_append upp, List.prefix_rfl⟩
+          rcases upp with ⟨t, ⟨ht⟩⟩
+          exact ⟨by use up2 ++ t; exact ⟨by simp [ht]⟩ , List.prefix_refl_C⟩
         | cons head tail =>
           use bot2, mid2 ++ up2 ++ head :: tail, nu
           constructor
@@ -1297,9 +1363,10 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
           constructor
           · rw [k_is]
             simp only [List.append_assoc, List.cons_append, List.append_cancel_left_eq] at fe'
-            conv => rhs; rw [List.append_assoc, List.append_assoc, ← fe', k1_is]
+            constructor
+            conv => rhs; rw [List.append_assoc, List.append_assoc, ← fe'.1, k1_is]
             simp
-          exact ⟨upp, List.prefix_rfl⟩
+          exact ⟨upp, List.prefix_refl_C⟩
       | cons head tail =>
         cases nm with
         | nil =>
@@ -1307,42 +1374,45 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
           constructor
           · have H1 : is_true (head:: tail) := by
               have H : is_true nb := bottom_frontier_is_true pg
-              rw [← spec] at H
+              rw [← spec.1] at H
               exact (is_true_append H).2
             have H2 := (extend_side g2 (head::tail) H1 (by simp))
-            rw [spec] at H2
+            rw [spec.1] at H2
             exact PartialGrid.vertical_append_one pg H2
           constructor
-          · rw [← spec] at fe'
+          · rw [← spec.1] at fe'
             simp only [List.append_nil, List.append_assoc, List.cons_append,
               List.append_cancel_left_eq] at fe'
-            simp [k_is, k1_is, spec, fe']
-          exact ⟨upp, List.prefix_rfl⟩
+            constructor
+            simp [k_is, k1_is, spec.1, fe'.1]
+          exact ⟨upp, List.prefix_refl_C⟩
         | cons head1 tail1 =>
           use bot2, mid2 ++ up2 ++ head :: tail ++ head1 :: tail1, nu
           constructor
           · have H1 : is_true (head:: tail) := by
               have H : is_true nb := bottom_frontier_is_true pg
-              rw [← spec] at H
+              rw [← spec.1] at H
               exact (is_true_append H).2
             have H2 := (extend_side g2 (head::tail) H1 (by simp))
-            rw [spec] at H2
+            rw [spec.1] at H2
             have H := PartialGrid.vertical_append pg H2 (by simp)
             rw [List.append_nil] at H
             exact H
           constructor
-          · rw [← spec] at fe'
+          · rw [← spec.1] at fe'
             simp only [List.append_assoc, List.cons_append, List.append_cancel_left_eq] at fe'
-            simp [k_is, k1_is, spec, fe']
-          exact ⟨upp, List.prefix_rfl⟩
+            constructor
+            simp [k_is, k1_is, spec.1, fe'.1]
+          exact ⟨upp, List.prefix_refl_C⟩
     rw [← l2_is] at g2_ih
     rcases @g2_ih k l1 (by simp) with ⟨nb, nm, nu, pg, fe', upp, botp⟩
     use nb, nm ++ nu ++mid, up
     constructor
     · exact PartialGrid.vertical_append g1 pg h
     constructor
-    · rw [l_is, l1_is, ← List.append_assoc, ← List.append_assoc, fe', ← List.append_assoc, ← List.append_assoc]
-    exact ⟨List.suffix_refl up, botp⟩
+    · constructor
+      rw [l_is, l1_is, ← List.append_assoc, ← List.append_assoc, fe'.1, ← List.append_assoc, ← List.append_assoc]
+    exact ⟨List.suffix_refl_C, botp⟩
 
 noncomputable def step_two (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b) (hb1 : b.length > 0) :
     SemiThue grid_style (a ++ b) c → (Σ bot mid up, PartialGrid a b bot mid up × PLift (bot ++ mid ++ up = c)) := by
@@ -1368,9 +1438,40 @@ theorem to_option_length : (to_option a).length = a.length := by
   | cons head tail ih =>
     simp [to_option]
 
+noncomputable def PartialGrid.length : PartialGrid a b c d e → ℕ := by
+  intro h
+  match h with
+  | single_grid h =>
+    cases h with
+    | empty => exact 0
+    | top_bottom i => exact 0
+    | sides i => exact 0
+    | top_left i => exact 1
+    | adjacent i k h => exact 1
+    | separated i j h => exact 1
+  | empty a b ha ha1 hb _ => exact 0
+  | horizontal_append_one g1 g2 => exact PartialGrid.length g1 + PartialGrid.length g2
+  | horizontal_append h g1 g2  => exact PartialGrid.length g1 + PartialGrid.length g2
+  | vertical_append_one g1 g2  => exact PartialGrid.length g1 + PartialGrid.length g2
+  | vertical_append g1 g2 h  => exact PartialGrid.length g1 + PartialGrid.length g2
+
+noncomputable def chain_length (h : SemiThue reversing (a1 ++ a2) (b1 ++ b2))
+  (ha1 : is_false a1) (a1_len : a1.length >0) (ha2 : is_true a2) (a2_len : a2.length > 0) (hb1 : is_true b1) (hb2 : is_false b2) : ℕ := by
+  have H := stepOne h (by use a1, a2; exact ⟨ha1, ⟨ha2, ⟨rfl⟩⟩⟩)
+      (by use b1, b2; exact ⟨hb1, ⟨hb2, ⟨rfl⟩⟩⟩)
+  rcases H with ⟨c, spec1, spec2, spec3, spec35⟩
+  unfold to_option at spec1
+  simp [List.map_append] at spec1
+  change SemiThue grid_style (to_option a1 ++ to_option a2) c at spec1
+  rw [← to_option_length] at a1_len
+  rw [← to_option_length] at a2_len
+  rcases step_two (is_false_to_option ha1) a1_len (is_true_to_option ha2) a2_len spec1 with ⟨bot, mid, up, pg, c_is⟩
+  exact PartialGrid.length pg
+
+
 theorem first_chain (h : SemiThue reversing (a1 ++ a2) (b1 ++ b2))
   (ha1 : is_false a1) (a1_len : a1.length >0) (ha2 : is_true a2) (a2_len : a2.length > 0) (hb1 : is_true b1) (hb2 : is_false b2) : False := by
-  have H := stepOne h (by use a1, a2) (by use b1, b2)
+  have H := stepOne h ⟨a1, ⟨a2, ⟨ha1, ⟨ha2, ⟨rfl⟩⟩⟩⟩⟩ ⟨b1, ⟨b2, ⟨hb1, ⟨hb2, ⟨rfl⟩⟩⟩⟩⟩
   rcases H with ⟨c, spec1, spec2, spec3, spec35⟩
   unfold to_option at spec1
   simp [List.map_append] at spec1
@@ -1388,4 +1489,22 @@ theorem first_chain (h : SemiThue reversing (a1 ++ a2) (b1 ++ b2))
   simp [grid_option] at pg
   sorry
 
+-- theorem second_chain (h : SemiThue reversing (a1 ++ a2) c)
+--   (ha1 : is_false a1) (a1_len : a1.length >0) (ha2 : is_true a2) (a2_len : a2.length > 0) : False := by
+--   have H := stepOne_mid h ⟨a1, ⟨a2, ⟨ha1, ⟨ha2, ⟨rfl⟩⟩⟩⟩⟩
+--   rcases H with ⟨c, spec1, spec2⟩
+--   unfold to_option at spec1
+--   simp [List.map_append] at spec1
+--   change SemiThue grid_style (to_option a1 ++ to_option a2) c at spec1
+--   rw [← to_option_length] at a1_len
+--   rw [← to_option_length] at a2_len
+--   rcases step_two (is_false_to_option ha1) a1_len (is_true_to_option ha2) a2_len spec1 with ⟨bot, mid, up, pg, c_is⟩
+--   have H : mid = [] := by sorry
+--   rw [H] at pg
+--   have bot_is : bot = c1 := by sorry
+--   have up_is : up = c2 := by sorry
+--   apply grid_of_PartialGrid at pg
+--   rw [bot_is, up_is] at pg
+--   simp [grid_option] at pg
+--   sorry
 --theorem grid_of_PartialGrid (h : PartialGrid a b d [] c) : grid_option a b c d :=

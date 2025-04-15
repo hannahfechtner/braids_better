@@ -1015,30 +1015,53 @@ def pts_of_irr (h : irreducible L) : pts L := by
 
 def to_option (L : List (ℕ × Bool)) : List (Option ℕ × Bool) := (List.map (fun x ↦ (some x.1, x.2)) L)
 
-theorem is_false_to_option (ha : is_false a) : is_false (to_option a) := by
+def is_false_to_option (ha : is_false a) : is_false (to_option a) := by
+  unfold to_option
+  unfold is_false
+  exact {down := by
+              intro x hx
+              simp at hx
+              rcases hx with ⟨a1, h1 | h2⟩
+              · rw [← h1.2]
+              have := ha.1 _ h2.1
+              rw [← h2.2]
+              simp at this
+              }
+  -- intro x hx
+  -- simp only [List.mem_map, Prod.exists, Bool.exists_bool] at hx
+  -- rcases hx with ⟨a1, (spec1 | spec2)⟩
+  -- · rw [← spec1.2]
+  -- have := ha _ spec2.1
+  -- simp at this
+
+def is_true_to_option (ha : is_true a) : is_true (to_option a) := by
   unfold to_option
   intro x hx
   simp only [List.mem_map, Prod.exists, Bool.exists_bool] at hx
-  rcases hx with ⟨a1, (spec1 | spec2)⟩
-  · rw [← spec1.2]
-  have := ha _ spec2.1
-  simp at this
+  exact {down := by
+              rcases hx with ⟨a1, spec1 | spec2⟩
+              · have := (ha _ ⟨spec1.1⟩).1
+                simp [this, ← spec1.2]
+              rw [← spec2.2]}
+  -- rcases hx with ⟨a1, (spec1 | spec2)⟩
+  -- · have := ha _ spec1.1
+  --   simp at this
+  -- rw [← spec2.2]
 
-theorem is_true_to_option (ha : is_true a) : is_true (to_option a) := by
-  unfold to_option
-  intro x hx
-  simp only [List.mem_map, Prod.exists, Bool.exists_bool] at hx
-  rcases hx with ⟨a1, (spec1 | spec2)⟩
-  · have := ha _ spec1.1
-    simp at this
-  rw [← spec2.2]
-
-theorem skeleton_to_option (h : skeleton_order a) : skeleton_order (to_option a) := by
+def skeleton_to_option (h : skeleton_order a) : skeleton_order (to_option a) := by
   rcases h with ⟨a1, a2, spec⟩
   use to_option a1, to_option a2
-  simp [is_false_to_option spec.1, is_true_to_option spec.2.1, spec.2.2]
+  constructor
+  · exact is_false_to_option spec.1
+  constructor
+  · exact is_true_to_option spec.2.1
+  rw [spec.2.2.1]
   unfold to_option
-  exact List.map_append (fun x ↦ (some x.1, x.2)) a1 a2
+  rw [List.map_append]
+  exact ⟨rfl⟩
+  --simp [is_false_to_option spec.1, is_true_to_option spec.2.1, spec.2.2]
+  -- unfold to_option
+  -- exact List.map_append (fun x ↦ (some x.1, x.2)) a1 a2
 
 theorem remove_map_helper {a : List (ℕ × Bool)} : remove_ones (to_option a) = a := by
   induction a
@@ -1481,7 +1504,7 @@ noncomputable def rev_to_grid (h : SemiThue reversing a b) : Σ b', SemiThue gri
       rename_i i j
       exact rg_of_rev_rel ([(some j, true), (some i, true), (some j, false), (some i, false)]) gr b'_is.1 pt_b (.close h_dist)
 
-theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) : in_order L := by
+def in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) : in_order L := by
   induction L
   · exact in_order_nil
   rename_i head tail ih
@@ -1501,30 +1524,35 @@ theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) :
     constructor
     · intro x hx
       simp at hx
-      rcases hx with h1 | h2
-      · simp [h1]
-      exact ha.1 _ h2
+      exact {down := by
+                rcases hx.1 with h1 | h2
+                · simp [h1]
+                exact (ha.1 _ ⟨h2⟩).1}
     constructor
     · exact ha.2.1
-    simp [ha.2.2]
+    simp
+    exact ha.2.2
   | (none, false) =>
     use [], (none, false) :: a2
     constructor
-    · intro x hx
-      simp at hx
+    · exact is_true_nil
     constructor
     · exact is_false_cons _ ha.2.1
-    simp [ha.2.2]
+    simp [ha.2.2.1]
     match a1 with
-    | [] => rfl
+    | [] => exact ⟨rfl⟩
     | head :: tail1 =>
       exfalso
       match head with
-      | (_, false) => simp [is_true] at ha
+      | (fst, false) =>
+        simp [is_true] at ha
+        have H := ha.1 (fst, false) ⟨List.mem_cons_self⟩
+        simp at H
+        exact H.1
       | (none, true) =>
         simp [remove_ones] at h
         simp [is_true] at ha
-        rw [ha.2.2] at h2
+        rw [ha.2.2.1] at h2
         specialize h2 0
         have H := by
           apply h2.2.2
@@ -1534,7 +1562,7 @@ theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) :
       | (some c, true) =>
         simp [remove_ones] at h
         simp [is_true] at ha
-        rw [ha.2.2] at h2
+        rw [ha.2.2.1] at h2
         specialize h2 c
         have H := by
           apply h2.2.1
@@ -1548,26 +1576,27 @@ theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) :
     constructor
     · intro x hx
       simp at hx
-      rcases hx with h1 | h2
-      · simp [h1]
-      exact ha.1 _ h2
+      exact {down := by
+              rcases hx with h1 | h2
+              · simp [h1]
+              exact (ha.1 _ ⟨h2⟩).1}
     constructor
     · exact ha.2.1
-    simp [ha.2.2]
+    simp [ha.2.2.1]
+    exact ⟨trivial⟩
   | (some a, false) =>
     simp [remove_ones] at h
     use []
     use (some a, false) :: a2
     constructor
-    · intro x hx
-      simp at hx
+    · exact is_true_nil
     constructor
     · exact is_false_cons _ ha.2.1
-    simp [ha.2.2]
+    simp [ha.2.2.1]
     match tail with
     | [] =>
       simp at ha
-      exact ha.2.2.1
+      exact ⟨ha.2.2.1.1⟩
     | (none, true) :: tail2 =>
       have H := by
         apply (h2 a).1
@@ -1576,9 +1605,15 @@ theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) :
       cases H
     | (_, false) :: tail2 =>
       match a1 with
-      | [] => rfl
-      | (_, true) :: rest => simp at ha
-      | (_, false) :: rest => simp [is_true] at ha
+      | [] => exact ⟨rfl⟩
+      | (_, true) :: rest =>
+        simp at ha
+        exact ha.2.2.1.elim
+      | (fst, false) :: rest =>
+        simp [is_true] at ha
+        have H := ha.1 (fst, false) ⟨List.mem_cons_self⟩
+        simp at H
+        exact H.1.elim
     | (some c, true) :: tail2 =>
       simp [remove_ones] at h
       change in_order ([(a, false), (c, true)] ++ _ ) at h
@@ -1589,25 +1624,39 @@ theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) :
       | [] =>
         have H := ha34.2.2
         simp at H
-        rw [← H] at ha34
+        rw [← H.1] at ha34
         simp [is_false] at ha34
+        exact ha34.2.1.1
       | head :: tail =>
         have H := ha34.2.2
         simp at H
-        rw [← H.1] at ha34
+        rw [← H.1.1] at ha34
         simp [is_true] at ha34
+        have H := ha34.1 (a, false) ⟨List.mem_cons_self⟩
+        simp at H
+        apply H.1
 
-noncomputable def stepOne (h : SemiThue reversing a b) (ha : skeleton_order a) (hb : in_order b) : Σ b', SemiThue grid_style (to_option a) b' ×
-    PLift (skeleton_order (to_option a) ∧ in_order b' ∧ remove_ones b' = b) := by
+noncomputable def stepOne_mid (h : SemiThue reversing a b) (ha : skeleton_order a) : Σ b', SemiThue grid_style (to_option a) b' ×
+    skeleton_order (to_option a) ×  PLift (remove_ones b' = b) := by
   rcases rev_to_grid h with ⟨b', gr, b'_is, pt_b⟩
   use b'
   constructor
   · exact gr
   constructor
-  · constructor
-    · exact skeleton_to_option ha
-    constructor
-    · apply in_order_of_rm_irr _ pt_b
-      rw [b'_is.1]
-      exact hb
-    exact b'_is.1
+  · exact skeleton_to_option ha
+  exact b'_is
+
+
+noncomputable def stepOne (h : SemiThue reversing a b) (ha : skeleton_order a) (hb : in_order b) : Σ b', SemiThue grid_style (to_option a) b' ×
+    skeleton_order (to_option a) × in_order b' × PLift (remove_ones b' = b) := by
+  rcases rev_to_grid h with ⟨b', gr, b'_is, pt_b⟩
+  use b'
+  constructor
+  · exact gr
+  constructor
+  · exact skeleton_to_option ha
+  constructor
+  · apply in_order_of_rm_irr _ pt_b
+    rw [b'_is.1]
+    exact hb
+  exact b'_is
