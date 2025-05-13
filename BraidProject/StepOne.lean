@@ -956,7 +956,7 @@ theorem skeleton_to_option (h : skeleton_order a) : skeleton_order (to_option a)
   use to_option a1, to_option a2
   simp [is_false_to_option spec.1, is_true_to_option spec.2.1, spec.2.2]
   unfold to_option
-  exact List.map_append (fun x ↦ (some x.1, x.2)) a1 a2
+  exact List.map_append
 
 theorem remove_map_helper {a : List (ℕ × Bool)} : remove_ones (to_option a) = a := by
   induction a
@@ -1086,9 +1086,7 @@ theorem five_cases (b_ne : b1 ≠ b2) (h : a ++ [b1, b2] ++ c = d ++ [b1, b2] ++
       simp at h
       simp
       use [d1]
-      simp [h.1, h.2.1]
-      use arr
-      simp [h.2.1, h.2.2]
+      simp [h]
     | a2 :: [] =>
       simp at h
       exfalso
@@ -1506,6 +1504,15 @@ theorem in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) :
         rw [← H.1] at ha34
         simp [is_true] at ha34
 
+theorem stepOne_mid {a b} (h : SemiThue reversing a b) (ha : skeleton_order a) :
+    ∃ b', SemiThue grid_style (to_option a) b' ∧ skeleton_order (to_option a) ∧ remove_ones b' = b := by
+  rcases rev_to_grid h with ⟨b', gr, b'_is, pt_b⟩
+  use b'
+  constructor
+  · exact gr
+  constructor
+  · exact skeleton_to_option ha
+  exact b'_is
 theorem stepOne (h : SemiThue reversing a b) (ha : skeleton_order a) (hb : in_order b) : ∃ b', SemiThue grid_style (to_option a) b' ∧
     skeleton_order (to_option a) ∧ in_order b' ∧ remove_ones b' = b := by
   rcases rev_to_grid h with ⟨b', gr, b'_is, pt_b⟩

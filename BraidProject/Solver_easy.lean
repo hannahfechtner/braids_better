@@ -162,209 +162,246 @@ theorem find_it_pair {a b : ℕ × Bool} (h : find_it [a,b] = some (c, d, e)) :
   have he : e = [] := List.length_eq_zero_iff.mp (by omega)
   rw [hc, he, List.nil_append, List.cons.injEq, List.cons.injEq] at H
   simp [H]
-
-#check Subtype
-abbrev triangle : Type := {a : List ℕ × List ℕ × List (ℕ × Bool) // a.1.length > 0 ∧ a.2.1.length > 0 ∧
-    (SemiThue reversing (List.map (fun x => (x, false)) a.1.reverse ++ List.map (fun y => (y, true)) a.2.1) a.2.2) }
-
-theorem get_pg (a : triangle) : ∃ bot mid top, PartialGrid (List.map (fun x => (x, false)) (a.1.1.reverse))
-    (List.map (fun y => (y, true)) a.1.2.1) bot mid top ∧ (remove_ones (bot ++ mid ++ top) = a.1.2.2) := by
-  have H := @stepOne_mid (List.map (fun y => (y, false)) a.1.1.reverse ++ List.map (fun y => (y, true)) a.1.2.1) a.1.2.2 a.2.2.2
-  have H1 : skeleton_order (List.map (fun y ↦ (y, false)) a.1.1.reverse ++ List.map (fun y ↦ (y, true)) a.1.2.fst) := by
-    unfold skeleton_order
-    use List.map (fun y ↦ (y, false)) a.1.1.reverse
-    use List.map (fun y ↦ (y, true)) a.1.2.fst
-    constructor
-    · simp [is_false]
-    constructor
-    · simp [is_true]
-    rfl
-  specialize H H1
-  rcases H with ⟨c, Hc⟩
-  have H4 : (to_option (List.map (fun y ↦ (y, false)) a.1.1.reverse)).length > 0 := by
-    rw [to_option_length]
-    simp
-    exact a.2.1
-  have H5 : (to_option (List.map (fun y ↦ (y, true)) a.1.2.fst)).length > 0 := by
-    simp [to_option_length]
-    exact a.2.2.1
-  have H6 : to_option (List.map (fun y ↦ (y, false)) a.1.fst.reverse ++ List.map (fun y ↦ (y, true)) a.1.snd.fst) =
-    (to_option (List.map (fun y ↦ (y, false)) a.1.fst.reverse) ++ to_option (List.map (fun y ↦ (y, true)) a.1.snd.fst)) := by
-      simp [to_option]
-  rw [H6] at Hc
-  have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.1.fst.reverse))
-    (to_option (List.map (fun y ↦ (y, true)) a.1.snd.fst)) c
-    (by apply is_false_to_option; simp [is_false]) H4
-    (by apply is_true_to_option ; simp [is_true]) H5 Hc.1
-  rcases H3 with ⟨bot, mid, up, pg, c_is⟩
-  use bot, mid, up
-  constructor
-  · simp
-    have H1 : (List.map (fun x ↦ (x, false)) (List.flatMap (fun a ↦ [some a]) a.1.fst.reverse)) =
-      (to_option (List.map (fun y ↦ (y, false)) a.1.fst.reverse)) := by
-      simp [to_option]
-      induction a.1.1
-      · simp
-      rename_i head tail ih
-      simp [ih]
-    have H2 : (List.map (fun y ↦ (y, true)) (List.flatMap (fun a ↦ [some a]) a.1.snd.fst)) =
-      (to_option (List.map (fun y ↦ (y, true)) a.1.snd.fst))  := by
-      simp [to_option]
-      induction a.1.2.1
-      · simp
-      rename_i head tail ih
-      simp [ih]
-    rw [H1, H2]
-    exact pg
-  rw [c_is]
-  exact Hc.2.2
-
--- noncomputable def get_n' (a : triangle) : ℕ := (get_pg a).length
-
-
--- noncomputable def get_n (a : triangle) : ℕ := by
---   have H := @stepOne_mid (List.map (fun y => (y, false)) a.1.reverse ++ List.map (fun y => (y, true)) a.2.1) a.2.2.1 a.2.2.2.2
---   have H1 : skeleton_order (List.map (fun y ↦ (y, false)) a.fst.reverse ++ List.map (fun y ↦ (y, true)) a.snd.fst) := by
---     unfold skeleton_order
---     use List.map (fun y ↦ (y, false)) a.fst.reverse
---     use List.map (fun y ↦ (y, true)) a.snd.fst
---     constructor
---     · exact ⟨by simp [is_false]⟩
---     constructor
---     · simp [is_true]
---       intro x ⟨hx⟩
---       constructor
---       simp at hx
---       rcases hx with ⟨w, hw⟩
---       rw [← hw.2]
---     exact ⟨rfl⟩
---   specialize H H1
---   rcases H with ⟨c, Hc⟩
---   have H4 : (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse)).length > 0 := by
---     rw [to_option_length]
---     simp
---     exact a.2.2.2.1.1.1
---   have H5 : (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)).length > 0 := by
---     simp [to_option_length]
---     exact a.2.2.2.1.1.2
---   have H6 : to_option (List.map (fun y ↦ (y, false)) a.fst.reverse ++ List.map (fun y ↦ (y, true)) a.snd.fst) =
---     (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse) ++ to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) := by
---       simp [to_option]
---   rw [H6] at Hc
---   have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse))
---     (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) c
---     (by apply is_false_to_option; exact ⟨by simp [is_false]⟩) H4
---     (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
---          rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1
---   rcases H3 with ⟨bot, mid, up, pg, c_is⟩
---   exact PartialGrid.length pg
-
--- theorem get_n'_same (h : reversing c₁ c₂): get_n' ⟨a, ⟨b, ⟨c₁, ⟨len, rev1⟩⟩⟩⟩ < get_n' ⟨a, ⟨b, ⟨c₂, ⟨len, rev2⟩⟩⟩⟩ := by
---   unfold get_n'
---   unfold get_pg
---   simp
---   sorry
-
-
--- theorem get_n_same (h : reversing c₁ c₂): get_n ⟨a, ⟨b, ⟨c₁, ⟨len, rev1⟩⟩⟩⟩ < get_n ⟨a, ⟨b, ⟨c₂, ⟨len, rev2⟩⟩⟩⟩ := by
---   have H := @stepOne_mid (List.map (fun y ↦ (y, false)) a.reverse ++ List.map (fun y ↦ (y, true)) b) c₁
---   have H1 : skeleton_order (List.map (fun y ↦ (y, false)) a.reverse ++ List.map (fun y ↦ (y, true)) b) := by
---     unfold skeleton_order
---     use List.map (fun y ↦ (y, false)) a.reverse
---     use List.map (fun y ↦ (y, true)) b
---     constructor
---     · exact ⟨by simp [is_false]⟩
---     constructor
---     · simp [is_true]
---       intro x ⟨hx⟩
---       constructor
---       simp at hx
---       rcases hx with ⟨w, hw⟩
---       rw [← hw.2]
---     exact ⟨rfl⟩
---   specialize H rev1 H1
---   rcases H with ⟨c, Hc⟩
---   have H4 : (to_option (List.map (fun y ↦ (y, false)) a.reverse)).length > 0 := by
---     rw [to_option_length]
---     simp
---     exact len.1.1
---   have H5 : (to_option (List.map (fun y ↦ (y, true)) b)).length > 0 := by
---     simp [to_option_length]
---     exact len.1.2
---   have H6 : to_option (List.map (fun y ↦ (y, false)) a.reverse ++ List.map (fun y ↦ (y, true)) b) =
---     (to_option (List.map (fun y ↦ (y, false)) a.reverse) ++ to_option (List.map (fun y ↦ (y, true)) b)) := by
---       simp [to_option]
---   rw [H6] at Hc
---   have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.reverse))
---     (to_option (List.map (fun y ↦ (y, true)) b)) c
---     (by apply is_false_to_option; exact ⟨by simp [is_false]⟩) H4
---     (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
---          rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1
---   have H : get_n ⟨a, ⟨b, ⟨c₁, (len, rev1)⟩⟩⟩ = PartialGrid.length (@step_two (to_option (List.map (fun y ↦ (y, false)) a.reverse))
---     (to_option (List.map (fun y ↦ (y, true)) b)) c
---     (by apply is_false_to_option; exact ⟨by simp [is_false]⟩) H4
---     (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
---          rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1).2.2.2.1 := by
---     unfold get_n
---     simp
---     sorry
---   sorry
-
--- theorem second_chain (h : SemiThue reversing (a1 ++ a2) c)
---   (ha1 : is_false a1) (a1_len : a1.length >0) (ha2 : is_true a2) (a2_len : a2.length > 0) : False := by
--- instance hi : WellFoundedRelation triangle where
---   rel := by
---     intro a b
---     sorry
---   wf := sorry
-
--- def grid_number (a b : List ℕ) (c : List (ℕ × Bool)) (h : SemiThue reversing (List.map (fun x => (x, false)) a.reverse ++ List.map (fun y => (y, true)) b) c): ℕ := by
---   rcases existence a b with ⟨c1, d1, hcd⟩
-
 def to_up_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, false)) a.reverse
 
 def to_over_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, true)) a
+#check Subtype
+abbrev triangle : Type := {a : List ℕ × List ℕ × List (ℕ × Bool) //
+    (SemiThue reversing (to_up_plain a.1 ++ to_over_plain a.2.1) a.2.2) }
+
 
 def solver_helper (a : triangle) : List (ℕ × Bool) :=
   match hb' : find_it a.1.2.2 with
   | none => a.1.2.2
   | some (c, d, e) =>
     match hd : d.1.dist d.2 with
-    | 0 => solver_helper ⟨⟨a.1.1, ⟨a.1.2.1, c ++ e⟩⟩, ⟨a.2.1, ⟨ a.2.2.1,
+    | 0 => solver_helper ⟨⟨a.1.1, ⟨a.1.2.1, c ++ e⟩⟩,
         by
-          apply a.2.2.2.trans
+          apply a.2.trans
           rw [find_it_spec hb', Nat.eq_of_dist_eq_zero hd]
           nth_rw 2 [← List.append_nil c]
-          exact SemiThue.reduction reversing.basic⟩⟩⟩
+          exact SemiThue.reduction reversing.basic⟩
     | 1 => solver_helper ⟨⟨a.1.1, ⟨a.1.2.1, (c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e)⟩⟩,
-        ⟨a.2.1, ⟨ a.2.2.1, by
-          apply a.2.2.2.trans
+        by
+          apply a.2.trans
           rw [find_it_spec hb']
-          exact SemiThue.reduction (reversing.close hd)⟩ ⟩⟩
+          exact SemiThue.reduction (reversing.close hd)⟩
     | Nat.succ (Nat.succ n) => solver_helper ⟨⟨a.1.1, ⟨a.1.2.1, (c ++ [(d.2, true), (d.1, false)] ++ e)⟩⟩,
-        ⟨ a.2.1, ⟨ a.2.2.1, by
-          apply a.2.2.2.trans
+        by
+          apply a.2.trans
           rw [find_it_spec hb']
-          exact SemiThue.reduction (reversing.apart (by omega))⟩⟩⟩
+          exact SemiThue.reduction (reversing.apart (by omega))⟩
     termination_by a
     decreasing_by
     · sorry
     · sorry
     sorry
 
-def solver (a b : List ℕ) (h1 : a.length > 0) (h2 : b.length > 0) :=
-  solver_helper ⟨⟨a, ⟨b, to_up_plain a ++ to_over_plain b⟩⟩, ⟨by simp [to_up_plain, to_over_plain, h1],
-  ⟨by simp [to_up_plain, to_over_plain, h2], by apply SemiThue.refl _ ⟩⟩⟩
+-- theorem equiv_helper (proppy : SemiThue reversing (to_up_plain a ++ to_over_plain b) c)
+--  : SemiThue reversing c (solver_helper ⟨(a, b, c), proppy⟩) := by
+--  unfold solver_helper
+--  simp
+--  split (find_it c)
+--  match find_it c with
+--  | none => sorry
+--  | some _ => sorry
 
-def solver_equiv (a b : List ℕ) (h1 : a.length > 0) (h2 : b.length > 0) :
-    SemiThue reversing (to_up_plain a ++  to_over_plain b) (solver a b h1 h2) := by
+
+
+def solver_helper' (a : List ℕ × List ℕ × List (ℕ × Bool)) : List (ℕ × Bool) :=
+  match hb' : find_it a.2.2 with
+  | none => a.2.2
+  | some (c, d, e) =>
+    match hd : d.1.dist d.2 with
+    | 0 => solver_helper' ⟨a.1, ⟨a.2.1, c ++ e⟩⟩
+    | 1 => solver_helper' ⟨a.1, ⟨a.2.1, (c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e)⟩⟩
+    | Nat.succ (Nat.succ n) => solver_helper' ⟨a.1, ⟨a.2.1, (c ++ [(d.2, true), (d.1, false)] ++ e)⟩⟩
+    termination_by a
+    decreasing_by
+    · sorry
+    · sorry
+    sorry
+
+theorem solver_helper_equiv : SemiThue reversing (to_up_plain a.1 ++ to_over_plain a.2.1) (solver_helper' a) := by
+  rcases a with ⟨a, b, c⟩
+  simp
+  unfold solver_helper'
+  simp
+  match find_it c with
+  | none => simp; sorry
+  | some _ => sorry
+
+def solver_helper'' (a : triangle) : List (ℕ × Bool) :=
+  match find_it a.1.2.2 with
+  | none => a.1.2.2
+  | some (c, d, e) =>
+    match hd : d.1.dist d.2 with
+    | 0 => solver_helper'' ⟨⟨a.1.1, ⟨a.1.2.1, c ++ e⟩⟩,
+        by sorry⟩
+    | 1 => solver_helper'' ⟨⟨a.1.1, ⟨a.1.2.1, (c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e)⟩⟩,
+        by
+          sorry⟩
+    | Nat.succ (Nat.succ n) => solver_helper'' ⟨⟨a.1.1, ⟨a.1.2.1, (c ++ [(d.2, true), (d.1, false)] ++ e)⟩⟩,
+        by
+          sorry⟩
+    termination_by a
+    decreasing_by
+    · sorry
+    · sorry
+    sorry
+
+def solver'' (a b : List ℕ) :=
+   solver_helper'' ⟨⟨a, ⟨b, to_up_plain a ++ to_over_plain b⟩⟩, SemiThue.refl _ ⟩
+
+def solver' (a b : List ℕ) :=
+  solver_helper' ⟨a, ⟨b, to_up_plain a ++ to_over_plain b⟩⟩
+
+def solver (a b : List ℕ) :=
+  solver_helper ⟨⟨a, ⟨b, to_up_plain a ++ to_over_plain b⟩⟩, SemiThue.refl _ ⟩
+
+theorem solver_same {a : List ℕ} : solver a a = [] := by
+  sorry
+
+theorem solver_to_grid : solver a b = [] ↔ grid a b [] [] := by
+  constructor
+  · intro h
+    sorry
+  intro h
+  sorry
+theorem correctness : solver a b = [] ↔ SemiThue braid_rels_m_inf a b := by
+  constructor
+  · intro h
+    have H := solver_to_grid.mp h
+    rw [← List.append_nil a, ← List.append_nil b]
+    sorry
+  intro h
+  induction h with
+  | refl a => apply solver_same
+  | reduction h => sorry
+  | trans a b c _ _ _ _ => sorry
+
+def solver''_equiv (a b : List ℕ)  :
+    SemiThue reversing (to_up_plain a ++  to_over_plain b) (solver'' a b) := by
+  unfold solver''
+  unfold solver_helper''
+  match ha : find_it (to_up_plain a ++ to_over_plain b) with
+  | none =>
+    simp [ha]
+    exact SemiThue.refl _
+  | some (c, d, e) =>
+    match hd : d.1.dist d.2 with
+    | 0 =>
+      simp
+      rw [hd]
+      simp
+      have H := find_it_spec ha
+      simp_rw [H]
+      have H : d.1 = d.2 := by exact Nat.eq_of_dist_eq_zero hd
+      rw [H]
+      have H : SemiThue reversing (c ++ e) (solver_helper'' ⟨(a, b, c ++ e), by sorry⟩ ) := by sorry
+      have H2 : SemiThue reversing (c ++ ([(d.2, false)] ++ [(d.2, true)]) ++ e) (c ++ e) := by
+        have H : (c ++ e) = c ++ [] ++ e := by simp
+        rw [H]
+        exact SemiThue.reduction reversing.basic
+      exact H2.trans _ _ _ H
+    | 1 =>
+      simp
+      rw [hd]
+      simp
+      have H := find_it_spec ha
+      simp_rw [H]
+      have H : SemiThue reversing (c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e)
+        (solver_helper'' (a, b, c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e)) := by sorry
+        --(solver (c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e)) := by sorry
+      have H2 : SemiThue reversing (c ++ ([(d.1, false), (d.2, true)]) ++ e)
+          (c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e) := by
+        have H : (c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e) =
+          (c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e) := by simp
+        rw [H]
+        exact SemiThue.reduction (reversing.close hd)
+      exact H2.trans _ _ _ H
+    | Nat.succ (Nat.succ n) =>
+      simp
+      rw [hd]
+      simp
+      have H := find_it_spec ha
+      simp_rw [H]
+      have H : SemiThue reversing (c ++ (d.2, true) :: (d.1, false) :: e)
+        (solver_helper' (a, b, c ++ (d.2, true) :: (d.1, false) :: e)) := by sorry --(solver (c ++ (d.2, true) :: (d.1, false) :: e)) := by sorry
+      have H2 : SemiThue reversing (c ++ ([(d.1, false), (d.2, true)]) ++ e)
+          (c ++ (d.2, true) :: (d.1, false) :: e) := by
+        have H : (c ++ (d.2, true) :: (d.1, false) :: e) =
+          (c ++ [(d.2, true), (d.1, false)] ++ e) := by simp
+        rw [H]
+        exact SemiThue.reduction (reversing.apart (by omega))
+      exact H2.trans _ _ _ H
+
+
+theorem solver'_equiv (a b : List ℕ)  :
+    SemiThue reversing (to_up_plain a ++  to_over_plain b) (solver' a b) := by
+  unfold solver'
+  unfold solver_helper'
+  match ha : find_it (to_up_plain a ++ to_over_plain b) with
+  | none =>
+    simp [ha]
+    exact SemiThue.refl _
+  | some (c, d, e) =>
+    match hd : d.1.dist d.2 with
+    | 0 =>
+      simp
+      rw [hd]
+      simp
+      have H := find_it_spec ha
+      rw [H]
+      have H : d.1 = d.2 := by exact Nat.eq_of_dist_eq_zero hd
+      rw [H]
+      have H : SemiThue reversing (c ++ e) (solver_helper' (a, b, c ++ e)) := by sorry
+      have H2 : SemiThue reversing (c ++ ([(d.2, false)] ++ [(d.2, true)]) ++ e) (c ++ e) := by
+        have H : (c ++ e) = c ++ [] ++ e := by simp
+        rw [H]
+        exact SemiThue.reduction reversing.basic
+      exact H2.trans _ _ _ H
+    | 1 =>
+      simp
+      rw [hd]
+      simp
+      have H := find_it_spec ha
+      rw [H]
+      have H : SemiThue reversing (c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e)
+        (solver_helper' (a, b, c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e)) := by sorry
+        --(solver (c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e)) := by sorry
+      have H2 : SemiThue reversing (c ++ ([(d.1, false), (d.2, true)]) ++ e)
+          (c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e) := by
+        have H : (c ++ (d.2, true) :: (d.1, true) :: (d.2, false) :: (d.1, false) :: e) =
+          (c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e) := by simp
+        rw [H]
+        exact SemiThue.reduction (reversing.close hd)
+      exact H2.trans _ _ _ H
+    | Nat.succ (Nat.succ n) =>
+      simp
+      rw [hd]
+      simp
+      have H := find_it_spec ha
+      rw [H]
+      have H : SemiThue reversing (c ++ (d.2, true) :: (d.1, false) :: e)
+        (solver_helper' (a, b, c ++ (d.2, true) :: (d.1, false) :: e)) := by sorry --(solver (c ++ (d.2, true) :: (d.1, false) :: e)) := by sorry
+      have H2 : SemiThue reversing (c ++ ([(d.1, false), (d.2, true)]) ++ e)
+          (c ++ (d.2, true) :: (d.1, false) :: e) := by
+        have H : (c ++ (d.2, true) :: (d.1, false) :: e) =
+          (c ++ [(d.2, true), (d.1, false)] ++ e) := by simp
+        rw [H]
+        exact SemiThue.reduction (reversing.apart (by omega))
+      exact H2.trans _ _ _ H
+
+
+def solver_equiv (a b : List ℕ)  :
+    SemiThue reversing (to_up_plain a ++  to_over_plain b) (solver a b) := by
   --unfold solver solver_helper
   match ha : find_it (to_up_plain a ++ to_over_plain b) with
   | none =>
     unfold solver
     unfold solver_helper
-    simp
-    erw [ha]
+    simp [ha]
     exact SemiThue.refl _
   | some (c, d, e) =>
     match hd : d.1.dist d.2 with

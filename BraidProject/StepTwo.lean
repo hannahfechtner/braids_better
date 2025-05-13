@@ -179,18 +179,14 @@ theorem over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a.length > 
       cases taila with
       | nil =>
         use [], [heada]
-        simp
+        simp only [List.nil_append, List.cons_append, List.cons.injEq, List.nil_eq, reduceCtorEq,
+          false_and, and_false, exists_const]
         rw [List.nil_append] at h5
         rw [h5.2] at h2
-        specialize h2 (a3, false)
-        have H : (a3, false).2 = true := by
-          apply h2
-          apply List.mem_append_right tail
-          exact List.mem_cons_self (a3, false) ((b3, true) :: l)
-        exact (Bool.eq_not_self (a3, false).2).mp H
+        exact (Bool.eq_not_self (a3, false).2).mp <| h2 (a3, false)
+          (List.mem_append_right tail List.mem_cons_self)
       | cons headaa tailaa =>
-        have H1 : is_false (headaa :: tailaa) := fun x hx => h1 _ <| List.mem_cons_of_mem heada hx
-        specialize ih H1 (by simp) h5.2
+        specialize ih (fun x hx => h1 _ <| List.mem_cons_of_mem heada hx) (by simp) h5.2
         rcases ih with ⟨a1', a2', b1', b2', f1, f2, f3, f4, f5⟩
         use heada :: a1', a2', b1', b2'
         exact ⟨by rw [f1]; rfl, ⟨f2, ⟨f3, ⟨by rw [f4, h5.1], f5⟩⟩⟩⟩
@@ -449,12 +445,12 @@ def PartialGrid.extend_bottom (h : PartialGrid a b c d e) (a2) (h2 : is_false a2
     rw [List.length_append]
     omega
   | horizontal_append_one g1 g2 ih1 ih2 =>
-    have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos.mpr h3)) ih1 g2
+    have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos_iff.mpr h3)) ih1 g2
     rw [List.append_nil] at H
     rw [← List.append_assoc]
     exact H
   | horizontal_append h g1 g2 ih1 ih2 =>
-    have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos.mpr h3)) ih1 g2
+    have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos_iff.mpr h3)) ih1 g2
     rw [← List.append_assoc, ← List.append_assoc]
     exact H
   | vertical_append_one g1 g2 ih1 ih2 =>
@@ -493,12 +489,12 @@ def PartialGrid.extend_side (h : PartialGrid a b c d e) (b2) (h2 : is_true b2) (
     rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc] at H
     exact H
   | vertical_append_one g1 g2 g1_ih g2_ih =>
-    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (List.length_pos.mpr h3))
+    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (List.length_pos_iff.mpr h3))
     rw [← List.append_assoc, ← List.append_assoc, List.append_nil] at H
     rw [← List.append_assoc]
     exact H
   | vertical_append g1 g2 h g1_ih g2_ih =>
-    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (Or.inr (List.length_pos.mpr h3)))
+    have H := PartialGrid.vertical_append g1_ih g2 (by simp; exact Or.inr (Or.inr (List.length_pos_iff.mpr h3)))
     rw [← List.append_assoc, ← List.append_assoc] at H
     exact H
 
@@ -656,8 +652,8 @@ theorem double_split_helper_two_one  (h : mid2 ++ bot3 = [(a1, false), (b1, true
       rw [hfe] at h
       have H0 := congr_arg List.length h.1
       simp at H0
-      have H1 : frontm = [] := List.length_eq_zero.mp (by omega)
-      have H2 : frontb = [] := List.length_eq_zero.mp (by omega)
+      have H1 : frontm = [] := List.length_eq_zero_iff.mp (by omega)
+      have H2 : frontb = [] := List.length_eq_zero_iff.mp (by omega)
       rw [H1, H2] at h
       simp at h
     | append_singleton frontbb caboosebb _ =>
@@ -710,7 +706,7 @@ theorem empty_middle_helper {b : Bool} (hm2 : middle_end mid2) (hm3 : middle_sta
       have := congr_arg List.length h
       simp at this
       have : m.length = 0 ∧ mid2.length = 0 := by omega
-      have H : m = [] ∧ mid2 = [] := ⟨List.length_eq_zero.mp this.1, List.length_eq_zero.mp this.2⟩
+      have H : m = [] ∧ mid2 = [] := ⟨List.length_eq_zero_iff.mp this.1, List.length_eq_zero_iff.mp this.2⟩
       rw [H.1, H.2] at h
       simp at h
     rcases h4 with ⟨f, m, spec2⟩
@@ -718,7 +714,7 @@ theorem empty_middle_helper {b : Bool} (hm2 : middle_end mid2) (hm3 : middle_sta
     have := congr_arg List.length h
     simp at this
     have : f.length = 0 ∧ mid3.length = 0 := by omega
-    have H : f = [] ∧ mid3 = [] := ⟨List.length_eq_zero.mp this.1, List.length_eq_zero.mp this.2⟩
+    have H : f = [] ∧ mid3 = [] := ⟨List.length_eq_zero_iff.mp this.1, List.length_eq_zero_iff.mp this.2⟩
     rw [H.1, H.2] at h
     simp at h
 
@@ -733,12 +729,12 @@ theorem double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false)
     intro h1
     have H1 : mid2.length = 0 := by omega
     have H2 : mid3.length = 0 := by omega
-    rw [List.length_eq_zero.mp H1, List.length_eq_zero.mp H2, List.nil_append, List.append_nil] at h
+    rw [List.length_eq_zero_iff.mp H1, List.length_eq_zero_iff.mp H2, List.nil_append, List.append_nil] at h
     rw [h] at hbot3
     simp [is_true, is_false] at hbot3
   have : bot3.length ≠ 1 := by
     intro h2
-    have Hb : ∃ a, bot3 = [a] := List.length_eq_one.mp h2
+    have Hb : ∃ a, bot3 = [a] := List.length_eq_one_iff.mp h2
     rcases Hb with ⟨a, ha⟩
     rcases hbot3 with h_t | h_f
     · rw [ha] at h_t
@@ -749,11 +745,11 @@ theorem double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false)
     rcases is_false_singleton h_f with ⟨a', spec⟩
     rw [ha, spec] at h
     exact empty_middle_helper hm2 hm3 h
-  have H : bot3 = [] := List.length_eq_zero.mp (by omega)
+  have H : bot3 = [] := List.length_eq_zero_iff.mp (by omega)
   rw [H, List.append_nil] at h
   have H : mid2.length ≠ 1 := by
     intro hm_length
-    rcases List.length_eq_one.mp hm_length with ⟨a, ha⟩
+    rcases List.length_eq_one_iff.mp hm_length with ⟨a, ha⟩
     rw [ha] at h
     simp only [List.singleton_append, List.cons.injEq] at h
     rw [h.1] at ha
@@ -762,17 +758,17 @@ theorem double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false)
     · simp at h1
     have h4 : a2 = [] := by
       apply congr_arg List.length at ha2
-      simp only [List.length_singleton, List.length_append, self_eq_add_left,
-        List.length_eq_zero] at ha2
+      simp only [List.length_singleton, List.length_append, right_eq_add,
+        List.length_eq_zero_iff] at ha2
       exact ha2
     rw [h4, List.nil_append] at ha2
     simp at ha2
   have H2 : mid2.length = 0 ∨ mid2.length = 2 := by omega
   rcases H2 with zero | two
-  · rw [List.length_eq_zero.mp zero, List.nil_append] at h
+  · rw [List.length_eq_zero_iff.mp zero, List.nil_append] at h
     right; use []; rw [h]; rfl
   have H3 : mid3.length = 0 := by omega
-  rw [List.length_eq_zero.mp H3, List.append_nil] at h
+  rw [List.length_eq_zero_iff.mp H3, List.append_nil] at h
   left; use []; rw [h]; rfl
 
 theorem double_split_helper_three_one (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)])

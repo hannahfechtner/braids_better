@@ -37,10 +37,32 @@ theorem or_dist_iff_eq {i k d : ℕ} : i.dist k = d ↔ i + d = k ∨ k + d = i 
   rw [Nat.dist_comm, Nat.dist_eq_sub_of_le (le_of_add_le_left (Nat.le_of_eq hb))]
   exact (Nat.eq_sub_of_add_eq' hb).symm
 
+def or_dist_iff_eq_C {i k d : ℕ} : i.dist k = d → PLift (i + d = k) ⊕ PLift (k + d = i) := by
+  intro h
+  by_cases hik : i ≤ k
+  · left
+    rw [Nat.dist_eq_sub_of_le hik] at h
+    exact ⟨(((Nat.sub_eq_iff_eq_add' hik).mp) h).symm⟩
+  · right
+    apply le_of_not_le at hik
+    rw [Nat.dist_comm, Nat.dist_eq_sub_of_le hik] at h
+    exact ⟨(((Nat.sub_eq_iff_eq_add' hik).mp) h).symm⟩ 
+
 theorem dist_succ {i : ℕ} : i.dist (i + 1) = 1 := by
   rw [Nat.dist_eq_sub_of_le (Nat.le_succ i)]
   /- why can't I use the .symm notation? -/
   exact Eq.symm (Nat.eq_sub_of_add_eq' rfl)
+
+def trichotomous_dist_C (i j : ℕ) : PLift (Nat.dist i j ≥ 2) ⊕ PLift (Nat.dist i j = 1) ⊕ PLift (i = j) := by
+  have H : ∀ t, t = Nat.dist i j → PLift (Nat.dist i j ≥ 2) ⊕ PLift (Nat.dist i j = 1) ⊕ PLift (i = j) := by
+    intro t
+    rcases t
+    · exact fun h => Sum.inr (Sum.inr (⟨Nat.eq_of_dist_eq_zero h.symm⟩))
+    rename_i s
+    rcases s
+    · exact fun h => Sum.inr (Sum.inl ⟨h.symm⟩)
+    exact fun h => Sum.inl (⟨by linarith [h]⟩)
+  exact H (i.dist j) rfl
 
 theorem trichotomous_dist (i j : ℕ) : Nat.dist i j >= 2 ∨ Nat.dist i j = 1 ∨ i = j := by
   have H : ∀ t, t = Nat.dist i j → Nat.dist i j >= 2 ∨ Nat.dist i j = 1 ∨ i = j := by

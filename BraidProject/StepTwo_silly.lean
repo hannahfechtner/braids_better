@@ -52,7 +52,7 @@ noncomputable def  top_frontier_is_true (h : PartialGrid a b c d e) : is_true b 
   induction h with
   | single_gridt => exact is_true_over
   | empty  => assumption
-  | horizontal_append_one _ _ g1_ih g2_ih => exact is_true_of_true_true g1_ih g2_ih
+  | horizontal_append_one hm _ _ g1_ih g2_ih => exact is_true_of_true_true g1_ih g2_ih
   | horizontal_append _ _ _ g1_ih g2_ih => exact is_true_of_true_true g1_ih g2_ih
   | vertical_append_one => assumption
   | vertical_append => assumption
@@ -107,7 +107,7 @@ theorem mid_length_neq_one (h : PartialGrid a b c d e) : d.length ≠ 1 := by
   induction h with
   | single_gridt => simp at hd
   | empty => rw [List.length_append] at hd; omega
-  | horizontal_append_one _ _ _ g2_ih => exact g2_ih hd
+  | horizontal_append_one hm _ _ _ g2_ih => exact g2_ih hd
   | horizontal_append _ _ _ g1_ih =>
     rw [List.append_assoc, List.length_append] at hd
     exact g1_ih (by omega)
@@ -268,7 +268,7 @@ noncomputable def skeleton_one_cons (h2 : grid_style i j) (fe : a ++ b = ([(a3, 
   use to_over d2, to_up c2 ++ head :: tail, []
   constructor
   · have H2 := PartialGrid.empty (to_up c2) (head :: tail) (by simp [to_up_len_pos]) is_false_up (by simp) ht_true
-    have H3 := PartialGrid.horizontal_append_one (PartialGrid.single_gridt h_cell) H2
+    have H3 := PartialGrid.horizontal_append_one rfl (PartialGrid.single_gridt h_cell) H2
     simp only [up_oc, over_oc, List.singleton_append, List.append_nil] at H3
     have helper := i_is.symm.trans i_is'
     simp only [List.cons.injEq, Prod.mk.injEq, and_true] at helper
@@ -468,9 +468,9 @@ noncomputable def PartialGrid.extend_bottom (h : PartialGrid a b c d e) (a2) (h2
     apply PartialGrid.empty (a2 ++ a) b _ (is_false_of_false_false h2 ha1) (by assumption) hb
     rw [List.length_append]
     omega
-  | horizontal_append_one g1 g2 ih1 ih2 =>
+  | horizontal_append_one hm g1 g2 ih1 ih2 =>
     have H := PartialGrid.horizontal_append (by simp; exact Or.inl (List.length_pos_iff.mpr h3)) ih1 g2
-    rw [List.append_nil] at H
+    rw [hm, List.append_nil] at H
     rw [← List.append_assoc]
     exact H
   | horizontal_append h g1 g2 ih1 ih2 =>
@@ -494,7 +494,7 @@ noncomputable def PartialGrid.extend_side (h : PartialGrid a b c d e) (b2) (h2 :
     | nil => simp at h3
     | cons head tail =>
       rename_i c _
-      have H := PartialGrid.horizontal_append_one (PartialGrid.single_gridt h)
+      have H := PartialGrid.horizontal_append_one rfl (PartialGrid.single_gridt h)
           (PartialGrid.empty (to_up c) (head :: tail) to_up_len_pos is_false_up (by simp) h2)
       rw [List.append_nil] at H
       rw [List.nil_append]
@@ -504,8 +504,8 @@ noncomputable def PartialGrid.extend_side (h : PartialGrid a b c d e) (b2) (h2 :
     apply PartialGrid.empty a (b ++ b2) ha ha1 _ (is_true_of_true_true hb h2)
     rw [List.length_append]
     omega
-  | horizontal_append_one g1 g2 g1_ih g2_ih =>
-    have H := PartialGrid.horizontal_append_one g1 g2_ih
+  | horizontal_append_one hm g1 g2 g1_ih g2_ih =>
+    have H := PartialGrid.horizontal_append_one hm g1 g2_ih
     rw [← List.append_assoc] at H
     exact H
   | horizontal_append h g1 g2 g1_ih g2_ih =>
@@ -1201,13 +1201,13 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         rcases this with ⟨b, m, u, h3, h4⟩
         use b, m, u
         exact ⟨h3, ⟨h4, ⟨List.nil_suffix_C, List.nil_prefix_C⟩⟩⟩
-  | horizontal_append_one g1 g2 ih1 ih2 =>
+  | horizontal_append_one hm g1 g2 ih1 ih2 =>
     rename_i a2 b2 bot2 up2 b3 bot3 mid3 up3
     rcases big_split_first (bottom_frontier_is_true g1) fe with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
     rcases @ih2 k₂ l eq_rest with ⟨bot1, mid1, up1, pg1, fe1, h5, h6⟩
     use bot2 ++ bot1, mid1, up1
     constructor
-    · exact PartialGrid.horizontal_append_one g1 pg1
+    · exact PartialGrid.horizontal_append_one hm g1 pg1
     constructor
     · simp [k_is, k₁_is, fe]
       simp at fe1
@@ -1244,7 +1244,7 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
         rw [List.nil_append] at spec
         rw [← spec] at hpg
         constructor
-        · exact PartialGrid.horizontal_append_one hpg g2
+        · exact PartialGrid.horizontal_append_one rfl hpg g2
         constructor
         · rw [spec, ← List.append_assoc, List.append_nil] at hf
           apply List.append_cancel_right at hf
@@ -1266,7 +1266,7 @@ noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j
             exact (is_false_append H0).1
           have H := PartialGrid.extend_bottom g2 (heade::taile) lf (by simp)
           rw [← spec] at hpg
-          have H2 := PartialGrid.horizontal_append_one hpg H
+          have H2 := PartialGrid.horizontal_append_one rfl hpg H
           simp only [List.append_nil, List.cons_append, List.append_assoc] at H2
           simp only [List.cons_append, List.append_assoc]
           exact H2
@@ -1450,7 +1450,7 @@ noncomputable def PartialGrid.length : PartialGrid a b c d e → ℕ := by
     | adjacent i k h => exact 1
     | separated i j h => exact 1
   | empty a b ha ha1 hb _ => exact 0
-  | horizontal_append_one g1 g2 => exact PartialGrid.length g1 + PartialGrid.length g2
+  | horizontal_append_one hm g1 g2 => exact PartialGrid.length g1 + PartialGrid.length g2
   | horizontal_append h g1 g2  => exact PartialGrid.length g1 + PartialGrid.length g2
   | vertical_append_one g1 g2  => exact PartialGrid.length g1 + PartialGrid.length g2
   | vertical_append g1 g2 h  => exact PartialGrid.length g1 + PartialGrid.length g2

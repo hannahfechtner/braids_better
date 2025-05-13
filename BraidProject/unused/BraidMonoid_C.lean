@@ -19,31 +19,10 @@ theorem FreeMonoid.neq_one {c : FreeMonoid α} (h : c ≠ 1) : ∃ a b, c = Free
 
 open FreeMonoid
 
-inductive braid_rels_multi {n : ℕ} : FreeMonoid (Fin (n + 2)) → FreeMonoid (Fin (n + 2)) → Prop
-  | adjacent (i : Fin (n + 1)) : braid_rels_multi (of i.castSucc * of i.succ * of i.castSucc)
-                                                 (of i.succ * of i.castSucc * of i.succ)
-  | separated (i j : Fin n) (h : i ≤ j) : braid_rels_multi (of i.castSucc.castSucc * of j.succ.succ)
-                                                          (of j.succ.succ * of i.castSucc.castSucc)
-
-def braid_rels_m : (n : ℕ) → (FreeMonoid (Fin n) → FreeMonoid (Fin n) → Prop)
-  | 0     => (λ _ _ => False)
-  | 1     => (λ _ _ => False)
-  | n + 2 => @braid_rels_multi n
-
-def BraidMonoid (n : ℕ) := PresentedMonoid (braid_rels_m n.pred)
-
-instance (n : ℕ) : Monoid (BraidMonoid n) := by unfold BraidMonoid; infer_instance
-
-
 -- for the braid with infinitely many strands
-inductive braid_rels_m_inf : FreeMonoid ℕ → FreeMonoid ℕ → Prop
+inductive braid_rels_m_inf : FreeMonoid ℕ → FreeMonoid ℕ → Type
   | adjacent (i : ℕ): braid_rels_m_inf (of i * of (i+1) * of i) (of (i+1) * of i * of (i+1))
   | separated (i j : ℕ) (h : i +2 ≤ j) : braid_rels_m_inf (of i * of j) (of j * of i)
-
--- for the braid with infinitely many strands
-inductive braid_rels_m_inf_C : FreeMonoid ℕ → FreeMonoid ℕ → Type
-  | adjacent (i : ℕ): braid_rels_m_inf_C (of i * of (i+1) * of i) (of (i+1) * of i * of (i+1))
-  | separated (i j : ℕ) (h : i +2 ≤ j) : braid_rels_m_inf_C (of i * of j) (of j * of i)
 
 theorem length_pos {f g : FreeMonoid ℕ} (h : braid_rels_m_inf f g) : f.length > 0 := by
   rcases h
@@ -519,170 +498,170 @@ def triplet_eq_C {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * of k * of j)⟧ =
 --   exact H
 
 -- -- look up what other people do in the library
-theorem triplet_eq {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * of k * of j)⟧ =
-   (⟦v'⟧ : BraidMonoidInf) → v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
-  generalize ht : of j * of k * of j = t
-  intro rel_holds
-  apply BraidMonoidInf.exact at rel_holds
-  -- apply rel_induction_rw rel_holds
-  -- · intro a
-  --   left
-  --   rfl
-  -- sorry
-  have H : ∀ t, (t = (FreeMonoid.of j * FreeMonoid.of k * FreeMonoid.of j) ∨ t = of k * of j * of k) →
-      rel t v' → v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
-    intro t t_is rel_holds
-    revert t_is
-    apply rel_induction_rw rel_holds
-    · exact fun a t_is => t_is
-    · intro a b c d br_ab t_is
-      rcases br_ab with i | far
-      · have t_is' := t_is
-        have cd_length : c.length = 0 ∧ d.length = 0 := by
-          rcases t_is with one | two
-          · apply congrArg FreeMonoid.length at one
-            simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at one
-            constructor
-            · linarith [one]
-            linarith [one]
-          apply congrArg FreeMonoid.length at two
-          simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at two
-          constructor
-          · linarith [two]
-          linarith [two]
-        have c_is := length_eq_zero.mp cd_length.1
-        have d_is := length_eq_zero.mp cd_length.2
-        rw [c_is, d_is, one_mul, mul_one]
-        rw [c_is, d_is, one_mul, mul_one] at t_is'
-        rcases t_is' with one | two
-        · right
-          rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq one).2).1, (FreeMonoid.parts_eq one).1]
-        left
-        rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq two).2).1, (FreeMonoid.parts_eq two).1]
-      rename_i j1 h1
-      exfalso
-      have H : (j = far ∧ k = j1) ∨ (j = j1 ∧ k = far) := by
-        by_cases c_is : c = 1
-        · rw [c_is, one_mul] at t_is
-          rcases t_is with one | two
-          · left
-            rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq one).2).1, (FreeMonoid.parts_eq one).1]
-            exact ⟨rfl, rfl⟩
-          right
-          rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq two).2).1, (FreeMonoid.parts_eq two).1]
-          exact ⟨rfl, rfl⟩
-        rcases FreeMonoid.neq_one c_is with ⟨a, b, habc⟩
-        rw [habc] at t_is
-        repeat rw [mul_assoc] at t_is
-        rcases t_is with one | two
-        · have H2 := congr_arg FreeMonoid.length (FreeMonoid.parts_eq one).2
-          simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at H2
-          have b_length_zero : b.length = 0 := by linarith [H2]
-          have d_length_zero : d.length = 0 := by linarith [H2]
-          have b_is : b = 1 := length_eq_zero.mp b_length_zero
-          have d_is : d = 1 := length_eq_zero.mp d_length_zero
-          rw [b_is, d_is, one_mul, mul_one] at one
-          have H3 := (FreeMonoid.parts_eq one).2
-          rw [(FreeMonoid.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid.parts_eq H3).2]
-          right
-          exact ⟨rfl, rfl⟩
-        have H2 := congr_arg FreeMonoid.length (FreeMonoid.parts_eq two).2
-        simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at H2
-        have b_length_zero : b.length = 0 := by linarith [H2]
-        have d_length_zero : d.length = 0 := by linarith [H2]
-        have b_is : b = 1 := length_eq_zero.mp b_length_zero
-        have d_is : d = 1 := length_eq_zero.mp d_length_zero
-        rw [b_is, d_is, one_mul, mul_one] at two
-        have H3 := (FreeMonoid.parts_eq two).2
-        rw [(FreeMonoid.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid.parts_eq H3).2]
-        left
-        exact ⟨rfl, rfl⟩
-      rcases H with one | two
-      · unfold Nat.dist at h
-        rw [one.1, one.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), zero_add] at h
-        rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
-        linarith [h1]
-      unfold Nat.dist at h
-      rw [two.1, two.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), add_zero] at h
-      rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
-      linarith [h1]
-    · intro a b c d br_ab t_is
-      rcases br_ab with i | far
-      · have t_is' := t_is
-        have cd_length : c.length = 0 ∧ d.length = 0 := by
-          rcases t_is with one | two
-          · apply congrArg FreeMonoid.length at one
-            simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at one
-            constructor
-            · linarith [one]
-            linarith [one]
-          apply congrArg FreeMonoid.length at two
-          simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at two
-          constructor
-          · linarith [two]
-          linarith [two]
-        have c_is := length_eq_zero.mp cd_length.1
-        have d_is := length_eq_zero.mp cd_length.2
-        rw [c_is, d_is, one_mul, mul_one]
-        rw [c_is, d_is, one_mul, mul_one] at t_is'
-        rcases t_is' with one | two
-        · right
-          rw [(FreeMonoid.parts_eq one).1, (FreeMonoid.parts_eq (FreeMonoid.parts_eq one).2).1]
-        left
-        rw [(FreeMonoid.parts_eq two).1, (FreeMonoid.parts_eq (FreeMonoid.parts_eq two).2).1]
-      rename_i j1 h1
-      exfalso
-      have H : (j = far ∧ k = j1) ∨ (j = j1 ∧ k = far) := by
-        by_cases c_is : c = 1
-        · rw [c_is, one_mul] at t_is
-          rcases t_is with one | two
-          · right
-            rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq one).2).1, (FreeMonoid.parts_eq one).1]
-            exact ⟨rfl, rfl⟩
-          left
-          rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq two).2).1, (FreeMonoid.parts_eq two).1]
-          exact ⟨rfl, rfl⟩
-        rcases FreeMonoid.neq_one c_is with ⟨a, b, habc⟩
-        rw [habc] at t_is
-        repeat rw [mul_assoc] at t_is
-        rcases t_is with one | two
-        · have H2 := congr_arg FreeMonoid.length (FreeMonoid.parts_eq one).2
-          simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at H2
-          have b_length_zero : b.length = 0 := by linarith [H2]
-          have d_length_zero : d.length = 0 := by linarith [H2]
-          have b_is : b = 1 := length_eq_zero.mp b_length_zero
-          have d_is : d = 1 := length_eq_zero.mp d_length_zero
-          rw [b_is, d_is, one_mul, mul_one] at one
-          have H3 := (FreeMonoid.parts_eq one).2
-          rw [(FreeMonoid.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid.parts_eq H3).2]
-          left
-          exact ⟨rfl, rfl⟩
-        have H2 := congr_arg FreeMonoid.length (FreeMonoid.parts_eq two).2
-        simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at H2
-        have b_length_zero : b.length = 0 := by linarith [H2]
-        have d_length_zero : d.length = 0 := by linarith [H2]
-        have b_is : b = 1 := length_eq_zero.mp b_length_zero
-        have d_is : d = 1 := length_eq_zero.mp d_length_zero
-        rw [b_is, d_is, one_mul, mul_one] at two
-        have H3 := (FreeMonoid.parts_eq two).2
-        rw [(FreeMonoid.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid.parts_eq H3).2]
-        right
-        exact ⟨rfl, rfl⟩
-      rcases H with one | two
-      · unfold Nat.dist at h
-        rw [one.1, one.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), zero_add] at h
-        rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
-        linarith [h1]
-      unfold Nat.dist at h
-      rw [two.1, two.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), add_zero] at h
-      rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
-      linarith [h1]
-    exact fun _ _ _ n d_is => n.2 (n.1 d_is)
-  specialize H (FreeMonoid.of j * FreeMonoid.of k * FreeMonoid.of j) (Or.inl rfl)
-  rw [← ht] at rel_holds
-  specialize H rel_holds
-  rw [← ht]
-  exact H
+-- theorem triplet_eq {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * of k * of j)⟧ =
+--    (⟦v'⟧ : BraidMonoidInf) → v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
+--   generalize ht : of j * of k * of j = t
+--   intro rel_holds
+--   apply BraidMonoidInf.exact at rel_holds
+--   -- apply rel_induction_rw rel_holds
+--   -- · intro a
+--   --   left
+--   --   rfl
+--   -- sorry
+--   have H : ∀ t, (t = (FreeMonoid.of j * FreeMonoid.of k * FreeMonoid.of j) ∨ t = of k * of j * of k) →
+--       rel t v' → v' = (of j * of k * of j) ∨ v' = (of k * of j * of k) := by
+--     intro t t_is rel_holds
+--     revert t_is
+--     apply rel_induction_rw rel_holds
+--     · exact fun a t_is => t_is
+--     · intro a b c d br_ab t_is
+--       rcases br_ab with i | far
+--       · have t_is' := t_is
+--         have cd_length : c.length = 0 ∧ d.length = 0 := by
+--           rcases t_is with one | two
+--           · apply congrArg FreeMonoid.length at one
+--             simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at one
+--             constructor
+--             · linarith [one]
+--             linarith [one]
+--           apply congrArg FreeMonoid.length at two
+--           simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at two
+--           constructor
+--           · linarith [two]
+--           linarith [two]
+--         have c_is := length_eq_zero.mp cd_length.1
+--         have d_is := length_eq_zero.mp cd_length.2
+--         rw [c_is, d_is, one_mul, mul_one]
+--         rw [c_is, d_is, one_mul, mul_one] at t_is'
+--         rcases t_is' with one | two
+--         · right
+--           rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq one).2).1, (FreeMonoid.parts_eq one).1]
+--         left
+--         rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq two).2).1, (FreeMonoid.parts_eq two).1]
+--       rename_i j1 h1
+--       exfalso
+--       have H : (j = far ∧ k = j1) ∨ (j = j1 ∧ k = far) := by
+--         by_cases c_is : c = 1
+--         · rw [c_is, one_mul] at t_is
+--           rcases t_is with one | two
+--           · left
+--             rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq one).2).1, (FreeMonoid.parts_eq one).1]
+--             exact ⟨rfl, rfl⟩
+--           right
+--           rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq two).2).1, (FreeMonoid.parts_eq two).1]
+--           exact ⟨rfl, rfl⟩
+--         rcases FreeMonoid.neq_one c_is with ⟨a, b, habc⟩
+--         rw [habc] at t_is
+--         repeat rw [mul_assoc] at t_is
+--         rcases t_is with one | two
+--         · have H2 := congr_arg FreeMonoid.length (FreeMonoid.parts_eq one).2
+--           simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at H2
+--           have b_length_zero : b.length = 0 := by linarith [H2]
+--           have d_length_zero : d.length = 0 := by linarith [H2]
+--           have b_is : b = 1 := length_eq_zero.mp b_length_zero
+--           have d_is : d = 1 := length_eq_zero.mp d_length_zero
+--           rw [b_is, d_is, one_mul, mul_one] at one
+--           have H3 := (FreeMonoid.parts_eq one).2
+--           rw [(FreeMonoid.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid.parts_eq H3).2]
+--           right
+--           exact ⟨rfl, rfl⟩
+--         have H2 := congr_arg FreeMonoid.length (FreeMonoid.parts_eq two).2
+--         simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at H2
+--         have b_length_zero : b.length = 0 := by linarith [H2]
+--         have d_length_zero : d.length = 0 := by linarith [H2]
+--         have b_is : b = 1 := length_eq_zero.mp b_length_zero
+--         have d_is : d = 1 := length_eq_zero.mp d_length_zero
+--         rw [b_is, d_is, one_mul, mul_one] at two
+--         have H3 := (FreeMonoid.parts_eq two).2
+--         rw [(FreeMonoid.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid.parts_eq H3).2]
+--         left
+--         exact ⟨rfl, rfl⟩
+--       rcases H with one | two
+--       · unfold Nat.dist at h
+--         rw [one.1, one.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), zero_add] at h
+--         rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
+--         linarith [h1]
+--       unfold Nat.dist at h
+--       rw [two.1, two.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), add_zero] at h
+--       rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
+--       linarith [h1]
+--     · intro a b c d br_ab t_is
+--       rcases br_ab with i | far
+--       · have t_is' := t_is
+--         have cd_length : c.length = 0 ∧ d.length = 0 := by
+--           rcases t_is with one | two
+--           · apply congrArg FreeMonoid.length at one
+--             simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at one
+--             constructor
+--             · linarith [one]
+--             linarith [one]
+--           apply congrArg FreeMonoid.length at two
+--           simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at two
+--           constructor
+--           · linarith [two]
+--           linarith [two]
+--         have c_is := length_eq_zero.mp cd_length.1
+--         have d_is := length_eq_zero.mp cd_length.2
+--         rw [c_is, d_is, one_mul, mul_one]
+--         rw [c_is, d_is, one_mul, mul_one] at t_is'
+--         rcases t_is' with one | two
+--         · right
+--           rw [(FreeMonoid.parts_eq one).1, (FreeMonoid.parts_eq (FreeMonoid.parts_eq one).2).1]
+--         left
+--         rw [(FreeMonoid.parts_eq two).1, (FreeMonoid.parts_eq (FreeMonoid.parts_eq two).2).1]
+--       rename_i j1 h1
+--       exfalso
+--       have H : (j = far ∧ k = j1) ∨ (j = j1 ∧ k = far) := by
+--         by_cases c_is : c = 1
+--         · rw [c_is, one_mul] at t_is
+--           rcases t_is with one | two
+--           · right
+--             rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq one).2).1, (FreeMonoid.parts_eq one).1]
+--             exact ⟨rfl, rfl⟩
+--           left
+--           rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq two).2).1, (FreeMonoid.parts_eq two).1]
+--           exact ⟨rfl, rfl⟩
+--         rcases FreeMonoid.neq_one c_is with ⟨a, b, habc⟩
+--         rw [habc] at t_is
+--         repeat rw [mul_assoc] at t_is
+--         rcases t_is with one | two
+--         · have H2 := congr_arg FreeMonoid.length (FreeMonoid.parts_eq one).2
+--           simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at H2
+--           have b_length_zero : b.length = 0 := by linarith [H2]
+--           have d_length_zero : d.length = 0 := by linarith [H2]
+--           have b_is : b = 1 := length_eq_zero.mp b_length_zero
+--           have d_is : d = 1 := length_eq_zero.mp d_length_zero
+--           rw [b_is, d_is, one_mul, mul_one] at one
+--           have H3 := (FreeMonoid.parts_eq one).2
+--           rw [(FreeMonoid.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid.parts_eq H3).2]
+--           left
+--           exact ⟨rfl, rfl⟩
+--         have H2 := congr_arg FreeMonoid.length (FreeMonoid.parts_eq two).2
+--         simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at H2
+--         have b_length_zero : b.length = 0 := by linarith [H2]
+--         have d_length_zero : d.length = 0 := by linarith [H2]
+--         have b_is : b = 1 := length_eq_zero.mp b_length_zero
+--         have d_is : d = 1 := length_eq_zero.mp d_length_zero
+--         rw [b_is, d_is, one_mul, mul_one] at two
+--         have H3 := (FreeMonoid.parts_eq two).2
+--         rw [(FreeMonoid.parts_eq H3).1, FreeMonoid.of_injective (FreeMonoid.parts_eq H3).2]
+--         right
+--         exact ⟨rfl, rfl⟩
+--       rcases H with one | two
+--       · unfold Nat.dist at h
+--         rw [one.1, one.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), zero_add] at h
+--         rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
+--         linarith [h1]
+--       unfold Nat.dist at h
+--       rw [two.1, two.2, Nat.sub_eq_zero_of_le (le_of_add_le_left h1), add_zero] at h
+--       rw [((Nat.sub_eq_iff_eq_add (le_of_add_le_left h1)).mp h)] at h1
+--       linarith [h1]
+--     exact fun _ _ _ n d_is => n.2 (n.1 d_is)
+--   specialize H (FreeMonoid.of j * FreeMonoid.of k * FreeMonoid.of j) (Or.inl rfl)
+--   rw [← ht] at rel_holds
+--   specialize H rel_holds
+--   rw [← ht]
+--   exact H
 
 theorem sound : BraidMonoidInf.rel a b → BraidMonoidInf.mk a = BraidMonoidInf.mk b :=
   PresentedMonoid.sound

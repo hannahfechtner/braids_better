@@ -2,94 +2,94 @@ import BraidProject.BraidMonoid
 import Mathlib.Data.Nat.Dist
 open FreeMonoid
 
-noncomputable section
+-- noncomputable section
 
-/-- a reversing grid, inductively defined as the set of basic cells, and a vertical and horizontal
-closure under appending-/
-inductive gridt : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → Type
-  | empty : gridt 1 1 1 1
-  | top_bottom (i : ℕ) : gridt 1 (of i) 1 (.of i)
-  | sides (i : ℕ) : gridt (of i) 1 (of i) 1
-  | top_left (i : ℕ) : gridt (of i) (of i) 1 1
-  | adjacent (i k : ℕ) (h : i.dist k = 1) : gridt (of i) (of k) (of i * of k) (of k * of i)
-  | separated (i j : ℕ) (h : i.dist j > 1) : gridt (of i) (of j) (of i) (of j)
-  | vertical (h1: gridt u v u' v') (h2 : gridt a v' c d) : gridt (u * a) v (u' * c) d
-  | horizontal (h1: gridt u v u' v') (h2 : gridt u' b c d) : gridt u (v * b) c (v' * d)
+-- /-- a reversing grid, inductively defined as the set of basic cells, and a vertical and horizontal
+-- closure under appending-/
+-- inductive gridt : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → Type
+--   | empty : gridt 1 1 1 1
+--   | top_bottom (i : ℕ) : gridt 1 (of i) 1 (.of i)
+--   | sides (i : ℕ) : gridt (of i) 1 (of i) 1
+--   | top_left (i : ℕ) : gridt (of i) (of i) 1 1
+--   | adjacent (i k : ℕ) (h : i.dist k = 1) : gridt (of i) (of k) (of i * of k) (of k * of i)
+--   | separated (i j : ℕ) (h : i.dist j > 1) : gridt (of i) (of j) (of i) (of j)
+--   | vertical (h1: gridt u v u' v') (h2 : gridt a v' c d) : gridt (u * a) v (u' * c) d
+--   | horizontal (h1: gridt u v u' v') (h2 : gridt u' b c d) : gridt u (v * b) c (v' * d)
 
-def hasSize : gridt a b c d → ℕ → Prop
-  | gridt.empty, n => n = 0
-  | gridt.top_bottom _, n => n = 0
-  | gridt.sides _, n => n = 0
-  | gridt.top_left _, n => n = 1
-  | gridt.adjacent _ _ _, n => n = 1
-  | gridt.separated _ _ _, n => n = 1
-  | gridt.vertical h1 h2, n => ∃ n1 n2, hasSize h1 n1 ∧ hasSize h2 n2 ∧ n = n1 + n2
-  | gridt.horizontal h1 h2, n => ∃ n1 n2, hasSize h1 n1 ∧ hasSize h2 n2 ∧ n = n1 + n2
+-- def hasSize : gridt a b c d → ℕ → Prop
+--   | gridt.empty, n => n = 0
+--   | gridt.top_bottom _, n => n = 0
+--   | gridt.sides _, n => n = 0
+--   | gridt.top_left _, n => n = 1
+--   | gridt.adjacent _ _ _, n => n = 1
+--   | gridt.separated _ _ _, n => n = 1
+--   | gridt.vertical h1 h2, n => ∃ n1 n2, hasSize h1 n1 ∧ hasSize h2 n2 ∧ n = n1 + n2
+--   | gridt.horizontal h1 h2, n => ∃ n1 n2, hasSize h1 n1 ∧ hasSize h2 n2 ∧ n = n1 + n2
 
-theorem all_gridts_have_size (h : gridt a b c d) : ∃ n, hasSize h n := by
-  induction h with
-  | empty => exact ⟨0, rfl⟩
-  | top_bottom i => exact ⟨0, rfl⟩
-  | sides i => exact ⟨0, rfl⟩
-  | top_left i => exact ⟨1, rfl⟩
-  | adjacent i k h => exact ⟨1, rfl⟩
-  | separated i j h => exact ⟨1, rfl⟩
-  | vertical h1 h2 h1_ih h2_ih =>
-    rcases h1_ih with ⟨n1, h1_ih⟩
-    rcases h2_ih with ⟨n2, h2_ih⟩
-    exact ⟨n1 + n2, ⟨n1, n2, h1_ih, h2_ih, rfl⟩⟩
-  | horizontal h1 h2 h1_ih h2_ih =>
-    rcases h1_ih with ⟨n1, h1_ih⟩
-    rcases h2_ih with ⟨n2, h2_ih⟩
-    exact ⟨n1 + n2, ⟨n1, n2, h1_ih, h2_ih, rfl⟩⟩
+-- theorem all_gridts_have_size (h : gridt a b c d) : ∃ n, hasSize h n := by
+--   induction h with
+--   | empty => exact ⟨0, rfl⟩
+--   | top_bottom i => exact ⟨0, rfl⟩
+--   | sides i => exact ⟨0, rfl⟩
+--   | top_left i => exact ⟨1, rfl⟩
+--   | adjacent i k h => exact ⟨1, rfl⟩
+--   | separated i j h => exact ⟨1, rfl⟩
+--   | vertical h1 h2 h1_ih h2_ih =>
+--     rcases h1_ih with ⟨n1, h1_ih⟩
+--     rcases h2_ih with ⟨n2, h2_ih⟩
+--     exact ⟨n1 + n2, ⟨n1, n2, h1_ih, h2_ih, rfl⟩⟩
+--   | horizontal h1 h2 h1_ih h2_ih =>
+--     rcases h1_ih with ⟨n1, h1_ih⟩
+--     rcases h2_ih with ⟨n2, h2_ih⟩
+--     exact ⟨n1 + n2, ⟨n1, n2, h1_ih, h2_ih, rfl⟩⟩
 
-def gridt.sizeOf (h : gridt a b c d) : Nat := (all_gridts_have_size h).choose
+-- def gridt.sizeOf (h : gridt a b c d) : Nat := (all_gridts_have_size h).choose
 
-theorem gridt_uniqueness (h1 : hasSize h n1) (h2 : hasSize h n2) : n1 = n2 := by
-  induction h generalizing n1 n2
-   <;> simp_all [hasSize]
-  · rcases h1 with ⟨u2, hu2, v2, hv2, rfl⟩
-    rcases h2 with ⟨u1, hu1, v1, hv1, rfl⟩
-    rename_i ih1 ih2
-    have H := ih1 hu2 hu1
-    have H2 := ih2 hv2 hv1
-    omega
-  rcases h1 with ⟨u2, hu2, v2, hv2, rfl⟩
-  rcases h2 with ⟨u1, hu1, v1, hv1, rfl⟩
-  rename_i ih1 ih2
-  have H := ih1 hu2 hu1
-  have H2 := ih2 hv2 hv1
-  omega
+-- theorem gridt_uniqueness (h1 : hasSize h n1) (h2 : hasSize h n2) : n1 = n2 := by
+--   induction h generalizing n1 n2
+--    <;> simp_all [hasSize]
+--   · rcases h1 with ⟨u2, hu2, v2, hv2, rfl⟩
+--     rcases h2 with ⟨u1, hu1, v1, hv1, rfl⟩
+--     rename_i ih1 ih2
+--     have H := ih1 hu2 hu1
+--     have H2 := ih2 hv2 hv1
+--     omega
+--   rcases h1 with ⟨u2, hu2, v2, hv2, rfl⟩
+--   rcases h2 with ⟨u1, hu1, v1, hv1, rfl⟩
+--   rename_i ih1 ih2
+--   have H := ih1 hu2 hu1
+--   have H2 := ih2 hv2 hv1
+--   omega
 
-@[simp]
-lemma sizeOf_empty : gridt.sizeOf gridt.empty = 0 := by
-  have H := all_gridts_have_size gridt.empty
-  exact H.choose_spec
+-- @[simp]
+-- lemma sizeOf_empty : gridt.sizeOf gridt.empty = 0 := by
+--   have H := all_gridts_have_size gridt.empty
+--   exact H.choose_spec
 
-@[simp]
-lemma sizeOf_top_bottom (i : ℕ) : gridt.sizeOf (gridt.top_bottom i) = 0 := by
-  have H := all_gridts_have_size (gridt.top_bottom i)
-  exact H.choose_spec
+-- @[simp]
+-- lemma sizeOf_top_bottom (i : ℕ) : gridt.sizeOf (gridt.top_bottom i) = 0 := by
+--   have H := all_gridts_have_size (gridt.top_bottom i)
+--   exact H.choose_spec
 
-@[simp]
-lemma sizeOf_sides (i : ℕ) : gridt.sizeOf (gridt.sides i) = 0 := by
-  have H := all_gridts_have_size (gridt.sides i)
-  exact H.choose_spec
+-- @[simp]
+-- lemma sizeOf_sides (i : ℕ) : gridt.sizeOf (gridt.sides i) = 0 := by
+--   have H := all_gridts_have_size (gridt.sides i)
+--   exact H.choose_spec
 
-@[simp]
-lemma sizeOf_top_left (i : ℕ) : gridt.sizeOf (gridt.top_left i) = 1 := by
-  have H := all_gridts_have_size (gridt.top_left i)
-  exact H.choose_spec
+-- @[simp]
+-- lemma sizeOf_top_left (i : ℕ) : gridt.sizeOf (gridt.top_left i) = 1 := by
+--   have H := all_gridts_have_size (gridt.top_left i)
+--   exact H.choose_spec
 
-@[simp]
-lemma sizeOf_adjacent (i k : ℕ) (h : i.dist k = 1) : gridt.sizeOf (gridt.adjacent i k h) = 1 := by
-  have H := all_gridts_have_size (gridt.adjacent i k h)
-  exact H.choose_spec
+-- @[simp]
+-- lemma sizeOf_adjacent (i k : ℕ) (h : i.dist k = 1) : gridt.sizeOf (gridt.adjacent i k h) = 1 := by
+--   have H := all_gridts_have_size (gridt.adjacent i k h)
+--   exact H.choose_spec
 
-@[simp]
-lemma sizeOf_separated (i j : ℕ) (h : i.dist j > 1) : gridt.sizeOf (gridt.separated i j h) = 1 := by
-  have H := all_gridts_have_size (gridt.separated i j h)
-  exact H.choose_spec
+-- @[simp]
+-- lemma sizeOf_separated (i j : ℕ) (h : i.dist j > 1) : gridt.sizeOf (gridt.separated i j h) = 1 := by
+--   have H := all_gridts_have_size (gridt.separated i j h)
+--   exact H.choose_spec
 
 -- theorem size_of_unique (h : gridt.sizeOf g = n) (h2 : gridt.sizeOf g = n2) : n = n2 := by sorry
 -- theorem hasSize_of_sizeOf (h1 : gridt.sizeOf h = n) : hasSize h n := by
@@ -105,54 +105,54 @@ lemma sizeOf_separated (i j : ℕ) (h : i.dist j > 1) : gridt.sizeOf (gridt.sepa
 --     sorry --omega
 --   sorry
 
-theorem hasSize_vert (h1 : hasSize g1 n1) (h2 : hasSize g2 n2) : hasSize (g1.vertical g2) (n1 + n2) := by
-  simp [hasSize]
-  use n1
-  constructor
-  · exact h1
-  use n2
+-- theorem hasSize_vert (h1 : hasSize g1 n1) (h2 : hasSize g2 n2) : hasSize (g1.vertical g2) (n1 + n2) := by
+--   simp [hasSize]
+--   use n1
+--   constructor
+--   · exact h1
+--   use n2
 
-theorem hasSize_horiz (h1 : hasSize g1 n1) (h2 : hasSize g2 n2) : hasSize (g1.horizontal g2) (n1 + n2) := by
-  simp [hasSize]
-  use n1
-  constructor
-  · exact h1
-  use n2
+-- theorem hasSize_horiz (h1 : hasSize g1 n1) (h2 : hasSize g2 n2) : hasSize (g1.horizontal g2) (n1 + n2) := by
+--   simp [hasSize]
+--   use n1
+--   constructor
+--   · exact h1
+--   use n2
 
-theorem hasSize_add (h1 : hasSize g1 n1) (h2 : hasSize g2 n2) (h3 : hasSize (g1.vertical g2) c) : n1 + n2 = c := by
-  have H0 := hasSize_vert h1 h2
-  exact gridt_uniqueness H0 h3
+-- theorem hasSize_add (h1 : hasSize g1 n1) (h2 : hasSize g2 n2) (h3 : hasSize (g1.vertical g2) c) : n1 + n2 = c := by
+--   have H0 := hasSize_vert h1 h2
+--   exact gridt_uniqueness H0 h3
 
-theorem hasSize_add_horiz (h1 : hasSize g1 n1) (h2 : hasSize g2 n2) (h3 : hasSize (g1.horizontal g2) c) : n1 + n2 = c := by
-  have H0 := hasSize_horiz h1 h2
-  exact gridt_uniqueness H0 h3
+-- theorem hasSize_add_horiz (h1 : hasSize g1 n1) (h2 : hasSize g2 n2) (h3 : hasSize (g1.horizontal g2) c) : n1 + n2 = c := by
+--   have H0 := hasSize_horiz h1 h2
+--   exact gridt_uniqueness H0 h3
 
-theorem sizeOf_eq_hasSize (h1 : hasSize g n1) (h2 : gridt.sizeOf g = n2) : n1 = n2 := by
-  induction g generalizing n1 n2 <;> simp_all [hasSize]
-  · rename_i ih1 ih2
-    rcases h1 with ⟨u, hu, v, hv, rfl⟩
-    specialize ih1 hu
-    specialize ih2 hv
-    rw [← h2, ih1, ih2]
-    simp [gridt.sizeOf]
-    rename_i g1 g2
-    have H0 := (all_gridts_have_size g1).choose_spec
-    have H1 := (all_gridts_have_size g2).choose_spec
-    have H2 := (all_gridts_have_size (g1.vertical g2)).choose_spec
-    have H4 := hasSize_add H0 H1 H2
-    exact H4
-  rename_i ih1 ih2
-  rcases h1 with ⟨u, hu, v, hv, rfl⟩
-  specialize ih1 hu
-  specialize ih2 hv
-  rw [← h2, ih1, ih2]
-  simp [gridt.sizeOf]
-  rename_i g1 g2
-  have H0 := (all_gridts_have_size g1).choose_spec
-  have H1 := (all_gridts_have_size g2).choose_spec
-  have H2 := (all_gridts_have_size (g1.horizontal g2)).choose_spec
-  have H4 := hasSize_add_horiz H0 H1 H2
-  exact H4
+-- theorem sizeOf_eq_hasSize (h1 : hasSize g n1) (h2 : gridt.sizeOf g = n2) : n1 = n2 := by
+--   induction g generalizing n1 n2 <;> simp_all [hasSize]
+--   · rename_i ih1 ih2
+--     rcases h1 with ⟨u, hu, v, hv, rfl⟩
+--     specialize ih1 hu
+--     specialize ih2 hv
+--     rw [← h2, ih1, ih2]
+--     simp [gridt.sizeOf]
+--     rename_i g1 g2
+--     have H0 := (all_gridts_have_size g1).choose_spec
+--     have H1 := (all_gridts_have_size g2).choose_spec
+--     have H2 := (all_gridts_have_size (g1.vertical g2)).choose_spec
+--     have H4 := hasSize_add H0 H1 H2
+--     exact H4
+--   rename_i ih1 ih2
+--   rcases h1 with ⟨u, hu, v, hv, rfl⟩
+--   specialize ih1 hu
+--   specialize ih2 hv
+--   rw [← h2, ih1, ih2]
+--   simp [gridt.sizeOf]
+--   rename_i g1 g2
+--   have H0 := (all_gridts_have_size g1).choose_spec
+--   have H1 := (all_gridts_have_size g2).choose_spec
+--   have H2 := (all_gridts_have_size (g1.horizontal g2)).choose_spec
+--   have H4 := hasSize_add_horiz H0 H1 H2
+--   exact H4
 
 
   -- have H0 := (all_gridts_have_size h).choose_spec
@@ -173,24 +173,24 @@ theorem sizeOf_eq_hasSize (h1 : hasSize g n1) (h2 : gridt.sizeOf g = n2) : n1 = 
   -- | vertical h1 h2 h1_ih h2_ih => sorry
   -- | horizontal h1 h2 h1_ih h2_ih => sorry
 
-lemma sizeOf_vertical (h1 : gridt u v u' v') (h2 : gridt a v' c d) :
-    gridt.sizeOf (gridt.vertical h1 h2) = gridt.sizeOf h1 + gridt.sizeOf h2 := by
-  have H1 := all_gridts_have_size (gridt.vertical h1 h2)
-  have H2 := H1.choose_spec
-  simp [hasSize] at H1
-  simp only [hasSize] at H2
-  rcases H2 with ⟨n3, n4, spec⟩
-  rcases H1 with ⟨n5, n6, spec2⟩
-  rcases H1 with ⟨n7, n8, n9, spec3⟩
-  conv => lhs; simp [gridt.sizeOf, spec.2.2]
-  have H : h1.sizeOf = n3 := (sizeOf_eq_hasSize spec.1 rfl).symm
-  have H2 : h2.sizeOf = n4 := (sizeOf_eq_hasSize spec.2.1 rfl).symm
-  omega
+-- lemma sizeOf_vertical (h1 : gridt u v u' v') (h2 : gridt a v' c d) :
+--     gridt.sizeOf (gridt.vertical h1 h2) = gridt.sizeOf h1 + gridt.sizeOf h2 := by
+--   have H1 := all_gridts_have_size (gridt.vertical h1 h2)
+--   have H2 := H1.choose_spec
+--   simp [hasSize] at H1
+--   simp only [hasSize] at H2
+--   rcases H2 with ⟨n3, n4, spec⟩
+--   rcases H1 with ⟨n5, n6, spec2⟩
+--   rcases H1 with ⟨n7, n8, n9, spec3⟩
+--   conv => lhs; simp [gridt.sizeOf, spec.2.2]
+--   have H : h1.sizeOf = n3 := (sizeOf_eq_hasSize spec.1 rfl).symm
+--   have H2 : h2.sizeOf = n4 := (sizeOf_eq_hasSize spec.2.1 rfl).symm
+--   omega
 
 
 
 
-end
+-- end
 
 
 /-- a reversing grid, inductively defined as the set of basic cells, and a vertical and horizontal

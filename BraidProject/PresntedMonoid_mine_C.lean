@@ -31,12 +31,18 @@ generators, relations, monoid presentations
 
 variable {α : Type*}
 
+inductive rst_closure {α : Type v} (rels : FreeMonoid α → FreeMonoid α → Type u) : FreeMonoid α →  FreeMonoid α → Type (max u v)
+  | basic : rels a b → rst_closure rels a b
+  | rfl (a : FreeMonoid α) : rst_closure rels a a
+  | symm (a b) : rst_closure rels a b → rst_closure rels b a
+  | trans (a b c) : rst_closure rels a b → rst_closure rels b c → rst_closure rels a c
+
+
 /-- Given a set of relations, `rels`, over a type `α`, `PresentedMonoid` constructs the monoid with
 generators `x : α` and relations `rels` as a quotient of a congruence structure over rels. -/
-@[to_additive "Given a set of relations, `rels`, over a type `α`, `PresentedAddMonoid` constructs
-the monoid with generators `x : α` and relations `rels` as a quotient of an Addcon structure over
-rels"]
-def PresentedMonoid (rel : FreeMonoid α → FreeMonoid α → Prop) := (conGen rel).Quotient
+def PresentedMonoid (rel : FreeMonoid α → FreeMonoid α → Type) := (rst_closure rel).Quotient
+
+#exit
 
 namespace PresentedMonoid
 
