@@ -812,7 +812,8 @@ def split_vertically_pg' (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b₁
   (h1 : PartialGrid a b₁ c1 d1 mid) × (h2 : PartialGrid mid b₂ c2 d2 e) ×
   PLift (c ++ d = c1 ++ d1 ++ c2 ++ d2) ×
   PLift (h.length = h1.length + h2.length)) ⊕
-  (Σ d1, (h1 : PartialGrid a b₁ c d1 []) × PLift (h.length = h1.length) × PLift (e = []))
+  (Σ d1 d2, (h1 : PartialGrid a b₁ c d1 []) × PLift (h.length = h1.length) ×
+    PLift (e = []) × PLift (d = d1 ++ d2) × PLift (b₂ = d2))
 
 def List.append_eq_singleton_C (h : a ++ b = [c]) : PLift (a = [] ∧ b = [c]) ⊕ PLift (a = [c] ∧ b = []) := by
   induction a with
@@ -834,6 +835,41 @@ def List.cases_C (a : List α) : PLift (a = []) ⊕ PLift (a.length > 0) :=
   match ha : a.length with
   | 0 => Sum.inl ⟨List.length_eq_zero_iff.mp ha⟩
   | Nat.succ n => Sum.inr ⟨by simp⟩
+
+theorem not_both_empty : PartialGrid a b c d e → d = [] → e = [] → False := by
+  intro h
+  induction h with
+  | single_gridt h =>
+    intro ha hb
+    simp [to_up] at hb
+    rename_i c _
+    match c with
+    | [] => simp at hb
+    | c1 :: c2 => simp at hb
+  | empty a b ha ha1 hb hb1 =>
+    intro h1
+    apply congr_arg List.length at h1
+    simp [List.length] at h1
+    rw [h1.1] at ha
+    simp at ha
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    exact g2_ih
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    intro h1
+    apply g2_ih
+    simp at h1
+    exact h1.2.2
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    intro h1 h2
+    simp at h2
+    apply g2_ih h1
+    exact h2.1
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    intro h1 h2
+    simp at h1
+    apply g1_ih h1.2.2 h2
+
+theorem pg_not_mid_right_empty : PartialGrid a b c [] [] → False := fun h => not_both_empty h rfl rfl
 
 noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : split_vertically_pg' h := by
   induction h with
@@ -882,9 +918,16 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
     have itb₁ : is_true b₁ := by
       rw [b_is] at hb1
       exact (is_true_append hb1).1
+    use b₂
     use PartialGrid.empty a b₁ ha ha1 b₁_len itb₁
     constructor
     · exact ⟨by simp [PartialGrid.length]⟩
+    constructor
+    · exact ⟨rfl⟩
+    constructor
+    · constructor
+      rw [b_is]
+      simp
     exact ⟨rfl⟩
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i a1 b1 bot1 up1 b2 bot2 mid2 up2
@@ -911,9 +954,9 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         constructor
         simp [PartialGrid.length, h_len, ← add_assoc]
       right
-      rcases bad with ⟨d1, h3, h_len, end_is⟩
+      rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
       rw [one.1]
-      use d1
+      use d1, d2
       use PartialGrid.horizontal_append_one g1 h3
       constructor
       · exact ⟨by rw [PartialGrid.length, h_len.1, PartialGrid.length]⟩
@@ -948,9 +991,9 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         simp [long, h_len, PartialGrid.length, ← add_assoc]
         exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
     right
-    rcases bad with ⟨d1, h3, h_len, end_is⟩
+    rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
     have H := PartialGrid.left_length_pos g2
-    rw [end_is.1] at H
+    rw [end_is.1.1] at H
     simp at H
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i a1 b1 bot1 mid1 up1 b2 bot2 mid2 up2
@@ -978,13 +1021,19 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         constructor
         simp [PartialGrid.length, h_len, ← add_assoc]
       right
-      rcases bad with ⟨d1, h3, h_len, end_is⟩
+      rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
       rw [one.1]
-      use (mid1 ++ bot2 ++ d1)
+      use (mid1 ++ bot2 ++ d1), d2
       use PartialGrid.horizontal_append h g1 h3
       constructor
       · exact ⟨by rw [PartialGrid.length, h_len.1, PartialGrid.length]⟩
-      exact end_is
+      constructor
+      · exact end_is.1
+      constructor
+      · rw [end_is.2.1.1]
+        simp
+        exact ⟨trivial⟩
+      exact end_is.2.2
     rcases List.cases_C to_middle with ⟨⟨silly⟩⟩ | ⟨⟨tm_l⟩⟩
     · left
       rw [silly, List.append_nil] at one
@@ -1014,11 +1063,79 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         simp [← List.append_assoc, long, h_len, PartialGrid.length, ← add_assoc]
         exact ⟨⟨by simp⟩, ⟨trivial⟩⟩
     right
-    rcases bad with ⟨d1, h3, h_len, end_is⟩
+    rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
     have H := PartialGrid.left_length_pos g2
-    rw [end_is.1] at H
+    rw [end_is.1.1] at H
     simp at H
-  | vertical_append_one g1 g2 g1_ih g2_ih => sorry
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rename_i a1 b1 bot1 up1 a2 bot2 mid2 up2
+    intro a₃ a₄ a_is a₃_len a₄_len
+    rcases g1_ih _ _ a_is a₃_len a₄_len with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨len⟩⟩ | bad
+    · match d1 with
+      | [] =>
+        match d2 with
+        | [] =>
+          left
+          rw [List.append_nil, List.append_nil, List.append_nil] at long
+          have hc1 : c1.length > 0 := by sorry
+          have hc2 : c2.length > 0 := by sorry
+          rcases g2_ih _ _ long hc1 hc2 with ⟨mid2, c3, d3, c4, d4, i1, i2, long1, len1⟩ | bad
+          · use mid2 ++ mid, c3, d3, c4, d4
+            use PartialGrid.vertical_append_one h1 i1
+            use PartialGrid.vertical_append_one h2 i2
+            constructor
+            · exact long1
+            constructor
+            simp [PartialGrid.length, len1.1, len]
+            omega
+          rcases bad with ⟨d1, d2, h3, len1⟩
+          match up2 with
+          | [] =>
+            use mid, bot2, d1, c2, []
+            use PartialGrid.vertical_append_one h1 h3
+            use h2
+            constructor
+            · constructor
+              rw [List.append_assoc, List.append_assoc]
+              apply (List.append_right_inj bot2).mpr
+              rw [List.append_nil, len1.2.2.1.1]
+              simp
+              exact len1.2.2.2.1.symm
+            constructor
+            simp [PartialGrid.length, len, ← len1.1.1]
+            omega
+          | d21 :: d22 =>
+            exfalso
+            simp at len1
+            exact len1.2.1.1
+        | d21 :: d22 =>
+          have H : is_true bot1 := by exact g2.top_frontier_is_true
+          simp at long
+          rw [long] at H
+          have H2 := middle_frontier_nil_or_caps h2
+          rcases H2 with H2 | ⟨front, mid, caboose, spec⟩
+          · simp at H2
+            exact H2.1.elim
+          rw [spec.1] at H
+          specialize H (front, false)
+          simp [is_true] at H
+          exact (H ⟨trivial⟩).1.elim
+      | d11 :: d12 =>
+        have H : is_true bot1 := by exact g2.top_frontier_is_true
+        simp only [List.append_nil, List.append_assoc] at long
+        rw [long] at H
+        have H2 := middle_frontier_nil_or_caps h1
+        rcases H2 with H2 | ⟨front, mid, caboose, spec⟩
+        · simp at H2
+          exact H2.1.elim
+        rw [spec.1] at H
+        specialize H (front, false)
+        simp [is_true] at H
+        exact (H ⟨trivial⟩).1.elim
+    rcases bad with ⟨d1, d2, h3, ⟨len⟩, up1_is, ⟨d1h2_empty⟩, ⟨a2h4⟩⟩
+    rw [up1_is.1] at g1
+    right
+    exact (pg_not_mid_right_empty g1).elim
   | vertical_append g1 g2 h g1_ih g2_ih => sorry
 
 theorem horizontal_one_helper (g1 : PartialGrid a1 b1 bot1 [] up1)
