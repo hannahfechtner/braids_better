@@ -869,6 +869,37 @@ theorem not_both_empty : PartialGrid a b c d e → d = [] → e = [] → False :
     simp at h1
     apply g1_ih h1.2.2 h2
 
+theorem not_both_empty_early : PartialGrid a b c d e → c = [] → d = [] → False := by
+  intro h
+  induction h with
+  | single_gridt h =>
+    intro ha hb
+    simp [to_over] at ha
+    rename_i c
+    match c with
+    | [] => simp at ha
+    | c1 :: c2 => simp at ha
+  | empty a b ha ha1 hb hb1 =>
+    intro _ h1
+    apply congr_arg List.length at h1
+    simp [List.length] at h1
+    rw [h1.1] at ha
+    simp at ha
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    intro h1 h2
+    simp at h1
+    exact g1_ih h1.1 rfl
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    intro h1 h2
+    simp at h2
+    exact g2_ih h2.2.1 h2.2.2
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    exact g2_ih
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    intro h1 h2
+    simp at h2
+    exact g2_ih h1 h2.1
+
 theorem pg_not_mid_right_empty : PartialGrid a b c [] [] → False := fun h => not_both_empty h rfl rfl
 
 noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : split_vertically_pg' h := by
@@ -1077,8 +1108,16 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         | [] =>
           left
           rw [List.append_nil, List.append_nil, List.append_nil] at long
-          have hc1 : c1.length > 0 := by sorry
-          have hc2 : c2.length > 0 := by sorry
+          have hc1 : c1.length > 0 := by
+            match c1 with
+            | [] =>
+              exact (not_both_empty_early h1 rfl rfl).elim
+            | co :: ct => simp
+          have hc2 : c2.length > 0 := by
+             match c2 with
+            | [] =>
+              exact (not_both_empty_early h2 rfl rfl).elim
+            | co :: ct => simp
           rcases g2_ih _ _ long hc1 hc2 with ⟨mid2, c3, d3, c4, d4, i1, i2, long1, len1⟩ | bad
           · use mid2 ++ mid, c3, d3, c4, d4
             use PartialGrid.vertical_append_one h1 i1
