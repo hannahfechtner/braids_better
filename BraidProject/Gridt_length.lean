@@ -1434,26 +1434,27 @@ theorem bool_swap_append : bool_swap (a ++ b) = bool_swap b ++ bool_swap a := by
 theorem bool_swap_length : (bool_swap a).length = a.length := by
   simp [bool_swap]
 
-def elem_of_map_C (h : x ∈ List.map f xs) : Σ y, PLift (y ∈ xs) × PLift (f y = x) := by
-  induction xs with
-  | nil => simp at h
-  | cons head tail ih =>
-    unfold List.map at h
-    sorry
+def bool_swap_true (h : is_true a) : is_false (bool_swap a) := by
+  simp [is_false, bool_swap]
+  intro a1 a1_in
+  constructor
+  simp at a1_in
+  rcases a1_in.1 with ⟨w, h4 | h5⟩
+  · specialize h (w, false) ⟨h4.1⟩
+    simp at h
+    exact h.1.elim
+  rw [← h5.2]
 
 def bool_swap_false (h : is_false a) : is_true (bool_swap a) := by
   simp [is_true, bool_swap]
-  intro x x_in
-  have H := x_in.1
-  sorry
-
-def bool_swap_true (h : is_true a) : is_false (bool_swap a) := by
-  simp [is_false, bool_swap]
-  constructor
   intro a1 a1_in
-  specialize h (a1, false) ⟨a1_in⟩
+  constructor
+  simp at a1_in
+  rcases a1_in.1 with ⟨w, h4 | h5⟩
+  · rw [← h4.2]
+  specialize h (w, true) ⟨h5.1⟩
   simp at h
-  exact h.1
+  exact h.1.elim
 
 theorem nil_of_bool_swap_eq_nil (h : bool_swap a = []) : a = [] := by
   apply congr_arg bool_swap at h
@@ -1601,7 +1602,7 @@ noncomputable def splittable_horizontally_of_pg (h : PartialGrid a b c d e) :
   constructor
   rw [H.2.1, ← H0.2.1, ← len.1]
 
-
+#exit
 noncomputable def PartialGrid.extend_side_w_len  (h : PartialGrid a b c d e) (b2) (h2 : is_true b2) (h3 : b2 ≠ []) :
     (h1 : PartialGrid a (b ++ b2) c (d ++ e ++ b2) []) × PLift  (h.length = h1.length) := by
   induction h with

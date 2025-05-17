@@ -1018,21 +1018,14 @@ def to_option (L : List (ℕ × Bool)) : List (Option ℕ × Bool) := (List.map 
 def is_false_to_option (ha : is_false a) : is_false (to_option a) := by
   unfold to_option
   unfold is_false
-  exact {down := by
-              intro x hx
-              simp at hx
-              rcases hx with ⟨a1, h1 | h2⟩
-              · rw [← h1.2]
-              have := ha.1 _ h2.1
-              rw [← h2.2]
-              simp at this
-              }
-  -- intro x hx
-  -- simp only [List.mem_map, Prod.exists, Bool.exists_bool] at hx
-  -- rcases hx with ⟨a1, (spec1 | spec2)⟩
-  -- · rw [← spec1.2]
-  -- have := ha _ spec2.1
-  -- simp at this
+  intro x hx
+  simp at hx
+  constructor
+  rcases hx.1 with ⟨a1, h1 | h2⟩
+  · rw [← h1.2]
+  specialize ha (a1, true) ⟨h2.1⟩
+  simp at ha
+  exact ha.1.elim
 
 def is_true_to_option (ha : is_true a) : is_true (to_option a) := by
   unfold to_option
@@ -1625,8 +1618,9 @@ def in_order_of_rm_irr (h : in_order (remove_ones L)) (h2 : irreducible L) : in_
         have H := ha34.2.2
         simp at H
         rw [← H.1] at ha34
-        simp [is_false] at ha34
-        exact ha34.2.1.1
+        have nonsense := ha34.2.1 (c, true) ⟨by simp⟩
+        simp at nonsense
+        exact nonsense.1.elim
       | head :: tail =>
         have H := ha34.2.2
         simp at H

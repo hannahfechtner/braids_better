@@ -174,8 +174,9 @@ noncomputable def over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a
         intro h
         rcases List.length_geq_one_eq_cons_cons _ h5 h with ⟨f, hf⟩
         rw [hf] at h1
-        simp [is_false] at h1
-        exact h1.1
+        specialize h1 (b3, true) ⟨by simp⟩
+        simp at h1
+        exact h1.1.elim
       omega
     change a.length = [(a3, false)].length at H
     exact {down := List.append_inj h5 H}
@@ -201,9 +202,7 @@ noncomputable def over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a
         use [], []
         exact {down := (Bool.eq_not_self (a3, false).2).mp H}
       | cons headaa tailaa =>
-        have H1 : is_false (headaa :: tailaa) := by
-          constructor
-          exact fun x hx => h1.1 _ <| List.mem_cons_of_mem heada hx
+        have H1 : is_false (headaa :: tailaa) := is_false_tail h1
         specialize ih H1 (by simp) h5.2
         rcases ih with ⟨a1', a2', b1', b2', f1, f2, f3, f4, f5⟩
         use heada :: a1', a2', b1', b2'
@@ -351,9 +350,9 @@ def big_split (hup2 : is_false up2)
         rw [← List.append_assoc, ← List.append_assoc, List.getLast?_concat, List.append_nil,
           List.getLast?_append_cons, List.getLast?_cons_cons, List.getLast?_singleton, Option.some.injEq] at h3
         rw [h3] at hup2
-        unfold is_false at hup2
-        have H := hup2.1 (b1, true) (List.mem_append_right l (List.mem_singleton.mpr rfl))
+        have H := hup2 (b1, true) ⟨(List.mem_append_right l (List.mem_singleton.mpr rfl))⟩
         simp at H
+        exact H.1.elim
     rw [H] at h
     constructor
     constructor
@@ -680,9 +679,9 @@ def double_split_helper_two_one  (h : mid2 ++ bot3 = [(a1, false), (b1, true)] +
           simp at H
           exact H.1
         rw [h.2] at h4
-        apply is_false_append at h4
-        simp [is_false] at h4
-        exact h4.2.1
+        specialize h4 (b1, true) ⟨by simp⟩
+        simp at h4
+        exact h4.1.elim
       rw [hfe.1] at h
       have H0 := congr_arg List.length h.1
       simp at H0
@@ -728,7 +727,8 @@ def double_split_helper_two_three (h : bot3 ++ mid3 = k ++ [(a1, false), (b1, tr
       | cons head tail =>
         simp at h
         rw [h.2.1] at h4
-        simp [is_false] at h4
+        specialize h4 (b1, true) ⟨by simp⟩
+        simp at h4
         exact h4.1.elim
     | cons headk tailk =>
       simp only [List.cons_append,List.cons.injEq] at h
@@ -779,7 +779,9 @@ def double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b
     · specialize h1 (a1, false) ⟨List.mem_cons_self⟩
       simp at h1
       exact h1.1
-    exact h2.1
+    specialize h2 (b1, true) ⟨by simp⟩
+    simp at h2
+    exact h2.1.elim
   have : bot3.length ≠ 1 := by
     intro h2
     have Hb : ∃ a, bot3 = [a] := List.length_eq_one_iff.mp h2
@@ -934,9 +936,9 @@ def double_split_helper_four {mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)
       rw [List.append_nil, ← List.append_assoc, H3, ← List.append_assoc] at h
       apply List.append_singleton_eq_append_singleton at h
       rw [h.2] at hup3
-      apply is_false_append at hup3
-      simp [is_false] at hup3
-      exact hup3.2.1.elim
+      specialize hup3 (b1, true) ⟨by simp⟩
+      simp at hup3
+      exact hup3.1.elim
     | append_singleton headl taill =>
       have H : is_false front := (is_false_append hup3).1
       rw [← List.append_assoc, ← List.append_assoc] at h
@@ -1040,7 +1042,8 @@ def double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)
           | nil =>
             rw [List.nil_append] at k12_is
             rw [← k12_is.2] at hup3
-            simp [is_false] at hup3
+            specialize hup3 (b1, true) ⟨by simp⟩
+            simp at hup3
             exact hup3.1
           | cons head tail =>
             simp at k12_is
@@ -1052,7 +1055,8 @@ def double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)
         exfalso
         have H : is_false (bot3 ++ up3) := is_false_of_false_false h4 hup3
         rw [← k12_is.2] at H
-        simp [is_false] at H
+        specialize H (b1, true) ⟨by simp⟩
+        simp at H
         exact H.1
       have H : bot3 = [] := by
         cases bot3 with
@@ -1070,7 +1074,8 @@ def double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)
               simp at h3
               apply h3.1.elim
             rw [← k12_is.2.2.1] at h4
-            simp [is_false] at h4
+            specialize h4 (b1, true) ⟨by simp⟩
+            simp at h4
             exact h4.1.elim
       use k₁, bot3
       constructor
@@ -1101,8 +1106,9 @@ def double_split_horiz' {bot2 mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)
         rw [← k12_is.2] at H
         apply is_false_append at H
         have H2 := is_false_append H.1
-        simp [is_false] at H2
-        exact H2.2.1.elim
+        have nonsense := H2.2 (b1, true) ⟨by simp⟩
+        simp at nonsense
+        exact nonsense.1.elim
       rw [spec.1] at k12_is
       simp only [List.cons_append, List.nil_append, List.cons.injEq] at k12_is
       rw [k12_is.2.1]
