@@ -1397,6 +1397,211 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
       simp [mid1_is]
     exact ⟨a4d2⟩
 
+noncomputable def split_horizontally_pg (h : PartialGrid a b c d e) := ∀ a1 a2,
+  a = a2 ++ a1 → a1.length > 0 → a2.length > 0 → (Σ mid d1 e1 d2 e2,
+  (h1 : PartialGrid a1 b mid d2 e2) × (h2 : PartialGrid a2 mid c d1 e1) ×
+  PLift (d1 ++ e1 ++ d2 ++e2 = d ++ e) × PLift (h.length = h1.length + h2.length)) ⊕
+  (Σ db c1 drest, (h1 : PartialGrid a1 b c1 drest e) × PLift (d = db ++ c1 ++ drest) ×
+  PLift (a2 = db) × PLift (c = []) × PLift (h.length = h1.length))
+
+def bool_swap (a : List (α × Bool)) : List (α × Bool) := List.map (fun x => (x.1, !x.2)) a.reverse
+
+theorem bool_swap_to_over : bool_swap (to_over a) = to_up a := by
+  induction a with
+  | nil => simp [to_over, to_up, bool_swap]
+  | cons head tail ih =>
+    simp [bool_swap, to_over, ih, to_up]
+
+theorem bool_swap_to_up : bool_swap (to_up a) = to_over a := by
+  induction a with
+  | nil => simp [to_over, to_up, bool_swap]
+  | cons head tail ih =>
+    simp [bool_swap, to_up, ih, to_over]
+
+theorem bool_swap_idem : bool_swap (bool_swap a) = a := by
+  induction a with
+  | nil => simp [bool_swap]
+  | cons head tail ih =>
+    simp [bool_swap]
+    simp [bool_swap] at ih
+    exact ih
+
+theorem bool_swap_nil : bool_swap ([] : List (α × Bool)) = [] := by simp [bool_swap]
+
+theorem bool_swap_append : bool_swap (a ++ b) = bool_swap b ++ bool_swap a := by
+  simp [bool_swap]
+
+theorem bool_swap_length : (bool_swap a).length = a.length := by
+  simp [bool_swap]
+
+def elem_of_map_C (h : x ∈ List.map f xs) : Σ y, PLift (y ∈ xs) × PLift (f y = x) := by
+  induction xs with
+  | nil => simp at h
+  | cons head tail ih =>
+    unfold List.map at h
+    sorry
+
+def bool_swap_false (h : is_false a) : is_true (bool_swap a) := by
+  simp [is_true, bool_swap]
+  intro x x_in
+  have H := x_in.1
+  sorry
+
+def bool_swap_true (h : is_true a) : is_false (bool_swap a) := by
+  simp [is_false, bool_swap]
+  constructor
+  intro a1 a1_in
+  specialize h (a1, false) ⟨a1_in⟩
+  simp at h
+  exact h.1
+
+theorem nil_of_bool_swap_eq_nil (h : bool_swap a = []) : a = [] := by
+  apply congr_arg bool_swap at h
+  rw [bool_swap_idem, bool_swap_nil] at h
+  exact h
+
+noncomputable def reflect (h : PartialGrid a b c d e) :
+    (h1 : PartialGrid (bool_swap b) (bool_swap a) (bool_swap e) (bool_swap d) (bool_swap c)) ×
+    PLift (h.length = h1.length) := by
+  induction h with
+  | single_gridt h =>
+    rw [bool_swap_to_up, bool_swap_to_over, bool_swap_to_up, bool_swap_to_over, bool_swap_nil]
+    cases h with
+    | empty =>
+      use PartialGrid.single_gridt (cell.empty)
+      exact ⟨rfl⟩
+    | top_bottom i =>
+      use PartialGrid.single_gridt (cell.sides i)
+      exact ⟨rfl⟩
+    | sides i =>
+      use PartialGrid.single_gridt (cell.top_bottom i)
+      exact ⟨rfl⟩
+    | top_left i =>
+      use PartialGrid.single_gridt (cell.top_left i)
+      exact ⟨rfl⟩
+    | adjacent i k h =>
+      use PartialGrid.single_gridt (cell.adjacent k i (by rw [Nat.dist_comm] at h; exact h))
+      exact ⟨rfl⟩
+    | separated i j h =>
+      use PartialGrid.single_gridt (cell.separated j i (by rw [Or.comm] at h; exact h))
+      exact ⟨rfl⟩
+  | empty a b ha ha1 hb hb1 =>
+    rw [bool_swap_append]
+    rw [← bool_swap_length] at ha
+    rw [← bool_swap_length] at hb
+    use PartialGrid.empty (bool_swap b) (bool_swap a) hb (bool_swap_true hb1) ha (bool_swap_false ha1)
+    simp [PartialGrid.length]
+    exact ⟨trivial⟩
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rw [bool_swap_append, bool_swap_append]
+    rcases g1_ih with ⟨h3, len3⟩
+    rcases g2_ih with ⟨h4, len4⟩
+    use PartialGrid.vertical_append_one h3 h4
+    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rw [bool_swap_append, bool_swap_append, bool_swap_append, ← List.append_assoc]
+    rcases g1_ih with ⟨h3, len3⟩
+    rcases g2_ih with ⟨h4, len4⟩
+    rw [← bool_swap_length] at h
+    use PartialGrid.vertical_append h3 h4 h
+    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rw [bool_swap_append, bool_swap_append]
+    rcases g1_ih with ⟨h3, len3⟩
+    rcases g2_ih with ⟨h4, len4⟩
+    use PartialGrid.horizontal_append_one h3 h4
+    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rw [bool_swap_append, bool_swap_append, bool_swap_append, ← List.append_assoc]
+    rcases g1_ih with ⟨h3, len3⟩
+    rcases g2_ih with ⟨h4, len4⟩
+    rw [← bool_swap_length] at h
+    use PartialGrid.horizontal_append h h3 h4
+    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+
+noncomputable def reflect_one_two (h : PartialGrid a1 b1 c d e) : a1 = bool_swap a → b1 = bool_swap b →
+  (h1 : PartialGrid b a (bool_swap e) (bool_swap d) (bool_swap c)) × PLift (h.length = h1.length) := by
+  intro a_eq b_eq
+  apply congr_arg bool_swap at a_eq
+  rw [bool_swap_idem] at a_eq
+  rw [← a_eq]
+  apply congr_arg bool_swap at b_eq
+  rw [bool_swap_idem] at b_eq
+  rw [← b_eq]
+  apply reflect h
+
+noncomputable def reflect_two_five (h : PartialGrid a b1 c d e1) : b1 = bool_swap b → e1 = bool_swap e →
+  (h1 : PartialGrid b (bool_swap a) e (bool_swap d) (bool_swap c)) × PLift (h.length = h1.length) := by
+  intro b_eq e_eq
+  apply congr_arg bool_swap at b_eq
+  rw [bool_swap_idem] at b_eq
+  rw [← b_eq]
+  apply congr_arg bool_swap at e_eq
+  rw [bool_swap_idem] at e_eq
+  rw [← e_eq]
+  apply reflect h
+
+noncomputable def reflect_one_two_three (c e) (h : PartialGrid a1 b1 c1 d e) :
+    a1 = bool_swap a → b1 = bool_swap b → c1 = bool_swap c →
+    (h1 : PartialGrid b a (bool_swap e) (bool_swap d) c) × PLift (h.length = h1.length) := by
+  intro a_eq b_eq c_eq
+  apply congr_arg bool_swap at a_eq
+  rw [bool_swap_idem] at a_eq
+  rw [← a_eq]
+  apply congr_arg bool_swap at b_eq
+  rw [bool_swap_idem] at b_eq
+  rw [← b_eq]
+  apply congr_arg bool_swap at c_eq
+  rw [bool_swap_idem] at c_eq
+  rw [← c_eq]
+  apply reflect h
+
+noncomputable def splittable_horizontally_of_pg (h : PartialGrid a b c d e) :
+    split_horizontally_pg h := by
+  intro a1 a2 a_is a1_len a2_len
+  have H := reflect h
+  have splitter := splittable_vertically_of_pg' H.1
+  have split_a : bool_swap a = bool_swap a1 ++ bool_swap a2 := by
+    rw [a_is, bool_swap_append]
+  have splitter := splittable_vertically_of_pg' H.1 _ _ split_a
+  rw [bool_swap_length, bool_swap_length] at splitter
+  specialize splitter a1_len a2_len
+  rcases splitter with ⟨mid, d1, e1, d2, e2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
+  · left
+    use bool_swap mid, bool_swap e2, bool_swap d2, bool_swap e1, bool_swap d1
+    use (reflect_one_two h1 rfl rfl).1
+    use (reflect_two_five h2 rfl rfl).1
+    constructor
+    · constructor
+      apply congr_arg bool_swap at long
+      simp [bool_swap_append, bool_swap_idem] at long
+      simp
+      exact long.symm
+    constructor
+    simp [H.2.1, h_len, (reflect_one_two h1 rfl rfl).2.1, (reflect_two_five h2 rfl rfl).2.1]
+  rcases bad with ⟨d1, d2, h3, len, c_is, d_is, a2_is⟩
+  right
+  have c_nil : c = [] := nil_of_bool_swap_eq_nil c_is.1
+  use bool_swap d2, [], bool_swap d1
+  subst c_nil
+  have H0 := reflect_one_two_three e ([] : List (Option ℕ × Bool)) h3 rfl rfl rfl
+  use H0.1
+  constructor
+  · constructor
+    simp [← bool_swap_append]
+    have H := congr_arg bool_swap d_is.1
+    rw [bool_swap_idem] at H
+    exact H
+  constructor
+  · have H := congr_arg bool_swap a2_is.1
+    rw [bool_swap_idem] at H
+    exact ⟨H⟩
+  constructor
+  · exact ⟨rfl⟩
+  constructor
+  rw [H.2.1, ← H0.2.1, ← len.1]
+
+
 noncomputable def PartialGrid.extend_side_w_len  (h : PartialGrid a b c d e) (b2) (h2 : is_true b2) (h3 : b2 ≠ []) :
     (h1 : PartialGrid a (b ++ b2) c (d ++ e ++ b2) []) × PLift  (h.length = h1.length) := by
   induction h with

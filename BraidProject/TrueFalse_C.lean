@@ -76,7 +76,7 @@ theorem infix_length_le_C (h : List.Infix' l1 l2) : l1.length ≤ l2.length := b
 
 theorem List.Infix'_of_nil (h : List.Infix' L []) : L = [] := by
   apply infix_length_le_C at h
-  simp only [length_nil, Nat.le_zero_eq, length_eq_zero] at h
+  simp only [length_nil, Nat.le_zero_eq, length_eq_zero_iff] at h
   exact h
 
 @[simp]
@@ -107,29 +107,30 @@ def List.Infix'.trans (h1 : List.Infix' a b) (h2 : List.Infix' b c) : List.Infix
 
 end ic
 
-def is_false (a : List (α × Bool)) : Type := PLift (∀ x ∈ a, x.2 = false)
+def is_false (a : List (α × Bool)) : Type := ∀ x , PLift (x ∈ a) → PLift (x.2 = false)
 
 @[simp]
 def is_false_nil : is_false ([] : List (α × Bool)) := by
   simp [is_false]
-  exact {down := trivial}
+  intro a ha
+  simp at ha
+  apply ha.1.elim
 
 
 def is_false_append (h : is_false (a ++ b)) : is_false a × is_false b := by
   constructor
-  · unfold is_false
-    exact {down := fun x hx => h.1 x (List.mem_append_left b hx)}
-  exact {down := fun x hx => h.1 x (List.mem_append_right a hx)}
+  · exact fun x hx => h x {down := (List.mem_append_left b hx.1)}
+  exact fun x hx => h x {down := (List.mem_append_right a hx.1)}
 
 def is_true (a : List (α × Bool)) := ∀ x , PLift (x ∈ a) → PLift (x.2 = true)
 
 def is_false_of_false_false (h1 : is_false a) (h2 : is_false b) : is_false (a ++ b) := by
+  intro x ⟨h⟩
+  simp at h
   exact {down := by
-              intro x h
-              simp at h
               cases h with
-              | inl h => exact h1.1 x h
-              | inr h => exact h2.1 x h}
+              | inl h => exact (h1 x {down := h}).1
+              | inr h => exact (h2 x {down := h}).1}
 
 @[simp]
 def is_true_nil : is_true ([] : List (α × Bool)) := by
@@ -153,11 +154,15 @@ def is_true_of_true_true (h1 : is_true a) (h2 : is_true b) : is_true (a ++ b) :=
 
 
 def is_false_cons (a : List (α × Bool)) (h : is_false a): is_false ((b, false) :: a) := by
+  intro x hx
   exact {down := by
-          intro x hx
-          rcases List.mem_cons.mp hx with h1 | h2
-          · simp [h1]
-          exact h.1 _ h2}
+            rcases List.mem_cons.mp hx.1 with h1 | h2
+            · simp [h1]
+            exact (h _ {down := h2}).1}
+
+def is_false_tail (h : is_false (x :: xs)) : is_false xs := by
+  change is_false ([x]++xs) at h
+  exact (is_false_append h).2
 
 def is_true_cons (a : List (α × Bool)) (h : is_true a): is_true ((b, true) :: a) := by
   intro x hx
@@ -180,7 +185,7 @@ def in_order_rest (h : in_order (head :: t)) : in_order t := by
       constructor
       · exact ha.1
       constructor
-      · exact ⟨ fun _ hx => ha.2.1.1 _ (List.mem_cons_of_mem heada hx)⟩
+      · exact is_false_tail ha.2.1
       simp only [is_true_nil, List.nil_append, List.cons.injEq, true_and] at ha
       rw [ha.2.2.1.2, List.nil_append]
       exact ⟨rfl⟩
@@ -227,11 +232,8 @@ noncomputable def in_order_append (h : in_order (a++b)) : in_order a × in_order
       constructor
       · exact a1_true
       constructor
-      · exact {down := by
-                intro x hx
-                apply a2_false.1
-                rw [spec.2]
-                exact List.mem_append_left _ hx}
+      · rw [← ha] at a2_false
+        exact (is_false_append a2_false).1
       exact ⟨rfl⟩
     use [], b
     constructor
@@ -240,7 +242,7 @@ noncomputable def in_order_append (h : in_order (a++b)) : in_order a × in_order
       apply hx.1.elim
     constructor
     · rw [spec.2] at a2_false
-      exact ⟨fun _ hx => a2_false.1 _ (List.mem_append_right to_middle hx)⟩
+      exact (is_false_append a2_false).2
     exact ⟨rfl⟩
   constructor
   · use a, []
@@ -249,9 +251,7 @@ noncomputable def in_order_append (h : in_order (a++b)) : in_order a × in_order
       rw [← spec.1] at a1_true
       exact a1_true _ ⟨(List.mem_append_left to_middle hx.1)⟩
     constructor
-    · exact {down := by
-                intro x hx
-                simp at hx}
+    · exact is_false_nil
     simp
     exact ⟨trivial⟩
   use to_middle, a2
@@ -419,10 +419,17 @@ def is_false_up : is_false (to_up a) := by
   cases a with
   | nil =>
     simp [is_false]
-    exact ⟨trivial⟩
-  | cons head tail =>
+    intro x ⟨hx⟩
+    simp at hx
+    rw [hx]
+    exact ⟨rfl⟩  | cons head tail =>
     simp [is_false]
-    exact ⟨trivial⟩
+    intro x ⟨hx⟩
+    exact {down := by
+            simp at hx
+            rcases hx with ⟨a, ha⟩ | one
+            · rw [← ha.2]
+            rw [one]}
 
 def is_true_over : is_true (to_over a) := by
   unfold to_over
@@ -447,7 +454,7 @@ theorem over_up_neq_false_true (h : to_over d ++ to_up c = k ++ [(a1, false), (b
   induction k generalizing d with
   | nil =>
     rw [List.nil_append] at h
-    have H : List.get? (to_over d ++ to_up c) 0 = List.get? ([(a1, false), (b1, true)] ++ l) 0 := by
+    have H :  (to_over d ++ to_up c)[0]? = ([(a1, false), (b1, true)] ++ l)[0]? := by
       rw [h]
     rcases to_over_eq_cons d with ⟨w, w2, hw⟩
     rw [hw] at H
@@ -462,8 +469,10 @@ theorem over_up_neq_false_true (h : to_over d ++ to_up c = k ++ [(a1, false), (b
         exact is_false_up
       have b1_in : (b1, true) ∈ tail ++ (a1, false) :: (b1, true) :: l  := by
         simp
-      have H2 := H.1 (b1, true) b1_in
-      simp at H2
+      have nonsense := H (b1, true)
+      simp [is_false] at nonsense
+      specialize nonsense ⟨trivial⟩
+      exact nonsense.1
     rcases h2 with ⟨a3, b3, h3⟩
     rw [h3] at h
     simp only [List.cons_append, List.append_assoc, List.singleton_append, List.cons.injEq] at h
@@ -501,13 +510,12 @@ theorem bool_change_second (h : a.length > 0) (h1 : is_false a) (h3 : a ++ b = [
         simp only [List.length_append, List.length_cons, List.length_singleton, Nat.succ_eq_add_one,
           Nat.reduceAdd] at h3
         rw [h] at h3
-        exact List.length_eq_zero.mp (Nat.add_eq_left.mp h3)
+        exact List.length_eq_zero_iff.mp (Nat.add_eq_left.mp h3)
       rw [H, List.append_nil] at h3
       rw [h3] at h1
-      simp only [is_false, List.mem_cons, List.mem_singleton, forall_eq_or_imp, forall_eq,
-        Bool.true_eq_false, and_false, List.not_mem_nil, false_implies, implies_true, and_true,
-        and_false] at h1
-      apply h1.1
+      specialize h1 (b1, true)
+      simp at h1
+      exact (h1 ⟨trivial⟩).1
     omega
   change a ++ b = [(a1, false)] ++ [(b1, true)] at h3
   exact (List.append_inj_left h3.symm H.symm).symm
@@ -562,8 +570,9 @@ theorem bool_split (ha : is_false a2) (hb : is_true b1) (h : [(a3, false), (b3, 
       simp at h2
       rw [h2, List.append_nil] at h
       rw [← h] at ha
+      specialize ha (b3, true)
       simp [is_false] at ha
-      exact ha.1
+      exact (ha ⟨trivial⟩).1
     have H3 : ¬ a2.length > 2 := by
       intro h1
       apply congr_arg List.length at h
@@ -591,8 +600,8 @@ def is_true_singleton (h : is_true [a]) : Σ a', PLift (a = (a', true)) := by
 def is_false_singleton (h : is_false [a]) : Σ a', PLift (a = (a', false)) := by
   rcases a with ⟨c, b⟩
   use c
-  simp
-  exact ⟨ h.1 (c, b) (List.mem_singleton.mpr rfl)⟩
+  simp only [Prod.mk.injEq, true_and]
+  exact h (c, b) ⟨(List.mem_singleton.mpr rfl)⟩
 
 @[simp]
 def List.nil_suffix_C : [].Suffix' u := by
@@ -689,8 +698,9 @@ def prefix_false (h1 : is_false t3) (h : tk ++ [(a1, false), (b1, true)] ++ l =
       | cons ht tt =>
         simp at h
         rw [← h.2.1] at h1
-        simp [is_false] at h1
-        apply h1.1.elim
+        specialize h1 (b1, true) ⟨by simp⟩
+        simp at h1
+        exact h1.1.elim
   | cons head tail ih =>
     cases t3 with
     | nil =>
