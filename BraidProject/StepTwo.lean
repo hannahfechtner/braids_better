@@ -1358,6 +1358,7 @@ theorem first_chain (h : SemiThue reversing (a1 ++ a2) (b1 ++ b2))
   apply grid_of_PartialGrid at pg
   rw [bot_is, up_is] at pg
   simp [grid_option] at pg
+  simp [remover, to_option] at pg
   sorry
 
 --theorem grid_of_PartialGrid (h : PartialGrid a b d [] c) : grid_option a b c d :=

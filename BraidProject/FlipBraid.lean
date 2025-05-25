@@ -31,7 +31,7 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
   · intro i' j' two_case k' _ h2'
     have H': k'=i'+1 := by linarith [h2', H18 i' j' (h2'.1.trans h2'.2) two_case]
     rw [H', H18 i' j' (h2'.1.trans h2'.2) two_case]
-    simp only [sigma_bar, self_eq_add_right, OfNat.ofNat_ne_zero, ↓reduceIte, lt_add_iff_pos_right,
+    simp only [sigma_bar, left_eq_add, OfNat.ofNat_ne_zero, ↓reduceIte, lt_add_iff_pos_right,
       Nat.ofNat_pos, add_tsub_cancel_left, add_tsub_cancel_right, count_up, count_up_helper]
     exact (BraidMonoidInf.braid dist_succ).symm
   · intro i' j' ge_three ih k' _ h2'
@@ -112,7 +112,7 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
   · intro i' j' two_case k' h1' h2'
     have H': k'=i'+1 := by linarith [h1', h2', H18 i' j' (h2'.1.trans h2'.2) two_case]
     rw [H', H18 i' j' (h2'.1.trans h2'.2) two_case]
-    simp only [sigma_bar, add_tsub_cancel_right, add_right_eq_self, OfNat.ofNat_ne_zero, ↓reduceIte,
+    simp only [sigma_bar, add_tsub_cancel_right, add_eq_left, OfNat.ofNat_ne_zero, ↓reduceIte,
       add_lt_iff_neg_left, not_lt_zero', add_tsub_cancel_left, count_down, count_down_helper]
     apply BraidMonoidInf.braid
     exact dist_succ
@@ -130,16 +130,10 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
     · have H2 : BraidMonoidInf.mk (of i' * (sigma_bar (j'-1) i')) =
           BraidMonoidInf.mk ((sigma_bar (j'-1) i') * of (i' +1)) := by
         have ad_h : Nat.dist i' (j'-1) < Nat.dist i' j' := Nat.dist_lt_of_decrease_greater lt_plus
-        -- have two_helper: 2 ≤ Nat.dist i' (j' - 1) := by
-        --   have sub_1 : j'-1>= i' + 2 := Nat.le_pred_of_lt ge_three'
-        --   unfold Nat.dist
-        --   have helper : ¬ i'>j'-1 := by
-        --     intro h_exf
-        --     have last_one : i' > i' +2 := by exact Nat.lt_of_le_of_lt sub_1 h_exf
-        --     linarith [last_one]
-        --   simp
         apply (ih (i') (j'-1) _ ad_h (i'+1) _ _)
-        · sorry
+        · have H : j' - 1 ≥ i' + 2 := by omega
+          apply or_dist_iff.mpr
+          aesop
         · exact Nat.le_sub_one_of_lt ge_three'
         constructor
         · exact lt_add_one i'
@@ -160,7 +154,9 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
         exact Nat.le_pred_of_lt lt
       rw [H7, ← H10]
       apply (BraidMonoidInf.append_right_mk (BraidMonoidInf.comm _)).trans H9
-      sorry
+      have H : j' - 1 ≥ i' + 2 := by omega
+      apply or_dist_iff.mpr
+      aesop
     --induction case of the inductive case
     intro new_k k_bigger new_k_lt _ --NEED THIS for it to guess at the last step
     have lt : i'<j' := by apply h2'.1.trans h2'.2
@@ -181,7 +177,8 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
       rw [mul_assoc, mul_assoc]
       apply BraidMonoidInf.append_left_mk
       apply BraidMonoidInf.comm
-      sorry
+      apply or_dist_iff.mpr
+      aesop
     rw [H7, sigma_bar_big_last lt]
     exact H8.trans H9
   · exact h1

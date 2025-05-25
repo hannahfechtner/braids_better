@@ -351,7 +351,7 @@ theorem remover_mul : remover ((some a, bo) :: b) = a :: remover b := rfl
 
 theorem remover_none : remover ((none, bo) :: b) = remover b := rfl
 
-theorem remover_split : ∀ b, remover (a ++ b) = remover a ++ remover b := by
+theorem remover_append : ∀ b, remover (a ++ b) = remover a ++ remover b := by
   induction a
   · exact fun _ => rfl
   intro b
@@ -373,7 +373,7 @@ theorem remover_up : remover (to_up a) = a.reverse := by
   rename_i a b hb
   unfold to_up
   simp only [List.reverse_cons, List.map_append, List.map_reverse, List.map_cons, List.map_nil]
-  rw [remover_split]
+  rw [remover_append]
   cases b with
   | nil =>
     simp [remover, List.nil_append]

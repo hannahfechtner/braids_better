@@ -363,7 +363,6 @@ def solver_equiv (a b : List ℕ) (h1 : a.length > 0) (h2 : b.length > 0) :
   | none =>
     unfold solver
     unfold solver_helper
-    simp
     erw [ha]
     exact SemiThue.refl _
   | some (c, d, e) =>

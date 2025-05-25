@@ -178,7 +178,12 @@ noncomputable def get_pg (a : triangle) : Σ bot mid top, PartialGrid (to_up a.1
     use to_up_plain a.1
     use to_over_plain a.snd.fst
     constructor
-    · exact ⟨by simp [is_false, to_up_plain]⟩
+    · intro x hx
+      have H := hx.1
+      simp [to_up_plain] at H
+      constructor
+      rcases H with ⟨a1, ha1⟩
+      aesop
     constructor
     · simp [is_true, to_over_plain]
       intro x ⟨hx⟩
@@ -202,7 +207,8 @@ noncomputable def get_pg (a : triangle) : Σ bot mid top, PartialGrid (to_up a.1
   rw [H6] at Hc
   have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse))
     (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) c
-    (by apply is_false_to_option; exact ⟨by simp [is_false]⟩) H4
+    (by apply is_false_to_option; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
+        rcases hx with ⟨a, ha⟩; aesop) H4
     (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
          rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1
   rcases H3 with ⟨bot, mid, up, pg, c_is⟩
@@ -248,151 +254,88 @@ noncomputable def ab_len (a b : List ℕ) : ℕ :=
   match existence_s a b with
   | ⟨_, _, h⟩ => gridt.length h
 
-noncomputable def get_n' (a : triangle) : ℕ := ab_len a.1 a.2.1 - (get_pg a).2.2.1.length
+noncomputable def get_n' (a : triangle) : ℕ := ab_len a.1 a.2.1 - (get_pg a).2.2.2.1.length
 
 set_option pp.notation true
-theorem pg_smaller_than_g (a : triangle) : ab_len a.1 a.2.1 ≥ (get_pg a).2.2.1.length := by
-  match a with
-  | ⟨a1, ⟨b1, ⟨c1, ⟨⟨⟨alen, blen⟩⟩, st⟩⟩⟩⟩ =>
-    unfold ab_len
-    simp
-    have H := @stepOne_mid (List.map (fun y => (y, false)) a1.reverse ++ List.map (fun y => (y, true)) b1) c1
-    have H1 : skeleton_order (List.map (fun y => (y, false)) a1.reverse ++ List.map (fun y => (y, true)) b1) := by
-      unfold skeleton_order
-      use List.map (fun y => (y, false)) a1.reverse
-      use List.map (fun y => (y, true)) b1
-      constructor
-      · exact ⟨by simp [is_false]⟩
-      constructor
-      · simp [is_true]
-        intro x ⟨hx⟩
-        constructor
-        simp at hx
-        rcases hx with ⟨w, hw⟩
-        rw [← hw.2]
-      exact ⟨rfl⟩
-    specialize H st H1
-    rcases H with ⟨b2, st2, s0, ⟨p⟩⟩
-    have H4 : (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse)).length > 0 := by
-      rw [to_option_length]
-      simp
-      exact a.2.2.2.1.1.1
-    have H5 : (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)).length > 0 := by
-      simp [to_option_length]
-      exact a.2.2.2.1.1.2
-    have H6 : to_option (to_up_plain a.1 ++ to_over_plain a.snd.fst) =
-      to_option (to_up_plain a.1) ++ to_option (to_over_plain a.snd.fst) := by
-        simp [to_option, to_over_plain, to_up_plain]
-    have H7 : SemiThue grid_style (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse) ++ to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) b2 := by sorry
-    have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse))
-      (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) b2
-      (by apply is_false_to_option; exact ⟨by simp [is_false]⟩) H4
-      (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
-          rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 H7
-    rcases H3 with ⟨bot, mid, up, pg, c_is⟩
-    have H8 : (get_pg ⟨a1, ⟨b1, ⟨c1, ({ down := _ }, st)⟩⟩⟩).snd.snd.snd.fst = pg := by sorry
 
-    sorry
+--hoppefully will prove this in another file
+theorem straight_pg_sm_g (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
+    : a <:+ to_up a1 → b <+: to_over b1 → h.length ≤ h1.length := by sorry
 
-noncomputable def get_n (a : triangle) : ℕ := by
-  have H := @stepOne_mid (List.map (fun y => (y, false)) a.1.reverse ++ List.map (fun y => (y, true)) a.2.1) a.2.2.1 a.2.2.2.2
-  have H1 : skeleton_order (List.map (fun y ↦ (y, false)) a.fst.reverse ++ List.map (fun y ↦ (y, true)) a.snd.fst) := by
-    unfold skeleton_order
-    use List.map (fun y ↦ (y, false)) a.fst.reverse
-    use List.map (fun y ↦ (y, true)) a.snd.fst
-    constructor
-    · exact ⟨by simp [is_false]⟩
-    constructor
-    · simp [is_true]
-      intro x ⟨hx⟩
-      constructor
-      simp at hx
-      rcases hx with ⟨w, hw⟩
-      rw [← hw.2]
-    exact ⟨rfl⟩
-  specialize H H1
-  rcases H with ⟨c, Hc⟩
-  have H4 : (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse)).length > 0 := by
-    rw [to_option_length]
-    simp
-    exact a.2.2.2.1.1.1
-  have H5 : (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)).length > 0 := by
-    simp [to_option_length]
-    exact a.2.2.2.1.1.2
-  have H6 : to_option (List.map (fun y ↦ (y, false)) a.fst.reverse ++ List.map (fun y ↦ (y, true)) a.snd.fst) =
-    (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse) ++ to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) := by
-      simp [to_option]
-  rw [H6] at Hc
-  have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse))
-    (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) c
-    (by apply is_false_to_option; exact ⟨by simp [is_false]⟩) H4
-    (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
-         rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1
-  rcases H3 with ⟨bot, mid, up, pg, c_is⟩
-  exact PartialGrid.length pg
+theorem pg_smaller_than_g (a : triangle) : ab_len a.1 a.2.1 ≥ (get_pg a).2.2.2.1.length := by
+  apply straight_pg_sm_g _ _ (List.suffix_refl (to_up a.fst)) (List.prefix_refl _)
 
-theorem get_n'_same (h : reversing c₁ c₂): get_n' ⟨a, ⟨b, ⟨c₁, ⟨len, rev1⟩⟩⟩⟩ < get_n' ⟨a, ⟨b, ⟨c₂, ⟨len, rev2⟩⟩⟩⟩ := by
-  unfold get_n'
-  unfold get_pg
+-- noncomputable def get_n (a : triangle) : ℕ := by
+--   have H := @stepOne_mid (List.map (fun y => (y, false)) a.1.reverse ++ List.map (fun y => (y, true)) a.2.1) a.2.2.1 a.2.2.2.2
+--   have H1 : skeleton_order (List.map (fun y ↦ (y, false)) a.fst.reverse ++ List.map (fun y ↦ (y, true)) a.snd.fst) := by
+--     unfold skeleton_order
+--     use List.map (fun y ↦ (y, false)) a.fst.reverse
+--     use List.map (fun y ↦ (y, true)) a.snd.fst
+--     constructor
+--     · simp [is_true]
+--       intro x ⟨hx⟩
+--       constructor
+--       simp at hx
+--       rcases hx with ⟨w, hw⟩
+--       rw [← hw.2]
+--     · simp [is_true]
+--       constructor
+--       · intro x ⟨hx⟩
+--         constructor
+--         simp at hx
+--         rcases hx with ⟨w, hw⟩
+--         rw [← hw.2]
+--       exact ⟨trivial⟩
+--   specialize H H1
+--   rcases H with ⟨c, Hc⟩
+--   have H4 : (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse)).length > 0 := by
+--     rw [to_option_length]
+--     simp
+--     exact a.2.2.2.1.1.1
+--   have H5 : (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)).length > 0 := by
+--     simp [to_option_length]
+--     exact a.2.2.2.1.1.2
+--   have H6 : to_option (List.map (fun y ↦ (y, false)) a.fst.reverse ++ List.map (fun y ↦ (y, true)) a.snd.fst) =
+--     (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse) ++ to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) := by
+--       simp [to_option]
+--   rw [H6] at Hc
+--   have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse))
+--     (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) c
+--     (by apply is_false_to_option; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
+--          rcases hx with ⟨a, ha⟩; aesop) H4
+--     (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
+--          rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1
+--   rcases H3 with ⟨bot, mid, up, pg, c_is⟩
+--   exact PartialGrid.length pg
+theorem get_n'_same'  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2 : c2 = c0 ++ c₂ ++ c3) (hr : reversing c₁ c₂)
+  (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c1)
+  (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c2) (h1 : PartialGrid (to_up a) (to_over b) c5 d5 e5)
+  (h6 : remove_ones (c5 ++ d5 ++ e5) = c0 ++ c₁ ++ c3) (h2 : PartialGrid (to_up a) (to_over b) c6 d6 e6)
+  (h7 : remove_ones (c6 ++ d6 ++ e6) = c0 ++ c₂ ++ c3):
+  h1.length < h2.length := by
+  sorry
+theorem get_n'_same  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2 : c2 = c0 ++ c₂ ++ c3) (hr : reversing c₁ c₂)
+  (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c1)
+  (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c2) :
+  (get_pg ⟨a, ⟨b, ⟨c1, ⟨len, rev1⟩⟩⟩⟩).2.2.2.1.length <
+  (get_pg ⟨a, ⟨b, ⟨c2, ⟨len, rev2⟩⟩⟩⟩).2.2.2.1.length := by
   simp
-  sorry
-
-theorem get_n_same (h : reversing c₁ c₂): get_n ⟨a, ⟨b, ⟨c₁, ⟨len, rev1⟩⟩⟩⟩ < get_n ⟨a, ⟨b, ⟨c₂, ⟨len, rev2⟩⟩⟩⟩ := by
-  have H := @stepOne_mid (List.map (fun y ↦ (y, false)) a.reverse ++ List.map (fun y ↦ (y, true)) b) c₁
-  have H1 : skeleton_order (List.map (fun y ↦ (y, false)) a.reverse ++ List.map (fun y ↦ (y, true)) b) := by
-    unfold skeleton_order
-    use List.map (fun y ↦ (y, false)) a.reverse
-    use List.map (fun y ↦ (y, true)) b
-    constructor
-    · exact ⟨by simp [is_false]⟩
-    constructor
-    · simp [is_true]
-      intro x ⟨hx⟩
-      constructor
-      simp at hx
-      rcases hx with ⟨w, hw⟩
-      rw [← hw.2]
-    exact ⟨rfl⟩
-  specialize H rev1 H1
-  rcases H with ⟨c, Hc⟩
-  have H4 : (to_option (List.map (fun y ↦ (y, false)) a.reverse)).length > 0 := by
-    rw [to_option_length]
+  apply get_n'_same' _ _ _ _ _ _ hc1 hc2 hr rev1 rev2
+  · rw [← hc1]
+    rcases (get_pg ⟨a, ⟨b, ⟨c1, ⟨len, rev1⟩⟩⟩⟩) with ⟨bot, mid, up, pg1, rest⟩
+    simp only at rest
+    symm
+    nth_rewrite 1 [← rest.1]
     simp
-    exact len.1.1
-  have H5 : (to_option (List.map (fun y ↦ (y, true)) b)).length > 0 := by
-    simp [to_option_length]
-    exact len.1.2
-  have H6 : to_option (List.map (fun y ↦ (y, false)) a.reverse ++ List.map (fun y ↦ (y, true)) b) =
-    (to_option (List.map (fun y ↦ (y, false)) a.reverse) ++ to_option (List.map (fun y ↦ (y, true)) b)) := by
-      simp [to_option]
-  rw [H6] at Hc
-  have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.reverse))
-    (to_option (List.map (fun y ↦ (y, true)) b)) c
-    (by apply is_false_to_option; exact ⟨by simp [is_false]⟩) H4
-    (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
-         rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1
-  have H : get_n ⟨a, ⟨b, ⟨c₁, (len, rev1)⟩⟩⟩ = PartialGrid.length (@step_two (to_option (List.map (fun y ↦ (y, false)) a.reverse))
-    (to_option (List.map (fun y ↦ (y, true)) b)) c
-    (by apply is_false_to_option; exact ⟨by simp [is_false]⟩) H4
-    (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
-         rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1).2.2.2.1 := by
-    unfold get_n
-    simp
-    sorry
-  simp [H]
-  sorry
+  rw [← hc2]
+  rcases (get_pg ⟨a, ⟨b, ⟨c2, ⟨len, rev2⟩⟩⟩⟩) with ⟨bot, mid, up, pg1, rest⟩
+  simp only at rest
+  symm
+  nth_rewrite 1 [← rest.1]
+  simp
 
--- theorem second_chain (h : SemiThue reversing (a1 ++ a2) c)
---   (ha1 : is_false a1) (a1_len : a1.length >0) (ha2 : is_true a2) (a2_len : a2.length > 0) : False := by
--- instance hi : WellFoundedRelation triangle where
---   rel := by
---     intro a b
---     sorry
---   wf := sorry
-
--- def grid_number (a b : List ℕ) (c : List (ℕ × Bool)) (h : SemiThue reversing (List.map (fun x => (x, false)) a.reverse ++ List.map (fun y => (y, true)) b) c): ℕ := by
---   rcases existence a b with ⟨c1, d1, hcd⟩
-
+theorem silly {k n m : Nat} (h1 : k <= m) (h2 : n <= m) (h : k < n) : m-n < m - k := by
+  exact (tsub_lt_tsub_iff_left_of_le_of_le h2 h1).mpr h
 
 def solver_helper (a : triangle) : List (ℕ × Bool) :=
   match hb': find_it a.2.2.1 with
@@ -406,7 +349,6 @@ def solver_helper (a : triangle) : List (ℕ × Bool) :=
           rw [find_it_spec hb', Nat.eq_of_dist_eq_zero hd]
           nth_rw 2 [← List.append_nil c]
           exact SemiThue.reduction reversing.basic⟩⟩⟩⟩
-
     | 1 => solver_helper ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e),
         ⟨ a.2.2.2.1, by
           apply a.2.2.2.2.trans
@@ -417,23 +359,43 @@ def solver_helper (a : triangle) : List (ℕ × Bool) :=
           apply a.2.2.2.2.trans
           rw [find_it_spec hb']
           exact SemiThue.reduction (reversing.apart (by omega))⟩⟩⟩⟩
-    termination_by get_n a
+    termination_by get_n' a
     decreasing_by
-    · change _ < get_n ⟨a.fst, ⟨a.snd.fst, ⟨_, _⟩⟩⟩
-      rcases a with ⟨a1, a2, a3, a4⟩
-      simp
-      simp at hb'
+    · rcases a with ⟨a1, a2, a3, a4⟩
       rcases find_it_spec hb' with ⟨b1, b2, b3⟩
-      simp
       have H : d.1 = d.2 := by exact Nat.eq_of_dist_eq_zero hd
       rcases d with ⟨x, y⟩
-      simp at H
+      simp only at H
       subst H
-      simp
-      sorry
-
-    · sorry
-    sorry
+      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+      · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (x, true)] []
+        · rfl
+        · simp
+        exact reversing.basic
+      · apply pg_smaller_than_g
+      apply pg_smaller_than_g
+    · rcases a with ⟨a1, a2, a3, a4⟩
+      rcases find_it_spec hb' with ⟨b1, b2, b3⟩
+      rcases d with ⟨x, y⟩
+      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+      · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (y, true)]
+          [(y, true), (x, true), (y, false), (x, false)]
+        · rfl
+        · simp
+        exact reversing.close hd
+      · apply pg_smaller_than_g
+      apply pg_smaller_than_g
+    rcases a with ⟨a1, a2, a3, a4⟩
+    rcases find_it_spec hb' with ⟨b1, b2, b3⟩
+    rcases d with ⟨x, y⟩
+    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+    · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (y, true)]
+        [(y, true), (x, false)]
+      · rfl
+      · simp
+      exact reversing.apart (by aesop)
+    · apply pg_smaller_than_g
+    apply pg_smaller_than_g
 
 def solver a b := solver_helper ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨sorry, sorry⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
 
@@ -447,15 +409,16 @@ def solver_equiv  : SemiThue reversing (to_up_plain a ++  to_over_plain b) (solv
   · sorry --simp
   let ha := find_it (to_up_plain a ++ to_over_plain b)
   cases hello : ha
-  · simp [ha]
+  · --simp [ha]
 
     sorry
   sorry
-  match find_it (to_up_plain a ++ to_over_plain b) with
-  | none => sorry
+  sorry
+  -- match find_it (to_up_plain a ++ to_over_plain b) with
+  -- | none => sorry
   --   simp [haa]
   --   exact SemiThue.refl _
-  | some (c, d, e) => sorry
+  -- | some (c, d, e) => sorry
     -- match hd : d.1.dist d.2 with
     -- | 0 =>
     --   simp

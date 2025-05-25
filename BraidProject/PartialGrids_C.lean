@@ -29,11 +29,11 @@ def gridt_option (a b c d : List (Option ℕ × Bool)) : Type := gridt (remover 
   (remover c.reverse) (remover d)
 
 def gridt_option_append_horiz (h1 : gridt_option a b c d) (h2 : gridt_option c e f g) : gridt_option a (b ++ e) f (d ++ g) := by
-  simp [gridt_option, remover_split]
+  simp [gridt_option, remover_append]
   exact gridt.horizontal h1 h2
 
 def gridt_option_append_vert (h1 : gridt_option a b c d) (h2 : gridt_option e d f g) : gridt_option (e ++ a) b (f ++ c) g := by
-  simp [gridt_option, remover_split]
+  simp [gridt_option, remover_append]
   exact gridt.vertical h1 h2
 
 /-- A partial gridt generalizes the notion of a gridt to include "unfinished" gridts. -/
