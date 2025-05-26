@@ -307,13 +307,27 @@ theorem pg_smaller_than_g (a : triangle) : ab_len a.1 a.2.1 ≥ (get_pg a).2.2.2
 --          rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1
 --   rcases H3 with ⟨bot, mid, up, pg, c_is⟩
 --   exact PartialGrid.length pg
+
+theorem get_n'_same''  (c0 c3 c₁ c₂) (hr : reversing c₁ c₂)
+  (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) (c0 ++ c₁ ++ c3))
+  (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) (c0 ++ c₂ ++ c3))
+  (h1 : PartialGrid (to_up a) (to_over b) c5 d5 e5)
+  (h6 : remove_ones (c5 ++ d5 ++ e5) = c0 ++ c₁ ++ c3)
+  (h2 : PartialGrid (to_up a) (to_over b) c6 d6 e6)
+  (h7 : remove_ones (c6 ++ d6 ++ e6) = c0 ++ c₂ ++ c3) :
+  h1.length < h2.length := by
+  sorry
+
 theorem get_n'_same'  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2 : c2 = c0 ++ c₂ ++ c3) (hr : reversing c₁ c₂)
   (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c1)
   (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c2) (h1 : PartialGrid (to_up a) (to_over b) c5 d5 e5)
   (h6 : remove_ones (c5 ++ d5 ++ e5) = c0 ++ c₁ ++ c3) (h2 : PartialGrid (to_up a) (to_over b) c6 d6 e6)
   (h7 : remove_ones (c6 ++ d6 ++ e6) = c0 ++ c₂ ++ c3):
   h1.length < h2.length := by
-  sorry
+  rw [hc1] at rev1
+  rw [hc2] at rev2
+  apply get_n'_same'' _ _ _ _ hr rev1 rev2 h1 h6 h2 h7
+
 theorem get_n'_same  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2 : c2 = c0 ++ c₂ ++ c3) (hr : reversing c₁ c₂)
   (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c1)
   (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c2) :
@@ -333,9 +347,6 @@ theorem get_n'_same  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2
   symm
   nth_rewrite 1 [← rest.1]
   simp
-
-theorem silly {k n m : Nat} (h1 : k <= m) (h2 : n <= m) (h : k < n) : m-n < m - k := by
-  exact (tsub_lt_tsub_iff_left_of_le_of_le h2 h1).mpr h
 
 def solver_helper (a : triangle) : List (ℕ × Bool) :=
   match hb': find_it a.2.2.1 with
