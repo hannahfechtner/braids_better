@@ -256,6 +256,30 @@ theorem remove_ones_eq_to_up_plain_prod (h : remove_ones a = to_up_plain (m ++ q
       have a2_len : a2.length > 0 := by omega
       aesop
 
+theorem remove_ones_eq_to_over_plain_prod (h : remove_ones b = to_over_plain (n ++ q)) :
+  n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
+          b = b1 ++ b2 ∧ remove_ones b1 = to_over_plain n ∧ remove_ones b2 = to_over_plain q := by
+  induction n generalizing b q with
+  | nil => exact Or.inl rfl
+  | cons n1 n2 ih =>
+    right
+    match q with
+    | [] => exact Or.inl rfl
+    | q1 :: q2 =>
+      right
+      rw [to_over_plain_append] at h
+      rcases remove_ones_eq_append h with ⟨b1, b2, b_is, b1s, b2s⟩
+      use b1, b2
+      have b1l := remove_ones_len b1
+      have b2l := remove_ones_len b2
+      have b1le := congr_arg List.length b1s
+      have b2le := congr_arg List.length b2s
+      simp [to_over_plain] at b1le
+      simp [to_over_plain] at b2le
+      have b1_len : b1.length > 0 := by omega
+      have b2_len : b2.length > 0 := by omega
+      aesop
+
 theorem List.suffix_of_append {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨ ∃ a1, a1.length > 0 ∧
      a = a1 ++ c ∧ a1 <:+ b := by
   rcases h with ⟨r, hr⟩
@@ -277,6 +301,27 @@ theorem List.suffix_of_append {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨
     rw [s2]
     exact suffix_append ([f1] ++ f2) a
 
+theorem List.prefix_of_append_mine {a b c : List α} (h : a <+: b ++ c) : a <+: b ∨ ∃ a2, a2.length > 0 ∧
+  a = b ++ a2 ∧ a2 <+: c := by
+  rcases h with ⟨r, hr⟩
+  rcases List.append_eq_append_iff.mp hr with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
+  · match tm with
+    | [] => aesop
+    | t1 :: t2 =>
+      left
+      rw [s1]
+      exact prefix_append a (t1 :: t2)
+  match fm with
+  | [] => aesop
+  | f1 :: f2 =>
+    right
+    use f1 :: f2
+    constructor
+    · simp
+    constructor
+    · exact s1
+    simp [s2]
+
 theorem helper_bajillion (ha : remove_ones a <:+ to_up_plain q ++ to_up_plain (m1 :: m2)) :
     remove_ones a <:+ to_up_plain (m1 :: m2) ∨
     ∃ a1 a2, a1.length > 0 ∧ a = a1 ++ a2 ∧ remove_ones a2 = to_up_plain (m1 :: m2) ∧ remove_ones a1 <:+ to_up_plain q := by
@@ -297,6 +342,27 @@ theorem helper_bajillion (ha : remove_ones a <:+ to_up_plain q ++ to_up_plain (m
   · exact m4
   rw [a3a1]
   assumption
+
+theorem helper_kajillion (h : remove_ones b <+: to_over_plain n ++ to_over_plain q) (hn : n.length > 0):
+  remove_ones b <+: to_over_plain n ∨ ∃ b₁ b₂, b₁.length > 0 ∧ b₂.length > 0 ∧ b = b₁ ++ b₂ ∧
+    remove_ones b₁ = to_over_plain n ∧ remove_ones b₂ <+: to_over_plain q := by
+  rcases List.prefix_of_append_mine h with one | two
+  · left
+    exact one
+  rcases two with ⟨b1, b1_len, b_is, b1_pref⟩
+  right
+  rcases remove_ones_eq_append b_is with ⟨a3, a4, a_is, a3a1, m4⟩
+  use a3, a4
+  constructor
+  · have H := remove_ones_len a3
+    rw [a3a1] at H
+    simp [to_over_plain] at H
+    omega
+  constructor
+  · have H := remove_ones_len a4
+    rw [m4] at H
+    omega
+  aesop
 
 theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
     (i1 : PartialGrid a2 b mid4 e5 d5) (i2 : PartialGrid a1 mid4 mid d4 e4)
@@ -391,6 +457,86 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
     specialize H1 (caboosee5, true) ⟨by simp⟩
     simp at H1
     exact H1.1.elim
+
+theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
+    (i1 : PartialGrid a b1 d3 e3 mid1) (i2 : PartialGrid mid1 b2 d4 e4 e2)
+    (hf : mid ++ d2 = d3 ++ (e3 ++ (d4 ++ e4))) :
+    (mid = d3 ++ e3 ++ d4 ∧ e3 = []) ∨ (mid = d3 ∧ d2 = e3 ++ d4 ++ e4) := by
+  have mid_t : is_true mid := h1.bottom_frontier_is_true
+  have d3_t : is_true d3 := i1.bottom_frontier_is_true
+  have d4_t : is_true d4 := i2.bottom_frontier_is_true
+  have mid1_f : is_false mid1 := i2.left_frontier_is_false
+  rcases middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
+  · left
+    rw [d2_nil, List.append_nil] at hf
+    rcases middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    · rw [e3_nil, List.nil_append] at hf
+      rcases middle_frontier_nil_or_caps i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      · rw [e4_nil, List.append_nil] at hf
+        aesop
+      rw [spece4] at hf
+      rw [hf] at mid_t
+      specialize mid_t (fronte4, false) ⟨(by simp)⟩
+      simp at mid_t
+      exact mid_t.1.elim
+    rw [spece3] at hf
+    rw [hf] at mid_t
+    specialize mid_t (fronte3, false) ⟨by simp⟩
+    simp at mid_t
+    exact mid_t.1.elim
+  rcases middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+  · left
+    rw [e3_nil, List.nil_append] at hf
+    simp [e3_nil]
+    rw [← List.append_assoc] at hf
+    rcases List.append_eq_append_iff.mp hf with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
+    · match tm with
+      | [] => aesop
+      | t1 :: t2 =>
+        rw [specd2] at s2
+        simp at s2
+        have H : is_true (d3 ++ d4) := is_true_of_true_true d3_t d4_t
+        rw [s1, ← s2.1] at H
+        specialize H (frontd2, false) ⟨by simp⟩
+        simp at H
+        exact H.1.elim
+    match fm with
+    | [] => aesop
+    | f1 :: f2 =>
+      rw [specd2] at s2
+      rcases middle_frontier_nil_or_caps i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      · aesop
+      rw [spece4] at s2
+      simp at s2
+      rw [← s2.1] at s1
+      rw [s1] at mid_t
+      specialize mid_t (fronte4, false) ⟨by simp⟩
+      simp at mid_t
+      exact mid_t.1.elim
+  right
+  rcases List.append_eq_append_iff.mp hf with
+    ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
+  · match tm with
+    | [] => aesop
+    | t1 :: t2 =>
+      rw [specd2] at s2
+      simp at s2
+      rw [s1, ← s2.1] at d3_t
+      specialize d3_t (frontd2, false) ⟨by simp⟩
+      simp at d3_t
+      exact d3_t.1.elim
+  match fm with
+  | [] => aesop
+  | f1 :: f2 =>
+    rw [specd2] at s2
+    rcases middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    · aesop
+    rw [spece3] at s2
+    simp at s2
+    rw [s1, ← s2.1] at mid_t
+    specialize mid_t (fronte3, false) ⟨by simp⟩
+    simp at mid_t
+    exact mid_t.1.elim
 
 theorem partial_grid_rm_empty_helper (h : PartialGrid a b c d e) : remove_ones a = [] → remove_ones b = [] →
     (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = []) := by
@@ -881,6 +1027,24 @@ theorem unique_g_pg_c_ones_okay
     apply to_over_plain_remover_eq_remove_ones
     exact g1.bottom_frontier_is_true
 
+theorem to_over_plain_prod (a b : FreeMonoid ℕ) : to_over_plain (a * b) = to_over_plain a ++ to_over_plain b := by
+  have H : to_over_plain a ++ to_over_plain b = to_over_plain (a.toList ++ b.toList) := by
+    simp [to_over_plain]
+    convert
+    rfl
+  rw [H]
+  convert
+  rfl
+
+theorem to_up_plain_prod (a b : FreeMonoid ℕ) : to_up_plain (a * b) = to_up_plain b ++ to_up_plain a := by
+  have H : to_up_plain b ++ to_up_plain a = to_up_plain (a.toList ++ b.toList) := by
+    simp [to_up_plain]
+    convert
+    rfl
+  rw [H]
+  convert
+  rfl
+
 --theorem foo (ha : is_false a) (h : remover a = to_over_plain (m ++ q)) : False := by sorry
 theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
   : (remove_ones a = to_up_plain i → remove_ones b <+: to_over_plain j → remove_ones mid <+: to_over_plain l)
@@ -1006,18 +1170,9 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
       aesop
     intro hb ha
     have ha1 : remove_ones a <:+ to_up_plain q ++ to_up_plain m := by
-      have H : to_up_plain q ++ to_up_plain m = to_up_plain (m.toList ++ q.toList) := by
-        simp [to_up_plain_append]
-        congr
-      rw [H]
-      convert ha
-    have H : to_up_plain (o * r) = to_up_plain r ++ to_up_plain o := by
-      have H1 : to_up_plain (o.toList ++ r.toList) = to_up_plain r ++ to_up_plain o := by
-        simp [to_up_plain]
-        rfl
-      rw [← H1]
-      congr
-    rw [H]
+      rw [to_up_plain_prod m q] at ha
+      exact ha
+    rw [to_up_plain_prod o r]
     match m with
     | [] =>
       nth_rewrite 2 [to_up_plain] at ha1
@@ -1065,23 +1220,66 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
   | horizontal h1 h2 h1_ih h2_ih =>
     rename_i m n o p q r s t
     constructor
-    intro ha hb
-    have H : to_over_plain (n * q) = to_over_plain n ++ to_over_plain q := by
-      simp [to_over_plain]
-      sorry
-    rw [H] at hb
-    have H : ∃ b1 b2, b = b1 ++ b2 ∧
-      remove_ones b1 = to_over_plain n ∧ remove_ones b2 = to_over_plain q := by sorry
-    rcases H with ⟨b1, b2, b_is, b1_is, b2_is⟩
-    rcases splittable_vertically_of_pg' h1 _ _ b_is (by sorry) (by sorry)
-      with ⟨d4, e4, d5, e3, mid4, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+    · intro a_is b_is
+      rw [to_over_plain_prod] at b_is
+      match n with
+      | [] =>
+        have H := word_top_bottom_t _ _ _ t rfl
+        specialize h2_ih h1
+        simp_all [to_over_plain]
+      | n1 :: n2 =>
+        rcases helper_kajillion b_is (by simp) with one | two
+        · specialize h1_ih h1
+          have new_ih := h1_ih.1 a_is one
+          rw [to_over_plain_prod]
+          exact List.prefix_of_append new_ih
+        rcases two with ⟨b1, b2, b1_len, b2_len, b_is, b1_n, b2_q⟩
+        rcases splittable_vertically_of_pg' h1 _ _ b_is b1_len b2_len
+          with ⟨mid1, d3, e3, d4, e4, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+        · specialize h1_ih i1
+          specialize h2_ih i2
+          simp_all
+          have nonsense : (mid = d3 ++ e3 ++ d4 ∧ e3 = []) ∨ (mid = d3 ∧ d2 = e3 ++ d4 ++ e4) :=
+            frontier_options_from_horizontal h1 i1 i2 hf
+          rcases nonsense with h_one | h_two
+          · rw [h_one.2] at i1
+            have H := unique_g_pg_c_ones_okay i1 a_is.symm b1_n.symm t
+            rw [h_one.1, h_one.2, List.append_nil, remove_ones_append, to_over_plain_prod, H.2]
+            exact (List.prefix_append_right_inj (remove_ones d3)).mpr ((h2_ih).1 H.1.symm)
+          have helper := h1_ih.1
+          rw [h_two.1, to_over_plain_prod]
+          exact List.prefix_of_append helper
+        rcases baaad with ⟨db, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
+        specialize h1_ih h3
+        have H2 := h1_ih.1 a_is (by rw [b1_n])
+        rw [to_over_plain_prod]
+        exact List.prefix_of_append H2
+    intro b_is a_is
+    have hb1 : n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
+        b = b1 ++ b2 ∧ remove_ones b1 = to_over_plain n ∧ remove_ones b2 = to_over_plain q :=
+      remove_ones_eq_to_over_plain_prod b_is
+    rcases hb1 with n_nil | q_nil | ⟨b1, b2, b1_len, b2_len, b1_is, b1n, b2q⟩
+    · have H : remove_ones b = to_over_plain q := by
+        rw [n_nil] at b_is
+        convert b_is
+      have op := word_top_bottom_t _ _ _ t n_nil
+      specialize h2_ih h1
+      have new_h2_ih := h2_ih.2 H
+      rw [op.1] at new_h2_ih
+      exact new_h2_ih a_is
+    · have H : remove_ones b = to_over_plain n := by
+        rw [q_nil] at b_is
+        convert b_is
+        simp; rfl
+      have rs := word_top_bottom_t _ _ _ h2 q_nil
+      specialize h1_ih h1
+      have new_h2_ih := h1_ih.2 H a_is
+      rw [rs.1]
+      exact new_h2_ih
+    rcases splittable_vertically_of_pg' h1 _ _ b1_is b1_len b2_len
+        with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
     · specialize h1_ih i1
-      have new_h1_ih := h1_ih.1 ha (by rw [b1_is])
       specialize h2_ih i2
-      have new_h2_ih := h2_ih.2
-      match d4 with
-      | [] => sorry
-      | d41 :: d42 =>
-        sorry
-    sorry
-    sorry
+      simp_all
+    rcases baaad with ⟨d5, d6, i3, _ , ⟨e2_nil⟩, ⟨d2_is⟩, ⟨b2_is⟩⟩
+    aesop
