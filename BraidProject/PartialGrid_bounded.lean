@@ -379,13 +379,167 @@ theorem split_it_helper (h : to_over [i] ++ ra = to_over a1) : ∃ rra, a1 = Fre
     rw [h.1]
     rfl
 
+theorem partial_grid_rm_top_bottom_length (h : PartialGrid a b c d e) (ha : remove_ones a = []) (hb : remove_ones b = [(i, true)]) :
+    remove_ones c <+: [(i, true)] ∧ remove_ones e = [] ∧ h.length = 0 := by
+  induction h with
+  | single_gridt h =>
+    cases h
+    all_goals simp_all [PartialGrid.length, remove_ones]
+  | empty a b ha ha1 hb hb => simp [PartialGrid.length]
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rw [remove_ones_append] at hb
+    rcases List.append_eq_singleton_iff.mp hb with ⟨b1_is, b2_is⟩ | ⟨b1_is, b2_is⟩
+    · have H := helper_pg_empty g1 ha b1_is
+      simp_all [PartialGrid.length]
+    simp_all
+    have H := helper_pg_empty g2 g1_ih.2.1 b2_is
+    simp_all [PartialGrid.length]
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rw [remove_ones_append] at hb
+    rcases List.append_eq_singleton_iff.mp hb with ⟨b1_is, b2_is⟩ | ⟨b1_is, b2_is⟩
+    · have H := helper_pg_empty g1 ha b1_is
+      simp_all [PartialGrid.length]
+    simp_all
+    have H := helper_pg_empty g2 g1_ih.2.1 b2_is
+    simp_all [PartialGrid.length]
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rw [remove_ones_append] at ha
+    simp at ha
+    specialize g1_ih ha.2 hb
+    rcases prefix_of_singleton g1_ih.1 with one | two
+    · have H := helper_pg_empty g2 ha.1 one
+      simp_all [PartialGrid.length]
+    simp_all [PartialGrid.length]
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rw [remove_ones_append] at ha
+    simp at ha
+    specialize g1_ih ha.2 hb
+    rcases prefix_of_singleton g1_ih.1 with one | two
+    · have H := helper_pg_empty g2 ha.1 one
+      simp_all [PartialGrid.length]
+    simp_all [PartialGrid.length]
+
+theorem partial_grid_rm_side_length (h : PartialGrid a b c d e) (ha : remove_ones a = [(i, false)]) (hb : remove_ones b = []) :
+    remove_ones c = [] ∧ remove_ones e <:+ [(i, false)] ∧ h.length = 0 := by
+  induction h with
+  | single_gridt h =>
+    cases h
+    all_goals simp_all [PartialGrid.length, remove_ones]
+  | empty a b ha ha1 hb hb => simp [PartialGrid.length]
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    simp [remove_ones_append] at hb
+    simp_all
+    rcases suffix_of_singleton g1_ih.2.1
+    · have H := helper_pg_empty g2 (by assumption) hb.2
+      simp_all [PartialGrid.length]
+    simp_all [PartialGrid.length]
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    simp [remove_ones_append] at hb
+    simp_all
+    rcases suffix_of_singleton g1_ih.2.1
+    · have H := helper_pg_empty g2 (by assumption) hb.2
+      simp_all [PartialGrid.length]
+    simp_all [PartialGrid.length]
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rw [remove_ones_append] at ha
+    rcases List.append_eq_singleton_iff.mp ha with ⟨a1_is, a2_is⟩ | ⟨a1_is, a2_is⟩
+    · simp_all
+      have H := helper_pg_empty g2 a1_is g1_ih.1
+      simp_all [PartialGrid.length]
+    have H := helper_pg_empty g1 a2_is hb
+    simp_all [PartialGrid.length]
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rw [remove_ones_append] at ha
+    rcases List.append_eq_singleton_iff.mp ha with ⟨a1_is, a2_is⟩ | ⟨a1_is, a2_is⟩
+    · simp_all
+      have H := helper_pg_empty g2 a1_is g1_ih.1
+      simp_all [PartialGrid.length]
+    have H := helper_pg_empty g1 a2_is hb
+    simp_all [PartialGrid.length]
+
+theorem partial_grid_rm_top_left_length (h : PartialGrid a b c d e) (ha : remove_ones a = [(i, false)]) (hb : remove_ones b = [(i, true)]) :
+    remove_ones c <+: [(i, true)] ∧ remove_ones e <:+ [(i, false)] ∧ h.length ≤ 1 := by
+  induction h with
+  | single_gridt h =>
+    cases h
+    all_goals simp_all [PartialGrid.length, remove_ones]
+    aesop
+  | empty a b ha ha1 hb hb =>
+    simp [PartialGrid.length]
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rw [remove_ones_append] at hb
+    rcases List.append_eq_singleton_iff.mp hb with ⟨b1_is, b2_is⟩ | ⟨b1_is, b2_is⟩
+    · have H := partial_grid_rm_side_length g1 ha b1_is
+      rcases suffix_of_singleton H.2.1 with one | two
+      · have H2 := partial_grid_rm_top_bottom_length g2 one b2_is
+        simp_all [PartialGrid.length]
+      simp_all [PartialGrid.length]
+    simp_all
+    rcases suffix_of_singleton g1_ih.2.1 with one | two
+    · have H := helper_pg_empty g2 one b2_is
+      simp_all [PartialGrid.length]
+    have H := partial_grid_rm_side_length g2 two b2_is
+    simp_all [PartialGrid.length]
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rw [remove_ones_append] at hb
+    rcases List.append_eq_singleton_iff.mp hb with ⟨b1_is, b2_is⟩ | ⟨b1_is, b2_is⟩
+    · have H := partial_grid_rm_side_length g1 ha b1_is
+      rcases suffix_of_singleton H.2.1 with one | two
+      · have H2 := partial_grid_rm_top_bottom_length g2 one b2_is
+        simp_all [PartialGrid.length]
+      simp_all [PartialGrid.length]
+    simp_all
+    rcases suffix_of_singleton g1_ih.2.1 with one | two
+    · have H := helper_pg_empty g2 one b2_is
+      simp_all [PartialGrid.length]
+    have H := partial_grid_rm_side_length g2 two b2_is
+    simp_all [PartialGrid.length]
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rw [remove_ones_append] at ha
+    rcases List.append_eq_singleton_iff.mp ha with ⟨a1_is, a2_is⟩ | ⟨a1_is, a2_is⟩
+    · simp_all
+      rcases prefix_of_singleton g1_ih.1 with one | two
+      · have H := helper_pg_empty g2 a1_is one
+        simp_all [PartialGrid.length]
+      have H := partial_grid_rm_top_bottom_length g2 a1_is two
+      simp_all [PartialGrid.length]
+    have H := partial_grid_rm_top_bottom_length g1 a2_is hb
+    simp_all
+    rcases prefix_of_singleton H.1 with one | two
+    · have H2 := partial_grid_rm_side_length g2 a1_is one
+      simp_all [PartialGrid.length]
+    simp_all [PartialGrid.length]
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rw [remove_ones_append] at ha
+    rcases List.append_eq_singleton_iff.mp ha with ⟨a1_is, a2_is⟩ | ⟨a1_is, a2_is⟩
+    · simp_all
+      rcases prefix_of_singleton g1_ih.1 with one | two
+      · have H := helper_pg_empty g2 a1_is one
+        simp_all [PartialGrid.length]
+      have H := partial_grid_rm_top_bottom_length g2 a1_is two
+      simp_all [PartialGrid.length]
+    have H := partial_grid_rm_top_bottom_length g1 a2_is hb
+    simp_all
+    rcases prefix_of_singleton H.1 with one | two
+    · have H2 := partial_grid_rm_side_length g2 a1_is one
+      simp_all [PartialGrid.length]
+    simp_all [PartialGrid.length]
+
 theorem pg_sm_g_eq1 (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
     : remove_ones a = to_up_plain a1 → remove_ones b = to_over_plain b1 → h.length ≤ h1.length := by
   induction h1 generalizing a b c d e with
-  | empty => sorry
-  | top_bottom i => sorry
-  | sides i => sorry
-  | top_left i => sorry
+  | empty =>
+    intro ha hb
+    simp [empty_rm_pg_len h ha hb]
+  | top_bottom i =>
+    intro ha hb
+    simp [partial_grid_rm_top_bottom_length h ha hb]
+  | sides i =>
+    intro ha hb
+    simp [partial_grid_rm_side_length h ha hb]
+  | top_left i =>
+    intro ha hb
+    simp [partial_grid_rm_top_left_length h ha hb, gridt.length]
   | adjacent i k h => sorry
   | separated i j h => sorry
   | vertical h1 h2 h1_ih h2_ih =>
@@ -398,7 +552,8 @@ theorem pg_sm_g_eq1 (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
       have hi1 : i1.length ≤ h1.length := by
         exact h1_ih i1 (remove_up_is_plain) b_is
       have hi2 : i2.length ≤ h2.length := by
-        have H : remove_ones mid <+: to_over_plain l := prefix_of_bottom h1 i1 rfl b_is -- the interesting sorry
+        have H : remove_ones mid <+: to_over_plain l :=
+          (same_time h1 i1).1 remove_up_is_plain (by rw [b_is])
         rcases H with ⟨r, hr⟩
         have i3 := PartialGrid.extend_side_w_len i2 (List.map (fun x => (some x.1, x.2)) r)
           (by sorry) (by sorry)
