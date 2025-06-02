@@ -418,8 +418,6 @@ def pairsTogether_empty : pairsTogether [] := by
   apply infix_length_le_C at h1
   simp at h1
 
-
-
 def pairs_together_singleton : pairsTogether [a] := by
   intro c d hcd
   exfalso
@@ -508,7 +506,6 @@ def irreducible_append (h : irreducible (a ++ b)) : irreducible a × irreducible
       ⟨fun hx ↦ (h x).2.1 (infix_append_right_C hx), fun hx ↦ (h x).2.2 (infix_append_right_C hx)⟩⟩,
   fun x ↦ ⟨fun hx ↦ (h x).1 (infix_append_left_C hx),
       ⟨fun hx ↦ (h x).2.1 (infix_append_left_C hx), fun hx ↦ (h x).2.2 (infix_append_left_C hx)⟩⟩⟩
-
 
 def irreducible_cons_true (h : irreducible L) : irreducible ((a, true) :: L) := by
   intro a

@@ -18,6 +18,19 @@ theorem remove_up_is_plain : remove_ones (to_up i) = to_up_plain i := by
       rw [H1, remove_ones_append, ih]
       simp [to_up_plain, remove_ones]
 
+theorem remove_over_is_plain : remove_ones (to_over j) = to_over_plain j := by
+  induction j with
+  | nil => rfl
+  | cons head tail ih =>
+    match tail with
+    | [] =>
+      simp [remove_ones, to_over_plain]
+    | t1 :: t2 =>
+      have H1 : (to_over (head :: t1 :: t2)) = [(some head, true)] ++ (to_over (t1 :: t2)) := by
+        simp [to_over]
+      rw [H1, remove_ones_append, ih]
+      simp [to_over_plain, remove_ones]
+
 theorem eq_remover_of_remove_ones_eq_to_over_plain (h : remove_ones b = to_over_plain j) : j = remover b := by
   induction b generalizing j with
   | nil =>

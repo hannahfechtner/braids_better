@@ -2,10 +2,12 @@ import BraidProject.StepTwo_C
 import BraidProject.SemiThue_C
 import BraidProject.Cancellability_C
 import BraidProject.GridsTwo_C
--- import BraidProject.BraidGroup
-def to_up_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, false)) a.reverse
+import BraidProject.PartialGrid_bounded
 
-def to_over_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, true)) a
+-- import BraidProject.BraidGroup
+-- def to_up_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, false)) a.reverse
+
+-- def to_over_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, true)) a
 def find_it (L : List (ℕ × Bool)) :
     Option (List (ℕ × Bool) × ((ℕ) × (ℕ)) × List (ℕ × Bool)) :=
   match L with
@@ -238,32 +240,37 @@ noncomputable def get_pg (a : triangle) : Σ bot mid top, PartialGrid (to_up a.1
   rw [c_is.1]
   exact Hc.2.2
 
-def gridt.length : gridt a b c d → ℕ := by
-  intro h
-  match h with
-  | gridt.empty => exact 0
-  | gridt.sides _ => exact  0
-  | gridt.top_bottom _ => exact 0
-  | gridt.top_left _ => exact 1
-  | gridt.adjacent _ _ _ => exact 1
-  | gridt.separated _ _ _ => exact 1
-  | gridt.horizontal h1 h2 => exact gridt.length h1 + gridt.length h2
-  | gridt.vertical h1 h2 => exact gridt.length h1 + gridt.length h2
+-- def gridt.length : gridt a b c d → ℕ := by
+--   intro h
+--   match h with
+--   | gridt.empty => exact 0
+--   | gridt.sides _ => exact  0
+--   | gridt.top_bottom _ => exact 0
+--   | gridt.top_left _ => exact 1
+--   | gridt.adjacent _ _ _ => exact 1
+--   | gridt.separated _ _ _ => exact 1
+--   | gridt.horizontal h1 h2 => exact gridt.length h1 + gridt.length h2
+--   | gridt.vertical h1 h2 => exact gridt.length h1 + gridt.length h2
 
-noncomputable def ab_len (a b : List ℕ) : ℕ :=
-  match existence_s a b with
-  | ⟨_, _, h⟩ => gridt.length h
+-- noncomputable def ab_len (a b : List ℕ) : ℕ :=
+--   match existence_s a b with
+--   | ⟨_, _, h⟩ => gridt.length h
 
 noncomputable def get_n' (a : triangle) : ℕ := ab_len a.1 a.2.1 - (get_pg a).2.2.2.1.length
 
 set_option pp.notation true
 
---hoppefully will prove this in another file
 theorem straight_pg_sm_g (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
-    : a <:+ to_up a1 → b <+: to_over b1 → h.length ≤ h1.length := by sorry
+    : a = to_up a1 → b = to_over b1 → h.length ≤ h1.length := by
+  intro ha hb
+  apply pg_sm_g_eq1 h h1
+  · rw [ha]
+    exact remove_up_is_plain
+  rw [hb]
+  exact remove_over_is_plain
 
 theorem pg_smaller_than_g (a : triangle) : ab_len a.1 a.2.1 ≥ (get_pg a).2.2.2.1.length := by
-  apply straight_pg_sm_g _ _ (List.suffix_refl (to_up a.fst)) (List.prefix_refl _)
+  apply straight_pg_sm_g _ _ rfl rfl
 
 -- noncomputable def get_n (a : triangle) : ℕ := by
 --   have H := @stepOne_mid (List.map (fun y => (y, false)) a.1.reverse ++ List.map (fun y => (y, true)) a.2.1) a.2.2.1 a.2.2.2.2
