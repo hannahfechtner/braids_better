@@ -161,13 +161,50 @@ theorem empty_helper
     simp at c_is
     exact (not_both_empty_early g1 c_is.1 rfl).elim
   | horizontal_append h g1 g2 g1_ih g2_ih =>
-    -- one of the mids must be empty to match d_is
-    sorry
+    rcases middle_frontier_nil_or_caps g1 with ⟨⟨mid_nil⟩⟩ | ⟨frontm, midm, caboosem, specm⟩
+    · exact (not_both_empty_early g1 c_is mid_nil).elim
+    rcases middle_frontier_nil_or_caps g2 with ⟨⟨mid2_nil⟩⟩ | ⟨frontm2, midm2, caboosem2, specm2⟩
+    · exact (not_both_empty g2 mid2_nil e_is).elim
+    rw [specm.1, specm2.1] at d_is
+    rename_i f g i j k l m n o
+    rcases List.append_eq_append_iff.mp d_is with ⟨as, one, two⟩ | ⟨as, one, two⟩
+    · have H : is_false f := g1.left_frontier_is_false
+      rw [one] at H
+      specialize H (caboosem, true) ⟨by simp⟩
+      simp at H
+      exact H.1.elim
+    have H : is_true (g ++ l) := by
+      apply is_true_of_true_true
+      exact g1.top_frontier_is_true
+      exact g2.top_frontier_is_true
+    rw [two] at H
+    specialize H (frontm2, false) ⟨by simp⟩
+    simp at H
+    exact H.1.elim
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     simp at e_is
     exact (not_both_empty g1 rfl e_is.2).elim
   | vertical_append g1 g2 h g1_ih g2_ih =>
-    sorry
+    rcases middle_frontier_nil_or_caps g1 with ⟨⟨mid_nil⟩⟩ | ⟨frontm, midm, caboosem, specm⟩
+    · exact (not_both_empty g1 mid_nil e_is).elim
+    rcases middle_frontier_nil_or_caps g2 with ⟨⟨mid2_nil⟩⟩ | ⟨frontm2, midm2, caboosem2, specm2⟩
+    · exact (not_both_empty_early g2 c_is mid2_nil).elim
+    rw [specm.1, specm2.1] at d_is
+    rename_i f g i j k l m n o
+    rcases List.append_eq_append_iff.mp d_is with ⟨as, one, two⟩ | ⟨as, one, two⟩
+    · have H : is_false (l ++ f) := by
+        apply is_false_of_false_false
+        exact g2.left_frontier_is_false
+        exact g1.left_frontier_is_false
+      rw [one] at H
+      specialize H (caboosem2, true) ⟨by simp⟩
+      simp at H
+      exact H.1.elim
+    have H : is_true g := g1.top_frontier_is_true
+    rw [two] at H
+    specialize H (frontm, false) ⟨by simp⟩
+    simp at H
+    exact H.1.elim
 
 theorem same_type_same_length_pg (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
     a = a1 → b = b1 → c = c1 → d = d1 → e = e1 → g1.length = g2.length := by
@@ -221,7 +258,7 @@ theorem same_type_same_length_pg (g1 : PartialGrid a b c d e) (g2 : PartialGrid 
     simp [PartialGrid.length]
     symm
     rw [a_is, b_is] at d_is
-    sorry --exact empty_helper _ c_is d_is e_is
+    exact empty_helper _ c_is.symm d_is.symm e_is.symm
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i a3 b3 bot3 up3 b4 bot4 mid4 up4 g3
     intro a_is b_is c_is d_is e_is
