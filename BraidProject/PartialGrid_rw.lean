@@ -134,15 +134,113 @@ import BraidProject.PartialGrid_bounded
 --   | vertical_append_one g1 g2 g1_ih g2_ih => sorry
 --   | vertical_append g1 g2 h g1_ih g2_ih => sorry
 
--- theorem empty_frontier_unique (h1: PartialGrid a1 b1 c1 d1 e1) (h2 : PartialGrid a2 b2 c2 [] e2)
---   (ha : a1 = a2) (hb : b1 = b2) (hd : d1 = []): c1 = c2 ∧ e1 = e2 := by
---   induction h1 with
---   | single_gridt h => sorry
---   | empty a b ha ha1 hb hb => sorry
---   | horizontal_append_one g1 g2 g1_ih g2_ih => sorry
---   | horizontal_append h g1 g2 g1_ih g2_ih => sorry
---   | vertical_append_one g1 g2 g1_ih g2_ih => sorry
---   | vertical_append g1 g2 h g1_ih g2_ih => sorry
+theorem empty_frontier_unique (h1: PartialGrid a1 b1 c1 d1 e1) (h2 : PartialGrid a2 b2 c2 d2 e2)
+  (ha : a1 = a2) (hb : b1 = b2) (hd1 : d1 = []) (hd2 : d2 = [] ): c2 = c1 ∧ e2 = e1 := by
+  induction h1 generalizing a2 b2 c2 d2 e2 with
+  | single_gridt h =>
+    cases h with
+    | empty =>
+      simp_all
+      rw [← ha, ← hb]
+      apply pg_empty h2 ha.symm hb.symm hd2
+    | top_bottom i =>
+      simp_all
+      rw [← ha, ← hb]
+      apply pg_top_bottom h2 ha.symm hb.symm hd2
+    | sides i =>
+      simp_all
+      rw [← ha, ← hb]
+      apply pg_side_side h2 ha.symm hb.symm hd2
+    | top_left i =>
+      simp_all
+      apply pg_top_left h2 ha.symm hb.symm hd2
+    | adjacent i k h =>
+      have H := pg_adjacent h2 ha.symm hb.symm hd2 h
+      simp_all
+    | separated i j h =>
+      have H := pg_separated h2 ha.symm hb.symm hd2 (or_dist_iff.mpr h)
+      simp_all
+  | empty a b ha ha1 hb hb =>
+    simp_all
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rename_i i j k l m n o p
+    rcases splittable_vertically_of_pg' h2 _ _ hb.symm (PartialGrid.top_length_pos g1) (PartialGrid.top_length_pos g2)
+      with ⟨mid, c4, d4, c5, d5, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
+    · specialize g1_ih i1
+      specialize g2_ih i2
+      simp_all
+      have c_t : is_true c2 := h2.bottom_frontier_is_true
+      rw [long] at c_t
+      apply is_true_append at c_t
+      have d4_t : is_true d4 := (is_true_append c_t.2).1
+      have d5_t : is_true d5 := (is_true_append (is_true_append c_t.2).2).2
+      rcases middle_frontier_nil_or_caps i1 with ⟨⟨one⟩⟩ | ⟨fronti, midi, caboosei, speci⟩
+      · rcases middle_frontier_nil_or_caps i2 with ⟨⟨three⟩⟩ | ⟨fronti1, midi2, caboosei2, ⟨speci2⟩⟩
+        · simp_all
+        rw [speci2] at d5_t
+        specialize d5_t ⟨fronti1, false⟩ ⟨by simp⟩
+        simp at d5_t
+        exact d5_t.1.elim
+      rw [speci.1] at d4_t
+      specialize d4_t (fronti, false) ⟨by simp⟩
+      simp at d4_t
+      exact d4_t.1.elim
+    rcases b with ⟨d6, d7, h6, ⟨len⟩, ⟨e1_nil⟩, ⟨d1_is⟩, ⟨b4_is⟩⟩
+    specialize g1_ih h6 ha rfl rfl
+    rw [hd2] at d1_is
+    simp at d1_is
+    exfalso
+    apply not_both_empty h6 d1_is.1 rfl
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rename_i i j k l m n o p q
+    rcases splittable_vertically_of_pg' h2 _ _ hb.symm (PartialGrid.top_length_pos g1) (PartialGrid.top_length_pos g2)
+      with ⟨mid, c4, d4, c5, d5, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
+    · specialize g1_ih i1
+      specialize g2_ih i2
+      simp_all
+    rcases b with ⟨d6, d7, h6, ⟨len⟩, ⟨e1_nil⟩, ⟨d1_is⟩, ⟨b4_is⟩⟩
+    specialize g1_ih h6 ha rfl
+    simp_all
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rename_i i j k l m n o p
+    rcases splittable_horizontally_of_pg h2 _ _ ha.symm (PartialGrid.left_length_pos g1) (PartialGrid.left_length_pos g2)
+      with ⟨mid, c4, d4, c5, d5, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
+    · specialize g1_ih i1
+      specialize g2_ih i2
+      simp_all
+      have e_f : is_false e2 := h2.right_frontier_is_false
+      rw [← long] at e_f
+      apply is_false_append at e_f
+      have c4_f : is_false c4 := (e_f.1)
+      have c5_f : is_false c5 := (is_false_append (is_false_append e_f.2).2).1
+      rcases middle_frontier_nil_or_caps i1 with ⟨⟨one⟩⟩ | ⟨fronti, midi, caboosei, speci⟩
+      · rcases middle_frontier_nil_or_caps i2 with ⟨⟨three⟩⟩ | ⟨fronti1, midi2, caboosei2, ⟨speci2⟩⟩
+        · simp_all
+        rw [speci2] at c4_f
+        specialize c4_f ⟨caboosei2, true⟩ ⟨by simp⟩
+        simp at c4_f
+        exact c4_f.1.elim
+      rw [speci.1] at c5_f
+      specialize c5_f (caboosei, true) ⟨by simp⟩
+      simp at c5_f
+      exact c5_f.1.elim
+    rcases b with ⟨db, cb, drest, h6, ⟨d2_is⟩, ⟨m_is⟩, ⟨c2_is⟩, ⟨len⟩⟩
+    exfalso
+    exact not_both_empty_early h2 c2_is hd2
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rename_i i j k l m n o p q
+    rcases splittable_horizontally_of_pg h2 _ _ ha.symm (PartialGrid.left_length_pos g1) (PartialGrid.left_length_pos g2)
+      with ⟨mid, c4, d4, c5, d5, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
+    · specialize g1_ih i1
+      specialize g2_ih i2
+      simp_all
+    rcases b with ⟨db, cb, drest, h6, ⟨d2_is⟩, ⟨m_is⟩, ⟨c2_is⟩, ⟨len⟩⟩
+    specialize g1_ih h6 rfl hb
+    simp only [List.append_assoc, List.append_eq_nil_iff] at hd1
+    have H : k = [] := by simp_all
+    exfalso
+    have H := PartialGrid.top_length_pos g2
+    simp_all
 
 theorem empty_helper
     (g : PartialGrid a b c d e) (c_is : c = []) (d_is : d = a ++ b) (e_is : e = []) :
@@ -206,6 +304,35 @@ theorem empty_helper
     simp at H
     exact H.1.elim
 
+-- theorem empty_helper_rm (h : PartialGrid a b c d e)
+--   (hm : remove_ones (a ++ b ) = remove_ones (c ++ d ++ e)) : h.length = 0 := by
+--   induction h with
+--   | single_gridt h =>
+--     cases h with
+--     | empty => simp_all [PartialGrid.length]
+--     | top_bottom i => simp_all [PartialGrid.length]
+--     | sides i => simp_all [PartialGrid.length]
+--     | top_left i => simp_all [remove_ones]
+--     | adjacent i k h => simp_all [remove_ones]
+--     | separated i j h => simp_all [remove_ones]
+--   | empty a b ha ha1 hb hb => simp [PartialGrid.length]
+--   | horizontal_append_one g1 g2 g1_ih g2_ih =>
+--     rename_i k l m n o p q r
+--     simp_all
+--     sorry
+--   | horizontal_append h g1 g2 g1_ih g2_ih => sorry
+--   | vertical_append_one g1 g2 g1_ih g2_ih => sorry
+--   | vertical_append g1 g2 h g1_ih g2_ih => sorry
+
+
+theorem split_same (h : PartialGrid a b c d e) :
+  ∀ b1 b2, b1.length > 0 →  b2.length > 0 → b = b1 ++ b2 →
+  ∀ {c1 d1 e1 c2 d2}, PartialGrid a1 b1 c1 d1 e1 → a = a1 →
+   PartialGrid e1 b2 c2 d2 e2 → e = e2 → c ++ d = c1 ++ d1 ++ c2 ++d2 →
+  PartialGrid a b1 c3 d3 e3 → PartialGrid e3 b2 c4 d4 e →
+  c ++ d = c3 ++ d3 ++ c4 ++ d4 → c1 = c3 ∧ d1 = d3 ∧ e1 = e3 ∧
+  c2 = c4 ∧ d2 = d4 := by sorry
+
 theorem same_type_same_length_pg (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
     a = a1 → b = b1 → c = c1 → d = d1 → e = e1 → g1.length = g2.length := by
   induction g1 generalizing a1 b1 c1 d1 e1 with
@@ -264,18 +391,18 @@ theorem same_type_same_length_pg (g1 : PartialGrid a b c d e) (g2 : PartialGrid 
     intro a_is b_is c_is d_is e_is
     have split_it := splittable_vertically_of_pg' g2 _ _ b_is.symm (PartialGrid.top_length_pos g1) (PartialGrid.top_length_pos g3)
     rcases split_it with ⟨mid, c2, d2, c3, d3, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
-    · rw [len]
-      specialize g1_ih i1 a_is rfl
-      specialize g2_ih i2
-      rw [← c_is, ← d_is] at long
-      sorry
-      -- have H := unique_split_horiz g1 g3 i1 i2 (PartialGrid.left_length_pos g3)
-      --   (PartialGrid.left_length_pos i2) a_is rfl rfl e_is (by simp [long])
-      -- specialize g1_ih H.2.2.2.2 H.2.1 H.1
-      -- specialize g2_ih H.1 rfl H.2.2.1 H.2.2.2.1 e_is
-      -- simp [g1_ih, g2_ih, PartialGrid.length]
+    · have H := split_same g2 b3 b4 (PartialGrid.top_length_pos g1)
+        (PartialGrid.top_length_pos g3)
+        b_is.symm g1 a_is.symm g3 e_is.symm (by simp [c_is, d_is]) i1 i2 long
+      rw [len]
+      specialize g1_ih i1 a_is rfl H.1 H.2.1 H.2.2.1
+      specialize g2_ih i2 H.2.2.1 rfl H.2.2.2.1 H.2.2.2.2 e_is
+      simp [PartialGrid.length, g1_ih, g2_ih]
     rcases b with ⟨d5, d6, h5, ⟨len⟩, ⟨e1_nil⟩, ⟨d_is⟩, ⟨b4_is⟩⟩
     rw [e1_nil] at e_is
+    specialize g1_ih h5 a_is rfl
+    simp_all
+
     sorry
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i a3 b3 bot3 mid3 up3 b4 bot4 mid4 up4 g3
@@ -285,7 +412,12 @@ theorem same_type_same_length_pg (g1 : PartialGrid a b c d e) (g2 : PartialGrid 
     · rw [len]
       specialize g1_ih i1 a_is rfl
       specialize g2_ih i2
-      rw [← c_is, ← d_is, ← List.append_assoc, ← List.append_assoc] at long
+      have H := frontier_options_from_horizontal g2 i1 i2 (by simp [long])
+      rcases H with one | two
+      · simp_all
+        sorry
+      simp_all
+
       sorry
       -- have H := unique_split_horiz g1 g3 i1 i2 (PartialGrid.left_length_pos g3)
       --   (PartialGrid.left_length_pos i2) a_is rfl rfl e_is long
@@ -300,8 +432,9 @@ theorem same_type_same_length_pg (g1 : PartialGrid a b c d e) (g2 : PartialGrid 
   | vertical_append_one g1 g2 g1_ih g2_ih => sorry
   | vertical_append g1 g2 h g1_ih g2_ih => sorry
 
--- theorem same_type_same_length_pg_rm (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
---     a = a1 → b = b1 → remove_ones (c ++ d++ e) = remove_ones (c1 ++ d1 ++ e1) → g1.length = g2.length := by
+theorem same_type_same_length_pg_rm (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
+    a = a1 → b = b1 → remove_ones (c ++ d++ e) = remove_ones (c1 ++ d1 ++ e1) → g1.length = g2.length := by
+  sorry
 --   induction g1 generalizing a1 b1 c1 d1 e1 g2 with
 --   | single_gridt h =>
 --     rename_i f g l m
@@ -918,10 +1051,367 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up) (hg : grid_sty
     constructor
     simp [PartialGrid.length, botp.2.1]
 
+def skeleton_up_plain_over_plain : skeleton_order (to_up_plain a ++ to_over_plain b) := by
+  use to_up_plain a
+  use to_over_plain b
+  constructor
+  · exact to_up_plain_false
+  constructor
+  · exact to_over_plain_true
+  exact ⟨rfl⟩
+
+theorem pg_top_bottom_frontier (h : PartialGrid a b c d e) (ha : remove_ones a = []) :
+  remove_ones b = remove_ones (c ++ d) ∧ remove_ones e = [] := by
+  induction h with
+  | single_gridt h =>
+    cases h with
+    | empty => simp [remove_ones]
+    | top_bottom i => simp [remove_ones]
+    | sides i => simp [remove_ones] at ha
+    | top_left i => simp [remove_ones] at ha
+    | adjacent i k h => simp [remove_ones] at ha
+    | separated i j h => simp [remove_ones] at ha
+  | empty a b ha ha1 hb hb => simp [remove_ones, ha]
+  | horizontal_append_one g1 g2 g1_ih g2_ih => simp_all
+  | horizontal_append h g1 g2 g1_ih g2_ih => simp_all
+  | vertical_append_one g1 g2 g1_ih g2_ih => simp_all
+  | vertical_append g1 g2 h g1_ih g2_ih => simp_all
+
+theorem pg_side_frontier (h : PartialGrid a b c d e) (hb : remove_ones b = []) :
+  remove_ones (d ++ e) = remove_ones a ∧ remove_ones c = [] := by
+  induction h with
+  | single_gridt h =>
+    cases h with
+    | empty => simp [remove_ones]
+    | top_bottom i => simp [remove_ones] at hb
+    | sides i => simp [remove_ones]
+    | top_left i => simp [remove_ones] at hb
+    | adjacent i k h => simp [remove_ones] at hb
+    | separated i j h => simp [remove_ones] at hb
+  | empty a b ha ha1 hb hb1 => simp [remove_ones, hb]
+  | horizontal_append_one g1 g2 g1_ih g2_ih => simp_all
+  | horizontal_append h g1 g2 g1_ih g2_ih => simp_all
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    specialize g1_ih hb
+    specialize g2_ih g1_ih.2
+    constructor
+    · rw [List.nil_append] at g1_ih
+      rw [← List.append_assoc, remove_ones_append, g2_ih.1, g1_ih.1, remove_ones_append]
+    exact g2_ih.2
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    specialize g1_ih hb
+    specialize g2_ih g1_ih.2
+    constructor
+    · simp_all [remove_ones_append]
+      rw [← g2_ih.1]
+      simp
+    exact g2_ih.2
+
+def is_true_remove_ones (h : is_true l) : is_true (remove_ones l) := by
+  induction l with
+  | nil => simp [remove_ones]; exact is_true_nil
+  | cons head tail ih =>
+    specialize ih (is_true_split h).2
+    change is_true (remove_ones ([head]++tail))
+    rw [remove_ones_append]
+    refine is_true_of_true_true ?_ ih
+    match head with
+    | (none, b) =>
+      simp [remove_ones]
+      exact is_true_nil
+    | (some a, true) =>
+      simp [remove_ones]
+      intro a1 ha1
+      simp at ha1
+      rw [ha1.1]
+      exact ⟨rfl⟩
+    | (some a, false) =>
+      simp [remove_ones]
+      specialize h (some a, false) ⟨by simp⟩
+      simp at h
+      exact h.1.elim
+
+def is_false_remove_ones (h : is_false l) : is_false (remove_ones l) := by
+  induction l with
+  | nil => simp [remove_ones]; exact is_false_nil
+  | cons head tail ih =>
+    specialize ih (is_false_split h).2
+    change is_false (remove_ones ([head]++tail))
+    rw [remove_ones_append]
+    refine is_false_of_false_false ?_ ih
+    match head with
+    | (none, b) =>
+      simp [remove_ones]
+      exact is_false_nil
+    | (some a, false) =>
+      simp [remove_ones]
+      intro a1 ha1
+      simp at ha1
+      rw [ha1.1]
+      exact ⟨rfl⟩
+    | (some a, true) =>
+      simp [remove_ones]
+      specialize h (some a, true) ⟨by simp⟩
+      simp at h
+      exact h.1.elim
+
+theorem to_option_over_plain_eq_over (h : b.length > 0): to_option (to_over_plain b) = to_over b := by
+  induction b with
+  | nil => simp at h
+  | cons head tail ih =>
+    simp [to_option, to_over_plain, to_over]
+
+theorem to_option_up_plain_eq_up (h : a.length > 0): to_option (to_up_plain a) = to_up a := by
+  induction a with
+  | nil => simp at h
+  | cons head tail ih =>
+    simp [to_option, to_up_plain, to_up]
+
+theorem triple_split (h : remove_ones b = c0 ++ c2 ++ c3) :
+  ∃ b1 b2 b3, b = b1 ++ b2 ++ b3 ∧ remove_ones b1 = c0 ∧
+  remove_ones b2 = c2 ∧ remove_ones b3 = c3 := by
+  rcases remove_ones_eq_append h with ⟨b1, b2, b_split, first_pair, c3_is⟩
+  rcases remove_ones_eq_append first_pair with ⟨b11, b12, b1_is, c0_is, c2_is⟩
+  use b11, b12, b2
+  simp_all
+
 theorem get_n'_same''  (c0 c3 c₁ c₂) (hr : reversing c₁ c₂)
-  (h1 : PartialGrid a b c5 d5 e5)
+  (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) (c0 ++ c₁ ++ c3))
+  (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) (c0 ++ c₂ ++ c3))
+  (h1 : PartialGrid (to_up a) (to_over b) c5 d5 e5)
   (h6 : remove_ones (c5 ++ d5 ++ e5) = c0 ++ c₁ ++ c3)
-  (h2 : PartialGrid a b c6 d6 e6)
+  (h2 : PartialGrid (to_up a) (to_over b) c6 d6 e6)
   (h7 : remove_ones (c6 ++ d6 ++ e6) = c0 ++ c₂ ++ c3) :
   h1.length < h2.length := by
-  sorry
+  rcases hr
+  · rename_i n
+    rcases stepOne_mid rev1 skeleton_up_plain_over_plain with ⟨b', gs, unneeded, ⟨rm⟩⟩
+    have h4 : SemiThue grid_style b' (move_ones b') :=
+      equiv_move_ones
+    have h5 : remove_ones (move_ones b') = remove_ones b' :=
+      remove_ones_move_ones
+    rw [rm] at h5
+    have h11 : ∃ b1 b2 b3, move_ones b' = b1 ++ b2 ++ b3 ∧ remove_ones b1 = c0
+      ∧ remove_ones b2 = [(n, false), (n, true)] ∧ remove_ones b3 = c3 :=
+      triple_split h5
+    rcases h11 with ⟨b₁, b₂, b₃, mob, h13, h14, h15⟩
+    rw [mob] at h5
+    have h9 : pairsTogether (b₂) := by
+      have H : pts (b₁ ++ b₂ ++ b₃) := by
+        rw [← mob]
+        refine pts_of_irr irreducible_move_ones
+      exact H b₂ (by use b₁, b₃; exact ⟨rfl⟩)
+    specialize h9 n n
+    rw [h14] at h9
+    specialize h9 (by use [], []; exact ⟨rfl⟩)
+    rcases h9 with ⟨first, last, ⟨spec⟩⟩
+    have another_step : SemiThue grid_style
+      (to_option (to_up_plain a ++ to_over_plain b)) (move_ones b') :=
+      SemiThue.trans (to_option (to_up_plain a ++ to_over_plain b)) b' (move_ones b') gs h4
+    have silly : to_option (to_up_plain a ++ to_over_plain b) =
+      to_option (to_up_plain a) ++ to_option (to_over_plain b) := by
+      unfold to_option
+      simp
+    rw [silly, mob] at another_step
+    match a with
+    | [] =>
+      have H := pg_top_bottom_frontier h1 (by simp [remove_ones])
+      have H1 : is_true (remove_ones (to_over b)) := is_true_remove_ones is_true_over
+      have H2 : remove_ones (to_over b) = remove_ones (c5 ++ d5 ++ e5) := by
+        rw [remove_ones_append, H.2, List.append_nil, H.1]
+      rw [H2, h6] at H1
+      specialize H1 (n, false) ⟨by simp⟩
+      simp at H1
+      exact H1.1.elim
+    | a1 :: a2 =>
+    match b with
+    | [] =>
+      have H := pg_side_frontier h1 (by simp [remove_ones])
+      have H1 : is_false (remove_ones (to_up (a1 :: a2))) := is_false_remove_ones is_false_up
+      have H2 : remove_ones (to_up (a1 :: a2)) = remove_ones (c5 ++ d5 ++ e5) := by
+        rw [List.append_assoc, remove_ones_append, H.1, H.2, List.nil_append]
+      rw [H2, h6] at H1
+      specialize H1 (n, true) ⟨by simp⟩
+      simp at H1
+      exact H1.1.elim
+    | b1 :: b2 =>
+    have H := step_two (is_false_to_option to_up_plain_false) (by simp [to_option, to_up_plain])
+      (is_true_to_option to_over_plain_true) (by simp [to_option, to_over_plain]) another_step
+    rcases H with ⟨bot, mid, up, pg, ⟨frontier_spec⟩⟩
+    have H2 := @add_cell_w_len _ _ _ _ _ _ _ (b₁ ++ first) (last ++ b₃) pg
+        (grid_style_real.basic n) (by rw [frontier_spec, ← spec]; simp)
+    rcases H2 with ⟨nb, nm, nu, h1', ⟨fe⟩, up_spec, bot_spec, len⟩
+    have first_len : pg.length = h1.length := by
+      apply same_type_same_length_pg_rm
+      exact to_option_up_plain_eq_up (by simp)
+      exact to_option_over_plain_eq_over (by simp)
+      aesop
+    have second_len : h1'.length = h2.length := by
+      apply same_type_same_length_pg_rm
+      exact to_option_up_plain_eq_up (by simp)
+      exact to_option_over_plain_eq_over (by simp)
+      rw [fe, h7]
+      have H : remove_ones first = [] ∧ remove_ones last = [] := by
+        apply congr_arg remove_ones at spec
+        rw [h14] at spec
+        simp [remove_ones] at spec
+        apply congr_arg List.length at spec
+        simp at spec
+        have H : (remove_ones first).length = 0 := by omega
+        have H1 : (remove_ones last).length = 0 := by omega
+        exact ⟨List.eq_nil_iff_length_eq_zero.mpr H, List.eq_nil_iff_length_eq_zero.mpr H1⟩
+      simp_all [remove_ones]
+    rw [← first_len, ← second_len]
+    exact len.1
+  · rename_i n m h_nm
+    rcases stepOne_mid rev1 skeleton_up_plain_over_plain with ⟨b', gs, unneeded, ⟨rm⟩⟩
+    have h4 : SemiThue grid_style b' (move_ones b') :=
+      equiv_move_ones
+    have h5 : remove_ones (move_ones b') = remove_ones b' :=
+      remove_ones_move_ones
+    rw [rm] at h5
+    rcases triple_split h5 with ⟨b₁, b₂, b₃, mob, h13, h14, h15⟩
+    rw [mob] at h5
+    have h9 : pairsTogether (b₂) := by
+      have H : pts (b₁ ++ b₂ ++ b₃) := by
+        rw [← mob]
+        refine pts_of_irr irreducible_move_ones
+      exact H b₂ (by use b₁, b₃; exact ⟨rfl⟩)
+    specialize h9 n m
+    rw [h14] at h9
+    specialize h9 (by use [], []; exact ⟨rfl⟩)
+    rcases h9 with ⟨first, last, ⟨spec⟩⟩
+    have another_step : SemiThue grid_style
+      (to_option (to_up_plain a ++ to_over_plain b)) (move_ones b') :=
+      SemiThue.trans (to_option (to_up_plain a ++ to_over_plain b)) b' (move_ones b') gs h4
+    have silly : to_option (to_up_plain a ++ to_over_plain b) =
+      to_option (to_up_plain a) ++ to_option (to_over_plain b) := by
+      unfold to_option
+      simp
+    rw [silly, mob] at another_step
+    match a with
+    | [] =>
+      have H := pg_top_bottom_frontier h1 (by simp [remove_ones])
+      have H1 : is_true (remove_ones (to_over b)) := is_true_remove_ones is_true_over
+      have H2 : remove_ones (to_over b) = remove_ones (c5 ++ d5 ++ e5) := by
+        rw [remove_ones_append, H.2, List.append_nil, H.1]
+      rw [H2, h6] at H1
+      specialize H1 (n, false) ⟨by simp⟩
+      simp at H1
+      exact H1.1.elim
+    | a1 :: a2 =>
+    match b with
+    | [] =>
+      have H := pg_side_frontier h1 (by simp [remove_ones])
+      have H1 : is_false (remove_ones (to_up (a1 :: a2))) := is_false_remove_ones is_false_up
+      have H2 : remove_ones (to_up (a1 :: a2)) = remove_ones (c5 ++ d5 ++ e5) := by
+        rw [List.append_assoc, remove_ones_append, H.1, H.2, List.nil_append]
+      rw [H2, h6] at H1
+      specialize H1 (m, true) ⟨by simp⟩
+      simp at H1
+      exact H1.1.elim
+    | b1 :: b2 =>
+    have H := step_two (is_false_to_option to_up_plain_false) (by simp [to_option, to_up_plain])
+      (is_true_to_option to_over_plain_true) (by simp [to_option, to_over_plain]) another_step
+    rcases H with ⟨bot, mid, up, pg, ⟨frontier_spec⟩⟩
+    have H2 := @add_cell_w_len _ _ _ _ _ _ _ (b₁ ++ first) (last ++ b₃) pg
+        (grid_style_real.apart h_nm) (by rw [frontier_spec, ← spec]; simp)
+    rcases H2 with ⟨nb, nm, nu, h1', ⟨fe⟩, up_spec, bot_spec, len⟩
+    have first_len : pg.length = h1.length := by
+      apply same_type_same_length_pg_rm
+      · exact to_option_up_plain_eq_up (by simp)
+      · exact to_option_over_plain_eq_over (by simp)
+      aesop
+    have second_len : h1'.length = h2.length := by
+      apply same_type_same_length_pg_rm
+      · exact to_option_up_plain_eq_up (by simp)
+      · exact to_option_over_plain_eq_over (by simp)
+      rw [fe, h7]
+      have H : remove_ones first = [] ∧ remove_ones last = [] := by
+        apply congr_arg remove_ones at spec
+        rw [h14] at spec
+        simp [remove_ones] at spec
+        apply congr_arg List.length at spec
+        simp at spec
+        have H : (remove_ones first).length = 0 := by omega
+        have H1 : (remove_ones last).length = 0 := by omega
+        exact ⟨List.eq_nil_iff_length_eq_zero.mpr H, List.eq_nil_iff_length_eq_zero.mpr H1⟩
+      simp_all [remove_ones]
+    rw [← first_len, ← second_len]
+    exact len.1
+  rename_i n m h_nm
+  rcases stepOne_mid rev1 skeleton_up_plain_over_plain with ⟨b', gs, unneeded, ⟨rm⟩⟩
+  have h4 : SemiThue grid_style b' (move_ones b') :=
+    equiv_move_ones
+  have h5 : remove_ones (move_ones b') = remove_ones b' :=
+    remove_ones_move_ones
+  rw [rm] at h5
+  rcases triple_split h5 with ⟨b₁, b₂, b₃, mob, h13, h14, h15⟩
+  rw [mob] at h5
+  have h9 : pairsTogether (b₂) := by
+    have H : pts (b₁ ++ b₂ ++ b₃) := by
+      rw [← mob]
+      refine pts_of_irr irreducible_move_ones
+    exact H b₂ (by use b₁, b₃; exact ⟨rfl⟩)
+  specialize h9 n m
+  rw [h14] at h9
+  specialize h9 (by use [], []; exact ⟨rfl⟩)
+  rcases h9 with ⟨first, last, ⟨spec⟩⟩
+  have another_step : SemiThue grid_style
+    (to_option (to_up_plain a ++ to_over_plain b)) (move_ones b') :=
+    SemiThue.trans (to_option (to_up_plain a ++ to_over_plain b)) b' (move_ones b') gs h4
+  have silly : to_option (to_up_plain a ++ to_over_plain b) =
+    to_option (to_up_plain a) ++ to_option (to_over_plain b) := by
+    unfold to_option
+    simp
+  rw [silly, mob] at another_step
+  match a with
+  | [] =>
+    have H := pg_top_bottom_frontier h1 (by simp [remove_ones])
+    have H1 : is_true (remove_ones (to_over b)) := is_true_remove_ones is_true_over
+    have H2 : remove_ones (to_over b) = remove_ones (c5 ++ d5 ++ e5) := by
+      rw [remove_ones_append, H.2, List.append_nil, H.1]
+    rw [H2, h6] at H1
+    specialize H1 (n, false) ⟨by simp⟩
+    simp at H1
+    exact H1.1.elim
+  | a1 :: a2 =>
+  match b with
+  | [] =>
+    have H := pg_side_frontier h1 (by simp [remove_ones])
+    have H1 : is_false (remove_ones (to_up (a1 :: a2))) := is_false_remove_ones is_false_up
+    have H2 : remove_ones (to_up (a1 :: a2)) = remove_ones (c5 ++ d5 ++ e5) := by
+      rw [List.append_assoc, remove_ones_append, H.1, H.2, List.nil_append]
+    rw [H2, h6] at H1
+    specialize H1 (m, true) ⟨by simp⟩
+    simp at H1
+    exact H1.1.elim
+  | b1 :: b2 =>
+  have H := step_two (is_false_to_option to_up_plain_false) (by simp [to_option, to_up_plain])
+    (is_true_to_option to_over_plain_true) (by simp [to_option, to_over_plain]) another_step
+  rcases H with ⟨bot, mid, up, pg, ⟨frontier_spec⟩⟩
+  have H2 := @add_cell_w_len _ _ _ _ _ _ _ (b₁ ++ first) (last ++ b₃) pg
+      (grid_style_real.close h_nm) (by rw [frontier_spec, ← spec]; simp)
+  rcases H2 with ⟨nb, nm, nu, h1', ⟨fe⟩, up_spec, bot_spec, len⟩
+  have first_len : pg.length = h1.length := by
+    apply same_type_same_length_pg_rm
+    exact to_option_up_plain_eq_up (by simp)
+    exact to_option_over_plain_eq_over (by simp)
+    aesop
+  have second_len : h1'.length = h2.length := by
+    apply same_type_same_length_pg_rm
+    exact to_option_up_plain_eq_up (by simp)
+    exact to_option_over_plain_eq_over (by simp)
+    rw [fe, h7]
+    have H : remove_ones first = [] ∧ remove_ones last = [] := by
+      apply congr_arg remove_ones at spec
+      rw [h14] at spec
+      simp [remove_ones] at spec
+      apply congr_arg List.length at spec
+      simp at spec
+      have H : (remove_ones first).length = 0 := by omega
+      have H1 : (remove_ones last).length = 0 := by omega
+      exact ⟨List.eq_nil_iff_length_eq_zero.mpr H, List.eq_nil_iff_length_eq_zero.mpr H1⟩
+    simp_all [remove_ones]
+  rw [← first_len, ← second_len]
+  exact len.1

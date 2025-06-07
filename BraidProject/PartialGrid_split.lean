@@ -325,16 +325,16 @@ def split_vertically_pg' (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b₁
   (Σ d1 d2, (h1 : PartialGrid a b₁ c d1 []) × PLift (h.length = h1.length) ×
     PLift (e = []) × PLift (d = d1 ++ d2) × PLift (b₂ = d2))
 
-def split_vertically_pg_1 (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b₁ ++ b₂ →
-  b₁.length > 0 → b₂.length > 0 →
-  (Σ mid c1 d1 c2 d2,
-  (h1 : PartialGrid a b₁ c1 d1 mid) × (h2 : PartialGrid mid b₂ c2 d2 e) ×
-  PLift (c ++ d = c1 ++ d1 ++ c2 ++ d2) ×
-  PLift (h.length = h1.length + h2.length) ×
-    (∀ {c3 m3 c4 d4}, PartialGrid a b₁ c3 [] m3 → PartialGrid m3 b₂ c4 d4 e →
-      PLift (c3 ++ c4 = c → d4 = d → c1 = c3 ∧ mid = m3 ∧ d1 = [] ∧ c2 = c4 ∧ d2 = d4))) ⊕
-  (Σ d1 d2, (h1 : PartialGrid a b₁ c d1 []) × PLift (h.length = h1.length) ×
-    PLift (e = []) × PLift (d = d1 ++ d2) × PLift (b₂ = d2))
+-- def split_vertically_pg_1 (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b₁ ++ b₂ →
+--   b₁.length > 0 → b₂.length > 0 →
+--   (Σ mid c1 d1 c2 d2,
+--   (h1 : PartialGrid a b₁ c1 d1 mid) × (h2 : PartialGrid mid b₂ c2 d2 e) ×
+--   PLift (c ++ d = c1 ++ d1 ++ c2 ++ d2) ×
+--   PLift (h.length = h1.length + h2.length) ×
+--     (∀ {c3 m3 c4 d4}, PartialGrid a b₁ c3 [] m3 → PartialGrid m3 b₂ c4 d4 e →
+--       PLift (c3 ++ c4 = c → d4 = d → c1 = c3 ∧ mid = m3 ∧ d1 = [] ∧ c2 = c4 ∧ d2 = d4))) ⊕
+--   (Σ d1 d2, (h1 : PartialGrid a b₁ c d1 []) × PLift (h.length = h1.length) ×
+--     PLift (e = []) × PLift (d = d1 ++ d2) × PLift (b₂ = d2))
 
 def List.append_eq_singleton_C (h : a ++ b = [c]) : PLift (a = [] ∧ b = [c]) ⊕ PLift (a = [c] ∧ b = []) := by
   induction a with

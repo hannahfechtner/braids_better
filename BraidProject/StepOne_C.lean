@@ -433,6 +433,15 @@ def pairs_together_singleton : pairsTogether [a] := by
     simp at hwt
     omega
 
+def pairsTogether_of_append (h : pairsTogether (a ++ b)) : pairsTogether a := by
+  unfold pairsTogether
+  intro c d hcd
+  rcases hcd with ⟨w, t, ⟨hwt⟩⟩
+  specialize h c d (by use w; use t ++ remove_ones b; exact ⟨by simp [remove_ones_append, ← hwt]⟩)
+  rcases h with ⟨w1, t1, ⟨newt⟩⟩
+  sorry
+
+
 def pts (L) := ∀ L1, List.Infix' L1 L → pairsTogether L1
 
 def pts_empty : pts [] := by
