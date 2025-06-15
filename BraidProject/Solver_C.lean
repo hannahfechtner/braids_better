@@ -3,6 +3,7 @@ import BraidProject.SemiThue_C
 import BraidProject.Cancellability_C
 import BraidProject.GridsTwo_C
 import BraidProject.PartialGrid_bounded
+import BraidProject.PartialGrid_rw
 
 -- import BraidProject.BraidGroup
 -- def to_up_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, false)) a.reverse
@@ -315,16 +316,6 @@ theorem pg_smaller_than_g (a : triangle) : ab_len a.1 a.2.1 ≥ (get_pg a).2.2.2
 --   rcases H3 with ⟨bot, mid, up, pg, c_is⟩
 --   exact PartialGrid.length pg
 
-theorem get_n'_same''  (c0 c3 c₁ c₂) (hr : reversing c₁ c₂)
-  (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) (c0 ++ c₁ ++ c3))
-  (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) (c0 ++ c₂ ++ c3))
-  (h1 : PartialGrid (to_up a) (to_over b) c5 d5 e5)
-  (h6 : remove_ones (c5 ++ d5 ++ e5) = c0 ++ c₁ ++ c3)
-  (h2 : PartialGrid (to_up a) (to_over b) c6 d6 e6)
-  (h7 : remove_ones (c6 ++ d6 ++ e6) = c0 ++ c₂ ++ c3) :
-  h1.length < h2.length := by
-  sorry
-
 theorem get_n'_same'  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2 : c2 = c0 ++ c₂ ++ c3) (hr : reversing c₁ c₂)
   (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c1)
   (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c2) (h1 : PartialGrid (to_up a) (to_over b) c5 d5 e5)
@@ -415,23 +406,577 @@ def solver_helper (a : triangle) : List (ℕ × Bool) :=
     · apply pg_smaller_than_g
     apply pg_smaller_than_g
 
-def solver a b := solver_helper ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨sorry, sorry⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
 
-def solver_equiv  : SemiThue reversing (to_up_plain a ++  to_over_plain b) (solver a b) := by
-  unfold solver solver_helper
-  split
+def solver_helper' (a : triangle) : {h : triangle // h.1 = a.1 ∧ h.2.1 = a.2.1} :=
+  match hb': find_it a.2.2.1 with
+  | none => ⟨a, ⟨rfl, rfl⟩⟩
+  | some (c, d, e) =>
+    match hd : d.1.dist d.2 with
+    | 0 => solver_helper' ⟨a.1, ⟨a.2.1, ⟨c ++ e,
+        ⟨a.2.2.2.1,
+        by
+          apply a.2.2.2.2.trans
+          rw [find_it_spec hb', Nat.eq_of_dist_eq_zero hd]
+          nth_rw 2 [← List.append_nil c]
+          exact SemiThue.reduction reversing.basic⟩⟩⟩⟩
+    | 1 => solver_helper' ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e),
+        ⟨ a.2.2.2.1, by
+          apply a.2.2.2.2.trans
+          rw [find_it_spec hb']
+          exact SemiThue.reduction (reversing.close hd)⟩ ⟩⟩⟩
+    | Nat.succ (Nat.succ n) => solver_helper' ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, false)] ++ e),
+        ⟨ a.2.2.2.1, by
+          apply a.2.2.2.2.trans
+          rw [find_it_spec hb']
+          exact SemiThue.reduction (reversing.apart (by omega))⟩⟩⟩⟩
+    termination_by get_n' a
+    decreasing_by
+    · rcases a with ⟨a1, a2, a3, a4⟩
+      rcases find_it_spec hb' with ⟨b1, b2, b3⟩
+      have H : d.1 = d.2 := by exact Nat.eq_of_dist_eq_zero hd
+      rcases d with ⟨x, y⟩
+      simp only at H
+      subst H
+      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+      · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (x, true)] []
+        · rfl
+        · simp
+        exact reversing.basic
+      · apply pg_smaller_than_g
+      apply pg_smaller_than_g
+    · rcases a with ⟨a1, a2, a3, a4⟩
+      rcases find_it_spec hb' with ⟨b1, b2, b3⟩
+      rcases d with ⟨x, y⟩
+      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+      · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (y, true)]
+          [(y, true), (x, true), (y, false), (x, false)]
+        · rfl
+        · simp
+        exact reversing.close hd
+      · apply pg_smaller_than_g
+      apply pg_smaller_than_g
+    rcases a with ⟨a1, a2, a3, a4⟩
+    rcases find_it_spec hb' with ⟨b1, b2, b3⟩
+    rcases d with ⟨x, y⟩
+    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+    · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (y, true)]
+        [(y, true), (x, false)]
+      · rfl
+      · simp
+      exact reversing.apart (by aesop)
+    · apply pg_smaller_than_g
+    apply pg_smaller_than_g
+
+def solver_long (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
+  solver_helper' ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨sorry, sorry⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
+
+def solver_equiv (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThue reversing
+    (to_up_plain a ++ to_over_plain b) (solver_long a b ha hb).1.2.2.1 := by
+  have H := (solver_long a b ha hb).1.2.2.2.2
+  simp at H
+  convert H
+  exact (solver_long a b ha hb).2.1.symm
+  exact (solver_long a b ha hb).2.2.symm
+
+def in_order_over_plain_up_plain : in_order (to_over_plain c ++ to_up_plain d) := by
+  use to_over_plain c
+  use to_up_plain d
+  constructor
+  · exact to_over_plain_true
+  constructor
+  · exact to_up_plain_false
+  exact ⟨rfl⟩
+
+def includes_false (L : List (Option ℕ × Bool)) := ∃ a ∈ L, a.2 = false
+
+theorem includes_false_not_nil (h : includes_false L) : L.length > 0 := by
+  match L with
+  | [] => simp [includes_false] at h
+  | a :: b => simp
+
+theorem includes_false_append_singleton (h : includes_false (L ++ [(a, true)])) : includes_false L := by
+  rcases h with ⟨x, hx, h2⟩
+  use x
+  simp at hx
+  cases hx
+  · exact ⟨by assumption, h2⟩
+  simp_all
+
+theorem remove_to_option_to_over : (remover (to_option (to_over_plain b))) = b := by
+  induction b with
+  | nil => simp [remover, to_option, to_over_plain]
+  | cons b1 b2 ih =>
+    simp [remover, to_option, to_over_plain]
+    simp [remover, to_option, to_over_plain] at ih
+    exact ih
+
+theorem remove_to_option_to_up_plain : (remover (to_option (to_up_plain a)).reverse) = a := by
+  induction a with
+  | nil => simp [remover, to_option, to_up_plain]
+  | cons a1 a2 ih =>
+    simp [remover, to_option, to_up_plain]
+    simp [remover, to_option, to_up_plain] at ih
+    exact ih
+
+theorem remover_nil_of_remove_ones_nil (h : remove_ones bot = []) : remover bot = [] := by
+  induction bot with
+  | nil => simp [remover]
+  | cons head tail ih =>
+    match head with
+    | (none, b) =>
+      simp [remover]
+      simp [remove_ones] at h
+      exact ih h
+    | (some a, b) =>
+      simp [remove_ones] at h
+
+theorem remover_rev_nil (h : remover a = []) : remover a.reverse = [] := by
+  induction a using List.reverseRecOn with
+  | nil => simp [remover]
+  | append_singleton front caboose ih =>
+    match caboose with
+    | (none, b) =>
+      simp [remover_append] at h
+      simp_all [remover, h]
+    | (some a, b) =>
+      simp [remover, remover_append] at h
+
+theorem remover_singleton_of_remove_ones (h : remove_ones a = [(c, b)]) : remover a = [c] := by
+  induction a with
+  | nil => unfold remove_ones at h; simp_all
+  | cons head tail ih =>
+    unfold remove_ones at h
+    unfold remover
+    match head with
+    | (none, b) => simp_all
+    | (some a, b) =>
+      simp_all [remover_nil_of_remove_ones_nil]
+
+theorem remove_eq_of_remove_ones_eq_to_over_plain (h : to_over_plain c = remove_ones bot) : remover bot = c := by
+  induction c generalizing bot with
+  | nil => simp_all [to_over_plain, remover_nil_of_remove_ones_nil]
+  | cons c1 c2 ih =>
+    simp [to_over_plain] at h
+    match hr : remove_ones bot with
+    | [] => simp_all
+    | r1 :: r2 =>
+      simp [hr] at h
+      change _ = [r1] ++ r2 at hr
+      apply remove_ones_eq_append at hr
+      rcases hr with ⟨a1, a2, bot_is, h3, h4⟩
+      rw [← h.2] at h4
+      specialize ih h4.symm
+      simp [bot_is, remover_append, ih, remover_singleton_of_remove_ones h3, ← h.1]
+
+theorem remove_ones_rev : (remove_ones a).reverse = remove_ones a.reverse := by
+  induction a
   · simp
-    exact SemiThue.refl _
-  simp
-  split
-  · sorry --simp
-  let ha := find_it (to_up_plain a ++ to_over_plain b)
-  cases hello : ha
-  · --simp [ha]
+  rename_i head tail ih
+  match head with
+  | (none, b) => simp [remove_ones, ih]
+  | (some a, b) => simp [remove_ones, ih]
 
-    sorry
-  sorry
-  sorry
+theorem remover_of_remove_ones_singleton (h : remove_ones a2 = [(b, false)]) :
+  remover a2.reverse  = [b] := by
+  induction a2 using List.reverseRecOn with
+  | nil => simp at h
+  | append_singleton front caboose ih =>
+    simp_all
+    match caboose with
+    | (none, b) =>
+      simp [remove_ones] at h
+      simp [remover]
+      exact ih h
+    | (some a, b) =>
+      simp [remove_ones] at h
+      change _ = [] ++ _ at h
+      apply List.append_singleton_eq_append_singleton at h
+      simp [remover]
+      constructor
+      · aesop
+      apply remover_rev_nil
+      apply remover_nil_of_remove_ones_nil h.1
+
+theorem remove_rev_eq_remove_ones_eq_to_up_plain
+    (h : remove_ones up = to_up_plain d) : remover up.reverse = d := by
+  induction d generalizing up with
+  | nil =>
+    apply remover_rev_nil
+    exact remove_eq_of_remove_ones_eq_to_over_plain h.symm
+  | cons head tail ih =>
+    simp [to_up_plain] at h
+    cases hr : remove_ones up using List.reverseRecOn with
+    | nil => simp_all
+    | append_singleton front caboose =>
+      simp [hr] at h
+      apply remove_ones_eq_append at hr
+      rcases hr with ⟨a1, a2, bot_is, h3, h4⟩
+      apply List.append_singleton_eq_append_singleton at h
+      rw [h.1] at h3
+      rw [← List.map_reverse] at h3
+      specialize ih h3
+      rw [bot_is, List.reverse_append, remover_append, ih]
+      rw [h.2] at h4
+      rw [remover_of_remove_ones_singleton h4]
+      simp
+
+theorem not_true_and_false_of_len_gt_zero (h1 : is_true m) (h2 : is_false m) (hl : m.length > 0) : False := by
+  induction m with
+  | nil => simp at hl
+  | cons m1 m2 ih =>
+    apply is_true_split at h1
+    apply is_false_split at h2
+    have H1 := (h1.1 m1 ⟨by simp⟩).1
+    have H2 := (h2.1 m1 ⟨by simp⟩).1
+    aesop
+
+theorem helper_for_bottom (h : remove_ones b' = to_over_plain c ++ to_up_plain d)
+  (h1 : bot ++ up = move_ones b') (hbot : is_true bot) (hup : is_false up): (remover up.reverse) = d ∧ remover bot = c := by
+  have one := congr_arg remover h1
+  have two := congr_arg remove_ones h1
+  simp [remover_append] at one
+  simp [remove_ones_append, remove_ones_move_ones] at two
+  rw [← two] at h
+  rcases List.append_eq_append_iff.mp h with ⟨mid, spec1, spec2⟩ | ⟨mid, spec1, spec2⟩
+  · match mid with
+    | [] =>
+      simp_all
+      have H := remove_eq_of_remove_ones_eq_to_over_plain spec1
+      have H2 := remove_rev_eq_remove_ones_eq_to_up_plain spec2
+      simp [H, H2]
+    | m1 :: m2 =>
+      exfalso
+      have H : is_true (to_over_plain c) := to_over_plain_true
+      rw [spec1] at H
+      apply is_true_append at H
+      have H2 : is_false (remove_ones up) := is_false_remove_ones hup
+      rw [spec2] at H2
+      apply is_false_append at H2
+      apply not_true_and_false_of_len_gt_zero (is_true_split H.2).1 (is_false_split H2.1).1
+      simp
+  match mid with
+  | [] =>
+    simp_all
+    have H := remove_eq_of_remove_ones_eq_to_over_plain spec1.symm
+    have H2 := remove_rev_eq_remove_ones_eq_to_up_plain spec2.symm
+    simp [H, H2]
+  | m1 :: m2 =>
+    exfalso
+    have H : is_true (remove_ones bot) := is_true_remove_ones hbot
+    rw [spec1] at H
+    apply is_true_append at H
+    have H2 : is_false (to_up_plain d) := to_up_plain_false
+    rw [spec2] at H2
+    apply is_false_append at H2
+    apply not_true_and_false_of_len_gt_zero (is_true_split H.2).1 (is_false_split H2.1).1
+    simp
+
+def in_order_singleton : in_order [a] := by
+  match a with
+  | (a1, true) =>
+    use [(a1, true)], []
+    constructor
+    · exact is_true_cons [] is_true_nil
+    constructor
+    · exact is_false_nil
+    constructor
+    simp
+  | (a1, false) =>
+    use [], [(a1, false)]
+    constructor
+    · exact is_true_nil
+    constructor
+    · exact is_false_cons [] is_false_nil
+    constructor
+    simp
+
+theorem remove_ones_cons : remove_ones (a :: b) = remove_ones [a] ++ remove_ones b := by
+  change remove_ones ([a] ++ b) = _
+  exact remove_ones_append
+
+noncomputable def in_order_insert_one (h : in_order b) (hr : in_order (remove_ones (a :: b))) :
+     in_order (insert_one a b) := by
+  induction hb : b.length generalizing a b with
+  | zero =>
+    rw [List.eq_nil_iff_length_eq_zero.mpr hb]
+    simp [insert_one]; exact in_order_singleton
+  | succ n ih =>
+    match b with
+    | [] => simp at hb
+    | (none, false) :: tail =>
+      simp [insert_one]
+      rcases h with ⟨c, d, c_true, d_false, ⟨cd_is⟩⟩
+      have H : c = [] := by
+        match c with
+        | [] => rfl
+        | c1 :: c2 =>
+          simp at cd_is
+          rw [← cd_is.1] at c_true
+          specialize c_true (none, false) ⟨by simp⟩
+          simp at c_true
+          exact c_true.1.elim
+      rw [H, List.nil_append] at cd_is
+      match a with
+      | (a1, false) =>
+        use [], (a1, false) :: d
+        constructor
+        · exact is_true_nil
+        constructor
+        · exact is_false_cons d d_false
+        constructor
+        rw [cd_is, List.nil_append]
+      | (a1, true) =>
+        use [(a1, true)], d
+        constructor
+        · exact is_true_cons [] is_true_nil
+        constructor
+        · exact d_false
+        constructor
+        rw [cd_is]
+        rfl
+    | (some a1, false) :: tail =>
+      simp [insert_one]
+      rcases h with ⟨c, d, c_true, d_false, ⟨cd_is⟩⟩
+      have H : c = [] := by
+        match c with
+        | [] => rfl
+        | c1 :: c2 =>
+          simp at cd_is
+          rw [← cd_is.1] at c_true
+          specialize c_true (some a1, false) ⟨by simp⟩
+          simp at c_true
+          exact c_true.1.elim
+      rw [H, List.nil_append] at cd_is
+      match a with
+      | (a1, false) =>
+        use [], (a1, false) :: d
+        constructor
+        · exact is_true_nil
+        constructor
+        · exact is_false_cons d d_false
+        constructor
+        rw [cd_is, List.nil_append]
+      | (a1, true) =>
+        use [(a1, true)], d
+        constructor
+        · exact is_true_cons [] is_true_nil
+        constructor
+        · exact d_false
+        constructor
+        rw [cd_is]
+        rfl
+    | (none, true) :: tail =>
+      match a with
+      | (a1, true) =>
+        simp [insert_one]
+        rcases h with ⟨c, d, c_true, d_false, ⟨cd_is⟩⟩
+        use (a1, true) :: c, d
+        constructor
+        · exact is_true_cons c c_true
+        constructor
+        · exact d_false
+        constructor
+        rw [cd_is]
+        rfl
+      | (a1, false) =>
+        simp [insert_one]
+        simp at hb
+        rw [remove_ones_cons, remove_ones, ← remove_ones_append] at hr
+        specialize @ih tail (a1, false) (in_order_rest h) hr hb
+        rcases ih with ⟨c, d, c_true, d_false, ⟨cd_is⟩⟩
+        use (none, true)::c, d
+        constructor
+        · exact is_true_cons c c_true
+        constructor
+        · exact d_false
+        constructor
+        rw [cd_is]
+        rfl
+    | (some a1, true) :: tail =>
+      match a with
+      | (none, true) =>
+        simp [insert_one]
+        rcases h with ⟨c, d, c_true, d_false, ⟨hcd⟩⟩
+        use (none, true) :: c, d
+        constructor
+        · exact is_true_cons c c_true
+        constructor
+        · exact d_false
+        constructor
+        rw [hcd]
+        rfl
+      | (some a2, true) =>
+        simp [insert_one]
+        rcases h with ⟨c, d, c_true, d_false, ⟨cd_is⟩⟩
+        use (a2, true) :: c, d
+        constructor
+        · exact is_true_cons c c_true
+        constructor
+        · exact d_false
+        constructor
+        rw [cd_is]
+        rfl
+      | (none, false) =>
+        simp [insert_one]
+        simp at hb
+        rw [remove_ones_cons, remove_ones, remove_ones, remove_ones_nil, List.nil_append] at hr
+        specialize @ih tail (none, false) (in_order_rest h)
+          (by rw [remove_ones_cons, remove_ones, remove_ones_nil,
+          List.nil_append]; exact in_order_rest hr) hb
+        rcases ih with ⟨c, d, c_true, d_false, ⟨hcd⟩⟩
+        use (some a1, true) :: c, d
+        constructor
+        · exact is_true_cons c c_true
+        constructor
+        · exact d_false
+        constructor
+        rw [hcd]
+        rfl
+      | (some a2, false) =>
+        simp [remove_ones] at hr
+        rcases hr with ⟨c, d, c_true, d_false, ⟨hcd⟩⟩
+        have H : c = [] := by
+          match c with
+          | [] => rfl
+          | c1 :: c2 =>
+            simp at hcd
+            rw [← hcd.1] at c_true
+            specialize c_true (a2, false) ⟨by simp⟩
+            simp at c_true
+            exact c_true.1.elim
+        rw [H, List.nil_append] at hcd
+        rw [← hcd] at d_false
+        specialize d_false (a1, true) ⟨by simp⟩
+        simp at d_false
+        exact d_false.1.elim
+
+noncomputable def in_order_moves_ones_of_in_order_remove_ones (h : in_order (remove_ones b)) :
+  in_order (move_ones b) := by
+  induction b with
+  | nil => simp; exact in_order_nil
+  | cons head tail ih =>
+    simp [move_ones]
+    have H : in_order (remove_ones tail) := by
+      match head with
+      | (none, b) =>
+        simp [remove_ones] at h
+        exact h
+      | (some a, b) =>
+        apply in_order_rest
+        simp [remove_ones] at h
+        exact h
+    specialize ih H
+    apply in_order_insert_one ih
+    rcases ih with ⟨c, d, c_true, d_false, ⟨hcd⟩⟩
+    match head with
+    | (none, b) =>
+      use remove_ones c, remove_ones d
+      constructor
+      · exact is_true_remove_ones c_true
+      constructor
+      · exact is_false_remove_ones d_false
+      constructor
+      simp [remove_ones, hcd]
+    | (some a1, true) =>
+      use (a1, true) :: remove_ones c, remove_ones d
+      constructor
+      · apply is_true_cons
+        exact is_true_remove_ones c_true
+      constructor
+      · exact is_false_remove_ones d_false
+      constructor
+      simp [remove_ones, hcd]
+    | (some a1, false) =>
+      simp [remove_ones, remove_ones_move_ones]
+      simp [remove_ones] at h
+      exact h
+
+theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
+  (h : SemiThue reversing (to_up_plain a ++ to_over_plain b) (to_over_plain c ++ to_up_plain d)) :
+  PresentedMonoid.mk braid_rels_m_inf (a ++ c) = PresentedMonoid.mk braid_rels_m_inf (b ++ d) := by
+  have H0 := stepOne h skeleton_up_plain_over_plain in_order_over_plain_up_plain
+  rcases H0 with ⟨b', st, so, io, ⟨rm⟩⟩
+  have silly : to_option (to_up_plain a ++ to_over_plain b) =
+    to_option (to_up_plain a) ++ to_option (to_over_plain b) := by
+    unfold to_option
+    simp
+  rw [silly] at st
+  have H2 : SemiThue grid_style b' (move_ones b') := equiv_move_ones
+  have H3 := SemiThue.trans _ _ _ st H2
+  have H := step_two (is_false_to_option to_up_plain_false)
+    (by simp [ha, to_option, to_up_plain]) (is_true_to_option to_over_plain_true)
+    (by simp [hb, to_option, to_over_plain]) H3
+  rcases H with ⟨bot, mid, up, pg, ⟨b'_is⟩⟩
+  rcases middle_frontier_nil_or_caps pg with ⟨⟨mid_nil⟩⟩ | ⟨fm, mm, cm, ⟨problem⟩⟩
+  · rw [mid_nil] at pg
+    have grid1 := gridt_of_PartialGrid pg
+    unfold gridt_option at grid1
+    rw [mid_nil, List.append_nil] at b'_is
+    have hbot := helper_for_bottom rm b'_is pg.bottom_frontier_is_true
+      pg.right_frontier_is_false
+    rw [remove_to_option_to_over, remove_to_option_to_up_plain, hbot.1, hbot.2] at grid1
+    have H := braid_eq_of_grid (grid_of_gridt grid1)
+    convert H
+  rw [problem] at b'_is
+  exfalso
+  have H : in_order (remove_ones b') := by
+    rw [rm]
+    exact in_order_over_plain_up_plain
+  have H1 : in_order (move_ones b') := in_order_moves_ones_of_in_order_remove_ones H
+  rcases H1 with ⟨a1, a2, a1_true, a2_false, ⟨ha12⟩⟩
+  rw [ha12] at b'_is
+  rw [← List.append_assoc, List.append_assoc (bot ++ ([(fm, false)] ++ mm))] at b'_is
+  rcases List.append_eq_append_iff.mp b'_is with
+    ⟨middle, spec1, spec2⟩ | ⟨middle, spec1, spec2⟩
+  · rw [spec1] at a1_true
+    specialize a1_true (fm, false) ⟨by simp⟩
+    simp at a1_true
+    exact a1_true.1.elim
+  rw [spec2] at a2_false
+  specialize a2_false (cm, true) ⟨by simp⟩
+  simp at a2_false
+  exact a2_false.1.elim
+  -- match fm with
+  -- | none => sorry
+  -- | some f =>
+  --   match cm with
+  --   | none =>
+  --     rw [← remove_ones_move_ones, ← b'_is] at rm
+  --     simp [remove_ones_append, remove_ones] at rm
+  --     sorry
+  --   | some cmm =>
+  --     rw [← remove_ones_move_ones, ← b'_is] at rm
+  --     simp [remove_ones_append, remove_ones] at rm
+  --     have H : remove_ones bot ++ (f, false) :: (remove_ones mm ++ (cmm, true) :: remove_ones up) =
+  --       (remove_ones bot ++ [(f, false)]) ++ (remove_ones mm ++ (cmm, true) :: remove_ones up) := by simp
+  --     rw [H] at rm
+  --     rcases List.append_eq_append_iff.mp rm with ⟨middle, spec1, spec2⟩ | ⟨middle, spec1, spec2⟩
+  --     · have H : is_true (to_over_plain c) := to_over_plain_true
+  --       rw [spec1] at H
+  --       apply is_true_append at H
+  --       have H1 := ((is_true_append H.1).2 (f, false) ⟨by simp⟩).1
+  --       simp at H1
+  --     have H : is_false (to_up_plain d) := to_up_plain_false
+  --     rw [spec2] at H
+  --     specialize H (cmm, true) ⟨by simp⟩
+  --     simp at H
+  --     exact H.1.elim
+
+
+  -- unfold solver solver_helper'
+  -- split
+  -- · simp
+  --   exact SemiThue.refl _
+  -- simp
+  -- split
+  -- · sorry --simp
+  -- let ha := find_it (to_up_plain a ++ to_over_plain b)
+  -- cases hello : ha
+  -- · --simp [ha]
+
+  --   sorry
+  -- sorry
+  -- sorry
   -- match find_it (to_up_plain a ++ to_over_plain b) with
   -- | none => sorry
   --   simp [haa]

@@ -1,6 +1,67 @@
 import BraidProject.PartialGrid_split
+import BraidProject.PartialGrid_prefix_suffix
 
-def split_vertically_pg_u (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b₁ ++ b₂ →
+def defined_from_mid (h : PartialGrid a b c d e) :=
+  ∀ {a1 b1 c1 d1 e1} (h2 : PartialGrid a1 b1 c1 d1 e1),
+  (ha : a = a1) → (hb : b = b1) → (hd : d = d1) → c = c1 ∧ e = e1
+
+theorem defined_uniquely (h : PartialGrid a b c d e): defined_from_mid h := by
+  induction h with
+  | single_gridt h => sorry
+  | empty a b ha ha1 hb hb => sorry
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    intro a1 b1 c1 d1 e1 h1 ha hb hc
+    rename_i i j k l m n o p
+    rcases splittable_vertically_of_pg' h1 _ _ hb.symm (by sorry) (by sorry)
+      with ⟨mid, c3, d3, c4, d4, i1, i2, ⟨frontier⟩, len⟩
+    --rcases frontier_options_from_horizontal g1 g2 i1 i2 frontier
+    sorry
+    sorry
+  | horizontal_append h g1 g2 g1_ih g2_ih => sorry
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    intro a1 b1 c1 d1 e1 h1 ha hb hd
+    rename_i i j k l m n o p
+    rcases splittable_horizontally_of_pg h1 _ _ ha.symm (by sorry) (by sorry)
+      with ⟨mid, d3, e3, d4, e4, i1, i2, ⟨frontier⟩, len⟩ | bad
+    · rw [← ha] at h1
+      have H := frontier_options_from_vertical h1 i1 i2 frontier
+      rcases H with one | two
+      · specialize g1_ih i1 rfl hb
+        specialize g2_ih i2 rfl
+        simp_all
+        
+
+        sorry
+      specialize g1_ih i1 rfl hb two.2.1.symm
+      have oc3 : o = d3 := by
+        rw [hd, two.1]
+      specialize g2_ih i2 rfl g1_ih.1 oc3
+      simp_all
+    exfalso
+    rcases bad with ⟨df, c3, dr, i1, ⟨d1_is⟩,⟨m_is⟩,⟨c1_is⟩,len⟩
+    have H : c3 = [] := by sorry
+
+
+
+    simp_all
+    have H1 : is_false df := by sorry
+
+
+    sorry
+  | vertical_append g1 g2 h g1_ih g2_ih => sorry
+
+-- def split_horizontally_unique (h : PartialGrid a b c d e) :=
+--   ∀ a₁ a₂, a = a₁ ++ a₂ → a₁.length > 0 → a₂.length > 0 →
+--   ∀ {a3 b3 c3 d3 e3 a4 b4 c4 d4 e4 a5 b5 c5 d5 e5 a6 b6 c6 d6 e6},
+--   PartialGrid a3 b3 c3 d3 e3 → PartialGrid a4 b4 c4 d4 e4 →
+--   PartialGrid a5 b5 c5 d5 e5 → PartialGrid a6 b6 c6 d6 e6 →
+--   a3 = a₂ → b3 = b → a4 = a₁ → c4 = c →  e3 = e →
+--   a5 = a₂ → b5 = b → a6 = a₁ → c6 = c →  e5 = e →
+--   d4++
+
+
+def split_vertically_pg_u (h : PartialGrid a b c d e)  :=
+  ∀ b₁ b₂, b = b₁ ++ b₂ →
   b₁.length > 0 → b₂.length > 0 →
   (Σ mid c1 d1 c2 d2,
   (h1 : PartialGrid a b₁ c1 d1 mid) × (h2 : PartialGrid mid b₂ c2 d2 e) ×
@@ -13,6 +74,7 @@ def split_vertically_pg_u (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b�
   (Σ d1 d2, (h1 : PartialGrid a b₁ c d1 []) × PLift (h.length = h1.length) ×
     PLift (e = []) × PLift (d = d1 ++ d2) × PLift (b₂ = d2))
 
+#exit
 noncomputable def splittable_vertically_of_pg_unique (h : PartialGrid a b c d e) : split_vertically_pg_u h := by
   induction h with
   | single_gridt h =>

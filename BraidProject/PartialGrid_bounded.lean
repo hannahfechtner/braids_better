@@ -677,6 +677,7 @@ theorem pg_sm_g_eq1 (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
     simp [partial_grid_rm_adjacent_length h ha hb, gridt.length]
   | separated i j hd =>
     intro ha hb
+    simp [gridt.length]
     simp [partial_grid_rm_separated_length h ha hb hd, gridt.length]
   | vertical h1 h2 h1_ih h2_ih =>
     rename_i i j k l m n o
