@@ -622,6 +622,81 @@ theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a =
     have H := partial_grid_rm_empty_helper g2 oj_is.1 h2.1
     simp_all
 
+noncomputable def partial_grid_rm_top_helper_c (h : PartialGrid a b c d e) : remove_ones a = [] → remove_ones b = [(i, true)] →
+    PLift (remove_ones c = [(i, true)] ∧ remove_ones d = [] ∧ remove_ones e = []) ⊕
+    PLift (remove_ones c = [] ∧ remove_ones d = [(i, true)] ∧ remove_ones e = []) := by
+  induction h with
+  | single_gridt h =>
+    cases h with
+    | empty => intro h1 h2; simp_all [remove_ones]
+    | top_bottom i => intro h1 h2; simp_all [remove_ones]; left; constructor; trivial
+    | sides i => intro h1 h2; simp_all [remove_ones]
+    | top_left i => intro h1 h2; simp_all [remove_ones]
+    | adjacent i k h => intro h1 h2; simp_all [remove_ones]
+    | separated i j h => intro h1 h2; simp_all [remove_ones]
+  | empty a b ha ha1 hb hb => intro h1 h2; simp_all [remove_ones]; right; constructor; trivial
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q
+    intro j_is kn_is
+    rw [remove_ones_append] at kn_is
+    rcases List.append_eq_singleton_C kn_is with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
+    · have H := partial_grid_rm_empty_helper g1 j_is k_is
+      specialize g2_ih H.2.2 n_is
+      rcases g2_ih with h1 | h2
+      · simp_all [h1.1]; left; constructor; trivial
+      simp_all [h2.1]; right; constructor; trivial
+    specialize g1_ih j_is k_is
+    rcases g1_ih with ⟨⟨h1⟩⟩| ⟨⟨h2⟩⟩
+    · have H := partial_grid_rm_empty_helper g2 h1.2.2 n_is
+      simp_all; left; constructor; trivial
+    have H := partial_grid_rm_empty_helper g2 h2.2.2 n_is
+    simp_all
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q r
+    intro j_is ko_is
+    rw [remove_ones_append] at ko_is
+    rcases List.append_eq_singleton_C ko_is with
+      ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
+    · have H := partial_grid_rm_empty_helper g1 j_is k_is
+      specialize g2_ih H.2.2 o_is
+      rcases g2_ih with h1 | h2
+      · simp_all [h1.1]; right; constructor; trivial
+      simp_all [h2.1]; right; constructor; trivial
+    specialize g1_ih j_is k_is
+    have hn : remove_ones n = [] := by
+      rcases g1_ih with ⟨⟨h1⟩⟩| ⟨⟨h2⟩⟩
+      · aesop
+      aesop
+    have H := partial_grid_rm_empty_helper g2 hn o_is
+    rcases g1_ih with ⟨⟨h1⟩⟩| ⟨⟨h2⟩⟩
+    · simp_all
+      left; constructor; trivial
+    simp_all
+    right; constructor; trivial
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    intro h1 h2; simp_all [remove_ones]
+    specialize g1_ih h1.2 h2
+    rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · specialize g2_ih h1.1 h3.1
+      rcases g2_ih with h5 | h6
+      · simp_all [h3.1, h5.1]; left; constructor; trivial
+      simp_all [h3.1, h6.1]; right; constructor; trivial
+    simp at h4
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rename_i j k l m n o p q r
+    intro oj_is k_is
+    rw [remove_ones_append] at oj_is
+    simp at oj_is
+    specialize g1_ih oj_is.2 k_is
+    rcases g1_ih with h1 | h2
+    · specialize g2_ih oj_is.1 h1.1.1
+      rcases g2_ih with h3 | h4
+      · simp_all [h1.1, h3.1]; left; constructor; trivial
+      simp_all [h1.1, h4.1]; right; constructor; trivial
+    have H := partial_grid_rm_empty_helper g2 oj_is.1 h2.1.1
+    simp_all [h2.1]
+    right; constructor; trivial
+
 theorem partial_grid_rm_top_helper_w (h : PartialGrid a b c d e)
     (h1 : remove_ones b = [(i, true), (j, true)]) (h2 : remove_ones a = []) :
     (remove_ones c = [] ∧ remove_ones d = [(i, true), (j, true)] ∧ remove_ones e = []) ∨
@@ -726,6 +801,81 @@ theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
     · simp_all
     simp_all
 
+noncomputable def partial_grid_rm_side_helper_c (h : PartialGrid a b c d e)
+    (h1 : remove_ones a = [(i, false)]) (h2 : remove_ones b = []) :
+    PLift (remove_ones c = [] ∧ remove_ones d = [(i, false)] ∧ remove_ones e = []) ⊕
+    PLift (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = [(i, false)]) := by
+  induction h with
+  | single_gridt h =>
+    cases h with
+    | empty => simp_all [remove_ones]
+    | top_bottom i => simp_all [remove_ones]
+    | sides i => simp_all [remove_ones]; right; constructor; trivial
+    | top_left i => simp_all [to_up, remove_ones]
+    | adjacent i k h => simp_all [to_up, remove_ones]
+    | separated i j h => simp_all; right; constructor; trivial
+  | empty a b ha ha1 hb hb => simp_all; left; constructor; trivial
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    simp [remove_ones_append] at h2
+    specialize g1_ih h1 h2.1
+    rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · simp_all
+    specialize g2_ih h4.2.2 h2.2
+    rcases g2_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · simp_all; left; constructor; trivial
+    simp_all; right; constructor; trivial
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q r
+    simp [remove_ones_append] at h2
+    specialize g1_ih h1 h2.1
+    rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · have H := partial_grid_rm_empty_helper g2 h3.2.2 h2.2
+      simp_all
+      left; constructor; trivial
+    specialize g2_ih h4.2.2 h2.2
+    rcases g2_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · simp_all; left; constructor; trivial
+    simp_all; right; constructor; trivial
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q
+    rw [remove_ones_append] at h1
+    rcases List.append_eq_singleton_C h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
+    · specialize g1_ih j_is h2
+      have H : remove_ones l = [] := by
+        rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+        · aesop
+        aesop
+      have H := partial_grid_rm_empty_helper g2 n_is H
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all
+      simp_all; right; constructor; trivial
+    have H := partial_grid_rm_empty_helper g1 j_is h2
+    specialize g2_ih n_is H.1
+    rcases g2_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · simp_all
+      left; constructor; trivial
+    simp_all
+    right; constructor; trivial
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rename_i j k l m n o p q r
+    rw [remove_ones_append] at h1
+    rcases List.append_eq_singleton_C h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
+    · specialize g1_ih j_is h2
+      have l_is : remove_ones l = [] := by
+        rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+        · aesop
+        aesop
+      have H := partial_grid_rm_empty_helper g2 o_is l_is
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all; left; constructor; trivial
+      simp_all; right; constructor; trivial
+    have H := partial_grid_rm_empty_helper g1 j_is h2
+    specialize g2_ih o_is H.1
+    rcases g2_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · simp_all
+      left; constructor; trivial
+    simp_all; left; constructor; trivial
+
 theorem partial_grid_rm_side_helper_w (h : PartialGrid a b c d e)
     (h1 : remove_ones a = [(i, false), (j, false)]) (h2 : remove_ones b = []) :
     (remove_ones c = [] ∧ remove_ones d = [(i, false), (j, false)] ∧ remove_ones e = []) ∨
@@ -824,6 +974,111 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
     · aesop
     have H := partial_grid_rm_side_helper g2 o_is h4.1
     aesop
+
+noncomputable def partial_grid_rm_top_left_helper_c (h : PartialGrid a b c d e) (h1 : remove_ones a = [(i, false)])
+  (h2 : remove_ones b = [(i, true)]) : PLift (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = []) ⊕
+  PLift (remove_ones c = [] ∧ remove_ones d = [(i, false), (i, true)] ∧ remove_ones e = []) := by
+  induction h with
+  | single_gridt h =>
+    cases h
+    all_goals simp_all [remove_ones]
+    left; constructor; trivial
+  | empty a b ha ha1 hb hb => simp_all; right;  constructor; trivial
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q
+    rw [remove_ones_append] at h2
+    rcases List.append_eq_singleton_C h2 with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
+    · have H := partial_grid_rm_side_helper_c g1 h1 k_is
+      rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all
+      simp_all
+      specialize g2_ih h4.2 n_is
+      rcases g2_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all; left; constructor; trivial
+      simp_all; right; constructor; trivial
+    specialize g1_ih h1 k_is
+    have H : remove_ones m = [] := by
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · aesop
+      aesop
+    have H2 : remove_ones l = [] := by
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · aesop
+      aesop
+    have H := partial_grid_rm_empty_helper g2 H n_is
+    simp_all; left; constructor; trivial
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q r
+    rw [remove_ones_append] at h2
+    rcases List.append_eq_singleton_C h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
+    · have H := partial_grid_rm_side_helper_c g1 h1 k_is
+      rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · have H2 := partial_grid_rm_top_helper_c g2 h3.2.2 o_is
+        rcases H2 with
+          ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩
+        · simp_all [h5.1]; right; constructor; trivial
+        simp_all [h6.1]; right; constructor; trivial
+      specialize g2_ih h4.2.2 o_is
+      rcases g2_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all; left; constructor; trivial
+      simp_all; right; constructor; trivial
+    specialize g1_ih h1 k_is
+    have n_is : remove_ones n = [] := by
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all
+      simp_all
+    have H := partial_grid_rm_empty_helper g2 n_is o_is
+    simp_all
+    rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · simp_all; left; constructor; trivial
+    simp_all; right; constructor; trivial
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q
+    rw [remove_ones_append] at h1
+    rcases List.append_eq_singleton_C h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
+    · specialize g1_ih j_is h2
+      have l_nil : remove_ones l = [] := by
+        rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+        · aesop
+        aesop
+      have H := partial_grid_rm_empty_helper g2 n_is l_nil
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all
+        left; constructor; trivial
+      simp_all
+    have H := partial_grid_rm_top_helper_c g1 j_is h2
+    rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · simp_all
+      specialize g2_ih n_is h3.1
+      rcases g2_ih with ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩
+      · simp_all [h3.1, h5.1]; left; constructor; trivial
+      simp_all [h3.1, h6.1]; right; constructor; trivial
+    simp_all
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rename_i j k l m n o p q r
+    rw [remove_ones_append] at h1
+    rcases List.append_eq_singleton_C h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
+    · specialize g1_ih j_is h2
+      have l_nil : remove_ones l = [] := by
+        rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+        · aesop
+        aesop
+      have H := partial_grid_rm_empty_helper g2 o_is l_nil
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all; left; constructor; trivial
+      simp_all; right; constructor; trivial
+    have H := partial_grid_rm_top_helper_c g1 j_is h2
+    rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · specialize g2_ih o_is h3.1
+      rcases g2_ih with ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩
+      · simp_all [h3.1, h5.1]; left; constructor; trivial
+      simp_all; right; constructor; trivial
+    have H := partial_grid_rm_side_helper_c g2 o_is h4.1
+    rcases H with
+      ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩
+    · simp_all
+      right; constructor; trivial
+    simp_all; right; constructor; trivial
 
 theorem partial_grid_rm_adjacent_helper (h : PartialGrid a b c d e) (h1 : remove_ones a = [(i, false)])
   (h2 : remove_ones b = [(j, true)]) (hij : i.dist j = 1): (remove_ones c = [] ∧ remove_ones d = [(i, false), (j, true)] ∧ remove_ones e = []) ∨
@@ -983,11 +1238,183 @@ theorem partial_grid_rm_separated_helper (h : PartialGrid a b c d e) (h1 : remov
     have H := partial_grid_rm_side_helper g2 o_is h4.1
     aesop
 
+noncomputable def partial_grid_rm_separated_helper_c (h : PartialGrid a b c d e) (h1 : remove_ones a = [(i, false)])
+    (h2 : remove_ones b = [(j, true)]) (hij : i.dist j > 1) : PLift (remove_ones c = [] ∧ remove_ones d = [(i, false), (j, true)] ∧ remove_ones e = []) ⊕
+    PLift (remove_ones c = [] ∧ remove_ones d = [(j, true), (i, false)] ∧ remove_ones e = [])  ⊕
+    PLift (remove_ones c = [] ∧ remove_ones d = [(j, true)] ∧ remove_ones e = [(i, false)]) ⊕
+    PLift (remove_ones c = [(j, true)] ∧ remove_ones d = [(i, false)] ∧ remove_ones e = []) ⊕
+    PLift (remove_ones c = [(j, true)] ∧ remove_ones d = [] ∧ remove_ones e = [(i, false)]) := by
+  induction h with
+  | single_gridt h =>
+    cases h
+    all_goals simp_all [remove_ones]
+    right; right; right; right; constructor; trivial
+  | empty a b ha ha1 hb hb => simp_all; left; constructor; trivial
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q
+    rw [remove_ones_append] at h2
+    rcases List.append_eq_singleton_C h2 with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
+    · have H := partial_grid_rm_side_helper_c g1 h1 k_is
+      rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · simp_all
+      simp_all
+      specialize g2_ih h4.2 n_is
+      rcases g2_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+      · simp_all; left; constructor; trivial
+      · simp_all; right; left; constructor; trivial
+      · simp_all; right; right; left; constructor; trivial
+      · simp_all; right; right; right; left; constructor; trivial
+      simp_all; right; right; right; right; constructor; trivial
+    specialize g1_ih h1 k_is
+    rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+    any_goals simp_all
+    have H := partial_grid_rm_side_helper_c g2 h7.2 n_is
+    rcases H with ⟨⟨h8⟩⟩ | ⟨⟨h9⟩⟩
+    · simp_all; right; right;right;left; constructor; trivial
+    simp_all; right; right; right; right; constructor; trivial
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q r
+    rw [remove_ones_append] at h2
+    rcases List.append_eq_singleton_C h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
+    · have H := partial_grid_rm_side_helper_c g1 h1 k_is
+      rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · have H2 := partial_grid_rm_top_helper_c g2 h3.2.2 o_is
+        rcases H2 with
+          ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩
+        · simp_all [h5.1]; left; constructor; trivial
+        simp_all [h6.1]; left; constructor; trivial
+      specialize g2_ih h4.2.2 o_is
+      rcases g2_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+      · simp_all; left; constructor; trivial
+      · simp_all; right; left; constructor; trivial
+      · simp_all; right; right; left; constructor; trivial
+      · simp_all; right; left; constructor; trivial
+      simp_all; right; right; left; constructor; trivial
+    simp_all
+    specialize g1_ih h1 k_is
+    have n_is : PLift (remove_ones n = []) ⊕ PLift (remove_ones n = [(i, false)]) := by
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+      · left; constructor; exact h3.2.2
+      · left; constructor; exact h4.2.2
+      · right; constructor; exact h5.2.2
+      · left; constructor; exact h6.2.2
+      right; constructor; exact h7.2.2
+    rcases n_is with ⟨⟨hn⟩⟩ | ⟨⟨hn⟩⟩
+    · have H := partial_grid_rm_empty_helper g2 hn o_is
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+      · simp_all; left; constructor; trivial
+      · simp_all; right; left; constructor; trivial
+      · simp_all
+      · simp_all; right; right; right; left; constructor; trivial
+      simp_all
+    have H := partial_grid_rm_side_helper_c g2 hn o_is
+    rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+    · simp_all
+    · simp_all
+    · rcases H with ⟨⟨h8⟩⟩ | ⟨⟨h9⟩⟩
+      · simp_all; right; left; constructor; trivial
+      simp_all; right; right; left; constructor; trivial
+    · simp_all
+    simp_all
+    rcases H with ⟨⟨h8⟩⟩ | ⟨⟨h9⟩⟩
+    · simp_all; right; right; right; left; constructor; trivial
+    simp_all; right; right; right; right; constructor; trivial
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rename_i j k l m n o p q
+    rw [remove_ones_append] at h1
+    rcases List.append_eq_singleton_C h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
+    · specialize g1_ih j_is h2
+      rename_i j'
+      have l_nil : PLift (remove_ones l = []) ⊕ PLift (remove_ones l = [(j', true)]) := by
+        rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h3⟩⟩ | ⟨⟨h3⟩⟩ | ⟨⟨h3⟩⟩ | ⟨⟨h3⟩⟩
+        any_goals left; constructor; exact h3.1
+        all_goals right; constructor; exact h3.1
+      rcases l_nil with ⟨⟨hl⟩⟩ | ⟨⟨hl⟩⟩
+      · have H := partial_grid_rm_empty_helper g2 n_is hl
+        rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+        all_goals simp_all
+      have H := partial_grid_rm_top_helper_c g2 n_is hl
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+      any_goals simp_all
+      rcases H with ⟨⟨h8⟩⟩ | ⟨⟨h9⟩⟩
+      · simp_all
+        right; right; right; right
+        constructor
+        trivial
+      simp_all; right; right; left; constructor; trivial
+    have H := partial_grid_rm_top_helper_c g1 j_is h2
+    specialize g2_ih n_is
+    rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · specialize g2_ih h3.1
+      rcases g2_ih with ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩ | ⟨⟨h8⟩⟩ | ⟨⟨h9⟩⟩
+      · simp_all [h3.1, h5.1]; left; constructor; trivial
+      · simp_all [h3.1, h6.1]; right; left; constructor; trivial
+      · simp_all [h3.1, h7.1]; right; right; left; constructor; trivial
+      · simp_all [h3.1, h8.1]; right; right; right; left; constructor; trivial
+      simp_all [h3.1, h9.1]; right; right; right; right; constructor; trivial
+    simp_all
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rename_i j k l m n o p q r
+    rw [remove_ones_append] at h1
+    rcases List.append_eq_singleton_C h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
+    · specialize g1_ih j_is h2
+      rename_i j'
+      have l_nil : PLift (remove_ones l = []) ⊕ PLift (remove_ones l = [(j', true)]):= by
+        rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h3⟩⟩ | ⟨⟨h3⟩⟩ | ⟨⟨h3⟩⟩ | ⟨⟨h3⟩⟩
+        any_goals left; constructor; exact h3.1
+        all_goals right; constructor; exact h3.1
+      rcases l_nil with ⟨⟨hl⟩⟩ | ⟨⟨hl⟩⟩
+      · have H := partial_grid_rm_empty_helper g2 o_is hl
+        rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+        all_goals simp_all
+        · left; constructor; trivial
+        · right; left; constructor; trivial
+        right; right; left; constructor; trivial
+      have H := partial_grid_rm_top_helper_c g2 o_is hl
+      rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩ | ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩
+      · simp_all
+      · simp_all
+      · simp_all
+      · rcases H with ⟨⟨h8⟩⟩ | ⟨⟨h9⟩⟩
+        · simp_all
+          right; right; right; left
+          constructor
+          trivial
+        simp_all; right; left; constructor; trivial
+      rcases H with ⟨⟨h8⟩⟩ | ⟨⟨h9⟩⟩
+      · simp_all
+        right; right; right; right
+        constructor
+        trivial
+      simp_all; right; right; left; constructor; trivial
+    have H := partial_grid_rm_top_helper_c g1 j_is h2
+    specialize g2_ih o_is
+    rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · specialize g2_ih h3.1
+      rcases g2_ih with ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩ | ⟨⟨h7⟩⟩ | ⟨⟨h8⟩⟩ | ⟨⟨h9⟩⟩
+      · simp_all [h3.1, h5.1]; left; constructor; trivial
+      · simp_all [h3.1, h6.1]; right; left; constructor; trivial
+      · simp_all [h3.1, h7.1]; right; left; constructor; trivial
+      · simp_all [h3.1, h8.1]; right; right; right; left; constructor; trivial
+      simp_all [h3.1, h9.1]; right; right; right; left; constructor; trivial
+    have H := partial_grid_rm_side_helper_c g2 o_is h4.1
+    rcases H with ⟨⟨h5⟩⟩ | ⟨⟨h6⟩⟩
+    · simp_all
+      left; constructor; trivial
+    simp_all
+    left; constructor; trivial
+
 theorem suffix_of_singleton (h : l <:+ [a]) : l = [] ∨ l = [a] := by
   rcases h with ⟨r, hr⟩
   match r with
   | [] => aesop
   | r1 :: r2 => aesop
+
+def suffix_of_singleton_c (h : List.Suffix' l [a]) : PLift (l = []) ⊕ PLift (l = [a]) := by
+  rcases h with ⟨r, ⟨hr⟩⟩
+  match r with
+  | [] => right; constructor; aesop
+  | r1 :: r2 => left; constructor; aesop
 
 theorem prefix_of_singleton (h : l <+: [a]) : l = [] ∨ l = [a] := by
   rcases h with ⟨r, hr⟩
@@ -997,6 +1424,17 @@ theorem prefix_of_singleton (h : l <+: [a]) : l = [] ∨ l = [a] := by
     apply congr_arg List.length at hr
     simp at hr
     have H : l.length = 0 := by omega
+    aesop
+
+def prefix_of_singleton_c (h : List.Prefix' l [a]) : PLift (l = []) ⊕ PLift (l = [a]) := by
+  rcases h with ⟨r, ⟨hr⟩⟩
+  match r with
+  | [] => right; constructor; aesop
+  | r1 :: r2 =>
+    apply congr_arg List.length at hr
+    simp at hr
+    have H : l.length = 0 := by omega
+    left; constructor
     aesop
 
 theorem unique_g_pg_c
@@ -1149,6 +1587,312 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
       aesop
     have H := partial_grid_rm_separated_helper h1 h4 b_is h
     aesop
+  | vertical h1 h2 h1_ih h2_ih =>
+    rename_i m n o p q r s t
+    constructor
+    · intro ha hb
+      have ha1 : m = [] ∨ q = [] ∨ ∃ a1 a2, a1.length > 0 ∧ a2.length > 0 ∧
+          a = a1 ++ a2 ∧ remove_ones a1 = to_up_plain q ∧ remove_ones a2 = to_up_plain m :=
+        remove_ones_eq_to_up_plain_prod ha
+      rcases ha1 with m_nil | q_nil | ⟨a1, a2, a1_len, a2_len, ha1, a1q, a2m⟩
+      · have H : remove_ones a = to_up_plain q := by
+          rw [m_nil] at ha
+          convert ha
+        have on : o = [] ∧ p = n := word_side_side_t _ _ _ t m_nil
+        specialize h2_ih h1
+        have new_h2_ih := h2_ih.1 H
+        rw [on.2] at new_h2_ih
+        exact new_h2_ih hb
+      · have H : remove_ones a = to_up_plain m := by
+          rw [q_nil] at ha
+          convert ha
+          simp; rfl
+        have rs : r = [] ∧ s = p := word_side_side_t _ _ _ h2 q_nil
+        specialize h1_ih h1
+        have new_h2_ih := h1_ih.1 H hb
+        rw [rs.2]
+        exact new_h2_ih
+      rcases splittable_horizontally_of_pg h1 _ _ ha1 a2_len a1_len
+        with ⟨mid, d1, e1, d2, e2, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+      · specialize h1_ih i1
+        have new_h1_ih := h1_ih.1 a2m hb
+        exact (h2_ih i2).1 a1q new_h1_ih
+      rcases baaad with ⟨_, _, _, _, _, _, ⟨mid_nil⟩, _⟩
+      aesop
+    intro hb ha
+    have ha1 : remove_ones a <:+ to_up_plain q ++ to_up_plain m := by
+      rw [to_up_plain_prod m q] at ha
+      exact ha
+    rw [to_up_plain_prod o r]
+    match m with
+    | [] =>
+      nth_rewrite 2 [to_up_plain] at ha1
+      simp at ha1
+      specialize h2_ih h1
+      have on : o = [] ∧ p = n := word_side_side_t _ _ _ t rfl
+      rw [← on.2] at hb
+      have h_new := h2_ih.2 hb ha1
+      rw [on.1]
+      nth_rewrite 2 [to_up_plain]
+      simp
+      exact h_new
+    | m1 :: m2 =>
+      have H : remove_ones a <:+ to_up_plain (m1 :: m2) ∨
+        ∃ a1 a2, a1.length > 0 ∧ a = a1 ++ a2 ∧
+        remove_ones a2 = to_up_plain  (m1 :: m2) ∧ remove_ones a1 <:+ to_up_plain q := by
+        exact helper_bajillion ha1
+      rcases H with ha1 | ⟨a1, a2, a1_len, a1_is, ha11⟩
+      · have H2 : remove_ones e2 <:+ to_up_plain o := (h1_ih h1).2 hb ha1
+        exact suffix_of_append H2
+      have a2_len : a2.length > 0 := by
+        have H := remove_ones_len a2
+        rw [ha11.1] at H
+        simp [to_up_plain] at H
+        omega
+      rcases splittable_horizontally_of_pg h1 _ _ a1_is a2_len a1_len
+          with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+      · have H : (d2 = d4 ++ e4 ++ e5 ∧ d5 = e2) ∨ (d2 = d4 ∧ e5 = [] ∧ e2 = e4 ++ d5) := by
+          exact frontier_options_from_vertical h1 i1 i2 hf
+        rcases H with bb | fb
+        · specialize h1_ih i1
+          have one := h1_ih.1 ha11.1 (by rw [hb])
+          have two := h1_ih.2 hb (by rw [ha11.1])
+          rw [← bb.2]
+          exact suffix_of_append two
+        rw [fb.2.1] at i1
+        have H := unique_g_pg_c_ones_okay i1 ha11.1.symm hb.symm t
+        rw [fb.2.2, remove_ones_append, H.1]
+        refine List.suffix_append_right ?_
+        exact (h2_ih i2).2 H.2.symm ha11.2
+      rcases baaad with ⟨db, c11, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
+      specialize h1_ih h3
+      have H2 := h1_ih.2 hb (by rw [ha11.1])
+      exact suffix_of_append H2
+  | horizontal h1 h2 h1_ih h2_ih =>
+    rename_i m n o p q r s t
+    constructor
+    · intro a_is b_is
+      rw [to_over_plain_prod] at b_is
+      match n with
+      | [] =>
+        have H := word_top_bottom_t _ _ _ t rfl
+        specialize h2_ih h1
+        simp_all [to_over_plain]
+      | n1 :: n2 =>
+        rcases helper_kajillion b_is (by simp) with one | two
+        · specialize h1_ih h1
+          have new_ih := h1_ih.1 a_is one
+          rw [to_over_plain_prod]
+          exact List.prefix_of_append new_ih
+        rcases two with ⟨b1, b2, b1_len, b2_len, b_is, b1_n, b2_q⟩
+        rcases splittable_vertically_of_pg' h1 _ _ b_is b1_len b2_len
+          with ⟨mid1, d3, e3, d4, e4, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+        · specialize h1_ih i1
+          specialize h2_ih i2
+          simp_all
+          have nonsense : (mid = d3 ++ e3 ++ d4 ∧ e3 = []) ∨ (mid = d3 ∧ d2 = e3 ++ d4 ++ e4) :=
+            frontier_options_from_horizontal h1 i1 i2 hf
+          rcases nonsense with h_one | h_two
+          · rw [h_one.2] at i1
+            have H := unique_g_pg_c_ones_okay i1 a_is.symm b1_n.symm t
+            rw [h_one.1, h_one.2, List.append_nil, remove_ones_append, to_over_plain_prod, H.2]
+            exact (List.prefix_append_right_inj (remove_ones d3)).mpr ((h2_ih).1 H.1.symm)
+          have helper := h1_ih.1
+          rw [h_two.1, to_over_plain_prod]
+          exact List.prefix_of_append helper
+        rcases baaad with ⟨db, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
+        specialize h1_ih h3
+        have H2 := h1_ih.1 a_is (by rw [b1_n])
+        rw [to_over_plain_prod]
+        exact List.prefix_of_append H2
+    intro b_is a_is
+    have hb1 : n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
+        b = b1 ++ b2 ∧ remove_ones b1 = to_over_plain n ∧ remove_ones b2 = to_over_plain q :=
+      remove_ones_eq_to_over_plain_prod b_is
+    rcases hb1 with n_nil | q_nil | ⟨b1, b2, b1_len, b2_len, b1_is, b1n, b2q⟩
+    · have H : remove_ones b = to_over_plain q := by
+        rw [n_nil] at b_is
+        convert b_is
+      have op := word_top_bottom_t _ _ _ t n_nil
+      specialize h2_ih h1
+      have new_h2_ih := h2_ih.2 H
+      rw [op.1] at new_h2_ih
+      exact new_h2_ih a_is
+    · have H : remove_ones b = to_over_plain n := by
+        rw [q_nil] at b_is
+        convert b_is
+        simp; rfl
+      have rs := word_top_bottom_t _ _ _ h2 q_nil
+      specialize h1_ih h1
+      have new_h2_ih := h1_ih.2 H a_is
+      rw [rs.1]
+      exact new_h2_ih
+    rcases splittable_vertically_of_pg' h1 _ _ b1_is b1_len b2_len
+        with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+    · specialize h1_ih i1
+      specialize h2_ih i2
+      simp_all
+    rcases baaad with ⟨d5, d6, i3, _ , ⟨e2_nil⟩, ⟨d2_is⟩, ⟨b2_is⟩⟩
+    aesop
+
+theorem Suffix'_of_nil (h : List.Suffix' a []) : a = [] := by
+  rcases h with ⟨b, ⟨hb⟩⟩
+  simp at hb
+  aesop
+
+theorem Prefix'_of_nil (h : List.Prefix' a []) : a = [] := by
+  rcases h with ⟨b, ⟨hb⟩⟩
+  simp at hb
+  aesop
+
+noncomputable def same_time_c (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
+  : (remove_ones a = to_up_plain i → List.Prefix' (remove_ones b) (to_over_plain j) → List.Prefix' (remove_ones mid) (to_over_plain l))
+  × (remove_ones b = to_over_plain j → List.Suffix' (remove_ones a) (to_up_plain i) → List.Suffix' (remove_ones e2) (to_up_plain k)) := by
+  induction h generalizing a b mid d2 e2 with
+  | empty =>
+    constructor
+    · intro a_is b_is
+      change List.Prefix' _ [] at b_is
+      apply Prefix'_of_nil at b_is
+      have H := partial_grid_rm_empty_helper h1 a_is b_is
+      rw [H.1]
+      exact List.nil_prefix_C
+    intro b_is a_is
+    change List.Suffix' _ [] at a_is
+    apply Suffix'_of_nil at a_is
+    have H := partial_grid_rm_empty_helper h1 a_is b_is
+    rw [H.2.2]
+    exact List.nil_suffix_C
+  | top_bottom i =>
+    constructor
+    · intro a_is b_is
+      rcases prefix_of_singleton_c b_is with ⟨h3⟩ | ⟨h4⟩
+      · have H2 := partial_grid_rm_empty_helper h1 a_is h3.1
+        rw [H2.1]
+        exact List.nil_prefix_C
+      have H := partial_grid_rm_top_helper_c h1 a_is h4.1
+      rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · rw [h3.1, to_over_plain]
+        exact List.prefix_refl_C
+      rw [h4.1]
+      exact List.nil_prefix_C
+    intro b_is a_is
+    change List.Suffix' _ [] at a_is
+    apply Suffix'_of_nil at a_is
+    have H := partial_grid_rm_top_helper_c h1 a_is b_is
+    rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · rw [h3.2.2]
+      exact List.nil_suffix_C
+    rw [h4.2.2]
+    exact List.nil_suffix_C
+  | sides i =>
+    constructor
+    · intro a_is b_is
+      change List.Prefix' _ [] at b_is
+      apply Prefix'_of_nil at b_is
+      have H := partial_grid_rm_side_helper_c h1 a_is b_is
+      rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · rw [h3.1]
+        exact List.nil_prefix_C
+      rw [h4.1]
+      exact List.nil_prefix_C
+    intro b_is a_is
+    rcases suffix_of_singleton_c a_is with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · have H := partial_grid_rm_empty_helper h1 h3 b_is
+      rw [H.2.2]
+      exact List.nil_suffix_C
+    have H := partial_grid_rm_side_helper_c h1 h4 b_is
+    rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · rw [h3.2.2]
+      exact List.nil_suffix_C
+    rw [h4.2.2]
+    exact List.suffix_refl_C
+  | top_left i =>
+    constructor
+    · intro a_is b_is
+      rcases prefix_of_singleton_c b_is with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · have H := partial_grid_rm_side_helper_c h1 a_is h3
+        rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h2⟩⟩
+        · rw [h1.1]
+          exact List.nil_prefix_C
+        rw [h2.1]
+        exact List.nil_prefix_C
+      have H := partial_grid_rm_top_left_helper_c h1 a_is h4
+      rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h2⟩⟩
+      · rw [h1.1]
+        exact List.prefix_refl_C
+      rw [h2.1]
+      exact List.nil_prefix_C
+    intro b_is a_is
+    rcases suffix_of_singleton_c a_is with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · have H := partial_grid_rm_top_helper_c h1 h3 b_is
+      rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h2⟩⟩
+      · rw [h1.2.2]
+        exact List.nil_suffix_C
+      rw [h2.2.2]
+      exact List.suffix_refl_C
+    have H := partial_grid_rm_top_left_helper_c h1 h4 b_is
+    rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h2⟩⟩
+    · rw [h1.2.2]
+      exact List.nil_suffix_C
+    rw [h2.2.2]
+    exact List.suffix_refl_C
+  | adjacent i k h =>
+    constructor
+    · intro a_is b_is
+      rcases prefix_of_singleton_c b_is with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · have H := partial_grid_rm_side_helper_c h1 a_is h3
+        rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h2⟩⟩
+        · rw [h1.1]
+          exact List.nil_prefix_C
+        rw [h2.1]
+        exact List.nil_prefix_C
+      have H := partial_grid_rm_adjacent_helper h1 a_is h4 h
+      have H : remove_ones mid = [] ∨ remove_ones mid = [(k, true)] ∨
+        remove_ones mid = [(k, true), (i, true)] := by aesop
+      change List.Prefix' _ [(k, true), (i, true)]
+      aesop
+    intro b_is a_is
+    rcases suffix_of_singleton_c a_is with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · have H := partial_grid_rm_top_helper_c h1 h3 b_is
+      rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h2⟩⟩
+      · rw [h1.2.2]
+        exact List.nil_suffix_C
+      rw [h2.2.2]
+      exact List.nil_suffix_C
+    have H := partial_grid_rm_adjacent_helper h1 h4 b_is h
+    have H : remove_ones mid = [] ∨ remove_ones mid = [(k, true)] ∨
+        remove_ones mid = [(k, true), (i, true)] := by aesop
+    change List.Suffix' _ [(k, false), (i, false)]
+    aesop
+  | separated i j h =>
+    constructor
+    · intro a_is b_is
+      rcases prefix_of_singleton_c b_is with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+      · have H := partial_grid_rm_side_helper_c h1 a_is h3
+        rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h2⟩⟩
+        · rw [h1.1]
+          exact List.nil_prefix_C
+        rw [h2.1]
+        exact List.nil_prefix_C
+      have H := partial_grid_rm_separated_helper_c h1 a_is h4 h
+      rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h1⟩⟩ | ⟨⟨h1⟩⟩ | ⟨⟨h1⟩⟩ | ⟨⟨h1⟩⟩
+      all_goals rw [h1.1]
+      any_goals exact List.nil_prefix_C
+      all_goals exact List.prefix_refl_C
+    intro b_is a_is
+    rcases suffix_of_singleton_c a_is with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
+    · have H := partial_grid_rm_top_helper_c h1 h3 b_is
+      rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h2⟩⟩
+      · rw [h1.2.2]
+        exact List.nil_suffix_C
+      rw [h2.2.2]
+      exact List.nil_suffix_C
+    have H := partial_grid_rm_separated_helper_c h1 h4 b_is h
+    rcases H with ⟨⟨h1⟩⟩ | ⟨⟨h1⟩⟩ | ⟨⟨h1⟩⟩ | ⟨⟨h1⟩⟩ | ⟨⟨h1⟩⟩
+    all_goals rw [h1.2.2]
+    any_goals exact List.nil_suffix_C
+    all_goals exact List.suffix_refl_C
   | vertical h1 h2 h1_ih h2_ih =>
     rename_i m n o p q r s t
     constructor

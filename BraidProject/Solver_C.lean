@@ -242,22 +242,6 @@ noncomputable def get_pg (a : triangle) : Σ bot mid top, PartialGrid (to_up a.1
   rw [c_is.1]
   exact Hc.2.2
 
--- def gridt.length : gridt a b c d → ℕ := by
---   intro h
---   match h with
---   | gridt.empty => exact 0
---   | gridt.sides _ => exact  0
---   | gridt.top_bottom _ => exact 0
---   | gridt.top_left _ => exact 1
---   | gridt.adjacent _ _ _ => exact 1
---   | gridt.separated _ _ _ => exact 1
---   | gridt.horizontal h1 h2 => exact gridt.length h1 + gridt.length h2
---   | gridt.vertical h1 h2 => exact gridt.length h1 + gridt.length h2
-
--- noncomputable def ab_len (a b : List ℕ) : ℕ :=
---   match existence_s a b with
---   | ⟨_, _, h⟩ => gridt.length h
-
 noncomputable def get_n' (a : triangle) : ℕ := ab_len a.1 a.2.1 - (get_pg a).2.2.2.1.length
 
 set_option pp.notation true
@@ -273,49 +257,6 @@ theorem straight_pg_sm_g (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
 
 theorem pg_smaller_than_g (a : triangle) : ab_len a.1 a.2.1 ≥ (get_pg a).2.2.2.1.length := by
   apply straight_pg_sm_g _ _ rfl rfl
-
--- noncomputable def get_n (a : triangle) : ℕ := by
---   have H := @stepOne_mid (List.map (fun y => (y, false)) a.1.reverse ++ List.map (fun y => (y, true)) a.2.1) a.2.2.1 a.2.2.2.2
---   have H1 : skeleton_order (List.map (fun y ↦ (y, false)) a.fst.reverse ++ List.map (fun y ↦ (y, true)) a.snd.fst) := by
---     unfold skeleton_order
---     use List.map (fun y ↦ (y, false)) a.fst.reverse
---     use List.map (fun y ↦ (y, true)) a.snd.fst
---     constructor
---     · simp [is_true]
---       intro x ⟨hx⟩
---       constructor
---       simp at hx
---       rcases hx with ⟨w, hw⟩
---       rw [← hw.2]
---     · simp [is_true]
---       constructor
---       · intro x ⟨hx⟩
---         constructor
---         simp at hx
---         rcases hx with ⟨w, hw⟩
---         rw [← hw.2]
---       exact ⟨trivial⟩
---   specialize H H1
---   rcases H with ⟨c, Hc⟩
---   have H4 : (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse)).length > 0 := by
---     rw [to_option_length]
---     simp
---     exact a.2.2.2.1.1.1
---   have H5 : (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)).length > 0 := by
---     simp [to_option_length]
---     exact a.2.2.2.1.1.2
---   have H6 : to_option (List.map (fun y ↦ (y, false)) a.fst.reverse ++ List.map (fun y ↦ (y, true)) a.snd.fst) =
---     (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse) ++ to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) := by
---       simp [to_option]
---   rw [H6] at Hc
---   have H3 := @step_two (to_option (List.map (fun y ↦ (y, false)) a.fst.reverse))
---     (to_option (List.map (fun y ↦ (y, true)) a.snd.fst)) c
---     (by apply is_false_to_option; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
---          rcases hx with ⟨a, ha⟩; aesop) H4
---     (by apply is_true_to_option ; simp [is_true]; intro x ⟨hx⟩; simp at hx; constructor;
---          rcases hx with ⟨a, ha⟩; rw [← ha.2]) H5 Hc.1
---   rcases H3 with ⟨bot, mid, up, pg, c_is⟩
---   exact PartialGrid.length pg
 
 theorem get_n'_same'  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2 : c2 = c0 ++ c₂ ++ c3) (hr : reversing c₁ c₂)
   (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c1)
@@ -468,76 +409,6 @@ def solver_helper' (a : triangle) : {h : triangle // h.1 = a.1 ∧ h.2.1 = a.2.1
     · apply pg_smaller_than_g
     apply pg_smaller_than_g
 
-
--- def solver_helper'' (a : triangle) : {h : triangle // h.1 = a.1 ∧ h.2.1 = a.2.1} :=
---   match hb' : find_it a.2.2.1 with
---   | none => ⟨a, ⟨rfl, ⟨rfl, fun _ => rfl⟩⟩⟩
---   | some (c, d, e) =>
---     match hd : d.1.dist d.2 with
---     | 0 => by
---       have H := solver_helper'' ⟨a.1, ⟨a.2.1, ⟨c ++ e,
---         ⟨a.2.2.2.1,
---         by
---           apply a.2.2.2.2.trans
---           rw [find_it_spec hb', Nat.eq_of_dist_eq_zero hd]
---           nth_rw 2 [← List.append_nil c]
---           exact SemiThue.reduction reversing.basic⟩⟩⟩⟩
---       use H.val
---       simp [H.property]
---     | 1 => by
---       have H := solver_helper'' ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e),
---         ⟨ a.2.2.2.1, by
---           apply a.2.2.2.2.trans
---           rw [find_it_spec hb']
---           exact SemiThue.reduction (reversing.close hd)⟩ ⟩⟩⟩
---       use H.val
---       simp [H.property]
---     | Nat.succ (Nat.succ n) => by
---       have H := solver_helper'' ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, false)] ++ e),
---         ⟨ a.2.2.2.1, by
---           apply a.2.2.2.2.trans
---           rw [find_it_spec hb']
---           exact SemiThue.reduction (reversing.apart (by omega))⟩⟩⟩⟩
---       use H.val
---       simp [H.property]
---     termination_by get_n' a
---     decreasing_by
---     · rcases a with ⟨a1, a2, a3, a4⟩
---       rcases find_it_spec hb' with ⟨b1, b2, b3⟩
---       have H : d.1 = d.2 := by exact Nat.eq_of_dist_eq_zero hd
---       rcases d with ⟨x, y⟩
---       simp only at H
---       subst H
---       apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
---       · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (x, true)] []
---         · rfl
---         · simp
---         exact reversing.basic
---       · apply pg_smaller_than_g
---       apply pg_smaller_than_g
---     · rcases a with ⟨a1, a2, a3, a4⟩
---       rcases find_it_spec hb' with ⟨b1, b2, b3⟩
---       rcases d with ⟨x, y⟩
---       apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
---       · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (y, true)]
---           [(y, true), (x, true), (y, false), (x, false)]
---         · rfl
---         · simp
---         exact reversing.close hd
---       · apply pg_smaller_than_g
---       apply pg_smaller_than_g
---     rcases a with ⟨a1, a2, a3, a4⟩
---     rcases find_it_spec hb' with ⟨b1, b2, b3⟩
---     rcases d with ⟨x, y⟩
---     apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
---     · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (y, true)]
---         [(y, true), (x, false)]
---       · rfl
---       · simp
---       exact reversing.apart (by aesop)
---     · apply pg_smaller_than_g
---     apply pg_smaller_than_g
-
 theorem solver_helper_find_it_none' : find_it (solver_helper a)= none := by
   induction ha : get_n' a using Nat.strongRecOn generalizing a
   rw [solver_helper]
@@ -607,8 +478,7 @@ theorem solver_helper_find_it_none' : find_it (solver_helper a)= none := by
   apply pg_smaller_than_g
   rfl
 
-
-theorem solver_helper_find_it_none : find_it (solver_helper' a).1.2.2.1 = none := by
+theorem solver_helper_find_it_none (a) : find_it (solver_helper' a).1.2.2.1 = none := by
   induction ha : get_n' a using Nat.strongRecOn generalizing a
   rw [solver_helper']
   split
@@ -686,44 +556,6 @@ theorem solver_helper_find_it_none : find_it (solver_helper' a).1.2.2.1 = none :
   apply pg_smaller_than_g
   rfl
 
--- theorem solver_helper_find_it_none : find_it (solver_helper'' a).1.2.2.1 = none := by
---   induction get_n' a using Nat.strongRecOn generalizing a
---   rw [solver_helper'']
---   sorry
-  -- split
-  -- · assumption
-  -- split
-  -- · rename_i ih _ _ _ _ _
-  --   rw [ih]
-  --   rcases a with ⟨a1, a2, a3, a4⟩
-  --   sorry
-    -- rcases find_it_spec hb' with ⟨b1, b2, b3⟩
-    -- have H : d.1 = d.2 := by exact Nat.eq_of_dist_eq_zero hd
-    -- rcases d with ⟨x, y⟩
-    -- simp only at H
-    -- subst H
-    -- apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    -- · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (x, true)] []
-    --   · rfl
-    --   · simp
-    --   exact reversing.basic
-    -- · apply pg_smaller_than_g
-    -- apply pg_smaller_than_
-  -- induction ha : get_n' a using Nat.strong_induction_on
-  -- unfold solver_helper'' at h
-  -- have H := find_it a.2.2.1
-  -- rcases H
-  -- · have H : find_it a.2.2.1 = none := by sorry
-  --   have H1 := b.property.2.2
-  --   specialize H1 H
-  --   rw [H1]
-  --   exact H
-  -- rename_i val
-  -- sorry
-
-
-  -- have H := b.property
-  -- sorry
 def in_order_of_find_it_none (h : find_it a = none) : in_order a := by
   induction a with
   | nil =>
@@ -765,19 +597,10 @@ def in_order_of_find_it_none (h : find_it a = none) : in_order a := by
         simp at h1
         exact h1.1.elim
 
-def solver_helper_in_order (h : solver_helper' a = b) : in_order b.1.2.2.1 := by
-  sorry
-  -- have H := solver_helper_find_it_none h
-  -- exact in_order_of_find_it_none H
+def solver_helper_in_order : in_order (solver_helper' a).1.2.2.1 := by
+  have H := solver_helper_find_it_none a
+  exact in_order_of_find_it_none H
 
-def solver_helper_in_order' : in_order (solver_helper' a).1.2.2.1 := by
-  sorry
-  -- have ha : solver_helper'' a = solver_helper'' a := rfl
-  -- have H := solver_helper_find_it_none ha
-  -- exact in_order_of_find_it_none H
-
-def solver_long'' (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
-  solver_helper' ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
 
 def solver_long (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
   solver_helper' ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
@@ -1742,7 +1565,7 @@ theorem correct_other_dir (h : PresentedMonoid.mk braid_rels_m_inf a =
       have He : e = [] := (eq_of_SemiThue_true h1 is_true_nil).symm
       rw [← He]
       apply eq_of_SemiThue_in_order h2
-      apply solver_helper_in_order'
+      apply solver_helper_in_order
 
 #exit
 def list_to_free_group (L : List (α × Bool)) : FreeGroup α := match L with
@@ -1825,13 +1648,3 @@ theorem reversing_to_group_equiv (h : SemiThue reversing a b) :
       exact hp H
   | trans a b c _ _ h1 h2=>
     exact h1.trans h2
-
--- theorem solver_correct (a b : List ℕ) (h : solver (to_up_plain a) (to_over_plain b) = []) :
---     BraidMonoidInf.mk a = BraidMonoidInf.mk b := by
---   have H := solver_equiv (to_up_plain a) (to_over_plain b)
---   rw [h] at H
---   apply reversing_to_group_equiv at H
---   simp [list_to_free_group_append] at H
---   sorry
---   sorry
---   sorry
