@@ -1720,23 +1720,22 @@ noncomputable def all_options_frontier_reverse (h : PartialGrid a1 b1 c1 d1 e1) 
       rw [rm, to_over_plain_mul, List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
       apply SemiThue_append_left
       unfold pg_mid_frontier_reverses_to_grid_extend_both at H0'
-      sorry
-
-      -- specialize @H0' c1 (remover b2) g e1 (to_up e2) k l
-      -- rw [rm1, to_up_plain_mul, to_up_plain_remover_rev_eq_remove_ones
-      --   g2.left_frontier_is_false, List.append_left_inj, remove_up_is_plain,
-      --   List.append_assoc] at H0'
-      -- have h1 : remove_ones b2 = to_over_plain (remover b2) := by
-      --   rw [to_over_plain_remover_eq_remove_ones]
-      --   exact g2.top_frontier_is_true
-      -- rw [rm1] at i2
-      -- specialize @H0' rfl h1 to_up_len_pos is_false_up i2
-      -- convert H0'
-      -- conv =>
-      --   enter [2]
-      --   rw [remove_ones_append]
-      -- rw [List.append_left_inj]
-      -- exact remove_up_is_plain.symm
+      rcases splittable_vertically_of_gridt i2 _ _ rfl with
+        ⟨c3, d3, e3, i21, i22, ⟨rm2⟩⟩
+      rcases splittable_horizontally_of_gridt i21 _ _ rfl with
+        ⟨c4, d4, e4, i23, i24, ⟨rm3⟩⟩
+      have helper1 : remove_ones (to_up e2) ++ remove_ones up = to_up_plain (remover up.reverse ++ FreeMonoid.toList e2) := by
+        rw [to_up_plain_append, to_up_plain_remover_rev_eq_remove_ones, List.append_left_inj, remove_up_is_plain]
+        rfl
+        exact g2.left_frontier_is_false
+      have helper2 : remove_ones b2 ++ remove_ones k = to_over_plain ((remover b2) ++ (remover k)) := by
+        rw [to_over_plain_append, to_over_plain_remover_eq_remove_ones, List.append_right_inj, to_over_plain_remover_eq_remove_ones op]
+        exact g2.top_frontier_is_true
+      specialize @H0' (remover up.reverse ++ FreeMonoid.toList e2)
+        (Append.append (remover b2) (remover k)) g e1 (to_up e2) k helper1 helper2
+          to_up_len_pos is_false_up o op i2
+      rw [List.append_assoc, List.append_assoc, List.append_assoc, remove_ones_append, remove_up_is_plain] at H0'
+      exact H0'
     · intro e f g i j k l m n o op p
       have H0 : pg_mid_frontier_reverses_to_grid_extend_left g1 := g1_ih.2.1
       have H0' : pg_mid_frontier_reverses_to_grid_extend_left g2 := g2_ih.2.1
