@@ -1852,6 +1852,8 @@ noncomputable def same_time_c (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e
         remove_ones mid = [(k, true), (i, true)] := by aesop
       change List.Prefix' _ [(k, true), (i, true)]
       aesop
+      sorry
+
     intro b_is a_is
     rcases suffix_of_singleton_c a_is with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
     · have H := partial_grid_rm_top_helper_c h1 h3 b_is
@@ -1865,6 +1867,7 @@ noncomputable def same_time_c (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e
         remove_ones mid = [(k, true), (i, true)] := by aesop
     change List.Suffix' _ [(k, false), (i, false)]
     aesop
+    sorry
   | separated i j h =>
     constructor
     · intro a_is b_is
@@ -1896,39 +1899,39 @@ noncomputable def same_time_c (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e
   | vertical h1 h2 h1_ih h2_ih =>
     rename_i m n o p q r s t
     constructor
-    · intro ha hb
-      have ha1 : m = [] ∨ q = [] ∨ ∃ a1 a2, a1.length > 0 ∧ a2.length > 0 ∧
-          a = a1 ++ a2 ∧ remove_ones a1 = to_up_plain q ∧ remove_ones a2 = to_up_plain m :=
-        remove_ones_eq_to_up_plain_prod ha
-      rcases ha1 with m_nil | q_nil | ⟨a1, a2, a1_len, a2_len, ha1, a1q, a2m⟩
-      · have H : remove_ones a = to_up_plain q := by
-          rw [m_nil] at ha
-          convert ha
-        have on : o = [] ∧ p = n := word_side_side_t _ _ _ t m_nil
-        specialize h2_ih h1
-        have new_h2_ih := h2_ih.1 H
-        rw [on.2] at new_h2_ih
-        exact new_h2_ih hb
-      · have H : remove_ones a = to_up_plain m := by
-          rw [q_nil] at ha
-          convert ha
-          simp; rfl
-        have rs : r = [] ∧ s = p := word_side_side_t _ _ _ h2 q_nil
-        specialize h1_ih h1
-        have new_h2_ih := h1_ih.1 H hb
-        rw [rs.2]
-        exact new_h2_ih
-      rcases splittable_horizontally_of_pg h1 _ _ ha1 a2_len a1_len
-        with ⟨mid, d1, e1, d2, e2, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
-      · specialize h1_ih i1
-        have new_h1_ih := h1_ih.1 a2m hb
-        exact (h2_ih i2).1 a1q new_h1_ih
-      rcases baaad with ⟨_, _, _, _, _, _, ⟨mid_nil⟩, _⟩
-      aesop
+    · intro ha hb; sorry
+      -- have ha1 : m = [] ∨ q = [] ∨ ∃ a1 a2, a1.length > 0 ∧ a2.length > 0 ∧
+      --     a = a1 ++ a2 ∧ remove_ones a1 = to_up_plain q ∧ remove_ones a2 = to_up_plain m :=
+      --   remove_ones_eq_to_up_plain_prod ha
+      -- rcases ha1 with m_nil | q_nil | ⟨a1, a2, a1_len, a2_len, ha1, a1q, a2m⟩
+      -- · have H : remove_ones a = to_up_plain q := by
+      --     rw [m_nil] at ha
+      --     convert ha
+      --   have on : o = [] ∧ p = n := word_side_side_t _ _ _ t m_nil
+      --   specialize h2_ih h1
+      --   have new_h2_ih := h2_ih.1 H
+      --   rw [on.2] at new_h2_ih
+      --   exact new_h2_ih hb
+      -- · have H : remove_ones a = to_up_plain m := by
+      --     rw [q_nil] at ha
+      --     convert ha
+      --     simp; rfl
+      --   have rs : r = [] ∧ s = p := word_side_side_t _ _ _ h2 q_nil
+      --   specialize h1_ih h1
+      --   have new_h2_ih := h1_ih.1 H hb
+      --   rw [rs.2]
+      --   exact new_h2_ih
+      -- rcases splittable_horizontally_of_pg h1 _ _ ha1 a2_len a1_len
+      --   with ⟨mid, d1, e1, d2, e2, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+      -- · specialize h1_ih i1
+      --   have new_h1_ih := h1_ih.1 a2m hb
+      --   exact (h2_ih i2).1 a1q new_h1_ih
+      -- rcases baaad with ⟨_, _, _, _, _, _, ⟨mid_nil⟩, _⟩
+      -- aesop
     intro hb ha
     have ha1 : remove_ones a <:+ to_up_plain q ++ to_up_plain m := by
       rw [to_up_plain_prod m q] at ha
-      exact ha
+      sorry --exact ha
     rw [to_up_plain_prod o r]
     match m with
     | [] =>
@@ -1937,43 +1940,45 @@ noncomputable def same_time_c (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e
       specialize h2_ih h1
       have on : o = [] ∧ p = n := word_side_side_t _ _ _ t rfl
       rw [← on.2] at hb
-      have h_new := h2_ih.2 hb ha1
-      rw [on.1]
-      nth_rewrite 2 [to_up_plain]
-      simp
-      exact h_new
+      sorry
+      -- have h_new := h2_ih.2 hb ha1
+      -- rw [on.1]
+      -- nth_rewrite 2 [to_up_plain]
+      -- simp
+      -- exact h_new
     | m1 :: m2 =>
       have H : remove_ones a <:+ to_up_plain (m1 :: m2) ∨
         ∃ a1 a2, a1.length > 0 ∧ a = a1 ++ a2 ∧
         remove_ones a2 = to_up_plain  (m1 :: m2) ∧ remove_ones a1 <:+ to_up_plain q := by
         exact helper_bajillion ha1
-      rcases H with ha1 | ⟨a1, a2, a1_len, a1_is, ha11⟩
-      · have H2 : remove_ones e2 <:+ to_up_plain o := (h1_ih h1).2 hb ha1
-        exact suffix_of_append H2
-      have a2_len : a2.length > 0 := by
-        have H := remove_ones_len a2
-        rw [ha11.1] at H
-        simp [to_up_plain] at H
-        omega
-      rcases splittable_horizontally_of_pg h1 _ _ a1_is a2_len a1_len
-          with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
-      · have H : (d2 = d4 ++ e4 ++ e5 ∧ d5 = e2) ∨ (d2 = d4 ∧ e5 = [] ∧ e2 = e4 ++ d5) := by
-          exact frontier_options_from_vertical h1 i1 i2 hf
-        rcases H with bb | fb
-        · specialize h1_ih i1
-          have one := h1_ih.1 ha11.1 (by rw [hb])
-          have two := h1_ih.2 hb (by rw [ha11.1])
-          rw [← bb.2]
-          exact suffix_of_append two
-        rw [fb.2.1] at i1
-        have H := unique_g_pg_c_ones_okay i1 ha11.1.symm hb.symm t
-        rw [fb.2.2, remove_ones_append, H.1]
-        refine List.suffix_append_right ?_
-        exact (h2_ih i2).2 H.2.symm ha11.2
-      rcases baaad with ⟨db, c11, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
-      specialize h1_ih h3
-      have H2 := h1_ih.2 hb (by rw [ha11.1])
-      exact suffix_of_append H2
+      sorry
+      -- rcases H with ha1 | ⟨a1, a2, a1_len, a1_is, ha11⟩
+      -- · have H2 : remove_ones e2 <:+ to_up_plain o := (h1_ih h1).2 hb ha1
+      --   exact suffix_of_append H2
+      -- have a2_len : a2.length > 0 := by
+      --   have H := remove_ones_len a2
+      --   rw [ha11.1] at H
+      --   simp [to_up_plain] at H
+      --   omega
+      -- rcases splittable_horizontally_of_pg h1 _ _ a1_is a2_len a1_len
+      --     with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+      -- · have H : (d2 = d4 ++ e4 ++ e5 ∧ d5 = e2) ∨ (d2 = d4 ∧ e5 = [] ∧ e2 = e4 ++ d5) := by
+      --     exact frontier_options_from_vertical h1 i1 i2 hf
+      --   rcases H with bb | fb
+      --   · specialize h1_ih i1
+      --     have one := h1_ih.1 ha11.1 (by rw [hb])
+      --     have two := h1_ih.2 hb (by rw [ha11.1])
+      --     rw [← bb.2]
+      --     exact suffix_of_append two
+      --   rw [fb.2.1] at i1
+      --   have H := unique_g_pg_c_ones_okay i1 ha11.1.symm hb.symm t
+      --   rw [fb.2.2, remove_ones_append, H.1]
+      --   refine List.suffix_append_right ?_
+      --   exact (h2_ih i2).2 H.2.symm ha11.2
+      -- rcases baaad with ⟨db, c11, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
+      -- specialize h1_ih h3
+      -- have H2 := h1_ih.2 hb (by rw [ha11.1])
+      -- exact suffix_of_append H2
   | horizontal h1 h2 h1_ih h2_ih =>
     rename_i m n o p q r s t
     constructor
@@ -1984,59 +1989,61 @@ noncomputable def same_time_c (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e
         have H := word_top_bottom_t _ _ _ t rfl
         specialize h2_ih h1
         simp_all [to_over_plain]
-      | n1 :: n2 =>
-        rcases helper_kajillion b_is (by simp) with one | two
-        · specialize h1_ih h1
-          have new_ih := h1_ih.1 a_is one
-          rw [to_over_plain_prod]
-          exact List.prefix_of_append new_ih
-        rcases two with ⟨b1, b2, b1_len, b2_len, b_is, b1_n, b2_q⟩
-        rcases splittable_vertically_of_pg' h1 _ _ b_is b1_len b2_len
-          with ⟨mid1, d3, e3, d4, e4, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
-        · specialize h1_ih i1
-          specialize h2_ih i2
-          simp_all
-          have nonsense : (mid = d3 ++ e3 ++ d4 ∧ e3 = []) ∨ (mid = d3 ∧ d2 = e3 ++ d4 ++ e4) :=
-            frontier_options_from_horizontal h1 i1 i2 hf
-          rcases nonsense with h_one | h_two
-          · rw [h_one.2] at i1
-            have H := unique_g_pg_c_ones_okay i1 a_is.symm b1_n.symm t
-            rw [h_one.1, h_one.2, List.append_nil, remove_ones_append, to_over_plain_prod, H.2]
-            exact (List.prefix_append_right_inj (remove_ones d3)).mpr ((h2_ih).1 H.1.symm)
-          have helper := h1_ih.1
-          rw [h_two.1, to_over_plain_prod]
-          exact List.prefix_of_append helper
-        rcases baaad with ⟨db, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
-        specialize h1_ih h3
-        have H2 := h1_ih.1 a_is (by rw [b1_n])
-        rw [to_over_plain_prod]
-        exact List.prefix_of_append H2
+        sorry
+      | n1 :: n2 => sorry
+        -- rcases helper_kajillion b_is (by simp) with one | two
+        -- · specialize h1_ih h1
+        --   have new_ih := h1_ih.1 a_is one
+        --   rw [to_over_plain_prod]
+        --   exact List.prefix_of_append new_ih
+        -- rcases two with ⟨b1, b2, b1_len, b2_len, b_is, b1_n, b2_q⟩
+        -- rcases splittable_vertically_of_pg' h1 _ _ b_is b1_len b2_len
+        --   with ⟨mid1, d3, e3, d4, e4, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+        -- · specialize h1_ih i1
+        --   specialize h2_ih i2
+        --   simp_all
+        --   have nonsense : (mid = d3 ++ e3 ++ d4 ∧ e3 = []) ∨ (mid = d3 ∧ d2 = e3 ++ d4 ++ e4) :=
+        --     frontier_options_from_horizontal h1 i1 i2 hf
+        --   rcases nonsense with h_one | h_two
+        --   · rw [h_one.2] at i1
+        --     have H := unique_g_pg_c_ones_okay i1 a_is.symm b1_n.symm t
+        --     rw [h_one.1, h_one.2, List.append_nil, remove_ones_append, to_over_plain_prod, H.2]
+        --     exact (List.prefix_append_right_inj (remove_ones d3)).mpr ((h2_ih).1 H.1.symm)
+        --   have helper := h1_ih.1
+        --   rw [h_two.1, to_over_plain_prod]
+        --   exact List.prefix_of_append helper
+        -- rcases baaad with ⟨db, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
+        -- specialize h1_ih h3
+        -- have H2 := h1_ih.1 a_is (by rw [b1_n])
+        -- rw [to_over_plain_prod]
+        -- exact List.prefix_of_append H2
     intro b_is a_is
     have hb1 : n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
         b = b1 ++ b2 ∧ remove_ones b1 = to_over_plain n ∧ remove_ones b2 = to_over_plain q :=
       remove_ones_eq_to_over_plain_prod b_is
-    rcases hb1 with n_nil | q_nil | ⟨b1, b2, b1_len, b2_len, b1_is, b1n, b2q⟩
-    · have H : remove_ones b = to_over_plain q := by
-        rw [n_nil] at b_is
-        convert b_is
-      have op := word_top_bottom_t _ _ _ t n_nil
-      specialize h2_ih h1
-      have new_h2_ih := h2_ih.2 H
-      rw [op.1] at new_h2_ih
-      exact new_h2_ih a_is
-    · have H : remove_ones b = to_over_plain n := by
-        rw [q_nil] at b_is
-        convert b_is
-        simp; rfl
-      have rs := word_top_bottom_t _ _ _ h2 q_nil
-      specialize h1_ih h1
-      have new_h2_ih := h1_ih.2 H a_is
-      rw [rs.1]
-      exact new_h2_ih
-    rcases splittable_vertically_of_pg' h1 _ _ b1_is b1_len b2_len
-        with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
-    · specialize h1_ih i1
-      specialize h2_ih i2
-      simp_all
-    rcases baaad with ⟨d5, d6, i3, _ , ⟨e2_nil⟩, ⟨d2_is⟩, ⟨b2_is⟩⟩
-    aesop
+    sorry
+    -- rcases hb1 with n_nil | q_nil | ⟨b1, b2, b1_len, b2_len, b1_is, b1n, b2q⟩
+    -- · have H : remove_ones b = to_over_plain q := by
+    --     rw [n_nil] at b_is
+    --     convert b_is
+    --   have op := word_top_bottom_t _ _ _ t n_nil
+    --   specialize h2_ih h1
+    --   have new_h2_ih := h2_ih.2 H
+    --   rw [op.1] at new_h2_ih
+    --   exact new_h2_ih a_is
+    -- · have H : remove_ones b = to_over_plain n := by
+    --     rw [q_nil] at b_is
+    --     convert b_is
+    --     simp; rfl
+    --   have rs := word_top_bottom_t _ _ _ h2 q_nil
+    --   specialize h1_ih h1
+    --   have new_h2_ih := h1_ih.2 H a_is
+    --   rw [rs.1]
+    --   exact new_h2_ih
+    -- rcases splittable_vertically_of_pg' h1 _ _ b1_is b1_len b2_len
+    --     with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+    -- · specialize h1_ih i1
+    --   specialize h2_ih i2
+    --   simp_all
+    -- rcases baaad with ⟨d5, d6, i3, _ , ⟨e2_nil⟩, ⟨d2_is⟩, ⟨b2_is⟩⟩
+    -- aesop

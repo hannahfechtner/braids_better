@@ -1347,6 +1347,402 @@ theorem to_up_plain_eq_append_remove_ones (h : to_up_plain a = remove_ones b ++ 
     rw [h]
     rw [remove_ones_append]
 
+noncomputable def all_options_horizontal_append_one (g1 : PartialGrid a b bot [] up)
+    (g2 : PartialGrid up b2 bot2 mid2 up2)
+    (g1_ih : pg_mid_frontier_reverses_to_grid_extend_both g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_left g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_top g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_neither g1)
+    (g2_ih : pg_mid_frontier_reverses_to_grid_extend_both g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_left g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_top g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_neither g2) :
+    pg_mid_frontier_reverses_to_grid_extend_both (g1.horizontal_append_one g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_left (g1.horizontal_append_one g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_top (g1.horizontal_append_one g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_neither (g1.horizontal_append_one g2) := by
+  repeat any_goals constructor
+  · intro e f g i j k l m n no o op p
+    have H0 : pg_mid_frontier_reverses_to_grid_extend_left g1 := g1_ih.2.1
+    have H0' : pg_mid_frontier_reverses_to_grid_extend_both g2 := g2_ih.1
+    have e_is : e = remover (a.reverse) ++ remover (j.reverse) :=
+      to_up_plain_eq_append_remove_ones l.symm
+    have f_is : f = remover b ++ remover b2 ++ remover k:= by
+      rw [← remover_append, ← remover_append]
+      rw [← remove_ones_append] at m
+      exact eq_remover_of_remove_ones_eq_to_over_plain m
+    rw [e_is, f_is, List.append_assoc] at p
+    rcases splittable_vertically_of_gridt p _ _ rfl
+      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+    rcases splittable_horizontally_of_gridt i1 _ _ rfl with
+      ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
+    have H2 := gridt_of_PartialGrid g1
+    have H := unicity_c H2 i3 rfl rfl
+    rw [H.1.1] at rm1
+    rw [rm1] at i2
+    specialize @H0 (remover a.reverse ++ remover j.reverse) (remover b) c1 d1 j (to_up_plain e2)
+    rw [rm1, to_up_plain_mul, to_up_plain_remover_rev_eq_remove_ones
+      g2.left_frontier_is_false, to_up_plain_append, to_up_plain_remover_rev_eq_remove_ones no, to_up_plain_remover_rev_eq_remove_ones
+        g1.left_frontier_is_false, to_over_plain_remover_eq_remove_ones g1.top_frontier_is_true] at H0
+    rw [rm1] at i1
+    specialize H0 rfl rfl rfl n no i1
+    rw [List.append_nil] at H0
+    have H01 : SemiThue reversing (remove_ones (j ++ bot)++ remove_ones (bot2 ++ mid2 ++ up2 ++ k))
+      (to_over_plain d1 ++ to_up_plain e2 ++ remove_ones (bot2 ++ mid2 ++ up2 ++ k)) :=
+      SemiThue_append_right H0
+    have : remove_ones (j ++ bot)++ remove_ones (bot2 ++ mid2 ++ up2 ++ k) =
+      (remove_ones (j ++ (bot ++ bot2) ++ mid2 ++ up2 ++ k)) := by simp
+    rw [this] at H01
+    apply H01.trans
+    rw [rm, to_over_plain_mul, List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
+    apply SemiThue_append_left
+    have helper1 : remove_ones (to_up e2) ++ remove_ones up = to_up_plain (remover up.reverse ++ FreeMonoid.toList e2) := by
+      rw [to_up_plain_append, to_up_plain_remover_rev_eq_remove_ones, List.append_left_inj, remove_up_is_plain]
+      rfl
+      exact g2.left_frontier_is_false
+    have helper2 : remove_ones b2 ++ remove_ones k = to_over_plain ((remover b2) ++ (remover k)) := by
+      rw [to_over_plain_append, to_over_plain_remover_eq_remove_ones, List.append_right_inj, to_over_plain_remover_eq_remove_ones op]
+      exact g2.top_frontier_is_true
+    specialize @H0' (remover up.reverse ++ FreeMonoid.toList e2)
+      (Append.append (remover b2) (remover k)) g e1 (to_up e2) k helper1 helper2
+        to_up_len_pos is_false_up o op i2
+    rw [List.append_assoc, List.append_assoc, List.append_assoc, remove_ones_append, remove_up_is_plain] at H0'
+    exact H0'
+  · intro e f g i j k l m n o op p
+    have H0 : pg_mid_frontier_reverses_to_grid_extend_left g1 := g1_ih.2.1
+    have H0' : pg_mid_frontier_reverses_to_grid_extend_left g2 := g2_ih.2.1
+    have e_is : e = remover (a.reverse) ++ remover (j.reverse) := by
+      rw [← remover_append, ← List.reverse_append]
+      symm
+      apply remove_rev_eq_remove_ones_eq_to_up_plain
+      rw [← m]
+      rw [remove_ones_append]
+    have f_is : f = remover b ++ remover b2 := by
+      rw [← remover_append]
+      exact eq_remover_of_remove_ones_eq_to_over_plain n
+    rw [e_is, f_is] at p
+    rcases splittable_vertically_of_gridt p _ _ rfl
+      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+    rcases splittable_horizontally_of_gridt i1 _ _ rfl with
+      ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
+    have H2 := gridt_of_PartialGrid g1
+    have H := unicity_c H2 i3 rfl rfl
+    rw [H.2.1] at i3 i4
+    rw [H.1.1] at i3 rm1
+    specialize @H0 (remover a.reverse ++ remover j.reverse) (remover b) c1 d1 j (to_up_plain e2)
+    rw [rm1, to_up_plain_mul, to_up_plain_remover_rev_eq_remove_ones
+      g2.left_frontier_is_false] at H0
+    specialize H0 rfl
+    rw [to_up_plain_append, to_up_plain_remover_rev_eq_remove_ones op, to_up_plain_remover_rev_eq_remove_ones
+      g1.left_frontier_is_false, to_over_plain_remover_eq_remove_ones
+        g1.top_frontier_is_true] at H0
+    specialize H0 rfl rfl o op
+    rw [rm1] at i1
+    specialize H0 i1
+    rw [List.append_nil] at H0
+    have H01 : SemiThue reversing (remove_ones (j ++ bot)++ remove_ones (bot2++mid2))
+      (to_over_plain d1 ++ to_up_plain e2 ++ remove_ones (bot2++mid2)) :=
+      SemiThue_append_right H0
+    rw [← remove_ones_append, ← List.append_assoc, List.append_assoc j bot bot2] at H01
+    apply H01.trans
+    rw [rm, to_over_plain_mul, List.append_assoc, List.append_assoc]
+    apply SemiThue_append_left
+    unfold pg_mid_frontier_reverses_to_grid_extend_left at H0'
+    specialize @H0' c1 (remover b2) g e1 (to_up e2) k l
+    rw [rm1, to_up_plain_mul, to_up_plain_remover_rev_eq_remove_ones
+      g2.left_frontier_is_false, List.append_left_inj, remove_up_is_plain,
+      List.append_assoc] at H0'
+    have h1 : remove_ones b2 = to_over_plain (remover b2) := by
+      rw [to_over_plain_remover_eq_remove_ones]
+      exact g2.top_frontier_is_true
+    rw [rm1] at i2
+    specialize @H0' rfl h1 to_up_len_pos is_false_up i2
+    convert H0'
+    conv =>
+      enter [2]
+      rw [remove_ones_append]
+    rw [List.append_left_inj]
+    exact remove_up_is_plain.symm
+  · intro e f g i j k l m n o op p
+    have H0 : pg_mid_frontier_reverses_to_grid_extend_top g2 := g2_ih.2.2.1
+    unfold pg_mid_frontier_reverses_to_grid_extend_top at H0
+    have H2 := gridt_of_PartialGrid g1
+    unfold gridt_option at H2
+    have he : e = remover (a.reverse) := by
+      exact Eq.symm (remove_rev_eq_remove_ones_eq_to_up_plain m)
+    rw [he] at p
+    have hf : f = remover b ++ (remover b2 ++ remover j) := by
+      rw [← remover_append, ← remover_append, ← List.append_assoc]
+      exact eq_remover_of_remove_ones_eq_to_over_plain n
+    rw [hf] at p
+    rcases splittable_vertically_of_gridt p _ _ rfl
+      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+    have H := unicity_c H2 i1 rfl rfl
+    rw [H.1.1] at i2
+    rw [H.2.1] at rm
+    rw [rm, remove_ones_append, to_over_plain_mul,
+      to_over_plain_remover_eq_remove_ones g1.bottom_frontier_is_true, List.append_assoc,
+      List.append_right_inj] at l
+    specialize @H0 (remover up.reverse) ((Append.append (remover b2) (remover j))) g e1 j k l
+    apply H0 _ _ o op i2
+    · rw [to_up_plain_remover_rev_eq_remove_ones]
+      exact g2.left_frontier_is_false
+    change _ = to_over_plain (_ ++ _)
+    rw [to_over_plain_append, remove_ones_append,
+      to_over_plain_remover_eq_remove_ones op, to_over_plain_remover_eq_remove_ones g2.top_frontier_is_true]
+  · intro e f g i j k l m n o p
+    have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g2 := g2_ih.2.2.2
+    unfold pg_mid_frontier_reverses_to_grid_extend_neither at H0
+    have H2 := gridt_of_PartialGrid g1
+    unfold gridt_option at H2
+    have he : e = remover (a.reverse) := by
+      exact Eq.symm (remove_rev_eq_remove_ones_eq_to_up_plain n)
+    rw [he] at p
+    have hf : f = remover b ++ remover b2  := by
+      rw [← remover_append]
+      exact eq_remover_of_remove_ones_eq_to_over_plain o
+    rw [hf] at p
+    rcases splittable_vertically_of_gridt p _ _ rfl
+      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+    have H := unicity_c H2 i1 rfl rfl
+    rw [H.1.1] at i2
+    rw [H.2.1] at rm
+    rw [rm, remove_ones_append, to_over_plain_mul,
+      to_over_plain_remover_eq_remove_ones g1.bottom_frontier_is_true, List.append_assoc,
+      List.append_right_inj] at l
+    specialize @H0 (remover up.reverse) (remover b2) g e1 j k
+    apply H0 l m _ _ i2
+    · rw [to_up_plain_remover_rev_eq_remove_ones]
+      exact g2.left_frontier_is_false
+    rw [to_over_plain_remover_eq_remove_ones]
+    exact g2.top_frontier_is_true
+
+noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] up)
+    (g2 : PartialGrid a1 bot bot2 mid2 up2)
+    (g1_ih : pg_mid_frontier_reverses_to_grid_extend_both g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_left g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_top g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_neither g1)
+    (g2_ih : pg_mid_frontier_reverses_to_grid_extend_both g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_left g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_top g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_neither g2) :
+    pg_mid_frontier_reverses_to_grid_extend_both (g1.vertical_append_one g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_left (g1.vertical_append_one g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_top (g1.vertical_append_one g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_neither (g1.vertical_append_one g2) := by
+  repeat any_goals constructor
+  · intro e f g i j k l m n no o op p
+    have H0 : pg_mid_frontier_reverses_to_grid_extend_top g1 := g1_ih.2.2.1
+    have e_is : e = remover (a.reverse) ++ remover (a1.reverse) ++ remover j.reverse := by
+      rw [← remover_append, ← remover_append, ← List.reverse_append, ← List.reverse_append]
+      symm
+      apply remove_rev_eq_remove_ones_eq_to_up_plain
+      rw [← l, remove_ones_append]
+    have f_is : f = remover b ++ remover k := by
+      rw [← remover_append]
+      rw [← remove_ones_append] at m
+      exact eq_remover_of_remove_ones_eq_to_over_plain m
+    rw [e_is, f_is, List.append_assoc] at p
+    rcases splittable_horizontally_of_gridt p _ _ rfl
+      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+    rcases splittable_vertically_of_gridt i1 _ _ rfl with
+      ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
+    have H2 := gridt_of_PartialGrid g1
+    have H := unicity_c H2 i3 rfl rfl
+    rw [H.1.1] at i3 i4
+    rw [H.2.1] at i3 rm1
+    rw [rm1] at i1
+    have helper1 : remove_ones bot ++ to_over_plain e2 = to_over_plain (remover bot ++ FreeMonoid.toList e2) := by
+      rw [to_over_plain_append, to_over_plain_remover_eq_remove_ones, List.append_right_inj]
+      rfl
+      exact g2.top_frontier_is_true
+    have helper2 : remove_ones a = to_up_plain (remover a.reverse) := by
+      rw [to_up_plain_remover_rev_eq_remove_ones]
+      exact g1.left_frontier_is_false
+    have helper3 : remove_ones (b ++ k) = to_over_plain (remover b ++ remover k) := by
+      rw [to_over_plain_append, to_over_plain_remover_eq_remove_ones,
+        to_over_plain_remover_eq_remove_ones op, remove_ones_append]
+      exact g1.top_frontier_is_true
+    specialize @H0 (remover a.reverse) (remover b ++ remover k) d1
+      (remover bot ++ FreeMonoid.toList e2) k (to_over_plain e2) helper1 helper2 helper3 o op i1
+    rw [List.nil_append] at H0
+    apply @SemiThue_append_left _ _ _ _  (remove_ones (j ++ bot2 ++ mid2 ++ up2)) at H0
+    rw [← remove_ones_append, List.append_assoc, List.append_assoc, List.append_assoc] at H0
+    rw [List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
+    apply H0.trans
+    rw [rm, to_up_plain_mul, ← List.append_assoc, ← List.append_assoc]
+    apply SemiThue_append_right
+    have H0' : pg_mid_frontier_reverses_to_grid_extend_both g2 := g2_ih.1
+    rw [rm1] at i2
+    specialize @H0' (Append.append (remover a1.reverse) (remover j.reverse))
+      (remover bot ++ FreeMonoid.toList e2) e1 i j (to_over e2)
+    have : (remove_ones (j ++ bot2 ++ mid2 ++ up2 ++ to_over e2)) = (remove_ones (j ++ bot2 ++ mid2 ++ up2) ++ to_over_plain e2) := by
+      rw [remove_ones_append, List.append_right_inj]
+      exact remove_over_is_plain
+    rw [this] at H0'
+    apply H0' _ _ n no to_over_len_pos is_true_over i2
+    · change _ = to_up_plain (_ ++ _)
+      rw [to_up_plain_append, to_up_plain_remover_rev_eq_remove_ones no,
+        to_up_plain_remover_rev_eq_remove_ones g2.left_frontier_is_false]
+    rw [to_over_plain_append, to_over_plain_remover_eq_remove_ones g2.top_frontier_is_true,
+      List.append_right_inj, remove_over_is_plain]
+    rfl
+  · intro e f g i j k l m n o op p
+    have H0 : pg_mid_frontier_reverses_to_grid_extend_left g2 := g2_ih.2.1
+    have e_is : e = remover (a.reverse) ++ remover (a1.reverse) ++ remover (j.reverse) := by
+      rw [← remover_append, ← remover_append, ← List.reverse_append, ← List.reverse_append]
+      symm
+      apply remove_rev_eq_remove_ones_eq_to_up_plain
+      rw [← m]
+      rw [remove_ones_append]
+    have f_is : f = remover b := by
+      exact eq_remover_of_remove_ones_eq_to_over_plain n
+    rw [e_is, f_is, List.append_assoc] at p
+    rcases splittable_horizontally_of_gridt p _ _ rfl
+      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+    have H2 := gridt_of_PartialGrid g1
+    have H := unicity_c H2 i1 rfl rfl
+    rw [H.1.1] at rm
+    rw [H.2.1] at i2
+    apply @H0 (Append.append (remover a1.reverse) (remover j.reverse)) (remover bot) e1 i j k _ _ _ o op i2
+    · rw [rm, to_up_plain_mul, to_up_plain_remover_rev_eq_remove_ones g1.right_frontier_is_false,
+        remove_ones_append, ← List.append_assoc, List.append_left_inj] at l
+      exact l
+    · change _ = to_up_plain (_ ++ _)
+      rw [to_up_plain_append,
+        to_up_plain_remover_rev_eq_remove_ones op, to_up_plain_remover_rev_eq_remove_ones g2.left_frontier_is_false]
+    rw [to_over_plain_remover_eq_remove_ones]
+    exact g2.top_frontier_is_true
+  · intro e f g i j k l m n o op p
+    have H0 : pg_mid_frontier_reverses_to_grid_extend_top g1 := g1_ih.2.2.1
+    have e_is : e = remover (a.reverse) ++ remover (a1.reverse) := by
+      rw [← remover_append, ← List.reverse_append]
+      symm
+      apply remove_rev_eq_remove_ones_eq_to_up_plain
+      rw [← m]
+    have f_is : f = remover b ++ remover j := by
+      rw [← remover_append]
+      exact eq_remover_of_remove_ones_eq_to_over_plain n
+    rw [e_is, f_is] at p
+    rcases splittable_horizontally_of_gridt p _ _ rfl
+      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+    rcases splittable_vertically_of_gridt i1 _ _ rfl with
+      ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
+    have H2 := gridt_of_PartialGrid g1
+    have H := unicity_c H2 i3 rfl rfl
+    rw [H.1.1] at i3 i4
+    rw [H.2.1] at i3 rm1
+    rw [rm1] at i1
+    have helper1 : remove_ones bot ++ to_over_plain e2 = to_over_plain (remover bot ++ FreeMonoid.toList e2) := by
+      rw [to_over_plain_append, to_over_plain_remover_eq_remove_ones, List.append_right_inj]
+      rfl
+      exact g2.top_frontier_is_true
+    have helper2 : remove_ones a = to_up_plain (remover a.reverse) := by
+      rw [to_up_plain_remover_rev_eq_remove_ones]
+      exact g1.left_frontier_is_false
+    have helper3 : remove_ones (b ++ j) = to_over_plain (remover b ++ remover j) := by
+      rw [to_over_plain_append, to_over_plain_remover_eq_remove_ones,
+        to_over_plain_remover_eq_remove_ones op, remove_ones_append]
+      exact g1.top_frontier_is_true
+    specialize @H0 (remover a.reverse) (remover b ++ remover j) d1
+      (remover bot ++ FreeMonoid.toList e2) j (to_over_plain e2) helper1 helper2 helper3 o op i1
+    rw [List.nil_append] at H0
+    apply @SemiThue_append_left _ _ _ _  (remove_ones (mid2 ++ up2)) at H0
+    rw [← remove_ones_append, List.append_assoc] at H0
+    rw [List.append_assoc, List.append_assoc]
+    apply H0.trans
+    rw [rm, to_up_plain_mul, ← List.append_assoc, ← List.append_assoc]
+    apply SemiThue_append_right
+    have H0' : pg_mid_frontier_reverses_to_grid_extend_top g2 := g2_ih.2.2.1
+    rw [rm1] at i2
+    specialize @H0' (remover a1.reverse) (remover bot ++ FreeMonoid.toList e2) e1 i (to_over e2) k
+    have : (remove_ones (mid2 ++ up2 ++ to_over e2)) = (remove_ones (mid2 ++ up2) ++ to_over_plain e2) := by
+      rw [remove_ones_append, List.append_right_inj]
+      exact remove_over_is_plain
+    rw [this] at H0'
+    apply H0' l (to_up_plain_remover_rev_eq_remove_ones g2.left_frontier_is_false).symm _ to_over_len_pos is_true_over i2
+    rw [remove_ones_append, to_over_plain_append, to_over_plain_remover_eq_remove_ones
+        g2.top_frontier_is_true, List.append_right_inj, remove_over_is_plain]
+    rfl
+  · intro e f g i j k l m n o p
+    have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g2 := g2_ih.2.2.2
+    unfold pg_mid_frontier_reverses_to_grid_extend_neither at H0
+    have H2 := gridt_of_PartialGrid g1
+    unfold gridt_option at H2
+    have he : f = remover (b) := eq_remover_of_remove_ones_eq_to_over_plain o
+    rw [he] at p
+    have hf : e = remover (List.reverse a) ++ remover (List.reverse a1)  := by
+      apply to_up_plain_eq_append_remove_ones
+      rw [remove_ones_append] at n
+      exact n.symm
+    rw [hf] at p
+    rcases splittable_horizontally_of_gridt p _ _ rfl
+      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+    have H := unicity_c H2 i1 rfl rfl
+    rw [H.2.1] at i2
+    rw [H.1.1] at rm
+    rw [rm, remove_ones_append, to_up_plain_mul,
+      to_up_plain_remover_rev_eq_remove_ones g1.right_frontier_is_false, ← List.append_assoc,
+      List.append_left_inj] at m
+    specialize @H0 (remover a1.reverse) (remover bot) e1 i j k
+    apply H0 l m _ _ i2
+    · rw [to_up_plain_remover_rev_eq_remove_ones]
+      exact g2.left_frontier_is_false
+    rw [to_over_plain_remover_eq_remove_ones]
+    exact g2.top_frontier_is_true
+
+noncomputable def all_options_horizontal_append (h : mid.length > 0)
+    (g1 : PartialGrid a b bot mid up) (g2 : PartialGrid up b2 bot2 mid2 up2)
+    (g1_ih : pg_mid_frontier_reverses_to_grid_extend_both g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_left g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_top g1 ×
+      pg_mid_frontier_reverses_to_grid_extend_neither g1)
+    (g2_ih : pg_mid_frontier_reverses_to_grid_extend_both g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_left g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_top g2 ×
+      pg_mid_frontier_reverses_to_grid_extend_neither g2) :
+    pg_mid_frontier_reverses_to_grid_extend_both (PartialGrid.horizontal_append h g1 g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_left (PartialGrid.horizontal_append h g1 g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_top (PartialGrid.horizontal_append h g1 g2) ×
+    pg_mid_frontier_reverses_to_grid_extend_neither (PartialGrid.horizontal_append h g1 g2) := by
+  repeat any_goals constructor
+  · intro e f g i j k l m n no o op p
+    sorry
+  · intro e f g i j k l m n o op p
+    sorry
+  · intro e f g i j k l m n o op p
+    sorry
+  intro e f g i j k l m n o p
+  have e_is : e = remover a.reverse := (remove_rev_eq_remove_ones_eq_to_up_plain n).symm
+  have f_is : f = remover b ++ remover b2 := by
+    rw [remove_ones_append] at o
+    apply to_over_plain_eq_append_remove_ones o.symm
+  rw [e_is, f_is] at p
+  rcases splittable_vertically_of_gridt p _ _ rfl
+    with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
+  have H := (same_time_c i1 g1).1 (to_up_plain_remover_rev_eq_remove_ones
+    g1.left_frontier_is_false).symm (by rw [to_over_plain_remover_eq_remove_ones g1.top_frontier_is_true]; exact
+      List.prefix_refl_C)
+  have H2 := (same_time_c i1 g1).2 (to_over_plain_remover_eq_remove_ones (by exact
+    g1.top_frontier_is_true)).symm
+    (by rw [to_up_plain_remover_rev_eq_remove_ones g1.left_frontier_is_false]; exact List.suffix_refl_C)
+  rcases H with ⟨d2, ⟨hd2⟩⟩
+  rcases H2 with ⟨d3, ⟨hd3⟩⟩
+  have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g1 := g1_ih.2.2.2
+  specialize @H0 (remover a.reverse) (remover b) c1 d1 d2 d3 hd2 hd3
+    (to_up_plain_remover_rev_eq_remove_ones g1.left_frontier_is_false).symm
+    (to_over_plain_remover_eq_remove_ones g1.top_frontier_is_true).symm i1
+  apply @SemiThue_append_right _ _ _ _ (remove_ones (bot2 ++ mid2)) at H0
+  rw [← remove_ones_append, ← List.append_assoc] at H0
+  apply H0.trans
+  rw [rm, to_over_plain_mul, ← hd2, List.append_assoc, List.append_right_inj] at l
+  rw [l]
+  rw [List.append_assoc, List.append_assoc]
+  apply SemiThue_append_left
+  have H0' : pg_mid_frontier_reverses_to_grid_extend_left g2 := g2_ih.2.1
+  sorry
+
 noncomputable def all_options_frontier_reverse (h : PartialGrid a1 b1 c1 d1 e1) :
   pg_mid_frontier_reverses_to_grid_extend_both h × pg_mid_frontier_reverses_to_grid_extend_left h
   × pg_mid_frontier_reverses_to_grid_extend_top h × pg_mid_frontier_reverses_to_grid_extend_neither h := by
@@ -1675,177 +2071,12 @@ noncomputable def all_options_frontier_reverse (h : PartialGrid a1 b1 c1 d1 e1) 
     convert grid_to_rev p
     simp [n, o]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
-    rename_i a b bot up b2 bot2 mid2 up2
-    repeat any_goals constructor
-    · intro e f g i j k l m n no o op p
-      have H0 : pg_mid_frontier_reverses_to_grid_extend_left g1 := g1_ih.2.1
-      have H0' : pg_mid_frontier_reverses_to_grid_extend_both g2 := g2_ih.1
-      have e_is : e = remover (a.reverse) ++ remover (j.reverse) := by
-        rw [← remover_append, ← List.reverse_append]
-        symm
-        apply remove_rev_eq_remove_ones_eq_to_up_plain
-        rw [← l]
-        rw [remove_ones_append]
-      have f_is : f = remover b ++ remover b2 ++ remover k:= by
-        rw [← remover_append, ← remover_append]
-        rw [← remove_ones_append] at m
-        exact eq_remover_of_remove_ones_eq_to_over_plain m
-      rw [e_is, f_is, List.append_assoc] at p
-      rcases splittable_vertically_of_gridt p _ _ rfl
-        with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
-      rcases splittable_horizontally_of_gridt i1 _ _ rfl with
-        ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
-      have H2 := gridt_of_PartialGrid g1
-      have H := unicity_c H2 i3 rfl rfl
-      rw [H.2.1] at i3 i4
-      rw [H.1.1] at i3 rm1
-      rw [rm1] at i2
-      specialize @H0 (remover a.reverse ++ remover j.reverse) (remover b) c1 d1 j (to_up_plain e2)
-      rw [rm1, to_up_plain_mul, to_up_plain_remover_rev_eq_remove_ones
-        g2.left_frontier_is_false] at H0
-      specialize H0 rfl
-      rw [to_up_plain_append, to_up_plain_remover_rev_eq_remove_ones no, to_up_plain_remover_rev_eq_remove_ones
-          g1.left_frontier_is_false, to_over_plain_remover_eq_remove_ones g1.top_frontier_is_true] at H0
-      specialize H0 rfl rfl n no
-      rw [rm1] at i1
-      specialize H0 i1
-      rw [List.append_nil] at H0
-      have H01 : SemiThue reversing (remove_ones (j ++ bot)++ remove_ones (bot2 ++ mid2 ++ up2 ++ k))
-        (to_over_plain d1 ++ to_up_plain e2 ++ remove_ones (bot2 ++ mid2 ++ up2 ++ k)) :=
-        SemiThue_append_right H0
-      have : remove_ones (j ++ bot)++ remove_ones (bot2 ++ mid2 ++ up2 ++ k) =
-        (remove_ones (j ++ (bot ++ bot2) ++ mid2 ++ up2 ++ k)) := by simp
-      rw [this] at H01
-      apply H01.trans
-      rw [rm, to_over_plain_mul, List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
-      apply SemiThue_append_left
-      unfold pg_mid_frontier_reverses_to_grid_extend_both at H0'
-      rcases splittable_vertically_of_gridt i2 _ _ rfl with
-        ⟨c3, d3, e3, i21, i22, ⟨rm2⟩⟩
-      rcases splittable_horizontally_of_gridt i21 _ _ rfl with
-        ⟨c4, d4, e4, i23, i24, ⟨rm3⟩⟩
-      have helper1 : remove_ones (to_up e2) ++ remove_ones up = to_up_plain (remover up.reverse ++ FreeMonoid.toList e2) := by
-        rw [to_up_plain_append, to_up_plain_remover_rev_eq_remove_ones, List.append_left_inj, remove_up_is_plain]
-        rfl
-        exact g2.left_frontier_is_false
-      have helper2 : remove_ones b2 ++ remove_ones k = to_over_plain ((remover b2) ++ (remover k)) := by
-        rw [to_over_plain_append, to_over_plain_remover_eq_remove_ones, List.append_right_inj, to_over_plain_remover_eq_remove_ones op]
-        exact g2.top_frontier_is_true
-      specialize @H0' (remover up.reverse ++ FreeMonoid.toList e2)
-        (Append.append (remover b2) (remover k)) g e1 (to_up e2) k helper1 helper2
-          to_up_len_pos is_false_up o op i2
-      rw [List.append_assoc, List.append_assoc, List.append_assoc, remove_ones_append, remove_up_is_plain] at H0'
-      exact H0'
-    · intro e f g i j k l m n o op p
-      have H0 : pg_mid_frontier_reverses_to_grid_extend_left g1 := g1_ih.2.1
-      have H0' : pg_mid_frontier_reverses_to_grid_extend_left g2 := g2_ih.2.1
-      have e_is : e = remover (a.reverse) ++ remover (j.reverse) := by
-        rw [← remover_append, ← List.reverse_append]
-        symm
-        apply remove_rev_eq_remove_ones_eq_to_up_plain
-        rw [← m]
-        rw [remove_ones_append]
-      have f_is : f = remover b ++ remover b2 := by
-        rw [← remover_append]
-        exact eq_remover_of_remove_ones_eq_to_over_plain n
-      rw [e_is, f_is] at p
-      rcases splittable_vertically_of_gridt p _ _ rfl
-        with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
-      rcases splittable_horizontally_of_gridt i1 _ _ rfl with
-        ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
-      have H2 := gridt_of_PartialGrid g1
-      have H := unicity_c H2 i3 rfl rfl
-      rw [H.2.1] at i3 i4
-      rw [H.1.1] at i3 rm1
-      specialize @H0 (remover a.reverse ++ remover j.reverse) (remover b) c1 d1 j (to_up_plain e2)
-      rw [rm1, to_up_plain_mul, to_up_plain_remover_rev_eq_remove_ones
-        g2.left_frontier_is_false] at H0
-      specialize H0 rfl
-      rw [to_up_plain_append, to_up_plain_remover_rev_eq_remove_ones op, to_up_plain_remover_rev_eq_remove_ones
-        g1.left_frontier_is_false, to_over_plain_remover_eq_remove_ones
-          g1.top_frontier_is_true] at H0
-      specialize H0 rfl rfl o op
-      rw [rm1] at i1
-      specialize H0 i1
-      rw [List.append_nil] at H0
-      have H01 : SemiThue reversing (remove_ones (j ++ bot)++ remove_ones (bot2++mid2))
-        (to_over_plain d1 ++ to_up_plain e2 ++ remove_ones (bot2++mid2)) :=
-        SemiThue_append_right H0
-      rw [← remove_ones_append, ← List.append_assoc, List.append_assoc j bot bot2] at H01
-      apply H01.trans
-      rw [rm, to_over_plain_mul, List.append_assoc, List.append_assoc]
-      apply SemiThue_append_left
-      unfold pg_mid_frontier_reverses_to_grid_extend_left at H0'
-      specialize @H0' c1 (remover b2) g e1 (to_up e2) k l
-      rw [rm1, to_up_plain_mul, to_up_plain_remover_rev_eq_remove_ones
-        g2.left_frontier_is_false, List.append_left_inj, remove_up_is_plain,
-        List.append_assoc] at H0'
-      have h1 : remove_ones b2 = to_over_plain (remover b2) := by
-        rw [to_over_plain_remover_eq_remove_ones]
-        exact g2.top_frontier_is_true
-      rw [rm1] at i2
-      specialize @H0' rfl h1 to_up_len_pos is_false_up i2
-      convert H0'
-      conv =>
-        enter [2]
-        rw [remove_ones_append]
-      rw [List.append_left_inj]
-      exact remove_up_is_plain.symm
-    · intro e f g i j k l m n o op p
-      have H0 : pg_mid_frontier_reverses_to_grid_extend_top g2 := g2_ih.2.2.1
-      unfold pg_mid_frontier_reverses_to_grid_extend_top at H0
-      have H2 := gridt_of_PartialGrid g1
-      unfold gridt_option at H2
-      have he : e = remover (a.reverse) := by
-        exact Eq.symm (remove_rev_eq_remove_ones_eq_to_up_plain m)
-      rw [he] at p
-      have hf : f = remover b ++ (remover b2 ++ remover j) := by
-        rw [← remover_append, ← remover_append, ← List.append_assoc]
-        exact eq_remover_of_remove_ones_eq_to_over_plain n
-      rw [hf] at p
-      rcases splittable_vertically_of_gridt p _ _ rfl
-        with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
-      have H := unicity_c H2 i1 rfl rfl
-      rw [H.1.1] at i2
-      rw [H.2.1] at rm
-      rw [rm, remove_ones_append, to_over_plain_mul,
-        to_over_plain_remover_eq_remove_ones g1.bottom_frontier_is_true, List.append_assoc,
-        List.append_right_inj] at l
-      specialize @H0 (remover up.reverse) ((Append.append (remover b2) (remover j))) g e1 j k l
-      apply H0 _ _ o op i2
-      · rw [to_up_plain_remover_rev_eq_remove_ones]
-        exact g2.left_frontier_is_false
-      change _ = to_over_plain (_ ++ _)
-      rw [to_over_plain_append, remove_ones_append,
-        to_over_plain_remover_eq_remove_ones op, to_over_plain_remover_eq_remove_ones g2.top_frontier_is_true]
-    · intro e f g i j k l m n o p
-      have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g2 := g2_ih.2.2.2
-      unfold pg_mid_frontier_reverses_to_grid_extend_neither at H0
-      have H2 := gridt_of_PartialGrid g1
-      unfold gridt_option at H2
-      have he : e = remover (a.reverse) := by
-        exact Eq.symm (remove_rev_eq_remove_ones_eq_to_up_plain n)
-      rw [he] at p
-      have hf : f = remover b ++ remover b2  := by
-        rw [← remover_append]
-        exact eq_remover_of_remove_ones_eq_to_over_plain o
-      rw [hf] at p
-      rcases splittable_vertically_of_gridt p _ _ rfl
-        with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
-      have H := unicity_c H2 i1 rfl rfl
-      rw [H.1.1] at i2
-      rw [H.2.1] at rm
-      rw [rm, remove_ones_append, to_over_plain_mul,
-        to_over_plain_remover_eq_remove_ones g1.bottom_frontier_is_true, List.append_assoc,
-        List.append_right_inj] at l
-      specialize @H0 (remover up.reverse) (remover b2) g e1 j k
-      apply H0 l m _ _ i2
-      · rw [to_up_plain_remover_rev_eq_remove_ones]
-        exact g2.left_frontier_is_false
-      rw [to_over_plain_remover_eq_remove_ones]
-      exact g2.top_frontier_is_true
-  | horizontal_append h g1 g2 g1_ih g2_ih => sorry
-  | vertical_append_one g1 g2 g1_ih g2_ih => sorry
+    exact all_options_horizontal_append_one g1 g2 g1_ih g2_ih
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rename_i a b bot mid up b2 bot2 mid2 up2
+    sorry
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    exact all_options_vertical_append_one g1 g2 g1_ih g2_ih
   | vertical_append g1 g2 h g1_ih g2_ih => sorry
 
 noncomputable def pg_mid_frontier_reverses_to_grid (h : PartialGrid a1 b1 c1 d1 e1)
