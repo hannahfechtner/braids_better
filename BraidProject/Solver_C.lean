@@ -1331,51 +1331,6 @@ def pg_mid_frontier_reverses_to_grid_extend_neither (h : PartialGrid a1 b1 c1 d1
   remove_ones a1 = to_up_plain a → remove_ones b1 = to_over_plain b → gridt a b f g →
   SemiThue reversing (remove_ones d1) (c2 ++ e2)
 
-noncomputable def one_option_frontier_reverse (h : PartialGrid a1 b1 c1 d1 e1) :
-  pg_mid_frontier_reverses_to_grid_extend_neither h := by
-  induction h with
-  | single_gridt h => sorry
-  | empty a b ha ha1 hb hb =>
-    intro e f g h i k l m n o p
-    simp [to_up, remove_ones] at m
-    simp [to_over, remove_ones] at l
-    convert grid_to_rev p
-    simp [n, o]
-  | horizontal_append_one g1 g2 g1_ih g2_ih =>
-    rename_i a b bot up b2 bot2 mid2 up2
-    intro e f g i j k l m n o p
-    have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g2 := g2_ih
-    unfold pg_mid_frontier_reverses_to_grid_extend_neither at H0
-    have H2 := gridt_of_PartialGrid g1
-    unfold gridt_option at H2
-    have he : e = remover (a.reverse) := by
-      exact Eq.symm (remove_rev_eq_remove_ones_eq_to_up_plain n)
-    rw [he] at p
-    have hf : f = remover b ++ remover b2  := by
-      rw [← remover_append]
-      exact eq_remover_of_remove_ones_eq_to_over_plain o
-    rw [hf] at p
-    rcases splittable_vertically_of_gridt p _ _ rfl
-      with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
-    have H := unicity_c H2 i1 rfl rfl
-    rw [H.1.1] at i2
-    rw [H.2.1] at rm
-    rw [rm, remove_ones_append, to_over_plain_mul,
-      to_over_plain_remover_eq_remove_ones g1.bottom_frontier_is_true, List.append_assoc,
-      List.append_right_inj] at l
-    specialize @H0 (remover up.reverse) (remover b2) g e1 j k
-    apply H0 l m _ _ i2
-    · rw [to_up_plain_remover_rev_eq_remove_ones]
-      exact g2.left_frontier_is_false
-    rw [to_over_plain_remover_eq_remove_ones]
-    exact g2.top_frontier_is_true
-  | horizontal_append h g1 g2 g1_ih g2_ih =>
-    rename_i a b bot mid up b2 bot2 mid2 up2
-    intro e f g i j k l m n o p
-    sorry
-  | vertical_append_one g1 g2 g1_ih g2_ih => sorry
-  | vertical_append g1 g2 h g1_ih g2_ih => sorry
-
 theorem to_over_plain_eq_append_remove_ones (h : to_over_plain a = remove_ones b ++ remove_ones c) :
   a = remover b ++ remover c :=by
     rw [← remover_append]
@@ -1505,13 +1460,130 @@ noncomputable def all_options_frontier_reverse (h : PartialGrid a1 b1 c1 d1 e1) 
         convert hr
         simp
         rfl
-      | adjacent i' k' h =>
-        simp [remove_ones, to_over] at n
-        have f_is : f = [k'] := by exact to_over_plain_inj n.symm
-        rw [f_is] at p
-        sorry
-      | separated i j h => sorry
-    · sorry
+      | adjacent i' k' hdist =>
+        have hm := to_up_plain_eq_append_remove_ones m.symm
+        simp_all [remove_ones]
+        change to_over_plain [k'] = _ at n
+        have hf := to_over_plain_inj n
+        rcases splittable_horizontally_of_gridt p ([i']) _ hm with
+          ⟨u, c1, c2, g1, g2, ⟨spec⟩⟩
+        rw [← hf] at g1
+        have H := i_adjacent_t g1 i' k' rfl rfl hdist
+        have hr := grid_to_rev g2
+        rw [H.2, to_up_plain_remover_rev_eq_remove_ones op] at hr
+        have hn : (remove_ones j ++ to_over_plain (FreeMonoid.of k' * FreeMonoid.of i')) =
+          (remove_ones j ++ [(k', true), (i', true)]) := by
+          simp [to_over_plain_mul]
+          rfl
+        rw [hn] at hr
+        apply hr.trans
+        rw [spec, to_up_plain_mul, H.1, to_up_plain_mul] at l
+        change k ++ [(k', false), (i', false)] = to_up_plain c2 ++ [(k', false), (i', false)] at l
+        rw [List.append_left_inj] at l
+        rw [l]
+        exact SemiThue.refl _
+      | separated i' j' hdist =>
+        have hm := to_up_plain_eq_append_remove_ones m.symm
+        simp_all [remove_ones]
+        change to_over_plain [j'] = _ at n
+        have hf := to_over_plain_inj n
+        rcases splittable_horizontally_of_gridt p ([i']) _ hm with
+          ⟨u, c1, c2, g1, g2, ⟨spec⟩⟩
+        rw [← hf] at g1
+        have H := helpier_ij_t g1 i' j' hdist rfl rfl
+        have hr := grid_to_rev g2
+        have k_is : k = to_up_plain c2 := by
+          rw [spec, to_up_plain_mul, H.1] at l
+          change k ++ [(i', false)] = to_up_plain c2 ++ [(i', false)] at l
+          exact List.append_cancel_right l
+        rw [H.2, to_up_plain_remover_rev_eq_remove_ones op, ← k_is] at hr
+        rw [← n]
+        exact hr
+    · rename_i a b c d
+      intro e f g i j k l m n o op p
+      rw [List.append_assoc, remove_ones_append, remove_ones_nil, List.nil_append]
+      cases h with
+      | empty =>
+        simp_all [remove_ones]
+        have : e = [] := by exact to_up_plain_inj m
+        rw [this] at p
+        exact grid_to_rev p
+      | top_bottom i =>
+        simp_all [remove_ones]
+        have : e = [] := by exact to_up_plain_inj m
+        rw [this] at p
+        have H := word_side_side_t _ _ _ p rfl
+        rw [H.1]
+        simp [← H.2, ← l] at n
+        rw [n]
+        change SemiThue reversing _ (_ ++ [])
+        rw [List.append_nil]
+        exact SemiThue.refl _
+      | sides i =>
+        simp_all [remove_ones]
+        have H := grid_to_rev p
+        rw [← m] at H
+        exact H
+      | top_left i =>
+        rw [remove_ones_append] at n
+        simp [to_over] at n
+        have hf := to_over_plain_eq_append_remove_ones n.symm
+        rcases splittable_vertically_of_gridt p (remover [(some i, true)]) _ hf with
+          ⟨u, c1, c2, g1, g2, ⟨spec⟩⟩
+        have e_is : e = [i] := by
+          simp [remove_ones, to_up] at m
+          exact to_up_plain_inj m.symm
+        have H := i_top_left_t g1 i e_is rfl
+        rw [H.1] at g2
+        have H1 := word_side_side_t _ _ _ g2 rfl
+        simp_all [remove_ones]
+        change SemiThue reversing (remove_ones j) (to_over_plain (remover j) ++ [])
+        rw [List.append_nil, to_over_plain_remover_eq_remove_ones op]
+        exact SemiThue.refl _
+      | adjacent i' k' hdist =>
+        have e_is : e = [i'] := by
+          simp [remove_ones, to_up] at m
+          exact to_up_plain_inj m.symm
+        rw [remove_ones_append] at n
+        simp [to_over] at n
+        have hf := to_over_plain_eq_append_remove_ones n.symm
+        rcases splittable_vertically_of_gridt p (remover [(some k', true)]) _ hf with
+          ⟨u, c1, c2, g1, g2, ⟨spec⟩⟩
+        have H := i_adjacent_t g1 i' k' e_is rfl hdist
+        rw [H.1] at g2
+        have hr := grid_to_rev g2
+        rw [remove_ones_append]
+        change SemiThue reversing ([(k', false), (i', false)] ++ remove_ones j) _
+        have k_is : k = to_over_plain c2 := by
+          simp only [to_over_cons_cons, to_over_singleton, remove_ones, List.cons_append,
+            List.nil_append, spec, H.2, to_over_plain_mul, List.append_assoc] at l
+          change _ = (k', true) :: (i', true) :: (to_over_plain c2) at l
+          simp only [List.cons.injEq, true_and] at l
+          exact l
+        rw [to_over_plain_remover_eq_remove_ones op, ← k_is] at hr
+        exact hr
+      | separated i' j' hdist =>
+        have e_is : e = [i'] := by
+          simp [remove_ones, to_up] at m
+          exact to_up_plain_inj m.symm
+        rw [remove_ones_append] at n
+        simp [to_over] at n
+        have hf := to_over_plain_eq_append_remove_ones n.symm
+        rcases splittable_vertically_of_gridt p (remover [(some j', true)]) _ hf with
+          ⟨u, c1, c2, g1, g2, ⟨spec⟩⟩
+        have H := helpier_ij_t g1 i' j' hdist e_is rfl
+        rw [H.1] at g2
+        have hr := grid_to_rev g2
+        rw [remove_ones_append]
+        change SemiThue reversing ([(i', false)] ++ remove_ones j) _
+        have k_is : k = to_over_plain c2 := by
+          simp only [to_over_cons_cons, to_over_singleton, remove_ones, List.cons_append,
+            List.nil_append, spec, H.2, to_over_plain_mul, List.append_assoc] at l
+          change _ = (j', true) :: (to_over_plain c2) at l
+          simp only [List.cons.injEq, true_and] at l
+          exact l
+        rw [to_over_plain_remover_eq_remove_ones op, ← k_is] at hr
+        exact hr
     rename_i a b c d
     intro e f g i j k l m n o p
     cases h with
