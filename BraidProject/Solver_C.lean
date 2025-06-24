@@ -2481,17 +2481,14 @@ noncomputable def all_options_frontier_reverse (h : PartialGrid a1 b1 c1 d1 e1) 
 noncomputable def pg_mid_frontier_reverses_to_grid (h : PartialGrid a1 b1 c1 d1 e1)
   (ha : a1 = to_up a) (hb : b1 = to_over b) (h2 : gridt a b f g) :
   SemiThue reversing (remove_ones (c1 ++ d1 ++ e1)) (to_over_plain g ++ to_up_plain f) := by
-  have ⟨H2, H3⟩ := same_time h2 h
+  have ⟨H2, H3⟩ := same_time_c h2 h
   rw [ha, hb] at H2 H3
   rw [remove_over_is_plain] at H2
   rw [remove_up_is_plain] at H3
-  specialize H2 remove_up_is_plain List.prefix_rfl
-  specialize H3 remove_over_is_plain List.suffix_rfl
-  have nonsense1 : Σ c2, PLift (remove_ones c1 ++ c2 = to_over_plain g) := by sorry
-  have nonsense2 : Σ e2, PLift (e2 ++ remove_ones e1 = to_up_plain f) := by
-    sorry
-  rcases nonsense1 with ⟨c2, ⟨hc2⟩⟩
-  rcases nonsense2 with ⟨e2, ⟨he2⟩⟩
+  specialize H2 remove_up_is_plain List.prefix_refl_C
+  specialize H3 remove_over_is_plain List.suffix_refl_C
+  rcases H2 with ⟨c2, ⟨hc2⟩⟩
+  rcases H3 with ⟨e2, ⟨he2⟩⟩
   have ha1 : remove_ones a1 = to_up_plain a := by
     rw [ha]
     exact remove_up_is_plain
