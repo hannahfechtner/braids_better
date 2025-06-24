@@ -1106,7 +1106,7 @@ theorem correct_one_dir (h : final_solver a b) : PresentedMonoid.mk braid_rels_m
       have H := @solver_equiv (a1 :: a2) (b1 :: b2) (by simp) (by simp)
       rw [h] at H
       exact H
-#check skeleton_order
+
 def skeleton_order_to_up_plain_to_over_plain : skeleton_order
   (to_up_plain a ++ to_over_plain b) := by
   use to_up_plain a
