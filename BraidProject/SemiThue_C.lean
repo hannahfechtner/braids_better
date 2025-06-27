@@ -31,7 +31,7 @@ private noncomputable def one_step_in_front {a b c d e : List α} (h1 : SemiThue
 
 private noncomputable def one_step_trans (h1 : SemiThue_one_step rels a b) (h2 : SemiThue_one_step rels b c) :
     SemiThue_one_step rels a c := by
-  induction h1
+  induction h1 --note to self : this is stupid. induct on h2
   · assumption
   rename_i d e f g h i j k
   have H : ∀ l, SemiThue_one_step rels l c → l = (f ++ e ++ g) → SemiThue_one_step rels h c := by

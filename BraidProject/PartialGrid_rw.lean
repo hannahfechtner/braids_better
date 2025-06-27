@@ -333,7 +333,7 @@ theorem split_same (h : PartialGrid a b c d e) :
   c ++ d = c3 ++ d3 ++ c4 ++ d4 → c1 = c3 ∧ d1 = d3 ∧ e1 = e3 ∧
   c2 = c4 ∧ d2 = d4 := by sorry
 
-theorem same_type_same_length_pg (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
+theorem same_type_same_length_pg {a b c d e a1 b1 c1 d1 e1} (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
     a = a1 → b = b1 → c = c1 → d = d1 → e = e1 → g1.length = g2.length := by
   induction g1 generalizing a1 b1 c1 d1 e1 with
   | single_gridt h =>

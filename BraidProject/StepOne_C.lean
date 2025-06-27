@@ -126,6 +126,11 @@ inductive grid_style : List (Option ℕ × Bool) → List (Option ℕ × Bool) �
 | close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style [(i, false), (j, true)]
     [(j, true), (i, true), (j, false), (i, false)]
 
+inductive empty_fill : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Type
+| over (n : ℕ) : empty_fill [(n, false), (none, true)] [(none, true), (n, false)]
+| up (n : ℕ) : empty_fill [(none, false), (some n, true)] [(n, true), (none, false)]
+| empty : empty_fill [(none, false), (none, true)] [(none, true), (none, false)]
+
 def remove_ones (L : List (Option α × Bool)) : List (α × Bool) :=
   match L with
   | [] => []
@@ -314,6 +319,52 @@ noncomputable def equiv_insert : SemiThue grid_style (a :: L) (insert_one a L) :
       | (some c, false) :: tail1 => exact SemiThue.refl _
   exact H L.length _ _ (by simp)
 
+noncomputable def equiv_insert_empty_fill : SemiThue empty_fill (a :: L) (insert_one a L) := by
+  have H : ∀ t L a, L.length ≤ t → SemiThue empty_fill (a :: L) (insert_one a L) := by
+    intro t
+    induction t
+    · intro L a len
+      simp at len
+      rw [len]
+      exact SemiThue.refl [a]
+    rename_i n ih
+    intro L a len
+    match a with
+    | (none, true) =>
+      simp
+      exact SemiThue.refl ((none, true) :: L)
+    | (none, false) =>
+      match L with
+      | [] => exact SemiThue.refl [(none, false)]
+      | (none, true) :: tail =>
+        simp at len
+        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel empty_fill.empty)) (SemiThue_cons (ih tail _ len))
+      | (none, false) :: tail => exact SemiThue.refl ((none, false) :: (none, false) :: tail)
+      | (some c, true) :: tail1 =>
+        simp at len
+        specialize ih tail1 (none, false) len
+        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel (empty_fill.up c))) (SemiThue_cons ih)
+      | (some c, false) :: tail1 =>
+        exact SemiThue.refl ((none, false) :: (some c, false) :: tail1)
+    | (some b, true) =>
+      match L with
+      | [] => exact SemiThue.refl _
+      | (none, true) :: tail => exact SemiThue.refl _
+      | (none, false) :: tail => exact SemiThue.refl _
+      | (some c, true) :: tail1 => exact SemiThue.refl _
+      | (some c, false) :: tail1 => exact SemiThue.refl _
+    | (some b, false) =>
+      match L with
+      | [] => exact SemiThue.refl _
+      | (none, true) :: tail =>
+        simp at len
+        specialize ih tail (some b, false) len
+        exact SemiThue.trans _ _ _ (SemiThue_append_right (SemiThue_rel (empty_fill.over b))) (SemiThue_cons ih)
+      | (none, false) :: tail => exact SemiThue.refl _
+      | (some c, true) :: tail1 => exact SemiThue.refl _
+      | (some c, false) :: tail1 => exact SemiThue.refl _
+  exact H L.length _ _ (by simp)
+
 @[simp]
 theorem remove_ones_insert_none : remove_ones (insert_one (none, b) L) = remove_ones L := by
   induction L
@@ -391,6 +442,12 @@ noncomputable def equiv_move_ones : SemiThue grid_style L (move_ones L) := by
   · exact SemiThue.refl []
   rename_i head tail ih
   exact SemiThue.trans _ _ _ (SemiThue_cons ih) (equiv_insert)
+
+noncomputable def equiv_move_ones_empty_fill : SemiThue empty_fill L (move_ones L) := by
+  induction L
+  · exact SemiThue.refl []
+  rename_i head tail ih
+  exact SemiThue.trans _ _ _ (SemiThue_cons ih) (equiv_insert_empty_fill)
 
 theorem remove_ones_move_ones : remove_ones (move_ones L) = remove_ones L := by
   induction L

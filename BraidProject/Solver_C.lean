@@ -5,10 +5,6 @@ import BraidProject.GridsTwo_C
 import BraidProject.PartialGrid_bounded
 import BraidProject.PartialGrid_rw
 
--- import BraidProject.BraidGroup
--- def to_up_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, false)) a.reverse
-
--- def to_over_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, true)) a
 def find_it (L : List (ℕ × Bool)) :
     Option (List (ℕ × Bool) × ((ℕ) × (ℕ)) × List (ℕ × Bool)) :=
   match L with
@@ -268,7 +264,8 @@ theorem get_n'_same'  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc
   rw [hc2] at rev2
   apply get_n'_same'' _ _ _ _ hr rev1 rev2 h1 h6 h2 h7
 
-theorem get_n'_same  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2 : c2 = c0 ++ c₂ ++ c3) (hr : reversing c₁ c₂)
+theorem get_n'_same  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)
+  (hc2 : c2 = c0 ++ c₂ ++ c3) (hr : reversing c₁ c₂)
   (rev1 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c1)
   (rev2 : SemiThue reversing (to_up_plain a ++ to_over_plain b) c2) :
   (get_pg ⟨a, ⟨b, ⟨c1, ⟨len, rev1⟩⟩⟩⟩).2.2.2.1.length <
@@ -280,7 +277,7 @@ theorem get_n'_same  (c0 c3 c₁ c₂ c1 c2) (hc1 : c1 = c0 ++ c₁ ++ c3)  (hc2
     simp only at rest
     symm
     nth_rewrite 1 [← rest.1]
-    simp
+    simp only [List.append_assoc, remove_ones_append]
   rw [← hc2]
   rcases (get_pg ⟨a, ⟨b, ⟨c2, ⟨len, rev2⟩⟩⟩⟩) with ⟨bot, mid, up, pg1, rest⟩
   simp only at rest
