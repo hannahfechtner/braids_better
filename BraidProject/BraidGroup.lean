@@ -135,6 +135,20 @@ theorem braid_group_inf.braid (i : ℕ) :
   simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_close, alternate_three, mul_inv_rev,
     Nat.succ_eq_add_one, inv_inv, mul_one]
 
+theorem braid_group_inf.braid_dist {i j : ℕ} (hd : i.dist j = 1):
+    σi i * σi j * σi i = σi j * σi i * σi j := by
+  symm
+  rw [←mul_inv_eq_one]
+  apply QuotientGroup.eq.mpr
+  apply Subgroup.subset_normalClosure
+  apply Set.mem_range.mpr
+  use (i, j)
+  have is_three : M_braid i j = 3 := by
+    unfold M_braid
+    simp [hd]
+  simp [is_three, Function.uncurry_apply_pair, artin_tits_rel, M_braid_close, alternate_three, mul_inv_rev,
+    Nat.succ_eq_add_one, inv_inv, mul_one]
+
 theorem braid_group.comm {i j : Fin n} (h : i ≤ j) :
     σ i.castSucc.castSucc * σ j.succ.succ = σ j.succ.succ * σ i.castSucc.castSucc := by
   symm

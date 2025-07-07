@@ -3,32 +3,35 @@ import BraidProject.SemiThue_C
 import BraidProject.TrueFalse_C
 import BraidProject.PartialGrid_bounded
 
-inductive pgf : List (Option ℕ × Bool) → List (Option ℕ × Bool) →
-  List (Option ℕ × Bool) → Type
+inductive Option2 (α : Type u) where
+  /-- No value. -/
+  | none_a : Option2 α
+  | none_b : Option2 α
+  /-- Some value of type `α`. -/
+  | some2 (val : α) : Option2 α
+
+open Option2
+inductive pgf : List (Option2 ℕ × Bool) → List (Option2 ℕ × Bool) →
+  List (Option2 ℕ × Bool) → Type
   | skeleton (a b) (ha : a.length > 0) (ha1 : is_false a) (hb : b.length > 0) (hb : is_true b ):
       pgf a b (a ++ b)
-  | empty (h : pgf a b c) (hc : c = c1 ++ [(none, false), (none, true)] ++ c2) :
-      pgf a b (c1 ++ [(none, true), (none, false)] ++ c2)
-  | top_bottom (i : ℕ) (h : pgf a b c) (hc : c = c1 ++ [(none, false), (some i, true)] ++ c2) :
-      pgf a b (c1 ++ [(some i, true), (none, false)] ++ c2)
-  | sides (i : ℕ) (h : pgf a b c) (hc : c = (c1 ++ [(some i, false), (none, true)] ++ c2)) :
-      pgf a b (c1 ++ [(none, true), (some i, false)] ++ c2)
-  | top_left (i : ℕ) (h : pgf a b c) (hc : c = (c1 ++ [(some i, false), (some i, true)] ++ c2)) :
-      pgf a b (c1 ++ [(none, true), (none, false)] ++ c2)
+  | empty (h : pgf a b c) (hc : c = c1 ++ [(n1, false), (n2, true)] ++ c2)
+      (hn1 : n1 = none_a ∨ n1 = none_b) (hn2 : n2 = none_a ∨ n2 = none_b) :
+      pgf a b (c1 ++ [(none_a, true), (none_a, false)] ++ c2)
+  | top_bottom (i : ℕ) (h : pgf a b c) (hc : c = c1 ++ [(n1, false), (some2 i, true)] ++ c2)
+      (hn1 : n1 = none_a ∨ n1 = none_b) :
+      pgf a b (c1 ++ [(some2 i, true), (none_a, false)] ++ c2)
+  | sides (i : ℕ) (h : pgf a b c) (hc : c = (c1 ++ [(some2 i, false), (n2, true)] ++ c2))
+      (hn2 : n2 = none_a ∨ n2 = none_b) :
+      pgf a b (c1 ++ [(none_a, true), (some2 i, false)] ++ c2)
+  | top_left (i : ℕ) (h : pgf a b c) (hc : c = (c1 ++ [(some2 i, false), (some2 i, true)] ++ c2)) :
+      pgf a b (c1 ++ [(none_b, true), (none_b, false)] ++ c2)
   | adjacent (i j : ℕ) (hd : Nat.dist i j = 1) (h : pgf a b c)
-      (hc : c = (c1 ++ [(some i, false), (some j, true)] ++ c2)) :
-      pgf a b (c1 ++ [(some j, true), (some i, true), (some j, false), (some i, false)] ++ c2)
+      (hc : c = (c1 ++ [(some2 i, false), (some2 j, true)] ++ c2)) :
+      pgf a b (c1 ++ [(some2 j, true), (some2 i, true), (some2 j, false), (some2 i, false)] ++ c2)
   | separated (i k : ℕ) (hd : Nat.dist i k ≥ 2) (h : pgf a b c)
-     (hc : c = c1 ++ [(some i, false), (some k, true)] ++ c2) :
-      pgf a b (c1 ++ [(some k, true), (some i, false)] ++ c2)
-
-inductive grid_style_real : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Type
-| basic (n : ℕ) : grid_style_real [(some n, false), (some n, true)] [(none, true), (none, false)]
-| apart {i j : ℕ} (h : Nat.dist i j > 1) : grid_style_real [(i, false), (j, true)] [(j, true), (i, false)]
-| close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style_real [(i, false), (j, true)]
-    [(j, true), (i, true), (j, false), (i, false)]
-
-
+     (hc : c = c1 ++ [(some2 i, false), (some2 k, true)] ++ c2) :
+      pgf a b (c1 ++ [(some2 k, true), (some2 i, false)] ++ c2)
 
 -- inductive pgf1 : List (Option ℕ × Bool) → List (Option ℕ × Bool) →
 --   List (Option ℕ × Bool) → Type
@@ -36,23 +39,23 @@ inductive grid_style_real : List (Option ℕ × Bool) → List (Option ℕ × Bo
 --       pgf1 a b (a ++ b)
 --   | empty (h : pgf1 a b (c1 ++ [(none, false), (none, true)] ++ c2)) :
 --       pgf1 a b (c1 ++ [(none, true), (none, false)] ++ c2)
---   | top_bottom (i : ℕ) (h : pgf1 a b (c1 ++ [(none, false), (some i, true)] ++ c2)) :
---       pgf1 a b (c1 ++ [(some i, true), (none, false)] ++ c2)
---   | sides (i : ℕ) (h : pgf1 a b (c1 ++ [(some i, false), (none, true)] ++ c2)) :
---       pgf1 a b (c1 ++ [(none, true), (some i, false)] ++ c2)
---   | top_left (i : ℕ) (h : pgf1 a b (c1 ++ [(some i, false), (some i, true)] ++ c2)) :
+--   | top_bottom (i : ℕ) (h : pgf1 a b (c1 ++ [(none, false), (some2 i, true)] ++ c2)) :
+--       pgf1 a b (c1 ++ [(some2 i, true), (none, false)] ++ c2)
+--   | sides (i : ℕ) (h : pgf1 a b (c1 ++ [(some2 i, false), (none, true)] ++ c2)) :
+--       pgf1 a b (c1 ++ [(none, true), (some2 i, false)] ++ c2)
+--   | top_left (i : ℕ) (h : pgf1 a b (c1 ++ [(some2 i, false), (some2 i, true)] ++ c2)) :
 --       pgf1 a b (c1 ++ [(none, true), (none, false)] ++ c2)
---   | adjacent (i j : ℕ) (hd : Nat.dist i j = 1) (h : pgf1 a b (c1 ++ [(some i, false), (some j, true)] ++ c2)) :
---       pgf1 a b (c1 ++ [(some j, true), (some i, true), (some j, false), (some i, false)] ++ c2)
---   | separated (i k : ℕ) (hd : Nat.dist i j ≥ 2) (h : pgf1 a b (c1 ++ [(some i, false), (some k, true)] ++ c2)) :
---       pgf1 a b (c1 ++ [(some k, true), (some i, false)] ++ c2)
+--   | adjacent (i j : ℕ) (hd : Nat.dist i j = 1) (h : pgf1 a b (c1 ++ [(some2 i, false), (some2 j, true)] ++ c2)) :
+--       pgf1 a b (c1 ++ [(some2 j, true), (some2 i, true), (some2 j, false), (some2 i, false)] ++ c2)
+--   | separated (i k : ℕ) (hd : Nat.dist i j ≥ 2) (h : pgf1 a b (c1 ++ [(some2 i, false), (some2 k, true)] ++ c2)) :
+--       pgf1 a b (c1 ++ [(some2 k, true), (some2 i, false)] ++ c2)
 
 def pgf.length (h : pgf a b c) : Nat :=
   match h with
   | pgf.skeleton _ _ _ _ _ _ => 0
-  | pgf.empty h _ => pgf.length h
-  | pgf.top_bottom i h _ => pgf.length h
-  | pgf.sides _ h _ => pgf.length h
+  | pgf.empty h _ _ _ => pgf.length h
+  | pgf.top_bottom i h _ _ => pgf.length h
+  | pgf.sides _ h _ _ => pgf.length h
   | pgf.top_left _ h _ => pgf.length h + 1
   | pgf.adjacent _ _ _ h _ => pgf.length h + 1
   | pgf.separated _ _ _ h _ => pgf.length h + 1
@@ -73,21 +76,6 @@ noncomputable def pgf_left_false (h : pgf a b c) : is_false a := by
 noncomputable def pgf_top_true (h : pgf a b c) : is_true b := by
   induction h; all_goals assumption
 
-noncomputable def add_cell_w_len (h : pgf a b c)
-    (hg : grid_style_real i j) (fe : c = k ++ i ++ l) :
-    Σ c', (h1 : pgf a b c') × PLift (c' = k ++ j ++ l) ×
-    PLift (h.length < h1.length) := by
-  cases hg with
-  | basic n =>
-    use k ++ [(none, true), (none, false)] ++ l
-    use pgf.top_left _ h fe
-    constructor
-    constructor
-    simp [pgf.length]
-    constructor
-    simp [pgf.length]
-  | apart h => sorry
-  | close h => sorry
 -- def get_maximal_true_prefix (c : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
 --   match c with
 --   | [] => []
@@ -196,47 +184,50 @@ theorem pgf_length_skeleton (h : pgf a b c) (hc : c = a ++ b) : h.length = 0 := 
     exact (true_false_not_in_spine hc (pgf_left_false h) (pgf_top_true h)).elim
   | adjacent i j hd h hc ih =>
     rename_i c5 c6 _
-    have : c5 ++ [(some j, true), (some i, true), (some j, false), (some i, false)] ++ c6  =
-      (c5 ++ [(some j, true)]) ++ [(some i, true), (some j, false)] ++ ((some i, false) :: c6) := by simp
+    have : c5 ++ [(some2 j, true), (some2 i, true), (some2 j, false), (some2 i, false)] ++ c6  =
+      (c5 ++ [(some2 j, true)]) ++ [(some2 i, true), (some2 j, false)] ++ ((some2 i, false) :: c6) := by simp
     rw [this] at hc
     exact (true_false_not_in_spine hc (pgf_left_false h) (pgf_top_true h)).elim
   | separated i k h h ih =>
     exact (true_false_not_in_spine hc (pgf_left_false h) (pgf_top_true h)).elim
 
-noncomputable def triple_no_overlap'
- (h : m ++ [(some i, true), (none, false)] ++ n =
-  p ++ [(some j', true), (some i', true), (some j', false), (some i', false)] ++ q) :
- (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(some j', true), (some i', true), (some j', false), (some i', false)] ++ m2 = m ∧
- m2 ++ [(some i, true), (none, false)] ++ n = q)) ⊕
- (List.Infix' [(none, true), (none, false)] n) := by sorry
+-- noncomputable def triple_no_overlap'
+--  (h : m ++ [(some2 i, true), (none, false)] ++ n =
+--   p ++ [(some2 j', true), (some2 i', true), (some2 j', false), (some2 i', false)] ++ q) :
+--  (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(some2 j', true), (some2 i', true), (some2 j', false), (some2 i', false)] ++ m2 = m ∧
+--  m2 ++ [(some2 i, true), (none, false)] ++ n = q)) ⊕
+--  (List.Infix' [(none, true), (none, false)] n) := by sorry
 
-noncomputable def triple_no_overlap''
- (h : m ++ [(some i, true), (none, false)] ++ n = p ++ [(none, true), (none, false)] ++ q) :
- (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(none, true), (none, false)] ++ m2 = m ∧
- m2 ++ [(some i, true), (none, false)] ++ n = q)) ⊕
- (List.Infix' [(none, true), (none, false)] n) := by sorry
+-- noncomputable def triple_no_overlap''
+--  (h : m ++ [(some2 i, true), (none, false)] ++ n = p ++ [(none, true), (none, false)] ++ q) :
+--  (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(none, true), (none, false)] ++ m2 = m ∧
+--  m2 ++ [(some2 i, true), (none, false)] ++ n = q)) ⊕
+--  (List.Infix' [(none, true), (none, false)] n) := by sorry
 
-noncomputable def triple_no_overlap'''
- (h : m ++ [(some i, true), (none, false)] ++ n = p ++ [(none, true), (some i', false)] ++ q) :
- (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(none, true), (some i', false)] ++ m2 = m ∧
-  m2 ++ [(some i, true), (none, false)] ++ n = q)) ⊕
- (List.Infix' [(none, true), (none, false)] n) := by
-  rcases list_splits_somewhere h with h1 | h2 | h3
-  · exfalso
-    sorry
-  · sorry
-  sorry
+-- noncomputable def triple_no_overlap'''
+--  (h : m ++ [(some2 i, true), (none, false)] ++ n = p ++ [(none, true), (some2 i', false)] ++ q) :
+--  (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(none, true), (some2 i', false)] ++ m2 = m ∧
+--   m2 ++ [(some2 i, true), (none, false)] ++ n = q)) ⊕
+--  (List.Infix' [(none, true), (none, false)] n) := by
+--   rcases list_splits_somewhere h with h1 | h2 | h3
+--   · exfalso
+--     sorry
+--   · sorry
+--   sorry
 
-noncomputable def triple_no_overlap''''
-  (h : m ++ [(some i, true), (none, false)] ++ n = p ++ [(some k', true), (some i', false)] ++ q) :
-  (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(some k', true), (some i', false)] ++ m2 = m ∧
-  m2 ++ [(some i, true), (none, false)] ++ n = q)) ⊕
-  (List.Infix' [(none, true), (none, false)] n) := by
-  sorry
+-- noncomputable def triple_no_overlap''''
+--   (h : m ++ [(some2 i, true), (none, false)] ++ n = p ++ [(some2 k', true), (some2 i', false)] ++ q) :
+--   (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(some2 k', true), (some2 i', false)] ++ m2 = m ∧
+--   m2 ++ [(some2 i, true), (none, false)] ++ n = q)) ⊕
+--   (List.Infix' [(none, true), (none, false)] n) := by
+--   sorry
 
 noncomputable def pgf_length_top_bottom (h2 : pgf a b c)
-    (hc : m ++ [(some i, true), (none, false)] ++ n = c) :
-      Σ (h1 : pgf a b (m ++ [(none, false), (some i, true)] ++ n)), PLift (h1.length = h2.length) := by
+    (hc : m ++ [(some2 i, true), (none_a, false)] ++ n = c) :
+      (Σ (h1 : pgf a b (m ++ [(none_a, false), (some2 i, true)] ++ n)), PLift (h1.length = h2.length))
+      ×
+      (Σ (h1 : pgf a b (m ++ [(none_b, false), (some2 i, true)] ++ n)), PLift (h1.length = h2.length))
+      := by
   induction h2 generalizing m n with
   | skeleton ha ha' hb hb' =>
     exact (true_false_not_in_spine hc ha' hb').elim
@@ -247,100 +238,100 @@ noncomputable def pgf_length_top_bottom (h2 : pgf a b c)
     sorry
   | sides i' h hc' ih =>
     rename_i c' p q
-    rcases triple_no_overlap''' hc with ⟨m1, m2, ⟨hm⟩⟩ | oop
-    · have for_ih : m1 ++ [(some i', false), (none, true)] ++ m2 ++ [(some i, true), (none, false)] ++ n =
-        p ++ [(some i', false), (none, true)] ++ q := by
-        rw [hm.1, ← hm.2.2]
-        simp
-      rw [← hc'] at for_ih
-      specialize ih for_ih
-      rcases ih with ⟨h2, h2_len⟩
-      rw [pgf.length, ← h2_len.1]
-      have H := @pgf.sides _ _ _ m1 ((m2 ++ [(none, false), (some i, true)] ++ n)) i' h2 (by simp)
-      rw [← hm.2.1]
-      have : (m1 ++ [(none, true), (some i', false)] ++ m2 ++ [(none, false), (some i, true)] ++ n) =
-        (m1 ++ [(none, true), (some i', false)] ++ (m2 ++ [(none, false), (some i, true)] ++ n)) := by simp
-      rw [this]
-      use @pgf.sides _ _ _ m1 ((m2 ++ [(none, false), (some i, true)] ++ n)) i' h2 (by simp)
-      constructor
-      rw [pgf.length]
+    -- rcases triple_no_overlap''' hc with ⟨m1, m2, ⟨hm⟩⟩ | oop
+    -- · have for_ih : m1 ++ [(some2 i', false), (none, true)] ++ m2 ++ [(some2 i, true), (none, false)] ++ n =
+    --     p ++ [(some2 i', false), (none, true)] ++ q := by
+    --     rw [hm.1, ← hm.2.2]
+    --     simp
+    --   rw [← hc'] at for_ih
+    --   specialize ih for_ih
+    --   rcases ih with ⟨h2, h2_len⟩
+    --   rw [pgf.length, ← h2_len.1]
+    --   have H := @pgf.sides _ _ _ m1 ((m2 ++ [(none, false), (some2 i, true)] ++ n)) i' h2 (by simp)
+    --   rw [← hm.2.1]
+    --   have : (m1 ++ [(none, true), (some2 i', false)] ++ m2 ++ [(none, false), (some2 i, true)] ++ n) =
+    --     (m1 ++ [(none, true), (some2 i', false)] ++ (m2 ++ [(none, false), (some2 i, true)] ++ n)) := by simp
+    --   rw [this]
+    --   use @pgf.sides _ _ _ m1 ((m2 ++ [(none, false), (some2 i, true)] ++ n)) i' h2 (by simp)
+    --   constructor
+    --   rw [pgf.length]
     sorry
   | top_left k h hc' ih =>
     rename_i c' p q
     simp [pgf.length]
-    rcases triple_no_overlap'' hc with ⟨m1, m2, ⟨hm⟩⟩ | oop
-    · have for_ih : m1 ++ [(some k, false), (some k, true)] ++ m2 ++ [(some i, true), (none, false)] ++ n =
-        p ++ [(some k, false), (some k, true)] ++ q := by
-        rw [hm.1, ← hm.2.2]
-        simp
-      rw [← hc'] at for_ih
-      specialize ih for_ih
-      rcases ih with ⟨h2, h2_len⟩
-      rw [← h2_len.1]
-      have H := @pgf.top_left _ _ _ m1 ((m2 ++ [(none, false), (some i, true)] ++ n)) k h2 (by simp)
-      rw [← hm.2.1]
-      have : m1 ++ [(none, true), (none, false)] ++ m2 ++ [(none, false), (some i, true)] ++ n =
-        m1 ++ [(none, true), (none, false)] ++ (m2 ++ [(none, false), (some i, true)] ++ n) := by simp
-      rw [this]
-      use @pgf.top_left _ _ _ m1 ((m2 ++ [(none, false), (some i, true)] ++ n)) k h2 (by simp)
-      constructor
-      rw [pgf.length]
+    -- rcases triple_no_overlap'' hc with ⟨m1, m2, ⟨hm⟩⟩ | oop
+    -- · have for_ih : m1 ++ [(some2 k, false), (some2 k, true)] ++ m2 ++ [(some2 i, true), (none, false)] ++ n =
+    --     p ++ [(some2 k, false), (some2 k, true)] ++ q := by
+    --     rw [hm.1, ← hm.2.2]
+    --     simp
+    --   rw [← hc'] at for_ih
+    --   specialize ih for_ih
+    --   rcases ih with ⟨h2, h2_len⟩
+    --   rw [← h2_len.1]
+    --   have H := @pgf.top_left _ _ _ m1 ((m2 ++ [(none, false), (some2 i, true)] ++ n)) k h2 (by simp)
+    --   rw [← hm.2.1]
+    --   have : m1 ++ [(none, true), (none, false)] ++ m2 ++ [(none, false), (some2 i, true)] ++ n =
+    --     m1 ++ [(none, true), (none, false)] ++ (m2 ++ [(none, false), (some2 i, true)] ++ n) := by simp
+    --   rw [this]
+    --   use @pgf.top_left _ _ _ m1 ((m2 ++ [(none, false), (some2 i, true)] ++ n)) k h2 (by simp)
+    --   constructor
+    --   rw [pgf.length]
     sorry
   | adjacent i' j' hd h hc' ih =>
     rename_i c' p q
-    rcases triple_no_overlap' hc with ⟨m1, m2, ⟨hm⟩⟩ | oop
-    · have for_ih : m1 ++ [(some i', false), (some j', true)] ++ m2 ++ [(some i, true), (none, false)] ++ n =
-        p ++ [(some i', false), (some j', true)] ++ q := by
-        rw [hm.1, ← hm.2.2]
-        simp
-      rw [← hc'] at for_ih
-      specialize ih for_ih
-      rcases ih with ⟨h2, h2_len⟩
-      rw [pgf.length, ← h2_len.1]
-      have H := @pgf.adjacent _ _ _ m1 ((m2 ++ [(none, false), (some i, true)] ++ n)) i' j' hd h2 (by simp)
-      rw [← hm.2.1]
-      have : (m1 ++ [(some j', true), (some i', true), (some j', false), (some i', false)] ++ m2 ++
-        [(none, false), (some i, true)] ++ n) =
-        (m1 ++ [(some j', true), (some i', true), (some j', false), (some i', false)] ++
-        (m2 ++ [(none, false), (some i, true)] ++ n)) := by simp
-      rw [this]
-      use @pgf.adjacent _ _ _ m1 ((m2 ++ [(none, false), (some i, true)] ++ n)) i' j' hd h2 (by simp)
-      constructor
-      rw [pgf.length]
+    -- rcases triple_no_overlap' hc with ⟨m1, m2, ⟨hm⟩⟩ | oop
+    -- · have for_ih : m1 ++ [(some2 i', false), (some2 j', true)] ++ m2 ++ [(some2 i, true), (none, false)] ++ n =
+    --     p ++ [(some2 i', false), (some2 j', true)] ++ q := by
+    --     rw [hm.1, ← hm.2.2]
+    --     simp
+    --   rw [← hc'] at for_ih
+    --   specialize ih for_ih
+    --   rcases ih with ⟨h2, h2_len⟩
+    --   rw [pgf.length, ← h2_len.1]
+    --   have H := @pgf.adjacent _ _ _ m1 ((m2 ++ [(none, false), (some2 i, true)] ++ n)) i' j' hd h2 (by simp)
+    --   rw [← hm.2.1]
+    --   have : (m1 ++ [(some2 j', true), (some2 i', true), (some2 j', false), (some2 i', false)] ++ m2 ++
+    --     [(none, false), (some2 i, true)] ++ n) =
+    --     (m1 ++ [(some2 j', true), (some2 i', true), (some2 j', false), (some2 i', false)] ++
+    --     (m2 ++ [(none, false), (some2 i, true)] ++ n)) := by simp
+    --   rw [this]
+    --   use @pgf.adjacent _ _ _ m1 ((m2 ++ [(none, false), (some2 i, true)] ++ n)) i' j' hd h2 (by simp)
+    --   constructor
+    --   rw [pgf.length]
     sorry
   | separated i' k' hd h hc' ih =>
     rename_i c' p q
-    rcases triple_no_overlap'''' hc with ⟨m1, m2, ⟨hm⟩⟩ | oop
-    · have for_ih : m1 ++ [(some i', false), (some k', true)] ++ m2 ++ [(some i, true), (none, false)] ++ n =
-        p ++ [(some i', false), (some k', true)] ++ q := by
-        rw [hm.1, ← hm.2.2]
-        simp
-      rw [← hc'] at for_ih
-      specialize ih for_ih
-      rcases ih with ⟨h2, h2_len⟩
-      rw [pgf.length, ← h2_len.1]
-      have H := @pgf.separated _ _ _ m1 ((m2 ++ [(none, false), (some i, true)] ++ n)) _ _ hd h2 (by simp)
-      rw [← hm.2.1]
-      have : (m1 ++ [(some k', true), (some i', false)] ++ m2 ++
-        [(none, false), (some i, true)] ++ n) =
-        (m1 ++ [(some k', true), (some i', false)] ++
-        (m2 ++ [(none, false), (some i, true)] ++ n)) := by simp
-      rw [this]
-      use @pgf.separated _ _ _ m1 ((m2 ++ [(none, false), (some i, true)] ++ n)) _ _ hd h2 (by simp)
-      constructor
-      rw [pgf.length]
+    -- rcases triple_no_overlap'''' hc with ⟨m1, m2, ⟨hm⟩⟩ | oop
+    -- · have for_ih : m1 ++ [(some2 i', false), (some2 k', true)] ++ m2 ++ [(some2 i, true), (none, false)] ++ n =
+    --     p ++ [(some2 i', false), (some2 k', true)] ++ q := by
+    --     rw [hm.1, ← hm.2.2]
+    --     simp
+    --   rw [← hc'] at for_ih
+    --   specialize ih for_ih
+    --   rcases ih with ⟨h2, h2_len⟩
+    --   rw [pgf.length, ← h2_len.1]
+    --   have H := @pgf.separated _ _ _ m1 ((m2 ++ [(none, false), (some2 i, true)] ++ n)) _ _ hd h2 (by simp)
+    --   rw [← hm.2.1]
+    --   have : (m1 ++ [(some2 k', true), (some2 i', false)] ++ m2 ++
+    --     [(none, false), (some2 i, true)] ++ n) =
+    --     (m1 ++ [(some2 k', true), (some2 i', false)] ++
+    --     (m2 ++ [(none, false), (some2 i, true)] ++ n)) := by simp
+    --   rw [this]
+    --   use @pgf.separated _ _ _ m1 ((m2 ++ [(none, false), (some2 i, true)] ++ n)) _ _ hd h2 (by simp)
+    --   constructor
+    --   rw [pgf.length]
     sorry
 
 
-noncomputable def pgf_length_sides (h2 : pgf a b c)
-    (hc : m ++ [(none, true), (some i, false)] ++ n = c) :
-      Σ (h1 : pgf a b (m ++ [(some i, false), (none, true)] ++ n)), PLift (h1.length = h2.length) := by
-  sorry
+-- noncomputable def pgf_length_sides (h2 : pgf a b c)
+--     (hc : m ++ [(none, true), (some2 i, false)] ++ n = c) :
+--       Σ (h1 : pgf a b (m ++ [(some2 i, false), (none, true)] ++ n)), PLift (h1.length = h2.length) := by
+--   sorry
 
-noncomputable def pgf_length_top_left (i) (h2 : pgf a b c)
-    (hc : m ++ [(none, true), (none, false)] ++ n = c) :
-      Σ (h1 : pgf a b (m ++ [(some i, false), (some i, true)] ++ n)), PLift (h1.length +1 = h2.length) := by
-  sorry
+-- noncomputable def pgf_length_top_left (i) (h2 : pgf a b c)
+--     (hc : m ++ [(none, true), (none, false)] ++ n = c) :
+--       Σ (h1 : pgf a b (m ++ [(some2 i, false), (some2 i, true)] ++ n)), PLift (h1.length +1 = h2.length) := by
+--   sorry
 
 theorem pgf_length_well_defined (h1 : pgf a1 b1 c1) (h2 : pgf a2 b2 c2)
     (ha12 : a1 = a2) (hb12 : b1 = b2) (hc12 : c1 = c2) : h1.length = h2.length := by
@@ -349,13 +340,24 @@ theorem pgf_length_well_defined (h1 : pgf a1 b1 c1) (h2 : pgf a2 b2 c2)
     rw [ha12, hb12] at hc12
     rw [pgf_length_skeleton h2 hc12.symm, pgf.length]
   | empty h hc ih => sorry
-  | top_bottom i h hc ih =>
+  | top_bottom i h hc hn1 ih =>
     rename_i l m n
     rw [pgf.length]
-    have H := pgf_length_top_bottom h2 hc12
+    rcases hn1
+    · have H := (pgf_length_top_bottom h2 hc12).1
+      rcases H with ⟨h3, ⟨h3_len⟩⟩
+      rw [← h3_len]
+      apply ih h3 ha12 hb12
+      rw [hc]
+      simp
+      assumption
+    have H := (pgf_length_top_bottom h2 hc12).2
     rcases H with ⟨h3, ⟨h3_len⟩⟩
     rw [← h3_len]
-    exact ih h3 ha12 hb12 hc
+    apply ih h3 ha12 hb12
+    rw [hc]
+    simp
+    assumption
   | sides i h hc ih =>
     rw [pgf.length]
     have H := pgf_length_sides h2 hc12
@@ -591,37 +593,37 @@ noncomputable def SemiThue_empty_w_len : {h : SemiThue grid_style [(none, false)
   simp [rw_length]
 
 noncomputable def SemiThue_top_bottom_w_len (i : ℕ) :
-  {h : SemiThue grid_style [(none, false), (some i, true)] [(some i, true), (none, false)] // rw_length h = 0} := by
-  rw [← List.nil_append [(none, false), (some i, true)], ← List.nil_append [(some i, true), (none, false)],
-    ← List.append_nil ([] ++ [(none, false), (some i, true)]), ← List.append_nil ([] ++ [(some i, true), (none, false)])]
+  {h : SemiThue grid_style [(none, false), (some2 i, true)] [(some2 i, true), (none, false)] // rw_length h = 0} := by
+  rw [← List.nil_append [(none, false), (some2 i, true)], ← List.nil_append [(some2 i, true), (none, false)],
+    ← List.append_nil ([] ++ [(none, false), (some2 i, true)]), ← List.append_nil ([] ++ [(some2 i, true), (none, false)])]
   use SemiThue.reduction (grid_style.up i)
   simp [rw_length]
 
 noncomputable def SemiThue_sides_w_len (i : ℕ) :
-  {h : SemiThue grid_style [(some i, false), (none, true)] [(none, true), (some i, false)] // rw_length h = 0} := by
-  rw [← List.nil_append [(some i, false), (none, true)], ← List.nil_append [(none, true), (some i, false)],
-    ← List.append_nil ([] ++ [(some i, false), (none, true)]), ← List.append_nil ([] ++ [(none, true), (some i, false)])]
+  {h : SemiThue grid_style [(some2 i, false), (none, true)] [(none, true), (some2 i, false)] // rw_length h = 0} := by
+  rw [← List.nil_append [(some2 i, false), (none, true)], ← List.nil_append [(none, true), (some2 i, false)],
+    ← List.append_nil ([] ++ [(some2 i, false), (none, true)]), ← List.append_nil ([] ++ [(none, true), (some2 i, false)])]
   use SemiThue.reduction (grid_style.over i)
   simp [rw_length]
 
 noncomputable def SemiThue_top_left_w_len (i : ℕ) :
-  {h : SemiThue grid_style [(some i, false), (some i, true)] [(none, true), (none, false)] // rw_length h = 1} := by
-  rw [← List.nil_append [(none, true), (none, false)], ← List.nil_append [(some i, false), (some i, true)],
-    ← List.append_nil ([] ++ [(none, true), (none, false)]), ← List.append_nil ([] ++ [(some i, false), (some i, true)])]
+  {h : SemiThue grid_style [(some2 i, false), (some2 i, true)] [(none, true), (none, false)] // rw_length h = 1} := by
+  rw [← List.nil_append [(none, true), (none, false)], ← List.nil_append [(some2 i, false), (some2 i, true)],
+    ← List.append_nil ([] ++ [(none, true), (none, false)]), ← List.append_nil ([] ++ [(some2 i, false), (some2 i, true)])]
   use SemiThue.reduction (grid_style.basic i)
   simp [rw_length]
 
 noncomputable def SemiThue_adjacent_w_len (i j : ℕ) (hd : Nat.dist i j = 1) :
-  {h : SemiThue grid_style [(some i, false), (some j, true)] [(some j, true), (some i, true), (some j, false), (some i, false)] // rw_length h = 1} := by
-  rw [← List.nil_append [(some i, false), (some j, true)], ← List.nil_append [(some j, true), (some i, true), (some j, false), (some i, false)],
-    ← List.append_nil ([] ++ [(some i, false), (some j, true)]), ← List.append_nil ([] ++ [(some j, true), (some i, true), (some j, false), (some i, false)])]
+  {h : SemiThue grid_style [(some2 i, false), (some2 j, true)] [(some2 j, true), (some2 i, true), (some2 j, false), (some2 i, false)] // rw_length h = 1} := by
+  rw [← List.nil_append [(some2 i, false), (some2 j, true)], ← List.nil_append [(some2 j, true), (some2 i, true), (some2 j, false), (some2 i, false)],
+    ← List.append_nil ([] ++ [(some2 i, false), (some2 j, true)]), ← List.append_nil ([] ++ [(some2 j, true), (some2 i, true), (some2 j, false), (some2 i, false)])]
   use SemiThue.reduction (grid_style.close hd)
   simp [rw_length]
 
 noncomputable def SemiThue_separated_w_len (i j : ℕ) (hd : Nat.dist i j ≥ 2) :
-  {h : SemiThue grid_style [(some i, false), (some j, true)] [(some j, true), (some i, false)] // rw_length h = 1} := by
-  rw [← List.nil_append [(some i, false), (some j, true)], ← List.nil_append [(some j, true), (some i, false)],
-    ← List.append_nil ([] ++ [(some i, false), (some j, true)]), ← List.append_nil ([] ++ [(some j, true), (some i, false)])]
+  {h : SemiThue grid_style [(some2 i, false), (some2 j, true)] [(some2 j, true), (some2 i, false)] // rw_length h = 1} := by
+  rw [← List.nil_append [(some2 i, false), (some2 j, true)], ← List.nil_append [(some2 j, true), (some2 i, false)],
+    ← List.append_nil ([] ++ [(some2 i, false), (some2 j, true)]), ← List.append_nil ([] ++ [(some2 j, true), (some2 i, false)])]
   use SemiThue.reduction (grid_style.apart hd)
   simp [rw_length]
 

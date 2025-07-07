@@ -594,13 +594,19 @@ def in_order_of_find_it_none (h : find_it a = none) : in_order a := by
         simp at h1
         exact h1.1.elim
 
-def solver_helper_in_order : in_order (solver_helper' a).1.2.2.1 := by
+def solver_helper_in_order (a) : in_order (solver_helper' a).1.2.2.1 := by
   have H := solver_helper_find_it_none a
   exact in_order_of_find_it_none H
 
 
 def solver_long (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
   solver_helper' ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
+
+def solver_long_in_order (a b) (ha : List.length a > 0) (hb : List.length b > 0) :
+  in_order (solver_long a b ha hb).1.2.2.1 := by
+  have H := solver_helper_find_it_none ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
+  exact in_order_of_find_it_none H
+
 
 
 def solver_equiv (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThue reversing

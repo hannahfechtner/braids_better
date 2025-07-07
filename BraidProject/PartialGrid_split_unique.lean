@@ -1,6 +1,7 @@
 import BraidProject.PartialGrid_split
 import BraidProject.PartialGrid_prefix_suffix
 
+--nonsense that i haven't been able to use, trying to prove that partial grids split uniquely
 def defined_from_mid (h : PartialGrid a b c d e) :=
   ∀ {a1 b1 c1 d1 e1} (h2 : PartialGrid a1 b1 c1 d1 e1),
   (ha : a = a1) → (hb : b = b1) → (hd : d = d1) → c = c1 ∧ e = e1
@@ -29,7 +30,7 @@ theorem defined_uniquely (h : PartialGrid a b c d e): defined_from_mid h := by
       · specialize g1_ih i1 rfl hb
         specialize g2_ih i2 rfl
         simp_all
-        
+
 
         sorry
       specialize g1_ih i1 rfl hb two.2.1.symm

@@ -6,6 +6,8 @@ import BraidProject.BraidGroup
 import BraidProject.TrueFalse
 import BraidProject.SemiThue
 
+--this is really useless - this is an early version of reversing when I though the rev-to-grid would be easy!
+
 def in_order' (a : List (α × Bool)) := ∀ (i : Fin (a.length -1)),
   (List.get a ⟨i.val, Nat.lt_of_lt_pred i.2⟩).2 = true ∨
   (List.get a ⟨i.val + 1, Nat.add_lt_of_lt_sub i.2⟩).2 = false

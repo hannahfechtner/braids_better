@@ -85,24 +85,37 @@ noncomputable def SemiThue_caboose (h : SemiThue rels a b) : SemiThue rels (a ++
   | trans e f g h1 h2 ih1 ih2 =>
     exact SemiThue.trans _ _ _ ih1 ih2
 
-noncomputable def SemiThue_append_left (h : SemiThue rels a b) : SemiThue rels (c ++ a) (c ++ b) := by
-  induction c
-  · simp
-    exact h
-  apply SemiThue_cons
-  assumption
+def SemiThue_append_left (h : SemiThue rels a b) : SemiThue rels (c ++ a) (c ++ b) := by
+  match h with
+  | SemiThue.refl a => exact SemiThue.refl _
+  | SemiThue.reduction h =>
+    rename_i e f g i j
+    rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc, ← List.append_assoc]
+    apply SemiThue.reduction h
+  | SemiThue.trans a b c _ _ =>
+    rename_i d e f g
+    apply (SemiThue_append_left f).trans _ _ _ (SemiThue_append_left g)
 
-noncomputable def SemiThue_append_right (h : SemiThue rels a b) : SemiThue rels (a ++ c) (b ++ c) := by
-  induction c using List.reverseRecOn
-  · simp
-    exact h
-  rw [← List.append_assoc, ← List.append_assoc]
-  apply SemiThue_caboose
-  assumption
+def SemiThue_append_right (h : SemiThue rels a b) : SemiThue rels (a ++ c) (b ++ c) := by
+  match h with
+  | SemiThue.refl a => exact SemiThue.refl _
+  | SemiThue.reduction h =>
+    rename_i e f g i j
+    rw [List.append_assoc _ j c, List.append_assoc _ j c]
+    apply SemiThue.reduction h
+  | SemiThue.trans a b c _ _ =>
+    rename_i d e f g
+    apply (SemiThue_append_right f).trans _ _ _ (SemiThue_append_right g)
 
-noncomputable def SemiThue_center (h : SemiThue rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d) :=
+def SemiThue_center (h : SemiThue rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d) :=
   SemiThue_append_right (SemiThue_append_left h)
 
-noncomputable def SemiThue_rel (h : rels a b) : SemiThue rels a b := by
+def SemiThue_rel (h : rels a b) : SemiThue rels a b := by
   rw [← List.nil_append a, ← List.nil_append b, ← List.append_nil ([] ++ a), ← List.append_nil ([] ++ b)]
   exact SemiThue.reduction h
+
+def SemiThue_both_sides (hab : SemiThue rels a b) (hcd : SemiThue rels c d) :
+  SemiThue rels (a ++ c) (b ++ d) := by
+  have H1 : SemiThue rels (a ++ c) (b ++ c) := SemiThue_append_right hab
+  have H2 : SemiThue rels (b ++ c) (b ++ d) := SemiThue_append_left hcd
+  exact H1.trans _ _ _ H2
