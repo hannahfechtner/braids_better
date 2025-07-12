@@ -825,7 +825,7 @@ theorem pg_to_pm_fg_mk {h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)
     (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 (right_cancel_extends))
     (PresentedMonoid.mk braid_rels_m_inf_one_symm d1)) =
     (PresentedGroup.mk (pm_rels_to_pg_rels braid_rels_m_inf_one_symm)
-    (FreeGroup.mk (to_over_plain d1))) := pml_to_presented_group_apply_mk d1git
+    (FreeGroup.mk (to_over_plain d1))) := pml_to_presented_group_apply_mk d1
   have he1 : pml_to_presented_group
     (@OreLocalization.numeratorHom _ _ _
     (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 (right_cancel_extends))
