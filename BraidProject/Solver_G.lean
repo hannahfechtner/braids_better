@@ -793,17 +793,6 @@ noncomputable def left_multiple_iso [Mul A] [Mul B] [h2 : IsCommonLeftMultipleMu
     simp at this
     exact this
 
-noncomputable def left_multiple_extends [h2 : IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf)] :
-  IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf_one_symm) where
-  cl₁ := fun a b => map_to_one_symm (h1.cl₁ (map_from_one_symm a) (map_from_one_symm b))
-  cl₂ := fun a b => map_to_one_symm (h1.cl₂ (map_from_one_symm a) (map_from_one_symm b))
-  cl_spec := by
-    intro a b
-    simp only [map_to_one_symm, map_from_one_symm]
-    have hc := h1.cl_spec (map_from_one_symm a) (map_from_one_symm b)
-    rw [map_from_one_symm] at hc
-    sorry
-
 theorem pg_to_pm_fg_mk {h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)}
   {h3 : IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf)}
   (h : PresentedGroup.mk Braid.braid_rels_coexeter (FreeGroup.mk e) =

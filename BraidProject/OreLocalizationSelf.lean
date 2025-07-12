@@ -78,25 +78,24 @@ instance oreSetSelf' : OreLocalization.OreSet (⊤ : Submonoid (PresentedMonoid 
   oreDenom r s := ⟨cl₂ r s, trivial⟩
   ore_eq := fun r s => cl_spec _ _
 
-instance : DivInvMonoid (@OreLocalization ((PresentedMonoid rels)) _
-    (⊤ : Submonoid (PresentedMonoid rels)) (@oreSetSelf' _ rels h1 h) ((PresentedMonoid rels)) _) where
-  inv :=     let _ := (@oreSetSelf' _ rels h1 h)
-    OreLocalization.liftExpand (fun a b => b.val /ₒ ⟨a, trivial⟩)
-    fun a b c d => by
-      apply OreLocalization.oreDiv_eq_iff.mpr
-      use 1, b
-      simp
+-- instance : DivInvMonoid (@OreLocalization ((PresentedMonoid rels)) _
+--     (⊤ : Submonoid (PresentedMonoid rels)) (@oreSetSelf' _ rels h1 h) ((PresentedMonoid rels)) _) where
+--   inv :=     let _ := (@oreSetSelf' _ rels h1 h)
+--     OreLocalization.liftExpand (fun a b => b.val /ₒ ⟨a, trivial⟩)
+--     fun a b c d => by
+--       apply OreLocalization.oreDiv_eq_iff.mpr
+--       use 1, b
+--       simp
 
 
 /-- when localizing by the entire monoid, the result is a group -/
 instance group_of_self' : Group (@OreLocalization ((PresentedMonoid rels)) _
     (⊤ : Submonoid (PresentedMonoid rels)) (@oreSetSelf' _ rels h1 h) ((PresentedMonoid rels)) _) where
-  mul := fun a b => a * b --OreLocalization.smul
+  mul := @OreLocalization.smul _ _ _ (oreSetSelf') _ _
   mul_assoc := mul_assoc --OreLocalization.mul_assoc
-  one :=
-    @OreLocalization.oreDiv _ _ _ (oreSetSelf') _ _ 1 1
-  one_mul := sorry --one_mul --OreLocalization.one_mul
-  mul_one := sorry -- mul_one -- OreLocalization.mul_one
+  one := (@OreLocalization.instOne _ _ _ (oreSetSelf')).one
+  one_mul :=  @OreLocalization.one_mul _ _ _ (oreSetSelf')
+  mul_one := @OreLocalization.mul_one _ _ _ (oreSetSelf')
   inv :=
     let _ := (@oreSetSelf' _ rels h1 h)
     OreLocalization.liftExpand (fun a b => b.val /ₒ ⟨a, trivial⟩)
@@ -104,7 +103,12 @@ instance group_of_self' : Group (@OreLocalization ((PresentedMonoid rels)) _
       apply OreLocalization.oreDiv_eq_iff.mpr
       use 1, b
       simp
-  inv_mul_cancel := sorry
+  inv_mul_cancel := by
+    let _ := (@oreSetSelf' _ rels h1 h)
+    apply OreLocalization.ind
+    intro r s
+    simp
+
   -- mul_left_inv :=
   --   --have H := oreSetSelf' h1 h
   --   @OreLocalization.ind _ _ _ (oreSetSelf') _ _ _ (fun _ _ => @OreLocalization.mul_inv _ _ _ (oreSetSelf') _ _)
