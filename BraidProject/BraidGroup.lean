@@ -95,7 +95,7 @@ def braid_group.rel := PresentedGroup braid_rels_coexeter
 
 def σ {n : ℕ} (k : Fin n) : braid_group (n + 1) := PresentedGroup.of k
 
-def σi (k : ℕ) : braid_group_inf := PresentedGroup.of k
+def σi (k : ℕ) : PresentedGroup braid_rels_coexeter := PresentedGroup.of k
 
 
 /-
