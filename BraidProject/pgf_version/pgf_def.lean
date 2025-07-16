@@ -219,12 +219,12 @@ theorem pgf_length_skeleton (h : pgf a b c) (hc : c = a ++ b) : h.length = 0 := 
   | separated i k h h ih =>
     exact (true_false_not_in_spine hc (pgf_left_false h) (pgf_top_true h)).elim
 
-noncomputable def triple_no_overlap'
- (h : m ++ [(some i, true), (none, false)] ++ n =
-  p ++ [(some j', true), (some i', true), (some j', false), (some i', false)] ++ q) :
- (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(some j', true), (some i', true), (some j', false), (some i', false)] ++ m2 = m ∧
- m2 ++ [(some i, true), (none, false)] ++ n = q)) ⊕
- (List.Infix' [(none, true), (none, false)] n) := by sorry
+-- noncomputable def triple_no_overlap'
+--  (h : m ++ [(some i, true), (none, false)] ++ n =
+--   p ++ [(some j', true), (some i', true), (some j', false), (some i', false)] ++ q) :
+--  (Σ m1 m2, PLift (m1 = p ∧ m1 ++ [(some j', true), (some i', true), (some j', false), (some i', false)] ++ m2 = m ∧
+--  m2 ++ [(some i, true), (none, false)] ++ n = q)) ⊕
+--  (List.Infix' [(none, true), (none, false)] n) := by sorry
 
 -- noncomputable def pgf_extend_side (h : pgf a b c) (d : List (Option ℕ × Bool)) (hd : is_true d):
 --   pgf a (b ++ d) (c ++ d) := by
@@ -728,12 +728,13 @@ noncomputable def pg_of_st_w_len (h : SemiThue_one_step grid_style ab mid) (hab 
     rename_i l m n o p
     specialize ih hab
     have H1 := reg_of_one_step_w_len h1
-    rcases h2
-    · rename_i q
-      rw [rw_length_one_step]
-      use pgf.top_left _ ih.1 rfl
-      constructor
-      rw [PartialGrid.length, ← ih.2.1]
+    sorry
+    -- rcases h2
+    -- · rename_i q
+    --   rw [rw_length_one_step]
+    --   use pgf.top_left _ ih.1 rfl
+    --   constructor
+    --   rw [PartialGrid.length, ← ih.2.1]
 
 
 -- noncomputable def get_frontier_style_helper (h : PartialGrid a b c d e) :

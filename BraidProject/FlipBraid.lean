@@ -546,3 +546,13 @@ theorem common_right_mul_inf (u v : BraidMonoidInf) : ∃ (u' v' : FreeMonoid �
   rcases (multiple_delta_bar v (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
     v_length v_under) with ⟨u', hu', _⟩
   exact Exists.intro u' (Exists.intro v' (hv'.trans hu'.symm))
+
+theorem common_left_mul_inf (u v : BraidMonoidInf) : ∃ (u' v' : BraidMonoidInf),
+    u' * u = v' * v := by
+  rcases common_right_mul_inf (BraidMonoidInf.reverse_braid u)
+    (BraidMonoidInf.reverse_braid v) with ⟨a, b, hab⟩
+  use BraidMonoidInf.reverse_braid (BraidMonoidInf.mk b),
+    BraidMonoidInf.reverse_braid (BraidMonoidInf.mk a)
+  have H := congr_arg BraidMonoidInf.reverse_braid hab
+  simp at H
+  simp [H]

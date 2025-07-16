@@ -6,9 +6,7 @@ open Classical
 -- section Self
 
 class IsCommonLeftMultipleMul (M : Type u) [Mul M] where
-  cl₁ : M → M → M
-  cl₂ : M → M → M
-  cl_spec : ∀ a b : M, cl₂ a b * a = cl₁ a b * b
+  common_left_multiple : ∀ a b : M, ∃ c d : M, c * a = d * b
 
 -- class OreMonoid (M : Type*) extends CommonLeftMultipleMonoid M, CancelMonoid M
 
@@ -68,15 +66,23 @@ variable {α : Type} {rels : FreeMonoid α → FreeMonoid α → Prop}
 variable {h1 : IsCommonLeftMultipleMul (PresentedMonoid rels)} {h : IsRightCancelMul (PresentedMonoid rels)}
 
 open IsCommonLeftMultipleMul
-instance oreSetSelf' : OreLocalization.OreSet (⊤ : Submonoid (PresentedMonoid rels)) where
+set_option pp.proofs true in
+noncomputable instance oreSetSelf' : OreLocalization.OreSet (⊤ : Submonoid (PresentedMonoid rels)) where
   ore_right_cancel := by
     intro r1 r2 s eq
     use 1
     simp only [OneMemClass.coe_one, one_mul]
     exact mul_right_cancel eq
-  oreNum r s := cl₁ r s
-  oreDenom r s := ⟨cl₂ r s, trivial⟩
-  ore_eq := fun r s => cl_spec _ _
+  oreDenom r s := ⟨(Classical.choose (h1.common_left_multiple r s)), trivial⟩
+  oreNum r s := (Classical.choose (Classical.choose_spec (h1.common_left_multiple r s)))
+  ore_eq := by
+    intro r s
+    have H2 := (Classical.choose_spec (h1.common_left_multiple r s))
+    rcases H2 with ⟨d1, hd1⟩
+    simp [hd1]
+
+
+
 
 -- instance : DivInvMonoid (@OreLocalization ((PresentedMonoid rels)) _
 --     (⊤ : Submonoid (PresentedMonoid rels)) (@oreSetSelf' _ rels h1 h) ((PresentedMonoid rels)) _) where
@@ -89,7 +95,7 @@ instance oreSetSelf' : OreLocalization.OreSet (⊤ : Submonoid (PresentedMonoid 
 
 
 /-- when localizing by the entire monoid, the result is a group -/
-instance group_of_self' : Group (@OreLocalization ((PresentedMonoid rels)) _
+noncomputable instance group_of_self' : Group (@OreLocalization ((PresentedMonoid rels)) _
     (⊤ : Submonoid (PresentedMonoid rels)) (@oreSetSelf' _ rels h1 h) ((PresentedMonoid rels)) _) where
   mul := @OreLocalization.smul _ _ _ (oreSetSelf') _ _
   mul_assoc := mul_assoc --OreLocalization.mul_assoc

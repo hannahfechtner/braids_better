@@ -11,10 +11,6 @@ digraph "import_graph" {
   "BraidProject.InductionWithBounds" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Nat_Dist_Additions" -> "BraidProject.InductionWithBounds";
   "BraidProject.ListFact_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.CommonMultiplesInf" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.BraidMonoid" -> "BraidProject.CommonMultiplesInf";
-  "BraidProject.SigmaBar" -> "BraidProject.CommonMultiplesInf";
-  "BraidProject.InductionWithBounds" -> "BraidProject.CommonMultiplesInf";
   "BraidProject.PartialGrid_bounded" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.PartialGrid_prefix_suffix" -> "BraidProject.PartialGrid_bounded";
   "BraidProject.PartialGrid_prefix_suffix" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
@@ -25,9 +21,8 @@ digraph "import_graph" {
   "Mathlib.Tactic.Linarith" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Mathlib.Algebra.FreeMonoid.Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Cancellability_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.Stability" -> "BraidProject.Cancellability_C";
   "BraidProject.Grids_C" -> "BraidProject.Cancellability_C";
-  "BraidProject.CommonMultiplesInf" -> "BraidProject.Cancellability_C";
+  "BraidProject.Cancellability" -> "BraidProject.Cancellability_C";
   "Mathlib.GroupTheory.Congruence.Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Mathlib.Algebra.Order.Ring.Nat" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.PartialGrid_rw" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
@@ -39,7 +34,6 @@ digraph "import_graph" {
   "Mathlib.Data.List.Lex" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Mathlib.GroupTheory.SpecificGroups.Cyclic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Mathlib.Data.Nat.Dist" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "Mathlib.Data.Finset.Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Stability" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.GridsTwo" -> "BraidProject.Stability";
   "Mathlib.GroupTheory.PresentedGroup" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
@@ -53,9 +47,18 @@ digraph "import_graph" {
   "BraidProject.Solver_G" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Solver_C" -> "BraidProject.Solver_G";
   "BraidProject.BraidGroup" -> "BraidProject.Solver_G";
+  "BraidProject.Cancellability" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject.Stability" -> "BraidProject.Cancellability";
+  "BraidProject.FlipBraid" -> "BraidProject.Cancellability";
   "BraidProject.Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Solver_G" -> "BraidProject.Basic";
   "Mathlib.Data.Fin.Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject.AcrossStrands" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "Mathlib.Algebra.FreeMonoid.Basic" -> "BraidProject.AcrossStrands";
+  "Mathlib.Data.Finset.Empty" -> "BraidProject.AcrossStrands";
+  "Mathlib.Data.Finset.Lattice.Basic" -> "BraidProject.AcrossStrands";
+  "Mathlib.Tactic.Linarith" -> "BraidProject.AcrossStrands";
+  "Mathlib.Data.Finset.Empty" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Gridt_length" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.StepTwo_C" -> "BraidProject.Gridt_length";
   "BraidProject.Cancellability_C" -> "BraidProject.Gridt_length";
@@ -94,11 +97,12 @@ digraph "import_graph" {
   "BraidProject.TrueFalse_C" -> "BraidProject.StepOne_C";
   "Mathlib.Algebra.Group.Submonoid.Operations" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Mathlib.Data.List.Induction" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.SigmaBar" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "Mathlib.Algebra.FreeMonoid.Basic" -> "BraidProject.SigmaBar";
-  "Mathlib.Data.Finset.Basic" -> "BraidProject.SigmaBar";
-  "Mathlib.Tactic.Linarith" -> "BraidProject.SigmaBar";
+  "Mathlib.Data.Finset.Lattice.Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Mathlib.GroupTheory.FreeGroup.Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Grids_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Grids" -> "BraidProject.Grids_C";
+  "BraidProject.FlipBraid" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject.BraidMonoid" -> "BraidProject.FlipBraid";
+  "BraidProject.AcrossStrands" -> "BraidProject.FlipBraid";
+  "BraidProject.InductionWithBounds" -> "BraidProject.FlipBraid";
 }

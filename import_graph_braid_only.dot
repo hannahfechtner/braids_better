@@ -6,10 +6,6 @@ digraph "import_graph" {
   "BraidProject.InductionWithBounds" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Nat_Dist_Additions" -> "BraidProject.InductionWithBounds";
   "BraidProject.ListFact_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.CommonMultiplesInf" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.BraidMonoid" -> "BraidProject.CommonMultiplesInf";
-  "BraidProject.SigmaBar" -> "BraidProject.CommonMultiplesInf";
-  "BraidProject.InductionWithBounds" -> "BraidProject.CommonMultiplesInf";
   "BraidProject.PartialGrid_bounded" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.PartialGrid_prefix_suffix" -> "BraidProject.PartialGrid_bounded";
   "BraidProject.PartialGrid_prefix_suffix" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
@@ -17,9 +13,8 @@ digraph "import_graph" {
   "BraidProject.Solver_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.PartialGrid_rw" -> "BraidProject.Solver_C";
   "BraidProject.Cancellability_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.Stability" -> "BraidProject.Cancellability_C";
   "BraidProject.Grids_C" -> "BraidProject.Cancellability_C";
-  "BraidProject.CommonMultiplesInf" -> "BraidProject.Cancellability_C";
+  "BraidProject.Cancellability" -> "BraidProject.Cancellability_C";
   "BraidProject.PartialGrid_rw" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.PartialGrid_bounded" -> "BraidProject.PartialGrid_rw";
   "BraidProject.GridsTwo_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
@@ -34,8 +29,12 @@ digraph "import_graph" {
   "BraidProject.Solver_G" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Solver_C" -> "BraidProject.Solver_G";
   "BraidProject.BraidGroup" -> "BraidProject.Solver_G";
+  "BraidProject.Cancellability" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject.Stability" -> "BraidProject.Cancellability";
+  "BraidProject.FlipBraid" -> "BraidProject.Cancellability";
   "BraidProject.Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Solver_G" -> "BraidProject.Basic";
+  "BraidProject.AcrossStrands" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Gridt_length" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.StepTwo_C" -> "BraidProject.Gridt_length";
   "BraidProject.Cancellability_C" -> "BraidProject.Gridt_length";
@@ -62,7 +61,10 @@ digraph "import_graph" {
   "BraidProject.SemiThue_C" -> "BraidProject.StepOne_C";
   "BraidProject.AlphabetRel" -> "BraidProject.StepOne_C";
   "BraidProject.TrueFalse_C" -> "BraidProject.StepOne_C";
-  "BraidProject.SigmaBar" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Grids_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Grids" -> "BraidProject.Grids_C";
+  "BraidProject.FlipBraid" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject.BraidMonoid" -> "BraidProject.FlipBraid";
+  "BraidProject.AcrossStrands" -> "BraidProject.FlipBraid";
+  "BraidProject.InductionWithBounds" -> "BraidProject.FlipBraid";
 }

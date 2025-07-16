@@ -3,7 +3,18 @@ import Mathlib.Data.Nat.Dist
 import BraidProject.Nat_Dist_Additions
 import Mathlib.Algebra.FreeMonoid.Symbols
 
-theorem FreeMonoid.eq_one_or_has_last_elem (a : FreeMonoid α) : a = 1 ∨ ∃ front last, a = front * of last := by sorry
+theorem FreeMonoid.eq_one_or_has_last_elem (a : FreeMonoid α) : a = 1 ∨ ∃ front last, a = front * of last := by
+  induction a using FreeMonoid.inductionOn' with
+  | one => left; rfl
+  | mul_of b a ih =>
+    right
+    cases ih with
+    | inl h => use 1, b; rw [h, one_mul, mul_one]
+    | inr h =>
+      rcases h with ⟨front, last, hfl⟩
+      rw [hfl]
+      use of b * front, last
+      rw [mul_assoc]
 
 theorem FreeMonoid.parts_eq (h : FreeMonoid.of a * b = FreeMonoid.of c * d) : a = c ∧ b = d := by
   apply List.append_inj at h
@@ -176,6 +187,7 @@ theorem length_reverse_eq_length : length (reverse_braid a) = length a := by
 theorem exact : mk braid_rels_m_inf a = mk braid_rels_m_inf b →
     PresentedMonoid.rel braid_rels_m_inf a b := Quotient.exact
 
+@[simp]
 theorem reverse_reverse : reverse_braid (reverse_braid a) = a := by
   induction a
   rw [reverse_braid_mk, reverse_braid_mk, FreeMonoid.reverse_reverse]
@@ -273,90 +285,137 @@ theorem pair_eq (h : Nat.dist j k >= 2) : BraidMonoidInf.mk (of j * of k) = Brai
   rw [ih, h_jd] at h
   simp only [Nat.dist_self, ge_iff_le, nonpos_iff_eq_zero, OfNat.ofNat_ne_zero] at h
 
-section nonsense
-def FreeMonoid.length_eq_two_C {α : Type u_1} {v : FreeMonoid α} :
-    v.length = 2 → Σ c d, PLift (v = FreeMonoid.of c * FreeMonoid.of d) := by
-  intro h
-  match v with
-  | [] => simp [FreeMonoid.length] at h
-  | c :: d =>
-    match d with
-    | [] => simp [FreeMonoid.length] at h
-    | d1 :: d2 =>
-      match d2 with
-      | [] =>
-        use c, d1
-        constructor
-        rfl
-      | d3 :: d4 => simp [FreeMonoid.length] at h
+-- section nonsense
+-- def FreeMonoid.length_eq_two_C {α : Type u_1} {v : FreeMonoid α} :
+--     v.length = 2 → Σ c d, PLift (v = FreeMonoid.of c * FreeMonoid.of d) := by
+--   intro h
+--   match v with
+--   | [] => simp [FreeMonoid.length] at h
+--   | c :: d =>
+--     match d with
+--     | [] => simp [FreeMonoid.length] at h
+--     | d1 :: d2 =>
+--       match d2 with
+--       | [] =>
+--         use c, d1
+--         constructor
+--         rfl
+--       | d3 :: d4 => simp [FreeMonoid.length] at h
 
-def Finset.mem_union_C {α : Type u_1} [DecidableEq α] {s t : Finset α} {a : α} : a ∈ s ∪ t →
-    PLift (a ∈ s) ⊕ PLift (a ∈ t) := by
-  intro h
-  sorry
+-- def List.mem_cons_C [DecidableEq α] {a : α} (h : a ∈ head :: tail) : PLift (a = head) ⊕ PLift (a ∈ tail) := by
+--   induction tail with
+--   | nil =>
+--     left
+--     simp only [List.mem_cons, List.not_mem_nil, or_false] at h
+--     exact ⟨h⟩
+--   | cons head2 tail2 ih =>
+--     have H : PLift (a = head) ⊕ PLift (a ≠ head) :=
+--       @Decidable.byCases (a = head) _ _ (fun x ↦ Sum.inl ⟨x⟩) fun x ↦ Sum.inr ⟨x⟩
+--     cases H
+--     · left
+--       assumption
+--     right
+--     rename_i ni
+--     constructor
+--     simp only [List.mem_cons, ni.1, false_or] at h
+--     aesop
 
-end nonsense
-def pair_eq_C (h : Nat.dist j k >= 2) : BraidMonoidInf.mk (of j * of k) = BraidMonoidInf.mk v' →
-    PLift (v' = (FreeMonoid.of j * FreeMonoid.of k)) ⊕ PLift (v' = (FreeMonoid.of k * FreeMonoid.of j)) := by
-  intro h'
-  have h1 := h'
-  apply congrArg length at h'
-  apply congrArg generators at h1
-  rw [length_mk, length_mk] at h'
-  simp only [FreeMonoid.length_mul, length_of, Nat.reduceAdd] at h'
-  have h2 := h'.symm
-  rcases FreeMonoid.length_eq_two_C h'.symm with ⟨c, d, ⟨rfl⟩⟩
-  simp only [generators_mk, symbols_mul, symbols_of] at h1
-  have H1 : j ∈ ({c} ∪ {d} : Finset ℕ) := by
-    have H2 : j ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
-      (Or.inl (Finset.mem_singleton.mpr rfl))
-    rw [h1] at H2
-    exact H2
-  apply Finset.mem_union_C at H1
-  simp only [Finset.mem_singleton] at H1
-  rcases H1 with ⟨one, two, rfl⟩
-  · left
-    rw [mul_right_inj]
-    constructor
-    apply congr_arg
-    symm
-    have H1 : k ∈ ({j} ∪ {d} : Finset ℕ) := by
-      have H2 : k ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
-        (Or.inr (Finset.mem_singleton.mpr rfl))
-      rw [h1] at H2
-      exact H2
-    simp only [Finset.mem_union, Finset.mem_singleton] at H1
-    rcases H1 with ⟨three, four, rfl⟩
-    · simp only [Finset.union_idempotent, Finset.left_eq_union, Finset.subset_singleton_iff,
-      Finset.singleton_ne_empty, Finset.singleton_inj, false_or] at h1
-      exact h1.symm
-    assumption
-  rename_i h_jd
-  rw [h_jd.1]
-  rw [h_jd.1] at h1
-  right
-  rw [mul_left_inj]
-  constructor
-  apply congr_arg
-  symm
-  have H1 : k ∈ ({c} ∪ {d} : Finset ℕ) := by
-    have H2 : k ∈ ({d} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
-      (Or.inr (Finset.mem_singleton.mpr rfl))
-    rw [h1] at H2
-    exact H2
-  simp only [Finset.mem_union, Finset.mem_singleton] at H1
-  rcases H1 with ⟨three, four, rfl⟩
-  · rfl
-  rename_i ih
-  rw [ih, h_jd.1] at h
-  simp only [Nat.dist_self, ge_iff_le, nonpos_iff_eq_zero, OfNat.ofNat_ne_zero] at h
+-- def List.mem_append_C {α : Type u_1} [DecidableEq α] {a : α} {l1 l2 : List α} (h : a ∈ l1 ++ l2) : PLift (a ∈ l1) ⊕ PLift (a ∈ l2) := by
+  -- induction l1 with
+  -- | nil =>
+  --   right
+  --   rw [List.nil_append] at h
+  --   exact ⟨h⟩
+  -- | cons head tail ih =>
+  --   rw [List.cons_append] at h
+  --   apply List.mem_cons_C at h
+  --   cases h
+  --   · left
+  --     rename_i h3
+  --     constructor
+  --     simp [h3.1]
+  --   rename_i h3
+  --   specialize ih h3.1
+  --   cases ih
+  --   · rename_i h4
+  --     left
+  --     constructor
+  --     simp [h4.1]
+  --   right
+  --   assumption
 
-def triplet_eq_C {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * of k * of j)⟧ =
-   (⟦v'⟧ : BraidMonoidInf) → PLift (v' = (of j * of k * of j)) ⊕ PLift (v' = (of k * of j * of k)) := by
-  generalize ht : of j * of k * of j = t
-  intro rel_holds
-  apply BraidMonoidInf.exact at rel_holds
-  sorry
+-- noncomputable def Finset.mem_union_C {α : Type u_1} [DecidableEq α] {s t : Finset α} {a : α} : a ∈ s ∪ t →
+--     PLift (a ∈ s) ⊕ PLift (a ∈ t) := by
+--   intro h
+--   have h : a ∈ (s ∪ t).toList := Finset.mem_toList.mpr h
+--   have h2 : a ∈ s.toList ++ t.toList := by aesop
+--   apply List.mem_append_C at h2
+--   convert h2 using 2
+--   exact Finset.mem_toList.symm
+--   exact Finset.mem_toList.symm
+
+-- end nonsense
+-- noncomputable def pair_eq_C (h : Nat.dist j k >= 2) : BraidMonoidInf.mk (of j * of k) = BraidMonoidInf.mk v' →
+--     PLift (v' = (FreeMonoid.of j * FreeMonoid.of k)) ⊕ PLift (v' = (FreeMonoid.of k * FreeMonoid.of j)) := by
+--   intro h'
+--   have h1 := h'
+--   apply congrArg length at h'
+--   apply congrArg generators at h1
+--   rw [length_mk, length_mk] at h'
+--   simp only [FreeMonoid.length_mul, length_of, Nat.reduceAdd] at h'
+--   have h2 := h'.symm
+--   rcases FreeMonoid.length_eq_two_C h'.symm with ⟨c, d, ⟨rfl⟩⟩
+--   simp only [generators_mk, symbols_mul, symbols_of] at h1
+--   have H1 : j ∈ ({c} ∪ {d} : Finset ℕ) := by
+--     have H2 : j ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
+--       (Or.inl (Finset.mem_singleton.mpr rfl))
+--     rw [h1] at H2
+--     exact H2
+--   apply Finset.mem_union_C at H1
+--   simp only [Finset.mem_singleton] at H1
+--   rcases H1 with ⟨one, two, rfl⟩
+--   · left
+--     rw [mul_right_inj]
+--     constructor
+--     apply congr_arg
+--     symm
+--     have H1 : k ∈ ({j} ∪ {d} : Finset ℕ) := by
+--       have H2 : k ∈ ({j} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
+--         (Or.inr (Finset.mem_singleton.mpr rfl))
+--       rw [h1] at H2
+--       exact H2
+--     simp only [Finset.mem_union, Finset.mem_singleton] at H1
+--     rcases H1 with ⟨three, four, rfl⟩
+--     · simp only [Finset.union_idempotent, Finset.left_eq_union, Finset.subset_singleton_iff,
+--       Finset.singleton_ne_empty, Finset.singleton_inj, false_or] at h1
+--       exact h1.symm
+--     assumption
+--   rename_i h_jd
+--   rw [h_jd.1]
+--   rw [h_jd.1] at h1
+--   right
+--   rw [mul_left_inj]
+--   constructor
+--   apply congr_arg
+--   symm
+--   have H1 : k ∈ ({c} ∪ {d} : Finset ℕ) := by
+--     have H2 : k ∈ ({d} ∪ {k} : Finset ℕ) := Finset.mem_union.mpr
+--       (Or.inr (Finset.mem_singleton.mpr rfl))
+--     rw [h1] at H2
+--     exact H2
+--   simp only [Finset.mem_union, Finset.mem_singleton] at H1
+--   rcases H1 with ⟨three, four, rfl⟩
+--   · rfl
+--   rename_i ih
+--   rw [ih, h_jd.1] at h
+--   simp only [Nat.dist_self, ge_iff_le, nonpos_iff_eq_zero, OfNat.ofNat_ne_zero] at h
+
+-- def triplet_eq_C {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * of k * of j)⟧ =
+--    (⟦v'⟧ : BraidMonoidInf) → PLift (v' = (of j * of k * of j)) ⊕ PLift (v' = (of k * of j * of k)) := by
+--   generalize ht : of j * of k * of j = t
+--   intro rel_holds
+--   apply BraidMonoidInf.exact at rel_holds
+--   sorry
   -- apply rel_induction_rw rel_holds
   -- · intro a
   --   left

@@ -68,7 +68,7 @@ theorem M_braid_fin_close (i : Fin n) : M_braid_fin i.castSucc i.succ = 3 := by
   induction n
   · exact (Nat.not_succ_le_zero (↑i) i.2).elim
   unfold M_braid_fin
-  simp only [add_eq_zero, one_ne_zero, and_false, and_self, add_left_eq_self, or_self, ↓reduceIte,
+  simp only [add_eq_zero, one_ne_zero, and_false, and_self, add_eq_right, or_self, ↓reduceIte,
     Fin.coe_castSucc, Fin.val_succ]
   exact M_braid_close
 

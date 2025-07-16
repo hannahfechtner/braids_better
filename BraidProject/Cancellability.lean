@@ -1,4 +1,5 @@
 import BraidProject.Stability
+import BraidProject.FlipBraid
 
 theorem simpler_grid (u v u' v' : FreeMonoid ℕ) (h : grid u v u' v') :
     grid (u * v')  (v * u') 1 1 := by
@@ -72,14 +73,15 @@ theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d
     rw [c_is, c₁u.2, (h'_ih c' c₂ gr2).1, (h'_ih c' c₂ gr2).2]
     exact ⟨rfl, rfl⟩
 
-theorem common_mul (a b : FreeMonoid ℕ) : ∃ c d, a * c = b * d := sorry
+--theorem common_mul (a b : FreeMonoid ℕ) : ∃ c d, a * c = b * d := by
+
 
 theorem existence : ∀ a b, ∃ c d, grid a b c d := by
   intro a b
-  rcases common_mul a b with ⟨c1, d1, h⟩
+  rcases common_right_mul_inf (BraidMonoidInf.mk a) (BraidMonoidInf.mk b) with ⟨d1, c1, h⟩
   have big_grid : grid (a * c1) (b * d1) 1 1 := by
     apply grid_of_eq
-    rw [h]
+    simp [BraidMonoidInf.mul_mk, h]
   rcases splittable_horizontally_of_grid big_grid _ _ rfl with ⟨_, c₁, c₂, top_grid, _, side_one⟩
   rw [(FreeMonoid.prod_eq_one side_one.symm).1] at top_grid
   rcases splittable_vertically_of_grid top_grid _ _ rfl with ⟨top_vert, m₁, m₂, top_left, _, _⟩
@@ -106,11 +108,6 @@ theorem existence : ∀ a b, ∃ c d, grid a b c d := by
 
 -- ome of these fields (like one_mul
 -- should be set up once I ge the regular monoid things done
-instance : CancelMonoid (PresentedMonoid braid_rels_m_inf) where
+instance BraidMonoid_Cancellative : CancelMonoid (PresentedMonoid braid_rels_m_inf) where
     mul_right_cancel := fun a b c => right_cancellative a c b
     mul_left_cancel := fun a b c => left_cancellative b c a
-    -- what the ? ?
-    one_mul := one_mul
-    mul_one := mul_one
-    npow_zero := pow_zero
-    npow_succ := sorry

@@ -1,6 +1,7 @@
 import BraidProject.Solver_C
 import BraidProject.BraidGroup
 import BraidProject.OreLocalizationPresented
+import BraidProject.Cancellability
 
 -- def solver_long (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
 --   solver_helper' ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
@@ -571,10 +572,6 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
   constructor
   · intro h
     simp at h
-    rcases h with one | h
-    · unfold Braid.braid_rels_coexeter
-      use (27, 27)
-      simp [Braid.artin_tits_rel, Braid.M_braid, one]
     rcases h with ⟨a, b, hbr, hl⟩
     rw [← hl, lift_of_group_two, lift_of_group_two]
     cases hbr with
@@ -619,15 +616,15 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
   | zero =>
     simp [hab, Braid.alternate] at br
     rw [← br]
-    right
-    rfl
+    use [27], [27]
+    constructor
+    · apply braid_rels_m_inf_one_symm.basic _
+    simp
   | succ n =>
     cases hn : n with
     | zero =>
       simp [hn, hab, Braid.alternate] at br
       rw [← br]
-      left
-      simp only [Set.mem_setOf_eq]
       use [a, b, a], [b, a, b]
       constructor
       · rw [hn, zero_add] at hab
@@ -636,8 +633,6 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
     | succ n2 =>
       simp [hn, hab, Braid.alternate] at br
       rw [← br]
-      left
-      simp only [Set.mem_setOf_eq]
       use [a, b], [b, a]
       constructor
       · apply braid_rels_m_inf_one_symm.separated
@@ -713,9 +708,9 @@ theorem  pml_to_presented_group_injective {α : Type} {rels : FreeMonoid α → 
   Function.Injective (pml_to_presented_group : pml h1 h →*
     PresentedGroup (pm_rels_to_pg_rels rels)) := by
   apply Function.HasLeftInverse.injective
-  unfold Function.HasLeftInverse
-  unfold Function.LeftInverse
-  sorry
+  use presented_group_to_pml
+  exact Function.leftInverse_iff_comp.mpr <| comp_eq_of_hom_comp_eq comp_pg_pml_pml_pg_eq_id
+
 -- theorem OreLocalization.numeratorHom_inj : Function.Injective (OreLocalization.numeratorHom) := by
 --   apply?
 
@@ -784,14 +779,13 @@ noncomputable def one_symm_type_iso_me : (PresentedMonoid braid_rels_m_inf_one_s
 
 noncomputable def left_multiple_iso [Mul A] [Mul B] [h2 : IsCommonLeftMultipleMul A] (e : A ≃* B) :
   IsCommonLeftMultipleMul B where
-  cl₁ := fun a b => e (h2.cl₁ (e.symm a) (e.symm b))
-  cl₂ := fun a b => e (h2.cl₂ (e.symm a) (e.symm b))
-  cl_spec := by
+  common_left_multiple := by
     intro a b
-    have := (h2.cl_spec (e.symm a) (e.symm b))
-    apply congr_arg e at this
-    simp at this
-    exact this
+    have := (h2.common_left_multiple (e.symm a) (e.symm b))
+    rcases this with ⟨c, d, hcd⟩
+    apply congr_arg e at hcd
+    simp at hcd
+    use e c, e d
 
 theorem pg_to_pm_fg_mk {h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)}
   {h3 : IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf)}
@@ -799,10 +793,10 @@ theorem pg_to_pm_fg_mk {h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)
   (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk d)) (he : is_true e) (hd : is_true d) :
   PresentedMonoid.mk braid_rels_m_inf (List.map (fun x ↦ x.1) e) =
   PresentedMonoid.mk braid_rels_m_inf (List.map (fun x ↦ x.1) d) := by
-  have he1 : ∃ e1, e = to_over_plain e1 := by sorry
-  rcases he1 with ⟨e1, he1⟩
-  have hd1 : ∃ d1, d = to_over_plain d1 := by sorry
-  rcases hd1 with ⟨d1, hd1⟩
+  have he1 : e = to_over_plain (List.map (fun x ↦ x.1) e) := by
+    exact (recover_from_is_true he).symm
+  have hd1 : d = to_over_plain (List.map (fun x ↦ x.1) d) := by
+    exact (recover_from_is_true hd).symm
   rw [he1, hd1, ← connect_monoid_group_braid_rels] at h
   --rw [← pml_to_presented_group_apply_mk] at h
   --insane errors when i try this twice
@@ -812,29 +806,25 @@ theorem pg_to_pm_fg_mk {h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)
   have Hd2 : pml_to_presented_group
     (@OreLocalization.numeratorHom _ _ _
     (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 (right_cancel_extends))
-    (PresentedMonoid.mk braid_rels_m_inf_one_symm d1)) =
+    (PresentedMonoid.mk braid_rels_m_inf_one_symm (List.map (fun x ↦ x.1) d))) =
     (PresentedGroup.mk (pm_rels_to_pg_rels braid_rels_m_inf_one_symm)
-    (FreeGroup.mk (to_over_plain d1))) := pml_to_presented_group_apply_mk d1
+    (FreeGroup.mk (to_over_plain (List.map (fun x ↦ x.1) d)))) := pml_to_presented_group_apply_mk (List.map (fun x ↦ x.1) d)
   have he1 : pml_to_presented_group
     (@OreLocalization.numeratorHom _ _ _
     (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 (right_cancel_extends))
-    (PresentedMonoid.mk braid_rels_m_inf_one_symm e1)) =
+    (PresentedMonoid.mk braid_rels_m_inf_one_symm (List.map (fun x ↦ x.1) e))) =
     (PresentedGroup.mk (pm_rels_to_pg_rels braid_rels_m_inf_one_symm)
-    (FreeGroup.mk (to_over_plain e1))) := pml_to_presented_group_apply_mk e1
+    (FreeGroup.mk (to_over_plain (List.map (fun x ↦ x.1) e)))) := pml_to_presented_group_apply_mk (List.map (fun x ↦ x.1) e)
   have HTHREE : pml_to_presented_group
     (@OreLocalization.numeratorHom _ _ _
     (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 (right_cancel_extends))
-    (PresentedMonoid.mk braid_rels_m_inf_one_symm d1)) = pml_to_presented_group
+    (PresentedMonoid.mk braid_rels_m_inf_one_symm (List.map (fun x ↦ x.1) d))) = pml_to_presented_group
     (@OreLocalization.numeratorHom _ _ _
     (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 h4)
-    (PresentedMonoid.mk braid_rels_m_inf_one_symm e1)) := by
+    (PresentedMonoid.mk braid_rels_m_inf_one_symm (List.map (fun x ↦ x.1) e))) := by
     rw [Hd2, he1]
     exact h.symm
   have H := pml_to_presented_group_injective HTHREE
-  have he3 : List.map (fun x ↦ x.1) e = e1 := by sorry
-  rw [he3]
-  have hd4 : List.map (fun x ↦ x.1) d = d1 := by sorry
-  rw [hd4]
   have H5 : Function.Injective (@OreLocalization.numeratorHom
     (PresentedMonoid braid_rels_m_inf_one_symm)
     (PresentedMonoid.instMonoid braid_rels_m_inf_one_symm) ⊤
@@ -856,7 +846,9 @@ theorem pg_to_pm_fg_mk {h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)
     exact another.symm
     --this is strange, somehow something feels backwards. in my case it's fine, but check into this
     have H : IsLeftCancelMul (PresentedMonoid braid_rels_m_inf) := by
-      sorry
+      have H1 : IsCancelMul (PresentedMonoid braid_rels_m_inf) :=
+        CancelMonoid.toIsCancelMul (PresentedMonoid braid_rels_m_inf)
+      exact IsCancelMul.toIsLeftCancelMul
     apply left_cancel_extends
   exact one_symm_is_really_the_same.mpr (H5 H.symm)
 
@@ -887,8 +879,8 @@ theorem solver_g_correct_other_direction :
   rw [← H2]
   congr 1
   simp [FreeGroup.invRev, invRev_remove_eq_reverse]
-  sorry
-  sorry
+  exact RightCancelSemigroup.toIsRightCancelMul (PresentedMonoid braid_rels_m_inf)
+  exact ⟨common_left_mul_inf⟩
 
 theorem solver_g_correct : solver_g a b ↔
   PresentedGroup.mk Braid.braid_rels_coexeter (FreeGroup.mk a) =
@@ -897,6 +889,37 @@ theorem solver_g_correct : solver_g a b ↔
   · exact solver_g_correct_one_direction
   exact solver_g_correct_other_direction
 
+-- #check Quotient.ind
+-- set_option pp.proofs true in
+-- def Quotient.exists_rep_C (a : Quotient new_rels) :
+--   Σ b, PLift (Quotient.mk new_rels b = a) := by
+--   --apply @Quotient.ind _ _ (fun x => Σ b, PLift (Quotient.mk new_rels b = x))
+--   apply @Quot.hrecOn _ _ (fun x => Σ b, PLift (Quotient.mk new_rels b = x))
+--      a (fun c => by use c; constructor; rfl)
+--   intro a b hab
+--   have H := Quotient.sound hab
+
+--   -- unfold HEq
+--   -- simp [H]
+--   sorry
+
+
+
+-- #check Quot.rec
+-- noncomputable def braid_solver (a b : Braid.braid_group_inf) : Bool := by
+--   rcases Quotient.exists_rep_C a with ⟨a1, ⟨ha1⟩⟩
+--   rcases Quotient.exists_rep_C b with ⟨b1, ⟨hb1⟩⟩
+--   sorry
+
+
+
+  -- have hb := Classical.choose (Quotient.exists_rep b)
+  -- have ha1 := Classical.choose (Quot.exists_rep ha)
+  -- have hb1 := Classical.choose (Quot.exists_rep hb)
+  -- exact solver_g ha1 hb1
+
+
+#check Classical.choose
 --#eval! (reverse_complex [(1, true), (2, false), (3, true), (4, false)]).1
 -- def reverse_complex_comp (L : List (ℕ × Bool)) : (L1 : List (ℕ × Bool)) × in_order L1 :=
 --   match L with

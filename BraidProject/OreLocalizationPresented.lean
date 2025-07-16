@@ -116,11 +116,11 @@ private theorem fraction_identity_works
   erw [H, H2, H0]
   exact mul_inv_cancel _
 
-private def presented_group_to_pml : PresentedGroup (pm_rels_to_pg_rels rels) →* (pml h1 h) :=
+noncomputable def presented_group_to_pml : PresentedGroup (pm_rels_to_pg_rels rels) →* (pml h1 h) :=
   PresentedGroup.toGroup fraction_identity_works
 
 @[simp]
-private theorem presented_group_to_pml_apply_of (a : α) : presented_group_to_pml
+theorem presented_group_to_pml_apply_of (a : α) : presented_group_to_pml
     (PresentedGroup.of a : PresentedGroup (pm_rels_to_pg_rels rels)) =
     (@OreLocalization.numeratorHom _ _ _
     (@oreSetSelf' _ rels h1 h)
@@ -130,7 +130,7 @@ private theorem presented_group_to_pml_apply_of (a : α) : presented_group_to_pm
 
 -- the following two should be inlined into presentedMonoidLocalizationEquivPresentedGroup
 -- but i'm leaving them separate for now to improve readbility
-private theorem comp_pg_pml_pml_pg_eq_id : MonoidHom.comp presented_group_to_pml
+theorem comp_pg_pml_pml_pg_eq_id : MonoidHom.comp presented_group_to_pml
     (@pml_to_presented_group α rels h h1) = ⟨⟨id, rfl⟩, fun _ _ => rfl⟩ := by
   let _ := @oreSetSelf' _ rels h1 h
   have unique_map_to_self := @presented_fraction_group_to_group_unique α rels h1 h _ _
@@ -142,7 +142,7 @@ private theorem comp_pg_pml_pml_pg_eq_id : MonoidHom.comp presented_group_to_pml
   exact Sh2.trans (unique_map_to_self ⟨⟨id, rfl⟩, fun _ _ => rfl⟩
     (fun r => by simp only [MonoidHom.coe_mk, OneHom.coe_mk, id_eq])).symm
 
-private theorem comp_pml_pg_pg_pml_eq_id : MonoidHom.comp pml_to_presented_group
+theorem comp_pml_pg_pg_pml_eq_id : MonoidHom.comp pml_to_presented_group
     (@presented_group_to_pml α rels h h1) = ⟨⟨id, rfl⟩, fun _ _ => rfl⟩ := by
   apply PresentedGroup.ext
   intro x
@@ -159,7 +159,7 @@ theorem comp_eq_of_hom_comp_eq {α β γ : Type*} [Monoid α] [Monoid β] [Monoi
 
 /-- the localization of a presented monoid is isomorphic to the presented group over the same
 relations-/
-def presentedMonoidLocalizationEquivPresentedGroup : pml h1 h ≃* PresentedGroup (pm_rels_to_pg_rels rels) :=
+noncomputable def presentedMonoidLocalizationEquivPresentedGroup : pml h1 h ≃* PresentedGroup (pm_rels_to_pg_rels rels) :=
   ⟨⟨pml_to_presented_group, presented_group_to_pml,
   Function.leftInverse_iff_comp.mpr <| comp_eq_of_hom_comp_eq comp_pg_pml_pml_pg_eq_id,
   Function.rightInverse_iff_comp.mpr <| comp_eq_of_hom_comp_eq comp_pml_pg_pg_pml_eq_id⟩,

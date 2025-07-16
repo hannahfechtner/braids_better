@@ -325,112 +325,112 @@ theorem empty_helper
 --   | vertical_append g1 g2 h g1_ih g2_ih => sorry
 
 
-theorem split_same (h : PartialGrid a b c d e) :
-  ∀ b1 b2, b1.length > 0 →  b2.length > 0 → b = b1 ++ b2 →
-  ∀ {c1 d1 e1 c2 d2}, PartialGrid a1 b1 c1 d1 e1 → a = a1 →
-   PartialGrid e1 b2 c2 d2 e2 → e = e2 → c ++ d = c1 ++ d1 ++ c2 ++d2 →
-  PartialGrid a b1 c3 d3 e3 → PartialGrid e3 b2 c4 d4 e →
-  c ++ d = c3 ++ d3 ++ c4 ++ d4 → c1 = c3 ∧ d1 = d3 ∧ e1 = e3 ∧
-  c2 = c4 ∧ d2 = d4 := by sorry
+-- theorem split_same (h : PartialGrid a b c d e) :
+--   ∀ b1 b2, b1.length > 0 →  b2.length > 0 → b = b1 ++ b2 →
+--   ∀ {c1 d1 e1 c2 d2}, PartialGrid a1 b1 c1 d1 e1 → a = a1 →
+--    PartialGrid e1 b2 c2 d2 e2 → e = e2 → c ++ d = c1 ++ d1 ++ c2 ++d2 →
+--   PartialGrid a b1 c3 d3 e3 → PartialGrid e3 b2 c4 d4 e →
+--   c ++ d = c3 ++ d3 ++ c4 ++ d4 → c1 = c3 ∧ d1 = d3 ∧ e1 = e3 ∧
+--   c2 = c4 ∧ d2 = d4 := by sorry
 
-theorem same_type_same_length_pg {a b c d e a1 b1 c1 d1 e1} (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
-    a = a1 → b = b1 → c = c1 → d = d1 → e = e1 → g1.length = g2.length := by
-  induction g1 generalizing a1 b1 c1 d1 e1 with
-  | single_gridt h =>
-    rename_i f g l m
-    intro a_is b_is c_is d_is e_is
-    cases h with
-    | empty =>
-      simp [PartialGrid.length]
-      simp [to_up] at a_is
-      simp [to_over] at b_is
-      exact (all_ones_length_pg _ a_is.symm b_is.symm).symm
-    | top_bottom i =>
-      simp [PartialGrid.length]
-      simp [to_up] at a_is
-      simp [to_over] at b_is
-      exact (top_bottom_length_pg _ a_is.symm b_is.symm).symm
-    | sides i =>
-      simp [PartialGrid.length]
-      simp [to_up] at a_is
-      simp [to_over] at b_is
-      exact (side_side_length_pg _ a_is.symm b_is.symm).symm
-    | top_left i =>
-      simp [PartialGrid.length]
-      simp [to_up] at a_is
-      simp [to_over] at b_is
-      have rme : remove_ones (c1 ++ d1 ++ e1) = [] := by
-        rw [← c_is, ← d_is, ← e_is]
-        simp [remove_ones]
-      exact (top_left_length_pg _ a_is.symm b_is.symm rme).symm
-    | adjacent i j h =>
-      simp [PartialGrid.length]
-      simp [to_up] at a_is
-      simp [to_over] at b_is
-      have rme : remove_ones (c1 ++ d1 ++ e1) =
-        [(j, true), (i, true), (j, false), (i, false)] := by
-        rw [← c_is, ← d_is, ← e_is]
-        simp [remove_ones]
-      exact (adjacent_length_pg _ a_is.symm b_is.symm rme h).symm
-    | separated i j h =>
-      simp [PartialGrid.length]
-      simp [to_up] at a_is
-      simp [to_over] at b_is
-      have rme : remove_ones (c1 ++ d1 ++ e1) = [(j, true), (i, false)] := by
-        rw [← c_is, ← d_is, ← e_is]
-        simp [remove_ones]
-      exact (separated_length_pg _ a_is.symm b_is.symm rme (or_dist_iff.mpr h)).symm
-  | empty a b ha ha1 hb hb1 =>
-    intro a_is b_is c_is d_is e_is
-    simp [PartialGrid.length]
-    symm
-    rw [a_is, b_is] at d_is
-    exact empty_helper _ c_is.symm d_is.symm e_is.symm
-  | horizontal_append_one g1 g2 g1_ih g2_ih =>
-    rename_i a3 b3 bot3 up3 b4 bot4 mid4 up4 g3
-    intro a_is b_is c_is d_is e_is
-    have split_it := splittable_vertically_of_pg' g2 _ _ b_is.symm (PartialGrid.top_length_pos g1) (PartialGrid.top_length_pos g3)
-    rcases split_it with ⟨mid, c2, d2, c3, d3, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
-    · have H := split_same g2 b3 b4 (PartialGrid.top_length_pos g1)
-        (PartialGrid.top_length_pos g3)
-        b_is.symm g1 a_is.symm g3 e_is.symm (by simp [c_is, d_is]) i1 i2 long
-      rw [len]
-      specialize g1_ih i1 a_is rfl H.1 H.2.1 H.2.2.1
-      specialize g2_ih i2 H.2.2.1 rfl H.2.2.2.1 H.2.2.2.2 e_is
-      simp [PartialGrid.length, g1_ih, g2_ih]
-    rcases b with ⟨d5, d6, h5, ⟨len⟩, ⟨e1_nil⟩, ⟨d_is⟩, ⟨b4_is⟩⟩
-    rw [e1_nil] at e_is
-    specialize g1_ih h5 a_is rfl
-    simp_all
+-- theorem same_type_same_length_pg {a b c d e a1 b1 c1 d1 e1} (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
+--     a = a1 → b = b1 → c = c1 → d = d1 → e = e1 → g1.length = g2.length := by
+--   induction g1 generalizing a1 b1 c1 d1 e1 with
+--   | single_gridt h =>
+--     rename_i f g l m
+--     intro a_is b_is c_is d_is e_is
+--     cases h with
+--     | empty =>
+--       simp [PartialGrid.length]
+--       simp [to_up] at a_is
+--       simp [to_over] at b_is
+--       exact (all_ones_length_pg _ a_is.symm b_is.symm).symm
+--     | top_bottom i =>
+--       simp [PartialGrid.length]
+--       simp [to_up] at a_is
+--       simp [to_over] at b_is
+--       exact (top_bottom_length_pg _ a_is.symm b_is.symm).symm
+--     | sides i =>
+--       simp [PartialGrid.length]
+--       simp [to_up] at a_is
+--       simp [to_over] at b_is
+--       exact (side_side_length_pg _ a_is.symm b_is.symm).symm
+--     | top_left i =>
+--       simp [PartialGrid.length]
+--       simp [to_up] at a_is
+--       simp [to_over] at b_is
+--       have rme : remove_ones (c1 ++ d1 ++ e1) = [] := by
+--         rw [← c_is, ← d_is, ← e_is]
+--         simp [remove_ones]
+--       exact (top_left_length_pg _ a_is.symm b_is.symm rme).symm
+--     | adjacent i j h =>
+--       simp [PartialGrid.length]
+--       simp [to_up] at a_is
+--       simp [to_over] at b_is
+--       have rme : remove_ones (c1 ++ d1 ++ e1) =
+--         [(j, true), (i, true), (j, false), (i, false)] := by
+--         rw [← c_is, ← d_is, ← e_is]
+--         simp [remove_ones]
+--       exact (adjacent_length_pg _ a_is.symm b_is.symm rme h).symm
+--     | separated i j h =>
+--       simp [PartialGrid.length]
+--       simp [to_up] at a_is
+--       simp [to_over] at b_is
+--       have rme : remove_ones (c1 ++ d1 ++ e1) = [(j, true), (i, false)] := by
+--         rw [← c_is, ← d_is, ← e_is]
+--         simp [remove_ones]
+--       exact (separated_length_pg _ a_is.symm b_is.symm rme (or_dist_iff.mpr h)).symm
+--   | empty a b ha ha1 hb hb1 =>
+--     intro a_is b_is c_is d_is e_is
+--     simp [PartialGrid.length]
+--     symm
+--     rw [a_is, b_is] at d_is
+--     exact empty_helper _ c_is.symm d_is.symm e_is.symm
+--   | horizontal_append_one g1 g2 g1_ih g2_ih =>
+--     rename_i a3 b3 bot3 up3 b4 bot4 mid4 up4 g3
+--     intro a_is b_is c_is d_is e_is
+--     have split_it := splittable_vertically_of_pg' g2 _ _ b_is.symm (PartialGrid.top_length_pos g1) (PartialGrid.top_length_pos g3)
+--     rcases split_it with ⟨mid, c2, d2, c3, d3, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
+--     · have H := split_same g2 b3 b4 (PartialGrid.top_length_pos g1)
+--         (PartialGrid.top_length_pos g3)
+--         b_is.symm g1 a_is.symm g3 e_is.symm (by simp [c_is, d_is]) i1 i2 long
+--       rw [len]
+--       specialize g1_ih i1 a_is rfl H.1 H.2.1 H.2.2.1
+--       specialize g2_ih i2 H.2.2.1 rfl H.2.2.2.1 H.2.2.2.2 e_is
+--       simp [PartialGrid.length, g1_ih, g2_ih]
+--     rcases b with ⟨d5, d6, h5, ⟨len⟩, ⟨e1_nil⟩, ⟨d_is⟩, ⟨b4_is⟩⟩
+--     rw [e1_nil] at e_is
+--     specialize g1_ih h5 a_is rfl
+--     simp_all
 
-    sorry
-  | horizontal_append h g1 g2 g1_ih g2_ih =>
-    rename_i a3 b3 bot3 mid3 up3 b4 bot4 mid4 up4 g3
-    intro a_is b_is c_is d_is e_is
-    have split_it := splittable_vertically_of_pg' g2 _ _ b_is.symm (PartialGrid.top_length_pos g1) (PartialGrid.top_length_pos g3)
-    rcases split_it with ⟨mid, c2, d2, c3, d3, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
-    · rw [len]
-      specialize g1_ih i1 a_is rfl
-      specialize g2_ih i2
-      have H := frontier_options_from_horizontal g2 i1 i2 (by simp [long])
-      rcases H with one | two
-      · simp_all
-        sorry
-      simp_all
+--     sorry
+--   | horizontal_append h g1 g2 g1_ih g2_ih =>
+--     rename_i a3 b3 bot3 mid3 up3 b4 bot4 mid4 up4 g3
+--     intro a_is b_is c_is d_is e_is
+--     have split_it := splittable_vertically_of_pg' g2 _ _ b_is.symm (PartialGrid.top_length_pos g1) (PartialGrid.top_length_pos g3)
+--     rcases split_it with ⟨mid, c2, d2, c3, d3, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
+--     · rw [len]
+--       specialize g1_ih i1 a_is rfl
+--       specialize g2_ih i2
+--       have H := frontier_options_from_horizontal g2 i1 i2 (by simp [long])
+--       rcases H with one | two
+--       · simp_all
+--         sorry
+--       simp_all
 
-      sorry
-      -- have H := unique_split_horiz g1 g3 i1 i2 (PartialGrid.left_length_pos g3)
-      --   (PartialGrid.left_length_pos i2) a_is rfl rfl e_is long
-      -- specialize g1_ih H.2.2.2.2 H.2.1 H.1
-      -- specialize g2_ih H.1 rfl H.2.2.1 H.2.2.2.1 e_is
-      -- simp [g1_ih, g2_ih, PartialGrid.length]
-    rw [PartialGrid.length]
-    rcases b with ⟨k1, k2, j1,⟨len⟩, ⟨e1_nil⟩, ⟨d1_is⟩, ⟨b4_is⟩⟩
-    rw [len]
-    specialize g1_ih j1 a_is rfl c_is
-    sorry
-  | vertical_append_one g1 g2 g1_ih g2_ih => sorry
-  | vertical_append g1 g2 h g1_ih g2_ih => sorry
+--       sorry
+--       -- have H := unique_split_horiz g1 g3 i1 i2 (PartialGrid.left_length_pos g3)
+--       --   (PartialGrid.left_length_pos i2) a_is rfl rfl e_is long
+--       -- specialize g1_ih H.2.2.2.2 H.2.1 H.1
+--       -- specialize g2_ih H.1 rfl H.2.2.1 H.2.2.2.1 e_is
+--       -- simp [g1_ih, g2_ih, PartialGrid.length]
+--     rw [PartialGrid.length]
+--     rcases b with ⟨k1, k2, j1,⟨len⟩, ⟨e1_nil⟩, ⟨d1_is⟩, ⟨b4_is⟩⟩
+--     rw [len]
+--     specialize g1_ih j1 a_is rfl c_is
+--     sorry
+--   | vertical_append_one g1 g2 g1_ih g2_ih => sorry
+--   | vertical_append g1 g2 h g1_ih g2_ih => sorry
 
 theorem same_type_same_length_pg_rm (g1 : PartialGrid a b c d e) (g2 : PartialGrid a1 b1 c1 d1 e1) :
     a = a1 → b = b1 → remove_ones (c ++ d++ e) = remove_ones (c1 ++ d1 ++ e1) → g1.length = g2.length := by
@@ -568,9 +568,6 @@ noncomputable def skeleton_one_cons_real (h2 : grid_style_real i j) (fe : a ++ b
     exact (is_true_append hb).2
   rcases grid_rel_real_means h2 with ⟨a2, b2, c2, d2, h_cell, ⟨i_is', j_is⟩, hl⟩
   use to_over d2, to_up c2 ++ head :: tail, []
-  have H2 := PartialGrid.empty (to_up c2) (head :: tail) (by simp [to_up_len_pos]) is_false_up (by simp) ht_true
-  have H3 := PartialGrid.horizontal_append_one (PartialGrid.single_gridt h_cell) H2
-  simp only [up_oc, over_oc, List.singleton_append, List.append_nil] at H3
   have helper := i_is.symm.trans i_is'
   simp only [List.cons.injEq, Prod.mk.injEq, and_true] at helper
   have ha : a = [(some a2, false)] := by
@@ -582,22 +579,15 @@ noncomputable def skeleton_one_cons_real (h2 : grid_style_real i j) (fe : a ++ b
     simp only [List.singleton_append, List.cons_append, List.cons.injEq, Prod.mk.injEq,
       and_true] at fe
     exact fe.2
-  rw [ha, hb]
-  use H3
+  have hd : to_over d2 = to_over d2 ++ [] := by simp
+  rw [ha, hb, hd]
+  use (PartialGrid.horizontal_append_one (PartialGrid.single_gridt h_cell)
+    (PartialGrid.empty (to_up c2) (head :: tail) (by simp [to_up_len_pos]) is_false_up (by simp) ht_true))
   constructor
   · rw [j_is]
     exact {down := by simp}
-  have : H3.length = (PartialGrid.horizontal_append_one (PartialGrid.single_gridt h_cell) H2).length :=
-    same_type_same_length_pg H3 ((PartialGrid.single_gridt h_cell).horizontal_append_one H2) rfl
-        rfl (by simp) rfl rfl
-  rw [PartialGrid.length, hl.1] at this
-  have : H2.length = (PartialGrid.empty (to_up c2) (head :: tail) (by simp [to_up_len_pos]) is_false_up (by simp) ht_true).length :=
-    same_type_same_length_pg
-      H2 (PartialGrid.empty (to_up c2) (head :: tail) (by simp [to_up_len_pos]) is_false_up (by simp) ht_true) rfl
-        rfl (by simp) rfl rfl
-  rw [PartialGrid.length] at this
   constructor
-  omega
+  rw [PartialGrid.length, hl.1, PartialGrid.length]
 
 noncomputable def skeleton_cons_one_real (h2 : grid_style_real i j) (a_is : a = head :: tail ++ a2)
     (ha : is_false a) (hb : is_true b) (ab_is : [(a3, false), (b3, true)] = a2 ++ b1)
@@ -608,38 +598,33 @@ noncomputable def skeleton_cons_one_real (h2 : grid_style_real i j) (a_is : a = 
   have ht_false : is_false (head :: tail) := by
     rw [a_is] at ha
     exact (is_false_append ha).1
-  have H2 := PartialGrid.empty (head :: tail) (to_over d2) (by simp [to_up_len_pos]) ht_false (by simp [to_over_len_pos]) is_true_over
-  have H3 := PartialGrid.vertical_append_one (PartialGrid.single_gridt h_cell) H2
   use [], head::tail ++ to_over d2, to_up c2
   rw [a_is]
   have H := i_is.symm.trans i_is'
   simp at H
-  rw [List.nil_append, up_oc, over_oc, ← H.1, ← H.2] at H3
-  have H2 : b = [(b3, true)] := by
+  have H4 : b = [(b3, true)] := by
     rw [b_is]
     rw [b_is] at hb1
     rw [b_is] at hb
     exact bool_change_first hb1 hb ab_is.symm
   have H1 : a2 = [(a3, false)] := by
-    rw [← b_is, ← H2] at ab_is
+    rw [← b_is, ← H4] at ab_is
     change [(a3, false)] ++ b = _ ++ b at ab_is
     exact (List.append_cancel_right ab_is).symm
-  rw [H1, H2]
-  use H3
+  have hc : to_up c2 = [] ++ to_up c2 := by simp
+  have hb : to_over (option_to_cell (some b2)) = [(b3, true)] := by
+    simp [option_to_cell, H.2]
+  have ha : (to_up (option_to_cell (some a5))) = [(a3, false)] := by
+    simp [option_to_cell, H.1]
+  rw [H1, H4, hc, ← hb, ← ha]
+  use PartialGrid.vertical_append_one (PartialGrid.single_gridt h_cell)
+    (PartialGrid.empty (head :: tail) (to_over d2) (by simp [to_up_len_pos])
+    ht_false (by simp [to_over_len_pos]) is_true_over)
   constructor
   · rw [j_is]
     exact {down := by simp}
   constructor
-  have : H3.length = (PartialGrid.vertical_append_one (PartialGrid.single_gridt h_cell)
-      (PartialGrid.empty (head :: tail) (to_over d2) (by simp [to_up_len_pos])
-      ht_false (by simp [to_over_len_pos]) is_true_over)).length :=
-    same_type_same_length_pg H3
-      ((PartialGrid.single_gridt h_cell).vertical_append_one
-      (PartialGrid.empty (head :: tail) (to_over d2) (by simp [to_up_len_pos])
-      ht_false (by simp [to_over_len_pos]) is_true_over)) (by simp [H.1, up_oc])
-      (by simp [H.2, over_oc]) rfl rfl rfl
-  rw [PartialGrid.length, hl.1, PartialGrid.length] at this
-  exact this
+  rw [PartialGrid.length, hl.1, PartialGrid.length]
 
 noncomputable def skeleton_cons_cons_real (gs : grid_style_real i j)
     (ha : is_false (head :: tail)) (hb : is_true (headb :: tailb))
@@ -649,28 +634,26 @@ noncomputable def skeleton_cons_cons_real (gs : grid_style_real i j)
     PLift (bot ++ mid ++ up = head :: tail ++ j ++ headb :: tailb) × PLift (h1.length = 1):= by
   rcases grid_rel_real_means gs with ⟨a5, b2, c2, d2, h_cell, ⟨i_is', j_is⟩, hl⟩
   use [], head :: tail ++ to_over d2 ++ to_up c2 ++ headb :: tailb, []
-  have H2 := PartialGrid.empty (head :: tail) (to_over d2) (by simp) ha (by simp [to_over_len_pos]) is_true_over
-  have H3 := PartialGrid.vertical_append_one (PartialGrid.single_gridt h_cell) H2
-  have H4 := PartialGrid.empty (to_up c2) (headb :: tailb) to_up_len_pos is_false_up (by simp) hb
-  have H5 := PartialGrid.horizontal_append (by simp) H3 H4
   have hi := i_is.symm.trans i_is'
   simp only [List.cons.injEq, Prod.mk.injEq, and_true] at hi
-  rw [List.append_nil] at H5
-  rw [← hi.1, up_oc, ← hi.2, over_oc] at H5
   simp only [List.cons_append, List.singleton_append, List.append_assoc]
-  simp only [List.cons_append, List.singleton_append, List.append_assoc] at H5
-  rw [← List.append_assoc (to_over d2), ← List.append_assoc tail, ← List.append_assoc tail] at H5
-  use H5
+  have ha' : (head :: (tail ++ [(a3, false)])) =
+      (head :: tail ++ to_up (option_to_cell (some a5))) := by
+    simp [option_to_cell, hi.1]
+  have hb' : ((b3, true) :: ([] ++ headb :: tailb)) =
+      (to_over (option_to_cell (some b2)) ++ headb :: tailb) := by
+    simp [option_to_cell, hi.2]
+  have hd : (head :: (tail ++ to_over d2 ++ to_up c2 ++ headb :: tailb)) =
+    (head :: tail ++ to_over d2 ++ [] ++ (to_up c2 ++ headb :: tailb)) := by simp
+  rw [ha', hb', hd]
+  use PartialGrid.horizontal_append (by simp)
+    (PartialGrid.vertical_append_one (PartialGrid.single_gridt h_cell)
+    (PartialGrid.empty (head :: tail) (to_over d2) (by simp) ha (by simp [to_over_len_pos]) is_true_over))
+    (PartialGrid.empty (to_up c2) (headb :: tailb) to_up_len_pos is_false_up (by simp) hb)
   constructor
   · exact {down := by simp [j_is]}
   constructor
-  have : H5.length = (PartialGrid.horizontal_append (by simp)
-      (PartialGrid.vertical_append_one (PartialGrid.single_gridt h_cell)
-      (PartialGrid.empty (head :: tail) (to_over d2) (by simp) ha (by simp [to_over_len_pos]) is_true_over))
-      (PartialGrid.empty (to_up c2) (headb :: tailb) to_up_len_pos is_false_up (by simp) hb)).length :=
-    same_type_same_length_pg H5 _ (by simp [hi.1, up_oc])
-      (by simp [hi.2, over_oc]) rfl (by simp) rfl
-  rw [this, PartialGrid.length, PartialGrid.length, hl.1, PartialGrid.length]
+  rw [PartialGrid.length, PartialGrid.length, hl.1, PartialGrid.length]
   simp [PartialGrid.length]
 
 open PartialGrid
@@ -746,7 +729,6 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
         subst this
         have := H3.2
         subst this
-        ---rw [← H3.1, ← H3.2] at h3
         use h3
         constructor
         · exact h4.1
@@ -830,45 +812,40 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
             rw [← spec] at H0
             exact (is_false_append H0).1
         have H := PartialGrid.extend_bottom_w_len g2 (heade::taile) lf (by simp)
-        rw [← spec] at hpg
-        have H2 := PartialGrid.horizontal_append_one hpg H.1
-        simp only [List.append_nil, List.cons_append] at H2
+        have nonsense := spec.symm
+        subst nonsense
         simp only [List.cons_append, List.append_assoc, List.append_assoc]
-        use H2
+        have hc' : bot4 = bot4 ++ [] := by simp
+        have hd' : (heade :: (taile ++ bot3 ++ mid3)) = (heade :: taile ++ bot3 ++ mid3) := by simp
+        rw [hc', hd']
+        use PartialGrid.horizontal_append_one hpg H.1
         constructor
         · constructor
           rw [← spec] at hf
           rw [List.append_nil, ← List.append_assoc, ← List.append_assoc, List.append_left_inj] at hf
           rw [l_is, l1_is]
-          rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc, ← List.append_assoc,
-            ← List.append_assoc, ← List.append_assoc, ← List.cons_append, ← List.cons_append,
-            ← List.cons_append, ← List.append_assoc, ← List.append_assoc, ← List.append_assoc,
-            List.append_left_inj, List.append_left_inj, List.append_left_inj, hf]
+          have : k ++ (j ++ (l₁ ++ (bot3 ++ mid3 ++ up3))) =  k ++ j ++ l₁ ++ (bot3 ++ mid3 ++ up3) := by simp
+          rw [this, ← hf]
+          simp
         constructor
         · exact List.suffix_refl_C
         constructor
-        · exact back2
+        · rw [List.append_nil]
+          exact back2
         constructor
-        have : H2.length = (PartialGrid.horizontal_append_one hpg H.1).length :=
-          same_type_same_length_pg H2 (PartialGrid.horizontal_append_one hpg H.1) rfl rfl (by simp) rfl rfl
-        rw [this]
-        simp [PartialGrid.length]
-        rename_i old
-        have : hpg.length = old.length :=
-          same_type_same_length_pg hpg old rfl rfl rfl rfl spec
-        rw [this]
-        have : g2.length = H.1.length := H.2.1
-        rw [← this]
-        simp_all
+        rw [PartialGrid.length]
+        have := H.2.1
+        omega
     | cons head tail =>
       cases to_add with
       | nil =>
         use bot4, head::tail ++ bot3 ++ mid3, up3
         rw [List.nil_append] at spec
-        rw [← spec] at hpg
+        have nonsense := spec.symm
+        subst nonsense
         use PartialGrid.horizontal_append (by simp) hpg g2
         constructor
-        · rw [spec, ← List.append_assoc] at hf
+        · rw [← List.append_assoc] at hf
           change bot4 ++ ([head] ++ tail) ++ up4 = k ++ j ++ l₁ ++ up4 at hf
           rw [← List.append_assoc] at hf
           constructor
@@ -881,23 +858,20 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
         · assumption
         simp [PartialGrid.length]
         constructor
-        rename_i old
-        have H : hpg.length = old.length :=
-          same_type_same_length_pg hpg old rfl rfl rfl rfl spec
-        simp [H, h6]
+        simp [h6]
       | cons heade taile =>
         use bot4, head::tail ++ (heade :: taile) ++ bot3 ++ mid3, up3
         have lf : is_false (heade :: taile) := by
           have H0 : is_false up4 := right_frontier_is_false hpg
           rw [← spec] at H0
           exact (is_false_append H0).1
-        rw [← spec] at hpg
+        have nonsense := spec.symm
+        subst nonsense
         have H3 := (PartialGrid.extend_bottom_w_len g2 (heade::taile) lf (by simp))
-        have H2 := PartialGrid.horizontal_append (by simp) hpg H3.1
         have nonsense : head :: tail ++ [] ++ (heade :: taile ++ bot3 ++ mid3) =
           (head :: tail ++ heade :: taile ++ bot3 ++ mid3) := by simp
         rw [← nonsense]
-        use H2
+        use PartialGrid.horizontal_append (by simp) hpg H3.1
         constructor
         · rw [l_is, l1_is]
           rw [← spec, ← List.append_assoc, ← List.append_assoc] at hf
@@ -909,16 +883,9 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
         · exact List.suffix_refl_C
         constructor
         · assumption
-        have : H2.length = (PartialGrid.horizontal_append (by simp) hpg
-          H3.1).length :=
-          same_type_same_length_pg H2 _ rfl rfl rfl rfl rfl
-        simp [this, PartialGrid.length]
-        rename_i old
-        have : hpg.length = old.length :=
-          same_type_same_length_pg hpg old rfl rfl rfl rfl spec
-        rw [this]
-        rw [← H3.2.1]
         constructor
+        rw [PartialGrid.length, PartialGrid.length]
+        have := H3.2.1
         omega
   | vertical_append_one g1 g2 ih1 ih2 =>
       rename_i a2 b2 bot2 up2 b3 bot3 mid3 up3
@@ -946,7 +913,8 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
       cases to_add with
       | nil =>
         rw [List.append_nil] at spec
-        rw [← spec.1] at pg
+        have nonsense := spec.1.symm
+        subst nonsense
         rw [spec.1] at fe'
         cases nm with
         | nil =>
@@ -963,12 +931,7 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
           constructor
           · exact List.prefix_refl_C
           constructor
-          simp [PartialGrid.length]
-          rename_i old
-          have H : pg.length = old.length :=
-            same_type_same_length_pg pg old rfl rfl spec.1 rfl rfl
-          rw [H]
-          exact len.1
+          simp [PartialGrid.length, len.1]
         | cons head tail =>
           use bot2, mid2 ++ up2 ++ head :: tail, nu
           use PartialGrid.vertical_append pg g2 (by simp)
@@ -983,12 +946,7 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
           constructor
           · exact List.prefix_refl_C
           constructor
-          simp [PartialGrid.length]
-          rename_i old
-          have H : pg.length = old.length :=
-            same_type_same_length_pg pg old rfl rfl spec.1 rfl rfl
-          rw [H]
-          exact len.1
+          simp [PartialGrid.length, len.1]
       | cons head tail =>
         cases nm with
         | nil =>
@@ -1021,8 +979,10 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
           have H2 := (extend_side_w_len g2 (head::tail) H1 (by simp))
           rw [spec.1] at H2
           have H := PartialGrid.vertical_append pg H2.1 (by simp)
-          rw [List.append_nil] at H
-          use H
+          have nonsense : (mid2 ++ up2 ++ head :: tail ++ [] ++ head1 :: tail1) =
+            (mid2 ++ up2 ++ head :: tail ++ head1 :: tail1) := by simp
+          rw [← nonsense]
+          use PartialGrid.vertical_append pg H2.1 (by simp)
           constructor
           · rw [← spec.1] at fe'
             simp only [List.append_assoc, List.cons_append, List.append_cancel_left_eq] at fe'
@@ -1033,12 +993,7 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
           constructor
           · exact List.prefix_refl_C
           constructor
-          simp [PartialGrid.length]
-          have : H.length = (PartialGrid.vertical_append pg H2.1 (by simp)).length :=
-            same_type_same_length_pg H (PartialGrid.vertical_append pg H2.1 (by simp)) rfl rfl rfl (by simp) rfl
-          rw [this, PartialGrid.length]
-          rw [← H2.2.1]
-          simp [len.1]
+          simp [PartialGrid.length, ← H2.2.1, len.1]
     rw [← l2_is] at g2_ih
     rcases @g2_ih k l1 (by simp) with ⟨nb, nm, nu, pg, fe', upp, botp⟩
     use nb, nm ++ nu ++mid, up

@@ -148,7 +148,7 @@ theorem sigma_bar_last {i j : ℕ} (h: i<j) : sigma_bar i j = sigma_bar i (j - 1
     rename_i n _
     simp only [ge_iff_le, Nat.succ_sub_succ_eq_sub, nonpos_iff_eq_zero, add_eq_zero, and_false, tsub_zero]
     unfold sigma_bar
-    simp only [Nat.succ.injEq, self_eq_add_right, one_ne_zero, ↓reduceIte, Nat.lt_succ_self,
+    simp only [Nat.succ.injEq, left_eq_add, one_ne_zero, ↓reduceIte, Nat.lt_succ_self,
       Nat.succ_sub_succ_eq_sub, add_tsub_cancel_left, one_mul, count_up]
     rfl
   rename_i n n_is _
@@ -182,7 +182,7 @@ theorem sigma_bar_big_first {i j : ℕ} (h: i<=j) : sigma_bar (j+1) i = (of j) *
     -- i = n+1
     rename_i n _
     unfold sigma_bar
-    simp only [add_right_eq_self, add_lt_iff_neg_left, ge_iff_le, le_add_iff_nonneg_right, tsub_eq_zero_of_le,
+    simp only [add_eq_left, add_lt_iff_neg_left, ge_iff_le, le_add_iff_nonneg_right, tsub_eq_zero_of_le,
       add_le_iff_nonpos_right, add_tsub_cancel_left, ite_false, lt_self_iff_false, le_refl, ite_true, count_down]
     rfl
   --j = k+1
@@ -205,7 +205,7 @@ theorem sigma_bar_first {i j : ℕ} (h: i<j) : sigma_bar i j = of i * (sigma_bar
       exact rfl
     rename_i n _
     unfold sigma_bar
-    simp only [Nat.succ.injEq, self_eq_add_right, Nat.lt_succ_self, ge_iff_le, Nat.succ_sub_succ_eq_sub,
+    simp only [Nat.succ.injEq, left_eq_add, Nat.lt_succ_self, ge_iff_le, Nat.succ_sub_succ_eq_sub,
       add_le_iff_nonpos_right, add_tsub_cancel_left, le_add_iff_nonneg_right, tsub_eq_zero_of_le, ite_true, ite_false,
       lt_self_iff_false, le_refl, count_up]
     rfl
@@ -230,7 +230,7 @@ theorem sigma_bar_big_last {i j : ℕ} (h: i<j) : sigma_bar j i = sigma_bar j (i
       intro h
       apply Nat.not_lt.mpr (Nat.le.step Nat.le.refl)
       exact Nat.succ_lt_succ_iff.mp h
-    simp only [Nat.succ.injEq, add_right_eq_self, one_ne_zero, ↓reduceIte, this,
+    simp only [Nat.succ.injEq, add_eq_left, one_ne_zero, ↓reduceIte, this,
       Nat.succ_sub_succ_eq_sub, add_tsub_cancel_left, one_mul, count_down]
     rfl
   rename_i k lt_k ih
@@ -367,7 +367,7 @@ theorem map_sigma_bar_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid.map (fun x =
     mul_one, map_of, mem_of, count_up_helper] at h
     rw [h]
     linarith
-  simp only [self_eq_add_left, add_eq_zero, OfNat.ofNat_ne_zero, and_false, ↓reduceIte,
+  simp only [right_eq_add, add_eq_zero, OfNat.ofNat_ne_zero, and_false, ↓reduceIte,
     lt_add_iff_pos_left, add_pos_iff, Nat.ofNat_pos, or_true, tsub_zero, mem_map] at h
   rcases h with ⟨m, hm, hm2⟩
   apply map_count_up_bounded _ _ _
