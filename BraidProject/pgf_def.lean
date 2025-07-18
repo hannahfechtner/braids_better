@@ -29,7 +29,6 @@ inductive grid_style_real : List (Option ℕ × Bool) → List (Option ℕ × Bo
     [(j, true), (i, true), (j, false), (i, false)]
 
 
-
 -- inductive pgf1 : List (Option ℕ × Bool) → List (Option ℕ × Bool) →
 --   List (Option ℕ × Bool) → Type
 --   | skeleton (a b) (ha : a.length > 0) (ha1 : is_false a) (hb : b.length > 0) (hb : is_true b ):
@@ -73,7 +72,7 @@ noncomputable def pgf_left_false (h : pgf a b c) : is_false a := by
 noncomputable def pgf_top_true (h : pgf a b c) : is_true b := by
   induction h; all_goals assumption
 
-noncomputable def add_cell_w_len (h : pgf a b c)
+noncomputable def add_cell_w_len_pgf (h : pgf a b c)
     (hg : grid_style_real i j) (fe : c = k ++ i ++ l) :
     Σ c', (h1 : pgf a b c') × PLift (c' = k ++ j ++ l) ×
     PLift (h.length < h1.length) := by
@@ -327,6 +326,12 @@ def rw_length (h : SemiThue grid_style a b) : ℕ :=
     | grid_style.close h => 1
   | SemiThue.trans a _ c h1 h2 => rw_length h1 + rw_length h2
 
+def rw_length_rev (h : SemiThue reversing a b) : ℕ :=
+  match h with
+  | SemiThue.refl a => 0
+  | SemiThue.reduction h => 1
+  | SemiThue.trans a _ c h1 h2 => rw_length_rev h1 + rw_length_rev h2
+
 def rw_length_one_step (h : SemiThue_one_step  grid_style a b) : ℕ :=
   match h with
   | SemiThue_one_step.refl a => 0
@@ -339,7 +344,12 @@ def rw_length_one_step (h : SemiThue_one_step  grid_style a b) : ℕ :=
     | grid_style.apart h => rw_length_one_step h1 + 1
     | grid_style.close h => rw_length_one_step h1 + 1
 
-private noncomputable def one_step_trans
+def rw_length_one_step_rev (h : SemiThue_one_step reversing a b) : ℕ :=
+  match h with
+  | SemiThue_one_step.refl a => 0
+  | SemiThue_one_step.one_step h1 h => rw_length_one_step_rev h1 + 1
+
+noncomputable def one_step_trans
   (h1 : SemiThue_one_step grid_style a b) (h2 : SemiThue_one_step grid_style b c) :
     (h3 : SemiThue_one_step grid_style a c) ×
     PLift (rw_length_one_step h3 = rw_length_one_step h1 + rw_length_one_step h2) := by
@@ -714,6 +724,53 @@ noncomputable def pgf_of_st_w_len (h : SemiThue_one_step grid_style ab c) (hab :
     constructor
     rw [pgf.length, ← ih.2.1]
 
+-- noncomputable def pgf_of_st_w_rev_len (h : SemiThue_one_step reversing ab c) (hab : ab = a ++ b)
+--   (ha : is_false a) (hal : a.length > 0) (hb : is_true b) (hbl : b.length > 0) :
+--   (h2 : pgf a b c) × PLift (rw_length_one_step h = pgf.length h2):= by
+--   induction h with
+--   | refl d =>
+--     subst hab
+--     use pgf.skeleton a b hal ha hbl hb
+--     constructor
+--     simp [rw_length_one_step, pgf.length, PartialGrid.length]
+--   | one_step h1 h2 ih =>
+--     rename_i d e f g l
+--     have H1 := reg_of_one_step_w_len h1
+--     specialize ih hab
+--     rcases h2
+--     · rename_i n
+--       rw [rw_length_one_step]
+--       use pgf.top_left _ ih.1 rfl
+--       constructor
+--       rw [pgf.length, ← ih.2.1]
+--     · rename_i n
+--       rw [rw_length_one_step]
+--       use pgf.sides _ ih.1 rfl
+--       constructor
+--       rw [pgf.length, ← ih.2.1]
+--       rfl
+--     · rename_i n
+--       rw [rw_length_one_step]
+--       use pgf.top_bottom _ ih.1 rfl
+--       constructor
+--       rw [pgf.length, ← ih.2.1]
+--       rfl
+--     · rw [rw_length_one_step]
+--       use pgf.empty ih.1 rfl
+--       constructor
+--       rw [pgf.length, ← ih.2.1]
+--       rfl
+--     · rename_i n
+--       rw [rw_length_one_step]
+--       use pgf.separated _ _ n ih.1 rfl
+--       constructor
+--       rw [pgf.length, ← ih.2.1]
+--     rename_i n
+--     rw [rw_length_one_step]
+--     use pgf.adjacent _ _ n ih.1 rfl
+--     constructor
+--     rw [pgf.length, ← ih.2.1]
+
 noncomputable def pg_of_st_w_len (h : SemiThue_one_step grid_style ab mid) (hab : ab = a ++ b)
   (ha : is_false a) (hal : a.length > 0) (hb : is_true b) (hbl : b.length > 0) :
   Σ c d e, (h2 : PartialGrid a b c d e) ×
@@ -763,16 +820,16 @@ noncomputable def get_frontier_style (h : PartialGrid a b c d e) : Σ (h1 : pgf 
   constructor
   rw [← H3.2.1, ← H2.2.1, ← H.2.1]
 
-noncomputable def get_frontier_style_converse (h1 : pgf a b mid) :
-  Σ c d e, (h : PartialGrid a b c d e) ×
-  PLift (mid = c ++ d ++ e ∧ h.length = h1.length) := by
-  have H := pgf_to_rev h1
-  have H2 := one_step_of_reg_w_len H.1
-  have H3 := @pgf_of_st_w_len (a ++ b) _ _ _  H2.1 rfl h.left_frontier_is_false
-    (PartialGrid.left_length_pos h) h.top_frontier_is_true (PartialGrid.top_length_pos h)
-  use H3.1
-  constructor
-  rw [← H3.2.1, ← H2.2.1, ← H.2.1]
+-- noncomputable def get_frontier_style_converse (h1 : pgf a b mid) :
+--   Σ c d e, (h : PartialGrid a b c d e) ×
+--   PLift (mid = c ++ d ++ e ∧ h.length = h1.length) := by
+--   have H := pgf_to_rev h1
+--   have H2 := one_step_of_reg_w_len H.1
+--   have H3 := @pgf_of_st_w_len (a ++ b) _ _ _  H2.1 rfl h.left_frontier_is_false
+--     (PartialGrid.left_length_pos h) h.top_frontier_is_true (PartialGrid.top_length_pos h)
+--   use H3.1
+--   constructor
+--   rw [← H3.2.1, ← H2.2.1, ← H.2.1]
 
   -- have H := get_frontier_style_helper h
   -- rcases H with ⟨f, h1, fe, _, _, hl⟩

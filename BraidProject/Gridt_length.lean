@@ -1,4 +1,4 @@
-import BraidProject.StepTwo_C
+import BraidProject.StepTwo_C_basic_eq
 import BraidProject.SemiThue_C
 import BraidProject.Cancellability_C
 import BraidProject.GridsTwo_C

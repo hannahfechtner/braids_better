@@ -112,7 +112,7 @@ theorem infix_length_le (h : l1 <:+: l2) : l1.length ≤ l2.length := by
 end toAdd
 
 inductive reversing : List (ℕ × Bool) → List (ℕ × Bool) → Type
-| basic {i j : ℕ} : reversing [(n, false), (n, true)] []
+| basic {i j : ℕ} (h : Nat.dist i j = 0) : reversing [(i, false), (j, true)] []
 | apart {i j : ℕ} (h : Nat.dist i j > 1) : reversing [(i, false), (j, true)] [(j, true), (i, false)]
 | close {i j : ℕ} (h : Nat.dist i j = 1) : reversing [(i, false), (j, true)]
     [(j, true), (i, true), (j, false), (i, false)]
@@ -490,13 +490,13 @@ def pairs_together_singleton : pairsTogether [a] := by
     simp at hwt
     omega
 
-def pairsTogether_of_append (h : pairsTogether (a ++ b)) : pairsTogether a := by
-  unfold pairsTogether
-  intro c d hcd
-  rcases hcd with ⟨w, t, ⟨hwt⟩⟩
-  specialize h c d (by use w; use t ++ remove_ones b; exact ⟨by simp [remove_ones_append, ← hwt]⟩)
-  rcases h with ⟨w1, t1, ⟨newt⟩⟩
-  sorry
+-- def pairsTogether_of_append (h : pairsTogether (a ++ b)) : pairsTogether a := by
+--   unfold pairsTogether
+--   intro c d hcd
+--   rcases hcd with ⟨w, t, ⟨hwt⟩⟩
+--   specialize h c d (by use w; use t ++ remove_ones b; exact ⟨by simp [remove_ones_append, ← hwt]⟩)
+--   rcases h with ⟨w1, t1, ⟨newt⟩⟩
+--   sorry
 
 
 def pts (L) := ∀ L1, List.Infix' L1 L → pairsTogether L1
@@ -1551,8 +1551,11 @@ noncomputable def rev_to_grid (h : SemiThue reversing a b) : Σ b', SemiThue gri
     rename_i c d e f g
     rcases ih (one_step_equiv_reg.2 h1) with ⟨b', gr, b'_is, pt_b⟩
     cases h2 with
-    | basic =>
-      exact rg_of_rev_rel ([(none, true), (none, false)]) gr  b'_is.1 pt_b (.basic _)
+    | basic h_dist =>
+      apply Nat.eq_of_dist_eq_zero at h_dist
+      apply rg_of_rev_rel ([(none, true), (none, false)]) gr  b'_is.1 pt_b --(.basic h_dist)
+      rw [h_dist]
+      exact .basic _
     | apart h_dist =>
       rename_i i j
       exact rg_of_rev_rel ([(some j, true), (some i, false)]) gr b'_is.1 pt_b (.apart h_dist)
@@ -1702,6 +1705,7 @@ noncomputable def stepOne_mid (h : SemiThue reversing a b) (ha : skeleton_order 
   constructor
   · exact skeleton_to_option ha
   exact b'_is
+
 
 
 noncomputable def stepOne (h : SemiThue reversing a b) (ha : skeleton_order a) (hb : in_order b) : Σ b', SemiThue grid_style (to_option a) b' ×
