@@ -1,4 +1,4 @@
-import BraidProject.Solver_C
+import BraidProject.Solver_ST
 import BraidProject.BraidGroup
 import BraidProject.OreLocalizationPresented
 import BraidProject.Cancellability
@@ -402,9 +402,11 @@ theorem SemiThue_reversing_to_braid_group_equiv (h : SemiThue reversing a b) :
       mul_left_inj, mul_right_inj]
     cases h with
     | basic =>
-      rename_i n
+      rename_i i j hij
+      apply Nat.eq_of_dist_eq_zero at hij
+      rw [← hij]
       change (PresentedGroup.mk Braid.braid_rels_coexeter)
-        (FreeGroup.mk ([(n, false)] ++ [(n, true)])) = _
+        (FreeGroup.mk ([(i, false)] ++ [(i, true)])) = _
       rw [← FreeGroup.mul_mk]
       unfold FreeGroup.mk
       congr
@@ -888,6 +890,9 @@ theorem solver_g_correct : solver_g a b ↔
   constructor
   · exact solver_g_correct_one_direction
   exact solver_g_correct_other_direction
+
+#eval solver_g [(1, true), (2, true), (4, true), (1, true)]
+  [(2, true), (1, true), (2, true), (4, true)] 
 
 -- #check Quotient.ind
 -- set_option pp.proofs true in

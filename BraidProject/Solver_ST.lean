@@ -315,7 +315,6 @@ noncomputable def one_step_of_reg_rev_w_len {a b} :
   rw [rw_length_rev, (one_step_trans_rev ih1.1 ih2.1).2.1]
   exact Mathlib.Tactic.Ring.add_congr ih1.2.1 ih2.2.1 rfl
 
-theorem equiv_insert_no_length {b c} : rw_length (@equiv_insert b c) = 0 := by sorry
 
 theorem semithue_cons_length : rw_length (@SemiThue_cons _ _ _ _ c h) = rw_length h := by
   unfold SemiThue_cons
@@ -325,13 +324,85 @@ theorem semithue_cons_length : rw_length (@SemiThue_cons _ _ _ _ c h) = rw_lengt
   | trans a b c ha hb ih1 ih2 =>
     simp [rw_length, ← ih2, ← ih1]
 
-theorem move_ones_no_length {b} : rw_length (@equiv_move_ones b) = 0 := by
+-- set_option pp.proofs true in
+-- def SemiThue_rel_w_len (h : grid_style a b) : {h1 : SemiThue grid_style a b // rw_length h1 = rw_length (@SemiThue.reduction _ _ _ _ [] [] h)} := by
+--   simp only [← List.nil_append a, ← List.nil_append b, ← List.append_nil ([] ++ a), ← List.append_nil ([] ++ b)]
+--   use SemiThue.reduction h
+--   simp [rw_length]
+
+noncomputable def equiv_insert_w_len : {h1 : SemiThue grid_style (a :: L) (insert_one a L) // rw_length h1 = 0} := by
+  have H : ∀ t L a, L.length ≤ t → {h1 : SemiThue grid_style (a :: L) (insert_one a L) // rw_length h1 = 0} := by
+    intro t
+    induction t
+    · intro L a len
+      simp at len
+      rw [len]
+      use SemiThue.refl [a]
+      simp [rw_length]
+    rename_i n ih
+    intro L a len
+    match a with
+    | (none, true) =>
+      have H : (insert_one (none, true) L) = (none, true) :: L := by
+        simp [insert_one]
+      rw [H]
+      use SemiThue.refl ((none, true) :: L)
+      simp [rw_length]
+    | (none, false) =>
+      match L with
+      | [] => use SemiThue.refl [(none, false)]; simp [rw_length]
+      | (none, true) :: tail =>
+        simp at len
+        use SemiThue.trans _ _ _ (SemiThue_append_right_w_len _ (@SemiThue.reduction _ _ _ _ [] [] grid_style.empty)).1 (SemiThue_cons (ih tail _ len).1)
+        rw [rw_length, (SemiThue_append_right_w_len _ _).2, semithue_cons_length, (ih tail _ len).2, rw_length]
+      | (none, false) :: tail =>
+        use SemiThue.refl ((none, false) :: (none, false) :: tail)
+        simp [rw_length]
+      | (some c, true) :: tail1 =>
+        simp at len
+        specialize ih tail1 (none, false) len
+        use SemiThue.trans _ _ _ (SemiThue_append_right_w_len _ (@SemiThue.reduction _ _ _ _ [] [] (grid_style.up c))).1 (SemiThue_cons ih.1)
+        simp [rw_length, (SemiThue_append_right_w_len _ _).2, semithue_cons_length, ih.2]
+      | (some c, false) :: tail1 =>
+        use SemiThue.refl ((none, false) :: (some c, false) :: tail1)
+        simp [rw_length]
+    | (some b, true) =>
+      match L with
+      | [] => use SemiThue.refl _; simp [rw_length]
+      | (none, true) :: tail => use SemiThue.refl _ ; simp [rw_length]
+      | (none, false) :: tail => use SemiThue.refl _ ; simp [rw_length]
+      | (some c, true) :: tail1 => use SemiThue.refl _ ; simp [rw_length]
+      | (some c, false) :: tail1 => use SemiThue.refl _ ; simp [rw_length]
+    | (some b, false) =>
+      match L with
+      | [] => use SemiThue.refl _ ; simp [rw_length]
+      | (none, true) :: tail =>
+        simp at len
+        specialize ih tail (some b, false) len
+        use SemiThue.trans _ _ _ (SemiThue_append_right_w_len _ (@SemiThue.reduction _ _ _ _ [] [] (grid_style.over b))).1 (SemiThue_cons ih.1)
+        simp [rw_length, (SemiThue_append_right_w_len _ _).2, semithue_cons_length, ih.2]
+      | (none, false) :: tail => use SemiThue.refl _ ; simp [rw_length]
+      | (some c, true) :: tail1 => use SemiThue.refl _ ;  simp [rw_length]
+      | (some c, false) :: tail1 => use SemiThue.refl _ ; simp [rw_length]
+  exact H L.length _ _ (by simp)
+
+
+noncomputable def equiv_move_ones_for_len : SemiThue grid_style L (move_ones L) := by
+  induction L
+  · exact SemiThue.refl []
+  rename_i head tail ih
+  exact SemiThue.trans _ _ _ (SemiThue_cons ih) (equiv_insert_w_len).1
+
+theorem equiv_insert_no_length {b c} : rw_length (@equiv_insert_w_len b c).1 = 0 := by
+  exact (@equiv_insert_w_len b c).2
+
+theorem move_ones_no_length {b} : rw_length (@equiv_move_ones_for_len b) = 0 := by
   induction b with
-  | nil => simp [equiv_move_ones, rw_length]
+  | nil => simp [equiv_move_ones_for_len, rw_length]
   | cons head tail ih =>
-    unfold equiv_move_ones
+    unfold equiv_move_ones_for_len
     simp only [rw_length, equiv_insert_no_length, semithue_cons_length]
-    unfold equiv_move_ones at ih
+    unfold equiv_move_ones_for_len at ih
     rw [ih]
 
 noncomputable def rg_of_rev_rel_w_len (d1) (gr : SemiThue grid_style (to_option a) b') (b'_is : remove_ones b' =
@@ -359,7 +430,10 @@ noncomputable def rg_of_rev_rel_w_len (d1) (gr : SemiThue grid_style (to_option 
   · use move_ones (w ++ d1 ++ t)
     have hi := hwt.1.symm
     subst hi
-    use (by apply SemiThue.trans _ _ _ gr; exact SemiThue.trans _ _ _ (SemiThue.reduction (by sorry)) equiv_move_ones)
+    use (by apply SemiThue.trans _ _ _ gr; exact SemiThue.trans _ _ _ (SemiThue.reduction (by cases rel_holds with
+        | basic n => exact grid_style.basic c1
+        | apart h => exact grid_style.apart h
+        | close h => exact grid_style.close h)) equiv_move_ones_for_len)
     constructor
     · exact {down := by rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, h2.1.1,
         h2.1.2]}
@@ -367,7 +441,13 @@ noncomputable def rg_of_rev_rel_w_len (d1) (gr : SemiThue grid_style (to_option 
     · exact irreducible_move_ones
     constructor
     rw [rw_length, rw_length, add_right_inj, move_ones_no_length, add_zero]
-    sorry
+    cases rel_holds with
+    | basic n =>
+      simp [rw_length]
+    | apart h =>
+      simp [rw_length]
+    | close h =>
+      simp [rw_length]
   · use move_ones (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t)
     have hi := hwt.1.symm
     subst hi
@@ -375,37 +455,63 @@ noncomputable def rg_of_rev_rel_w_len (d1) (gr : SemiThue grid_style (to_option 
     subst hi2
     -- have H : SemiThue grid_style ((w1 ++ [(some c1, false), (some c2, true)] ++ w2) ++ [(some c1, false), (some c2, true)] ++ t)
     --       (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t) := by
-    --       apply SemiThue_append_right <| SemiThue_append_right (SemiThue_append_right (SemiThue_append_left
-    --         (SemiThue_rel rel_holds)))
+    --     apply SemiThue_append_right
+    --     apply SemiThue_append_right
+    --     apply SemiThue.reduction
+    --     cases rel_holds with
+    --     | basic n => exact grid_style.basic c1
+    --     | apart h => exact grid_style.apart h
+    --     | close h => exact grid_style.close h
     use
-      (by apply SemiThue.trans _ _ _ gr; apply (SemiThue_append_right <| SemiThue_append_right (SemiThue_append_right (SemiThue_append_left
-            (SemiThue_rel (by sorry))))).trans _ _ _ equiv_move_ones)
+      (by apply SemiThue.trans _ _ _ gr; apply (SemiThue_append_right_w_len _ <|
+      (SemiThue_append_right_w_len _ (SemiThue.reduction (by
+        cases rel_holds with
+        | basic n => exact grid_style.basic c1
+        | apart h => exact grid_style.apart h
+        | close h => exact grid_style.close h))).1).1.trans _ _ _ equiv_move_ones_for_len)
     constructor
     · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, hw.1.2.1, hw.1.2.2]
       exact {down := by simp [remove_ones, remove_ones_append]}
     constructor
     · exact irreducible_move_ones
     constructor
-    rw [rw_length, rw_length, add_right_inj, move_ones_no_length, add_zero]
-    sorry
+    rw [rw_length, rw_length, add_right_inj, move_ones_no_length, add_zero,
+      (SemiThue_append_right_w_len _ _).2, (SemiThue_append_right_w_len _ _).2]
+    cases rel_holds with
+    | basic n =>
+      simp [rw_length]
+    | apart h =>
+      simp [rw_length]
+    | close h =>
+      simp [rw_length]
   use move_ones (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2)
-  constructor
-  · apply SemiThue.trans _ _ _ gr
-    rw [← hwt.1]
-    have H : SemiThue grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
-        (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2) := by
-      rw [List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
-      apply SemiThue_append_left
-      rw [List.append_assoc, List.append_assoc] at ht
-      rw [ht.1.1]
-      exact SemiThue_append_left
-          (SemiThue_append_left (SemiThue_append_right (SemiThue_rel rel_holds)))
-    exact H.trans _ _ _ equiv_move_ones
+  have hi := hwt.1.symm
+  rw [List.append_assoc] at hi
+  subst hi
+  have another := ht.1.1
+  subst another
+  rw [List.append_assoc, List.append_assoc, List.append_assoc, ← List.append_assoc t1]
+  use (by apply SemiThue.trans _ _ _ gr ((SemiThue_append_left_w_len _
+            ((SemiThue_append_left_w_len _ (SemiThue.reduction (by
+                cases rel_holds with
+                | basic n => exact grid_style.basic c1
+                | apart h => exact grid_style.apart h
+                | close h => exact grid_style.close h))).1)).1.trans _ _ _ equiv_move_ones_for_len))
   constructor
   · rw [remove_ones_move_ones, remove_ones_append, remove_ones_append, ht.1.2.1, ht.1.2.2]
     exact {down := by simp [remove_ones, remove_ones_append]}
-  exact irreducible_move_ones
-
+  constructor
+  · exact irreducible_move_ones
+  constructor
+  rw [rw_length, rw_length, add_right_inj, move_ones_no_length, add_zero]
+  rw [(SemiThue_append_left_w_len _ _).2, (SemiThue_append_left_w_len _ _).2]
+  cases rel_holds with
+    | basic n =>
+      simp [rw_length]
+    | apart h =>
+      simp [rw_length]
+    | close h =>
+      simp [rw_length]
 
 noncomputable def one_step_rev_to_grid_w_len (h : SemiThue_one_step reversing a b) :
    Σ b', (h1 : SemiThue grid_style (to_option a) b') × PLift
@@ -741,20 +847,17 @@ def solver_helper (a : triangle) : List (ℕ × Bool) :=
     simp [a4.1.1.1]
     simp [a4.1.1.2]
 
-#exit
-
 def solver_helper' (a : triangle) : {h : triangle // h.1 = a.1 ∧ h.2.1 = a.2.1} :=
   match hb' : find_it a.2.2.1 with
   | none => ⟨a, ⟨rfl, rfl⟩⟩
   | some (c, d, e) =>
     match hd : d.1.dist d.2 with
-    | 0 => solver_helper' ⟨a.1, ⟨a.2.1, ⟨c ++ e,
+    | 0 => solver_helper' ⟨a.1, ⟨a.2.1, ⟨c ++ [] ++ e,
         ⟨a.2.2.2.1,
         by
           apply a.2.2.2.2.trans
-          rw [find_it_spec hb', Nat.eq_of_dist_eq_zero hd]
-          nth_rw 2 [← List.append_nil c]
-          exact SemiThue.reduction reversing.basic⟩⟩⟩⟩
+          rw [find_it_spec hb']
+          exact SemiThue.reduction (reversing.basic hd)⟩⟩⟩⟩
     | 1 => solver_helper' ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e),
         ⟨ a.2.2.2.1, by
           apply a.2.2.2.2.trans
@@ -768,40 +871,39 @@ def solver_helper' (a : triangle) : {h : triangle // h.1 = a.1 ∧ h.2.1 = a.2.1
     termination_by get_n' a
     decreasing_by
     · rcases a with ⟨a1, a2, a3, a4⟩
+      simp only
       rcases find_it_spec hb' with ⟨b1, b2, b3⟩
-      have H : d.1 = d.2 := by exact Nat.eq_of_dist_eq_zero hd
       rcases d with ⟨x, y⟩
-      simp only at H
-      subst H
       apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-      · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (x, true)] []
-        · rfl
-        · simp
-        exact reversing.basic
-      · apply pg_smaller_than_g
-      apply pg_smaller_than_g
+      · simp [rw_length_rev]
+      · apply st_smaller_than_g
+        simp [a4.1.1.1]
+        simp [a4.1.1.2]
+      apply st_smaller_than_g
+      simp [a4.1.1.1]
+      simp [a4.1.1.2]
     · rcases a with ⟨a1, a2, a3, a4⟩
       rcases find_it_spec hb' with ⟨b1, b2, b3⟩
       rcases d with ⟨x, y⟩
       apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-      · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (y, true)]
-          [(y, true), (x, true), (y, false), (x, false)]
-        · rfl
-        · simp
-        exact reversing.close hd
-      · apply pg_smaller_than_g
-      apply pg_smaller_than_g
+      · simp [rw_length_rev]
+      · apply st_smaller_than_g
+        simp [a4.1.1.1]
+        simp [a4.1.1.2]
+      apply st_smaller_than_g
+      simp [a4.1.1.1]
+      simp [a4.1.1.2]
     rcases a with ⟨a1, a2, a3, a4⟩
     rcases find_it_spec hb' with ⟨b1, b2, b3⟩
     rcases d with ⟨x, y⟩
     apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · apply @get_n'_same a1 a2 a4.1 c e [(x, false), (y, true)]
-        [(y, true), (x, false)]
-      · rfl
-      · simp
-      exact reversing.apart (by aesop)
-    · apply pg_smaller_than_g
-    apply pg_smaller_than_g
+    · simp [rw_length_rev]
+    · apply st_smaller_than_g
+      simp [a4.1.1.1]
+      simp [a4.1.1.2]
+    apply st_smaller_than_g
+    simp [a4.1.1.1]
+    simp [a4.1.1.2]
 
 theorem solver_helper_find_it_none' : find_it (solver_helper a)= none := by
   induction ha : get_n' a using Nat.strongRecOn generalizing a
@@ -811,12 +913,11 @@ theorem solver_helper_find_it_none' : find_it (solver_helper a)= none := by
   split
   · rename_i ih l m o p hd
     apply @ih
-      (get_n' ⟨a.fst, ⟨a.snd.fst, ⟨l ++ o, ⟨a.2.2.2.1,
+      (get_n' ⟨a.fst, ⟨a.snd.fst, ⟨l ++ [] ++ o, ⟨a.2.2.2.1,
           by
           apply a.2.2.2.2.trans
-          rw [find_it_spec p, Nat.eq_of_dist_eq_zero hd]
-          nth_rw 2 [← List.append_nil l]
-          exact SemiThue.reduction reversing.basic⟩⟩⟩⟩)
+          rw [find_it_spec p]
+          exact SemiThue.reduction (reversing.basic hd)⟩⟩⟩⟩)
     rw [← ha]
     rcases a with ⟨a1, a2, a3, a4⟩
     rcases find_it_spec p with ⟨b1, b2, b3⟩
@@ -826,12 +927,13 @@ theorem solver_helper_find_it_none' : find_it (solver_helper a)= none := by
     subst H
     unfold get_n'
     apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · apply @get_n'_same a1 a2 a4.1 l o [(x, false), (x, true)] []
-      · rfl
-      · simp
-      apply reversing.basic
-    · apply pg_smaller_than_g
-    · apply pg_smaller_than_g
+    · simp [rw_length_rev]
+    · apply st_smaller_than_g
+      simp [a4.1.1.1]
+      simp [a4.1.1.2]
+    apply st_smaller_than_g
+    simp [a4.1.1.1]
+    simp [a4.1.1.2]
     rfl
   · rename_i ih m n o p hd
     apply @ih (get_n' ⟨a.1, ⟨a.2.1, ⟨(m ++ [(n.2, true), (n.1, true), (n.2, false), (n.1, false)] ++ o),
@@ -844,13 +946,13 @@ theorem solver_helper_find_it_none' : find_it (solver_helper a)= none := by
     rcases n with ⟨x, y⟩
     rw [← ha]
     apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · apply @get_n'_same a1 a2 a4.1 m o [(x, false), (y, true)]
-        [(y, true), (x, true), (y, false), (x, false)]
-      · rfl
-      · simp
-      exact reversing.close hd
-    · apply pg_smaller_than_g
-    · apply pg_smaller_than_g
+    · simp [rw_length_rev]
+    · apply st_smaller_than_g
+      simp [a4.1.1.1]
+      simp [a4.1.1.2]
+    apply st_smaller_than_g
+    simp [a4.1.1.1]
+    simp [a4.1.1.2]
     rfl
   rename_i ih l m n o p hd
   apply @ih (get_n' ⟨a.1, ⟨a.2.1, ⟨(l ++ [(m.2, true), (m.1, false)] ++ n),
@@ -863,13 +965,13 @@ theorem solver_helper_find_it_none' : find_it (solver_helper a)= none := by
   rcases m with ⟨x, y⟩
   rw [← ha]
   apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-  · apply @get_n'_same a1 a2 a4.1 l n [(x, false), (y, true)]
-      [(y, true), (x, false)]
-    · rfl
-    · simp
-    exact reversing.apart (by aesop)
-  · apply pg_smaller_than_g
-  apply pg_smaller_than_g
+  · simp [rw_length_rev]
+  · apply st_smaller_than_g
+    simp [a4.1.1.1]
+    simp [a4.1.1.2]
+  apply st_smaller_than_g
+  simp [a4.1.1.1]
+  simp [a4.1.1.2]
   rfl
 
 theorem solver_helper_find_it_none (a) : find_it (solver_helper' a).1.2.2.1 = none := by
@@ -887,12 +989,11 @@ theorem solver_helper_find_it_none (a) : find_it (solver_helper' a).1.2.2.1 = no
   · rename_i hd
     simp only
     apply @ih
-      (get_n' ⟨a.fst, ⟨a.snd.fst, ⟨p ++ r, ⟨a.2.2.2.1,
+      (get_n' ⟨a.fst, ⟨a.snd.fst, ⟨p ++ [] ++ r, ⟨a.2.2.2.1,
           by
           apply a.2.2.2.2.trans
-          rw [find_it_spec o, Nat.eq_of_dist_eq_zero hd]
-          nth_rw 2 [← List.append_nil p]
-          exact SemiThue.reduction reversing.basic⟩⟩⟩⟩)
+          rw [find_it_spec o]
+          exact SemiThue.reduction (reversing.basic hd)⟩⟩⟩⟩)
     rw [← ha]
     rcases a with ⟨a1, a2, a3, a4⟩
     rcases find_it_spec o with ⟨b1, b2, b3⟩
@@ -902,12 +1003,13 @@ theorem solver_helper_find_it_none (a) : find_it (solver_helper' a).1.2.2.1 = no
     subst H
     unfold get_n'
     apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · apply @get_n'_same a1 a2 a4.1 p r [(x, false), (x, true)] []
-      · rfl
-      · simp
-      apply reversing.basic
-    · apply pg_smaller_than_g
-    · apply pg_smaller_than_g
+    · simp [rw_length_rev]
+    · apply st_smaller_than_g
+      simp [a4.1.1.1]
+      simp [a4.1.1.2]
+    apply st_smaller_than_g
+    simp [a4.1.1.1]
+    simp [a4.1.1.2]
     rfl
   · rename_i hd
     simp only
@@ -921,13 +1023,13 @@ theorem solver_helper_find_it_none (a) : find_it (solver_helper' a).1.2.2.1 = no
     rcases q with ⟨x, y⟩
     rw [← ha]
     apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · apply @get_n'_same a1 a2 a4.1 p r [(x, false), (y, true)]
-        [(y, true), (x, true), (y, false), (x, false)]
-      · rfl
-      · simp
-      exact reversing.close hd
-    · apply pg_smaller_than_g
-    · apply pg_smaller_than_g
+    · simp [rw_length_rev]
+    · apply st_smaller_than_g
+      simp [a4.1.1.1]
+      simp [a4.1.1.2]
+    apply st_smaller_than_g
+    simp [a4.1.1.1]
+    simp [a4.1.1.2]
     rfl
   rename_i hd
   simp only
@@ -941,13 +1043,13 @@ theorem solver_helper_find_it_none (a) : find_it (solver_helper' a).1.2.2.1 = no
   rcases q with ⟨x, y⟩
   rw [← ha]
   apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-  · apply @get_n'_same a1 a2 a4.1 p r [(x, false), (y, true)]
-      [(y, true), (x, false)]
-    · rfl
-    · simp
-    exact reversing.apart (by aesop)
-  · apply pg_smaller_than_g
-  apply pg_smaller_than_g
+  · simp [rw_length_rev]
+  · apply st_smaller_than_g
+    simp [a4.1.1.1]
+    simp [a4.1.1.2]
+  apply st_smaller_than_g
+  simp [a4.1.1.1]
+  simp [a4.1.1.2]
   rfl
 
 def in_order_of_find_it_none (h : find_it a = none) : in_order a := by
@@ -1517,16 +1619,16 @@ def skeleton_order_to_up_plain_to_over_plain : skeleton_order
   · exact to_over_plain_true
   exact ⟨rfl⟩
 
-theorem to_option_append : to_option (a ++ b) = to_option a ++ to_option b := by
-  unfold to_option; simp
+-- theorem to_option_append : to_option (a ++ b) = to_option a ++ to_option b := by
+--   unfold to_option; simp
 
 theorem eq_of_SemiThue_false (h : SemiThue reversing a b) (ha : is_false a) : a = b := by
   induction h with
   | refl a => rfl
   | reduction h =>
     rcases h
-    · rename_i n
-      specialize ha (n, true) ⟨by simp⟩
+    · rename_i i j hij
+      specialize ha (j, true) ⟨by simp⟩
       simp at ha
       exact ha.1.elim
     · rename_i i j hij
@@ -1548,8 +1650,8 @@ theorem eq_of_SemiThue_true (h : SemiThue reversing a b) (ha : is_true a) : a = 
   | refl a => rfl
   | reduction h =>
     rcases h
-    · rename_i n
-      specialize ha (n, false) ⟨by simp⟩
+    · rename_i i j hij
+      specialize ha (i, false) ⟨by simp⟩
       simp at ha
       exact ha.1.elim
     · rename_i i j hij
@@ -1572,18 +1674,21 @@ theorem eq_of_SemiThue_in_order (h : SemiThue reversing a b) (ha : in_order a) :
   | reduction h =>
     rcases ha with ⟨one, two, one_true, two_false, ⟨spec⟩⟩
     rcases h
-    · rename_i c d n
-      have spec_rw : c ++ [(n, false), (n, true)] ++ d =
-        (c ++ [(n, false)]) ++ ((n, true):: d) := by simp
+    · rename_i c d i j hij
+      apply Nat.eq_of_dist_eq_zero at hij
+      rw [hij]
+      rw [hij] at spec
+      have spec_rw : c ++ [(j, false), (j, true)] ++ d =
+        (c ++ [(j, false)]) ++ ((j, true):: d) := by simp
       rw [spec_rw] at spec
       rcases List.append_eq_append_iff.mp spec with
         ⟨mid, spec1, spec2⟩ | ⟨mid, spec1, spec2⟩
       · rw [spec1] at one_true
-        specialize one_true (n, false) ⟨by simp⟩
+        specialize one_true (j, false) ⟨by simp⟩
         simp at one_true
         exact one_true.1.elim
       rw [spec2] at two_false
-      specialize two_false (n, true) ⟨by simp⟩
+      specialize two_false (j, true) ⟨by simp⟩
       simp at two_false
       exact two_false.1.elim
     · rename_i c d i j hij
@@ -1693,7 +1798,7 @@ noncomputable def grid_to_rev (h : gridt a b c d) : SemiThue reversing
   | empty => exact SemiThue.refl _
   | top_bottom i => exact SemiThue.refl _
   | sides i => exact SemiThue.refl _
-  | top_left i => exact SemiThue_rel reversing.basic
+  | top_left i => exact SemiThue_rel (reversing.basic (Nat.dist_eq_zero rfl))
   | adjacent i k h => exact SemiThue_rel (reversing.close h)
   | separated i j h => exact SemiThue_rel (reversing.apart h)
   | vertical h1 h2 h1_ih h2_ih =>
