@@ -277,7 +277,7 @@ function render_(canvas: HTMLCanvasElement, nStrands: number, swaps: Swap[]) {
   });
 }
 
-export default function Braid(props0: BraidProps) {
+export function BraidCanvas(props0: BraidProps) {
   const { strands, generators, ...props } = props0
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
 
@@ -311,6 +311,75 @@ export default function Braid(props0: BraidProps) {
   }, [strands, generators])
 
   return <canvas ref={canvasRef} {...props} />
+}
+
+type BraidCarouselProps = {
+  braids: BraidProps[]
+  initialIndex?: number
+  // optional: pass canvas props you want applied to every braid (e.g., style / width / height)
+  canvasProps?: React.CanvasHTMLAttributes<HTMLCanvasElement>
+}
+
+export default function BraidCarousel({
+  braids,
+  initialIndex = 0,
+  canvasProps,
+}: BraidCarouselProps) {
+  const clamp = (n: number) =>
+    Math.max(0, Math.min(braids.length - 1, n))
+
+  const [idx, setIdx] = React.useState(clamp(initialIndex))
+
+  // keep idx valid if braids length changes
+  React.useEffect(() => {
+    setIdx(i => clamp(i))
+  }, [braids.length])
+
+  if (!braids?.length) {
+    return <div style={{ fontStyle: 'italic' }}>No braids to show.</div>
+  }
+
+  const current = braids[idx]
+
+  return (
+    <div style={{ display: 'grid', gap: 12, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => setIdx(i => clamp(i - 1))}
+          disabled={idx === 0}
+        >
+          ‹ Prev
+        </button>
+
+        <input
+          type="range"
+          min={0}
+          max={braids.length - 1}
+          step={1}
+          value={idx}
+          onChange={(e) => setIdx(e.currentTarget.valueAsNumber)}
+          style={{ flex: 1 }}
+          aria-label="Braid index"
+        />
+
+        <button
+          type="button"
+          onClick={() => setIdx(i => clamp(i + 1))}
+          disabled={idx === braids.length - 1}
+        >
+          Next ›
+        </button>
+
+        <span style={{ width: 90, textAlign: 'right' }}>
+          {idx + 1} / {braids.length}
+        </span>
+      </div>
+
+      {/* The key ensures a fresh animation loop when changing braids */}
+      <BraidCanvas key={idx} {...current} {...canvasProps} />
+    </div>
+  )
 }
 
 // original code from Jim
