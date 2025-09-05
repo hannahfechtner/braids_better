@@ -14,6 +14,33 @@ inductive gridt : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeM
   | separated (i j : ℕ) (h : i.dist j > 1) : gridt (of i) (of j) (of i) (of j)
   | vertical (h1: gridt u v u' v') (h2 : gridt a v' c d) : gridt (u * a) v (u' * c) d
   | horizontal (h1: gridt u v u' v') (h2 : gridt u' b c d) : gridt u (v * b) c (v' * d)
+inductive cell : List ℕ → List ℕ → List ℕ → List ℕ → Type
+  | empty : (cell [] [] [] [])
+  | top_bottom (i : ℕ) : cell [] [i] [] [i]
+  | sides (i : ℕ) : cell [i] [] [i] []
+  | top_left (i : ℕ) : cell [i] [i] [] []
+  | adjacent (i k : ℕ) (h : Nat.dist i k = 1) : cell [i] [k] [i, k] [k, i]
+  | separated (i j : ℕ) (h : i +2 ≤ j ∨ j+2 <= i) : cell [i] [j] [i] [j]
+
+noncomputable def gridt_from_cell (h : cell a b c d) : gridt a b c d := by
+  induction h with
+  | empty => exact gridt.empty
+  | top_bottom i => exact gridt.top_bottom _
+  | sides i => exact gridt.sides _
+  | top_left i => exact gridt.top_left _
+  | adjacent i k h => exact gridt.adjacent _ _ h
+  | separated i j h => exact gridt.separated _ _ (or_dist_iff.mpr h)
+def gridt.length : gridt a b c d → ℕ := by
+  intro h
+  match h with
+  | gridt.empty => exact 0
+  | gridt.sides _ => exact  0
+  | gridt.top_bottom _ => exact 0
+  | gridt.top_left _ => exact 1
+  | gridt.adjacent _ _ _ => exact 1
+  | gridt.separated _ _ _ => exact 1
+  | gridt.horizontal h1 h2 => exact gridt.length h1 + gridt.length h2
+  | gridt.vertical h1 h2 => exact gridt.length h1 + gridt.length h2
 
 noncomputable def gridt_swap : gridt a b c d → gridt b a d c := by
   intro h

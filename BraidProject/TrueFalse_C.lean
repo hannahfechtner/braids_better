@@ -173,6 +173,11 @@ def is_true_cons (a : List (α × Bool)) (h : is_true a): is_true ((b, true) :: 
 
 def in_order (a : List (α × Bool)) := Σ a1 a2, is_true a1 × is_false a2 × PLift (a = a1 ++ a2)
 
+def in_order'' (a : List (α × Bool)) := Σ a1, Σ p : {a2 // a = a1 ++ a2}, is_true a1 × is_false p.1
+
+def in_order' (a : List (α × Bool)) := {p : (a1 : List (α × Bool)) × (a2 : List (α × Bool)) ×
+  is_true a1 × is_false a2 // (a = p.1 ++ p.2.1)}
+
 def in_order_rest (h : in_order (head :: t)) : in_order t := by
   rcases h with ⟨a1, a2, ha⟩
   match a1 with

@@ -1,4 +1,6 @@
 import BraidProject.Gridt_length
+import BraidProject.PartialGrids_C
+import BraidProject.Remove_Ones
 
 theorem all_ones_length_pg (h : PartialGrid a b c d e) : a = [(none, false)] → b = [(none, true)] → h.length = 0 := by
   induction h with
@@ -716,7 +718,7 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
           have H : is_true bot1 := by exact g2.top_frontier_is_true
           simp at long
           rw [long] at H
-          have H2 := middle_frontier_nil_or_caps h2
+          have H2 := PartialGrid.middle_frontier_nil_or_caps h2
           rcases H2 with H2 | ⟨front, mid, caboose, spec⟩
           · simp at H2
             exact H2.1.elim
@@ -728,7 +730,7 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         have H : is_true bot1 := by exact g2.top_frontier_is_true
         simp only [List.append_nil, List.append_assoc] at long
         rw [long] at H
-        have H2 := middle_frontier_nil_or_caps h1
+        have H2 := PartialGrid.middle_frontier_nil_or_caps h1
         rcases H2 with H2 | ⟨front, mid, caboose, spec⟩
         · simp at H2
           exact H2.1.elim
@@ -750,11 +752,11 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
             is_true_of_true_true h1.bottom_frontier_is_true h2.bottom_frontier_is_true
         have bot1_is : bot1 = c1 ++ c2 := by
           rw [List.append_nil] at long
-          rcases middle_frontier_nil_or_caps g1 with H | ⟨front, mid, caboose, spec⟩
+          rcases PartialGrid.middle_frontier_nil_or_caps g1 with H | ⟨front, mid, caboose, spec⟩
           · rw [H.1] at h
             simp at h
           rw [spec.1] at long
-          rcases middle_frontier_nil_or_caps h2 with H | ⟨front1, mid1, caboose1, spec1⟩
+          rcases PartialGrid.middle_frontier_nil_or_caps h2 with H | ⟨front1, mid1, caboose1, spec1⟩
           · simp [H.1] at long
             rw [← long] at both_c
             specialize both_c (front, false)
@@ -851,11 +853,11 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
       | d11 :: d12 =>
         have H0 : is_true bot1 := by exact g2.top_frontier_is_true
         have bot1_is : bot1 = c1 := by
-          rcases middle_frontier_nil_or_caps h1 with H | ⟨front, mid, caboose, spec⟩
+          rcases PartialGrid.middle_frontier_nil_or_caps h1 with H | ⟨front, mid, caboose, spec⟩
           · simp at H
             exact H.1.elim
           rw [spec.1] at long
-          rcases middle_frontier_nil_or_caps g1 with H | ⟨front1, mid1, caboose1, spec1⟩
+          rcases PartialGrid.middle_frontier_nil_or_caps g1 with H | ⟨front1, mid1, caboose1, spec1⟩
           · simp [H.1] at long
             rw [long] at H0
             specialize H0 (front, false)

@@ -1,19 +1,18 @@
-import BraidProject.StepTwo_C_basic_eq
 import BraidProject.SemiThue_C
 import BraidProject.Cancellability_C
 import BraidProject.GridsTwo_C
 
-def gridt.length : gridt a b c d → ℕ := by
-  intro h
-  match h with
-  | gridt.empty => exact 0
-  | gridt.sides _ => exact  0
-  | gridt.top_bottom _ => exact 0
-  | gridt.top_left _ => exact 1
-  | gridt.adjacent _ _ _ => exact 1
-  | gridt.separated _ _ _ => exact 1
-  | gridt.horizontal h1 h2 => exact gridt.length h1 + gridt.length h2
-  | gridt.vertical h1 h2 => exact gridt.length h1 + gridt.length h2
+-- def gridt.length : gridt a b c d → ℕ := by
+--   intro h
+--   match h with
+--   | gridt.empty => exact 0
+--   | gridt.sides _ => exact  0
+--   | gridt.top_bottom _ => exact 0
+--   | gridt.top_left _ => exact 1
+--   | gridt.adjacent _ _ _ => exact 1
+--   | gridt.separated _ _ _ => exact 1
+--   | gridt.horizontal h1 h2 => exact gridt.length h1 + gridt.length h2
+--   | gridt.vertical h1 h2 => exact gridt.length h1 + gridt.length h2
 
 noncomputable def ab_len (a b : List ℕ) : ℕ :=
   match existence_s a b with

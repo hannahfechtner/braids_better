@@ -1,6 +1,6 @@
 import BraidProject.StepTwo_C_basic_eq
 import BraidProject.SemiThue_C
-import BraidProject.Cancellability_C
+import BraidProject.Cancellability
 import BraidProject.GridsTwo_C
 import BraidProject.PartialGrid_bounded
 import BraidProject.PartialGrid_rw
@@ -314,7 +314,6 @@ noncomputable def one_step_of_reg_rev_w_len {a b} :
   constructor
   rw [rw_length_rev, (one_step_trans_rev ih1.1 ih2.1).2.1]
   exact Mathlib.Tactic.Ring.add_congr ih1.2.1 ih2.2.1 rfl
-
 
 theorem semithue_cons_length : rw_length (@SemiThue_cons _ _ _ _ c h) = rw_length h := by
   unfold SemiThue_cons
@@ -819,7 +818,7 @@ def solver_helper (a : triangle) : List (ℕ × Bool) :=
       apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
       · simp [rw_length_rev]
       · apply st_smaller_than_g
-        simp [a4.1.1.1]
+        simp only [gt_iff_lt, a4.1.1.1]
         simp [a4.1.1.2]
       apply st_smaller_than_g
       simp [a4.1.1.1]
@@ -1556,7 +1555,7 @@ theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
     (by simp [ha, to_option, to_up_plain]) (is_true_to_option to_over_plain_true)
     (by simp [hb, to_option, to_over_plain]) H3
   rcases H with ⟨bot, mid, up, pg, ⟨b'_is⟩⟩
-  rcases middle_frontier_nil_or_caps pg with ⟨⟨mid_nil⟩⟩ | ⟨fm, mm, cm, ⟨problem⟩⟩
+  rcases PartialGrid.middle_frontier_nil_or_caps pg with ⟨⟨mid_nil⟩⟩ | ⟨fm, mm, cm, ⟨problem⟩⟩
   · rw [mid_nil] at pg
     have grid1 := gridt_of_PartialGrid pg
     unfold gridt_option at grid1
@@ -1783,7 +1782,7 @@ theorem to_up_plain_mul {a b : FreeMonoid ℕ} :
   rw [← to_up_plain_append]
   rfl
 
-theorem to_over_plain_mul {a b : FreeMonoid ℕ} :
+theorem to_over_plain_mul {a b : FreeMonoid α} :
   to_over_plain (a * b) = to_over_plain a ++ to_over_plain b := by
   rw [← to_over_plain_append]
   rfl

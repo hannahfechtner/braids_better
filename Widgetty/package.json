@@ -1,0 +1,39 @@
+{
+    "name": "braid_visualization",
+    "version": "1.0.0",
+    "description": "visualizes braids in 2d without movement",
+    "type": "module",
+    "scripts": {
+      "clean": "rm ../.lake/build/js/* 2> /dev/null",
+      "build": "rollup --config",
+      "clean-and-build": "npm run clean; npm run build"
+    },
+    "author": "Hannah Fechtner",
+    "license": "ISC",
+    "devDependencies": {
+      "@babel/preset-react": "^7.24.1",
+      "@rollup/plugin-babel": "^6.0.4",
+      "@rollup/plugin-commonjs": "^25.0.8",
+      "@rollup/plugin-node-resolve": "^15.2.3",
+      "@rollup/plugin-replace": "^5.0.5",
+      "@rollup/plugin-terser": "^0.4.4",
+      "@rollup/plugin-typescript": "^11.1.6",
+      "@types/react": "^18.3.2",
+      "@types/react-dom": "^18.3.0",
+      "rollup": "^4.17.2",
+      "tslib": "^2.6.2",
+      "typescript": "^5.4.5"
+    },
+    "dependencies": {
+      "@leanprover/infoview": "~0.7.0",
+      "magic-string": "^0.30.10",
+      "react": "^18.3.1",
+      "react-dom": "^18.3.1"
+    },
+    "main": "rollup.config.js",
+    "keywords": [
+      "braids",
+      "braid",
+      "visualization"
+    ]
+  }

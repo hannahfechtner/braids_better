@@ -19,8 +19,7 @@ instance {n : ℕ} : Monoid (BraidMonoid n) := by unfold BraidMonoid; infer_inst
 theorem sound : BraidMonoid.rel n a b → BraidMonoid.mk n a = BraidMonoid.mk n b :=
   PresentedMonoid.sound
 
-theorem exact : BraidMonoid.mk n a = BraidMonoid.mk n b → BraidMonoid.rel n a b := by
-  sorry
+theorem exact : BraidMonoid.mk n a = BraidMonoid.mk n b → BraidMonoid.rel n a b := by apply Quotient.exact
 
 theorem refl : BraidMonoid.rel n a a := PresentedMonoid.refl
 theorem reg : ∀ c d, BraidMonoid.rel n a b → BraidMonoid.rel n (c * a * d) (c * b * d) :=

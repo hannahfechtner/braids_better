@@ -1,6 +1,9 @@
 import BraidProject.SemiThue_C
 import BraidProject.AlphabetRel
 import BraidProject.TrueFalse_C
+import BraidProject.Remove_Ones
+import BraidProject.Relations
+import BraidProject.ToOption
 
 section toAdd
 
@@ -111,43 +114,7 @@ theorem infix_length_le (h : l1 <:+: l2) : l1.length ≤ l2.length := by
 
 end toAdd
 
-inductive reversing : List (ℕ × Bool) → List (ℕ × Bool) → Type
-| basic {i j : ℕ} (h : Nat.dist i j = 0) : reversing [(i, false), (j, true)] []
-| apart {i j : ℕ} (h : Nat.dist i j > 1) : reversing [(i, false), (j, true)] [(j, true), (i, false)]
-| close {i j : ℕ} (h : Nat.dist i j = 1) : reversing [(i, false), (j, true)]
-    [(j, true), (i, true), (j, false), (i, false)]
 
-inductive grid_style : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Type
-| basic (n : ℕ) : grid_style [(some n, false), (some n, true)] [(none, true), (none, false)]
-| over (n : ℕ) : grid_style [(n, false), (none, true)] [(none, true), (n, false)]
-| up (n : ℕ) : grid_style [(none, false), (some n, true)] [(n, true), (none, false)]
-| empty : grid_style [(none, false), (none, true)] [(none, true), (none, false)]
-| apart {i j : ℕ} (h : Nat.dist i j > 1) : grid_style [(i, false), (j, true)] [(j, true), (i, false)]
-| close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style [(i, false), (j, true)]
-    [(j, true), (i, true), (j, false), (i, false)]
-
-inductive empty_fill : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Type
-| over (n : ℕ) : empty_fill [(n, false), (none, true)] [(none, true), (n, false)]
-| up (n : ℕ) : empty_fill [(none, false), (some n, true)] [(n, true), (none, false)]
-| empty : empty_fill [(none, false), (none, true)] [(none, true), (none, false)]
-
-def remove_ones (L : List (Option α × Bool)) : List (α × Bool) :=
-  match L with
-  | [] => []
-  | (some a, b) :: c => (a, b) :: remove_ones c
-  | (none, _) :: c => remove_ones c
-
-@[simp]
-theorem remove_ones_nil : remove_ones ([] : List (Option α × Bool)) = [] := rfl
-
-@[simp]
-theorem remove_ones_append : remove_ones (L1 ++ L2) = remove_ones L1 ++ remove_ones L2 := by
-  induction L1
-  · simp
-  rename_i head tail ih
-  match head with
-  | (none, _) => simp [remove_ones, ih]
-  | (some _, _) => simp [remove_ones, ih]
 
 def insert_one (a : Option ℕ × Bool) (L : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
   match L with
@@ -1076,34 +1043,6 @@ def pts_of_irr (h : irreducible L) : pts L := by
   intro h1 hl
   apply pt_of_irr (irr_infix h hl)
 
-def to_option (L : List (ℕ × Bool)) : List (Option ℕ × Bool) := (List.map (fun x ↦ (some x.1, x.2)) L)
-
-def is_false_to_option (ha : is_false a) : is_false (to_option a) := by
-  unfold to_option
-  unfold is_false
-  intro x hx
-  simp at hx
-  constructor
-  rcases hx.1 with ⟨a1, h1 | h2⟩
-  · rw [← h1.2]
-  specialize ha (a1, true) ⟨h2.1⟩
-  simp at ha
-  exact ha.1.elim
-
-def is_true_to_option (ha : is_true a) : is_true (to_option a) := by
-  unfold to_option
-  intro x hx
-  simp only [List.mem_map, Prod.exists, Bool.exists_bool] at hx
-  exact {down := by
-              rcases hx with ⟨a1, spec1 | spec2⟩
-              · have := (ha _ ⟨spec1.1⟩).1
-                simp [this, ← spec1.2]
-              rw [← spec2.2]}
-  -- rcases hx with ⟨a1, (spec1 | spec2)⟩
-  -- · have := ha _ spec1.1
-  --   simp at this
-  -- rw [← spec2.2]
-
 def skeleton_to_option (h : skeleton_order a) : skeleton_order (to_option a) := by
   rcases h with ⟨a1, a2, spec⟩
   use to_option a1, to_option a2
@@ -1115,9 +1054,6 @@ def skeleton_to_option (h : skeleton_order a) : skeleton_order (to_option a) := 
   unfold to_option
   rw [List.map_append]
   exact ⟨rfl⟩
-  --simp [is_false_to_option spec.1, is_true_to_option spec.2.1, spec.2.2]
-  -- unfold to_option
-  -- exact List.map_append (fun x ↦ (some x.1, x.2)) a1 a2
 
 theorem remove_map_helper {a : List (ℕ × Bool)} : remove_ones (to_option a) = a := by
   induction a

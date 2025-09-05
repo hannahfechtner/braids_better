@@ -2,32 +2,13 @@ import BraidProject.Solver_ST
 import BraidProject.BraidGroup
 import BraidProject.OreLocalizationPresented
 import BraidProject.Cancellability
-
--- def solver_long (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
---   solver_helper' ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
-
-
--- def solver_equiv (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThue reversing
---     (to_up_plain a ++ to_over_plain b) (solver_long a b ha hb).1.2.2.1 := by
---   have H := (solver_long a b ha hb).1.2.2.2.2
---   simp at H
---   convert H
---   exact (solver_long a b ha hb).2.1.symm
---   exact (solver_long a b ha hb).2.2.symm
+import BraidProject.Widgets
 
 def separate_maximal_true_prefix (c : List (ℕ × Bool)) : List (ℕ × Bool) × List (ℕ × Bool) :=
   match c with
   | [] => ([], [])
   | (c2, false) :: c1 => ([], (c2, false) :: c1)
   | (d, true) :: e => ([(d, true)] ++ (separate_maximal_true_prefix e).1, (separate_maximal_true_prefix e).2)
-
--- theorem separate_maximal_true_prefix_nil : separate_maximal_true_prefix [] = ([], []) := by
---   unfold separate_maximal_true_prefix
---   simp
--- theorem separate_maximal_true_prefix_cons_false (d : Option ℕ) (e : List (Option ℕ × Bool)) :
---   separate_maximal_true_prefix ((d, false) :: e) = ([], (d, false) :: e) := by
---   unfold separate_maximal_true_prefix
---   simp
 
 theorem separate_maximal_true_prefix_correct :
     (separate_maximal_true_prefix L).1 ++ (separate_maximal_true_prefix L).2 = L := by
@@ -427,11 +408,11 @@ theorem SemiThue_reversing_to_braid_group_equiv (h : SemiThue reversing a b) :
       apply (mul_left_inj (Braid.σi j)).mp
       group
       symm
-      exact Braid.braid_group_inf.braid_dist h
+      exact Braid.braid_group_inf.braid h
   | trans a b c _ _ ih1 ih2 =>
     exact ih1.trans ih2
 
-theorem to_over_plain_of (i) : to_over_plain (FreeMonoid.of i) = [(i, true)] := by rfl
+theorem to_over_plain_of (i : ℕ) : to_over_plain (FreeMonoid.of i) = [(i, true)] := by rfl
 
 open Braid in
 theorem bm_to_bg (h : PresentedMonoid.mk braid_rels_m_inf a =
@@ -442,7 +423,7 @@ theorem bm_to_bg (h : PresentedMonoid.mk braid_rels_m_inf a =
   induction h with
   | of x y h =>
     cases h with
-    | adjacent i => exact braid_group_inf.braid i
+    | adjacent i => exact braid_group_inf.braid dist_succ
     | separated i j h =>
       apply braid_group_inf.comm
       apply or_dist_iff.mpr
@@ -454,8 +435,8 @@ theorem bm_to_bg (h : PresentedMonoid.mk braid_rels_m_inf a =
     rw [to_over_plain_mul, to_over_plain_mul, ← FreeGroup.mul_mk,  ← FreeGroup.mul_mk,
       PresentedGroup.mk_mul, PresentedGroup.mk_mul, ih1, ih2]
 
-theorem PresentedGroup.mk_inv : (PresentedGroup.mk Braid.braid_rels_coexeter a)⁻¹ =
-  (PresentedGroup.mk Braid.braid_rels_coexeter) a⁻¹ := by rfl
+theorem PresentedGroup.mk_inv {rels : Set (FreeGroup α)} : (PresentedGroup.mk rels a)⁻¹ =
+  (PresentedGroup.mk rels) a⁻¹ := by rfl
 
 theorem pg_mk_fg_inv : ((PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk a))⁻¹ =
   (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk (FreeGroup.invRev a)) := by
@@ -472,7 +453,7 @@ theorem pg_mk_to_over_plain_inv :
 theorem to_up_plain_reverse : to_up_plain a.reverse = (to_up_plain a).reverse := by
   simp [to_up_plain]
 
-theorem recover_from_is_false (h : is_false d) : to_up_plain (List.map (fun x ↦ x.1) d).reverse = d := by
+theorem recover_from_is_false (h : is_false d) : to_up_plain (List.map (fun x ↦ x.1) d).reverse = (d : List (ℕ × Bool)) := by
   rw [to_up_plain_reverse]
   have H : (to_up_plain (List.map (fun x ↦ x.1) d)).reverse.reverse = d.reverse := by
     rw [List.reverse_reverse]
@@ -487,7 +468,7 @@ theorem recover_from_is_false (h : is_false d) : to_up_plain (List.map (fun x �
       simp [← H2.1]
   exact List.reverse_injective H
 
-theorem recover_from_is_true (h : is_true d) : to_over_plain (List.map (fun x ↦ x.1) d) = d := by
+theorem recover_from_is_true (h : is_true d) : to_over_plain (List.map (fun x ↦ x.1) d) = (d : List (ℕ × Bool)) := by
   induction d with
   | nil => simp [to_over_plain]
   | cons head tail ih =>
@@ -547,8 +528,6 @@ def invRev_true_of_is_false (h : is_false e) : is_true (FreeGroup.invRev e) := b
   simp only [Bool.true_eq_false] at h
   exact h.1
 
-
-
 theorem lift_of_group : (FreeMonoid.lift FreeGroup.of) (FreeMonoid.of i) = FreeGroup.of i := by rfl
 
 theorem lift_of_group_two {a : FreeMonoid ℕ} : (FreeMonoid.lift FreeGroup.of) a =
@@ -582,7 +561,7 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
       simp only [to_over_plain_of]
       unfold Braid.braid_rels_coexeter
       use (i, j)
-      simp only [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid, dist_succ, Braid.alternate, hd]
+      simp only [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid_inf, dist_succ, Braid.alternate, hd]
       rfl
     | separated i j h =>
       simp only [to_over_plain_mul, ← FreeGroup.mul_mk]
@@ -601,19 +580,19 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
             omega
           | Nat.succ n2 => use n2
       rcases H with ⟨n, hn⟩
-      simp only [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid, hn, Braid.alternate]
+      simp only [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid_inf, hn, Braid.alternate]
       rfl
     | basic i =>
       rw [mul_inv_cancel (FreeGroup.mk (to_over_plain (FreeMonoid.of i)))]
       use (i, i)
-      simp [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid, Braid.alternate]
+      simp [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid_inf, Braid.alternate]
   intro h
   simp only [Set.mem_setOf_eq, Prod.exists]
   unfold Braid.braid_rels_coexeter at h
   simp only [Set.mem_range, Prod.exists, Function.uncurry_apply_pair] at h
   rcases h with ⟨a, b, br⟩
   unfold Braid.artin_tits_rel at br
-  unfold Braid.M_braid at br
+  unfold Braid.M_braid_inf at br
   cases hab : a.dist b with
   | zero =>
     simp [hab, Braid.alternate] at br
@@ -688,7 +667,6 @@ theorem one_symm_is_really_the_same : mk braid_rels_m_inf a = mk braid_rels_m_in
   | trans _ _ ih1 ih2 => exact PresentedMonoid.trans ih1 ih2
   | mul _ _ ih1 ih2 => exact mul ih1 ih2
 
-
 variable {rels : FreeMonoid ℕ → FreeMonoid ℕ → Prop} {h : IsRightCancelMul (PresentedMonoid rels)} {h1 : IsCommonLeftMultipleMul (PresentedMonoid rels)}
 
 theorem pml_to_presented_group_apply_mk (a : FreeMonoid ℕ) : pml_to_presented_group
@@ -761,7 +739,6 @@ noncomputable def map_to_one_symm : (PresentedMonoid braid_rels_m_inf) →*
   rw [fm_lift_pm_of_eq_pm_mk, fm_lift_pm_of_eq_pm_mk]
   exact cg
 
-
 noncomputable def map_from_one_symm : (PresentedMonoid braid_rels_m_inf_one_symm) →*
   PresentedMonoid braid_rels_m_inf := by
   apply PresentedMonoid.lift_hom (PresentedMonoid.of braid_rels_m_inf)
@@ -771,13 +748,11 @@ noncomputable def map_from_one_symm : (PresentedMonoid braid_rels_m_inf_one_symm
   rw [fm_lift_pm_of_eq_pm_mk, fm_lift_pm_of_eq_pm_mk]
   exact cg
 
-
 noncomputable def one_symm_type_iso_me : (PresentedMonoid braid_rels_m_inf_one_symm) ≃*
   PresentedMonoid braid_rels_m_inf := by
   refine MonoidHom.toMulEquiv map_from_one_symm map_to_one_symm ?_ ?_
   exact PresentedMonoid.ext_iff.mpr (congrFun rfl)
   exact PresentedMonoid.ext_iff.mpr (congrFun rfl)
-
 
 noncomputable def left_multiple_iso [Mul A] [Mul B] [h2 : IsCommonLeftMultipleMul A] (e : A ≃* B) :
   IsCommonLeftMultipleMul B where
@@ -891,10 +866,22 @@ theorem solver_g_correct : solver_g a b ↔
   · exact solver_g_correct_one_direction
   exact solver_g_correct_other_direction
 
-#eval solver_g [(1, true), (2, true), (4, true), (1, true)]
+#eval solver_g [(1, true), (3, true), (4, true), (1, true)]
   [(2, true), (1, true), (2, true), (4, true)]
+-- try quotient lift
 
--- #check Quotient.ind
+#eval (reverse_complex [(3, false), (1, true), (2, true), (1, true)]).1
+#show_braid_word ((reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true), (4, true)]).1 : List (ℕ × Bool))
+#eval (reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true), (4, true)]).1
+#eval (reverse_complex [(3, false), (2, true), (2, true), (1, true)]).1.length
+#eval (reverse_complex [(2, false), (2, false), (1, false), (1, false), (2, true), (2, true), (1, true), (1, true)]).1.length
+#eval (reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (4, true), (4, true)]).1.length
+#eval (reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true), (4, true)]).1.length
+
+#eval (reverse_complex [(0, false), (0, false), (1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true), (4, true)]).1
+
+#eval (reverse_complex [(1, false), (2, false), (2, false), (3, true), (4, true)]).1.length
+
 -- set_option pp.proofs true in
 -- def Quotient.exists_rep_C (a : Quotient new_rels) :
 --   Σ b, PLift (Quotient.mk new_rels b = a) := by
@@ -925,4 +912,3 @@ theorem solver_g_correct : solver_g a b ↔
 
 
 #check Classical.choose
-

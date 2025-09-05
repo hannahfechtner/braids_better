@@ -1,9 +1,9 @@
 import BraidProject.PartialGrid_split
 set_option maxHeartbeats 1000000
 
-def to_up_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, false)) a.reverse
+def to_up_plain (a : List α) : List (α × Bool) := List.map (fun x => (x, false)) a.reverse
 
-def to_over_plain (a : List ℕ) : List (ℕ × Bool) := List.map (fun x => (x, true)) a
+def to_over_plain {α : Type} (a : List α) : List (α × Bool) := List.map (fun x => (x, true)) a
 
 theorem remove_up_is_plain : remove_ones (to_up i) = to_up_plain i := by
   induction i with
@@ -244,8 +244,8 @@ theorem remove_ones_eq_append (h : remove_ones a = b ++ c) :
           use (some d, e) :: a1, a2
           simp_all [remove_ones]
 
-theorem remove_ones_eq_to_up_plain_prod (h : remove_ones a = to_up_plain (m ++ q)) :
-   m = [] ∨ q = [] ∨ ∃ a1 a2, a1.length > 0 ∧ a2.length > 0 ∧
+theorem remove_ones_eq_to_up_plain_prod {m q : List α} (h : remove_ones a = to_up_plain (m ++ q)) :
+   m = [] ∨ q = [] ∨ ∃ (a1 a2 : List (Option α × Bool)), a1.length > 0 ∧ a2.length > 0 ∧
         a = a1 ++ a2 ∧ remove_ones a1 = to_up_plain q ∧ remove_ones a2 = to_up_plain m  := by
   induction m generalizing a q with
   | nil => exact Or.inl rfl
@@ -269,7 +269,7 @@ theorem remove_ones_eq_to_up_plain_prod (h : remove_ones a = to_up_plain (m ++ q
       have a2_len : a2.length > 0 := by omega
       aesop
 
-theorem remove_ones_eq_to_over_plain_prod (h : remove_ones b = to_over_plain (n ++ q)) :
+theorem remove_ones_eq_to_over_plain_prod {n : List (α)} (h : remove_ones b = to_over_plain (n ++ q)) :
   n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
           b = b1 ++ b2 ∧ remove_ones b1 = to_over_plain n ∧ remove_ones b2 = to_over_plain q := by
   induction n generalizing b q with
@@ -287,8 +287,8 @@ theorem remove_ones_eq_to_over_plain_prod (h : remove_ones b = to_over_plain (n 
       have b2l := remove_ones_len b2
       have b1le := congr_arg List.length b1s
       have b2le := congr_arg List.length b2s
-      simp [to_over_plain] at b1le
-      simp [to_over_plain] at b2le
+      simp only [to_over_plain, List.map_cons, List.length_cons, List.length_map] at b1le
+      simp only [to_over_plain, List.map_cons, List.length_cons, List.length_map] at b2le
       have b1_len : b1.length > 0 := by omega
       have b2_len : b2.length > 0 := by omega
       aesop
@@ -335,9 +335,11 @@ theorem List.prefix_of_append_mine {a b c : List α} (h : a <+: b ++ c) : a <+: 
     · exact s1
     simp [s2]
 
-theorem helper_bajillion (ha : remove_ones a <:+ to_up_plain q ++ to_up_plain (m1 :: m2)) :
+theorem helper_bajillion {q m2 : List α}
+    (ha : remove_ones a <:+ to_up_plain q ++ to_up_plain (m1 :: m2)) :
     remove_ones a <:+ to_up_plain (m1 :: m2) ∨
-    ∃ a1 a2, a1.length > 0 ∧ a = a1 ++ a2 ∧ remove_ones a2 = to_up_plain (m1 :: m2) ∧ remove_ones a1 <:+ to_up_plain q := by
+    ∃ (a1 a2 : List (Option α × Bool)), a1.length > 0 ∧ a = a1 ++ a2 ∧
+    remove_ones a2 = to_up_plain (m1 :: m2) ∧ remove_ones a1 <:+ to_up_plain q := by
   rcases List.suffix_of_append ha with one | two
   · left
     exact one
@@ -356,8 +358,8 @@ theorem helper_bajillion (ha : remove_ones a <:+ to_up_plain q ++ to_up_plain (m
   rw [a3a1]
   assumption
 
-theorem helper_kajillion (h : remove_ones b <+: to_over_plain n ++ to_over_plain q) (hn : n.length > 0):
-  remove_ones b <+: to_over_plain n ∨ ∃ b₁ b₂, b₁.length > 0 ∧ b₂.length > 0 ∧ b = b₁ ++ b₂ ∧
+theorem helper_kajillion {α : Type} {n q : List α} {b : List (Option α × Bool)} (h : remove_ones b <+: to_over_plain n ++ to_over_plain q) (hn : n.length > 0):
+  remove_ones b <+: to_over_plain n ∨ ∃ (b₁ b₂ : List (Option α × Bool)), b₁.length > 0 ∧ b₂.length > 0 ∧ b = b₁ ++ b₂ ∧
     remove_ones b₁ = to_over_plain n ∧ remove_ones b₂ <+: to_over_plain q := by
   rcases List.prefix_of_append_mine h with one | two
   · left
@@ -381,12 +383,12 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
     (i1 : PartialGrid a2 b mid4 e5 d5) (i2 : PartialGrid a1 mid4 mid d4 e4)
     (hf : d4 ++ e4 ++ e5 ++ d5 = d2 ++ e2) :
     (d2 = d4 ++ e4 ++ e5 ∧ d5 = e2) ∨ (d2 = d4 ∧ e5 = [] ∧ e2 = e4 ++ d5) := by
-  rcases middle_frontier_nil_or_caps i1 with ⟨⟨e5_nil⟩⟩ | ⟨fronte5, mide5, caboosee5, ⟨spece5⟩⟩
+  rcases PartialGrid.middle_frontier_nil_or_caps i1 with ⟨⟨e5_nil⟩⟩ | ⟨fronte5, mide5, caboosee5, ⟨spece5⟩⟩
   · right
     rw [e5_nil, List.append_nil] at hf
-    rcases middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
+    rcases PartialGrid.middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
     · rw [d2_nil, List.nil_append] at hf
-      rcases middle_frontier_nil_or_caps i2 with ⟨⟨d4_nil⟩⟩ | ⟨frontd4, middled4, caboosed4, ⟨specd4⟩⟩
+      rcases PartialGrid.middle_frontier_nil_or_caps i2 with ⟨⟨d4_nil⟩⟩ | ⟨frontd4, middled4, caboosed4, ⟨specd4⟩⟩
       · rw [d4_nil, List.nil_append] at hf
         aesop
       rw [specd4] at hf
@@ -400,7 +402,7 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
         apply is_false_of_false_false
         · exact i2.right_frontier_is_false
         exact i1.right_frontier_is_false
-    rcases middle_frontier_nil_or_caps i2 with ⟨⟨d4_nil⟩⟩ | ⟨frontd4, middled4, caboosed4, ⟨specd4⟩⟩
+    rcases PartialGrid.middle_frontier_nil_or_caps i2 with ⟨⟨d4_nil⟩⟩ | ⟨frontd4, middled4, caboosed4, ⟨specd4⟩⟩
     · rw [d4_nil, List.nil_append] at hf
       rw [hf] at H
       specialize H (caboosed2, true) ⟨by simp⟩
@@ -446,7 +448,7 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
     | nil => aesop
     | append_singleton t1 t2 =>
       exfalso
-      rcases middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, midd2, caboosed2, ⟨specd2⟩⟩
+      rcases PartialGrid.middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, midd2, caboosed2, ⟨specd2⟩⟩
       · simp [d2_nil] at s1
       rw [specd2] at s1
       have H : t2 = (caboosed2, true) := by
@@ -479,12 +481,12 @@ theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
   have d3_t : is_true d3 := i1.bottom_frontier_is_true
   have d4_t : is_true d4 := i2.bottom_frontier_is_true
   have mid1_f : is_false mid1 := i2.left_frontier_is_false
-  rcases middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
+  rcases PartialGrid.middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
   · left
     rw [d2_nil, List.append_nil] at hf
-    rcases middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    rcases PartialGrid.middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
     · rw [e3_nil, List.nil_append] at hf
-      rcases middle_frontier_nil_or_caps i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      rcases PartialGrid.middle_frontier_nil_or_caps i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
       · rw [e4_nil, List.append_nil] at hf
         aesop
       rw [spece4] at hf
@@ -497,7 +499,7 @@ theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
     specialize mid_t (fronte3, false) ⟨by simp⟩
     simp at mid_t
     exact mid_t.1.elim
-  rcases middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+  rcases PartialGrid.middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
   · left
     rw [e3_nil, List.nil_append] at hf
     simp [e3_nil]
@@ -517,7 +519,7 @@ theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
     | [] => aesop
     | f1 :: f2 =>
       rw [specd2] at s2
-      rcases middle_frontier_nil_or_caps i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      rcases PartialGrid.middle_frontier_nil_or_caps i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
       · aesop
       rw [spece4] at s2
       simp at s2
@@ -542,7 +544,7 @@ theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
   | [] => aesop
   | f1 :: f2 =>
     rw [specd2] at s2
-    rcases middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    rcases PartialGrid.middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
     · aesop
     rw [spece3] at s2
     simp at s2

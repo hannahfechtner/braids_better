@@ -684,7 +684,7 @@ theorem pg_sm_g_eq1 (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
     intro a_is b_is
     rcases remove_ones_eq_to_up_plain_prod a_is with one | two | splits
     · have nonsense : to_up_plain i = [] := by
-        have H : to_up_plain [] = [] :=  rfl
+        have H : to_up_plain ([] : List ℕ) = [] :=  rfl
         convert H
       rw [to_up_plain_prod, nonsense, List.append_nil] at a_is
       specialize h2_ih h a_is
@@ -697,7 +697,7 @@ theorem pg_sm_g_eq1 (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
       convert b_is
       aesop
     · have nonsense : to_up_plain m = [] := by
-        have H : to_up_plain [] = [] :=  rfl
+        have H : to_up_plain ([] : List ℕ) = [] :=  rfl
         convert H
       rw [to_up_plain_prod, nonsense, List.nil_append] at a_is
       specialize h1_ih h a_is
@@ -744,7 +744,7 @@ theorem pg_sm_g_eq1 (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
     rename_i i j k l m n o
     rcases remove_ones_eq_to_over_plain_prod b_is with one | two | splits
     · have nonsense : to_over_plain j = [] := by
-        have H : to_over_plain [] = [] :=  rfl
+        have H : to_over_plain ([] : List ℕ) = [] :=  rfl
         convert H
       rw [to_over_plain_prod, nonsense, List.nil_append] at b_is
       have i_one : j = 1 := by
@@ -755,7 +755,7 @@ theorem pg_sm_g_eq1 (h : PartialGrid a b c d e) (h1 : gridt a1 b1 f g)
       have H : h1.length = 0 := gridt_length_side_side_word i j k l h1 one
       simp [H, gridt.length, h2_ih]
     · have nonsense : to_over_plain m = [] := by
-        have H : to_over_plain [] = [] :=  rfl
+        have H : to_over_plain ([] : List ℕ) = [] :=  rfl
         convert H
       rw [to_over_plain_prod, nonsense, List.append_nil] at b_is
       have i_one : m = 1 := by

@@ -1,4 +1,4 @@
-import BraidProject.CommonMultiplesInf
+import BraidProject.FlipBraid
 import BraidProject.BraidMonoidFin
 import Mathlib.Data.Fin.Basic
 import BraidProject.BraidMonoid
@@ -57,9 +57,9 @@ theorem common_right_mul_souped_two {a : ℕ} (u v : FreeMonoid (Fin a.pred)) (n
   have v_under := fun x h => bound x (Or.inr h)
   have u_length := Nat.le_max_left (FreeMonoid.length new_u) (FreeMonoid.length new_v)
   have v_length := Nat.le_max_right (FreeMonoid.length new_u) (FreeMonoid.length new_v)
-  rcases (multiple_delta_neg new_u (Nat.max (FreeMonoid.length new_u) (FreeMonoid.length new_v)) n
+  rcases (multiple_delta_bar new_u (Nat.max (FreeMonoid.length new_u) (FreeMonoid.length new_v)) n
     u_length u_under) with ⟨u', hu', u'_bound⟩
-  rcases (multiple_delta_neg new_v (Nat.max (FreeMonoid.length new_u) (FreeMonoid.length new_v)) n
+  rcases (multiple_delta_bar new_v (Nat.max (FreeMonoid.length new_u) (FreeMonoid.length new_v)) n
     v_length v_under) with ⟨v', hv', v'_bound⟩
   use v', u'
   constructor
