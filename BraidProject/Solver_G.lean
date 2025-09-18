@@ -4,6 +4,7 @@ import BraidProject.OreLocalizationPresented
 import BraidProject.Cancellability
 import BraidProject.Widgets
 
+-- give a list, returns the maximal true prefix, and then the rest as a pair
 def separate_maximal_true_prefix (c : List (ℕ × Bool)) : List (ℕ × Bool) × List (ℕ × Bool) :=
   match c with
   | [] => ([], [])
@@ -36,6 +37,7 @@ def separate_maximal_true_prefix_is_true : is_true (separate_maximal_true_prefix
       apply is_true_cons
       assumption
 
+-- give a list, returns the maximal false prefix, and then the rest as a pair
 def separate_maximal_false_prefix (c : List (ℕ × Bool)) : List (ℕ × Bool) × List (ℕ × Bool) :=
   match c with
   | [] => ([], [])
@@ -68,7 +70,7 @@ def separate_maximal_false_prefix_is_false : is_false (separate_maximal_false_pr
       apply is_false_cons
       assumption
 
-
+-- makes a list into the first run of falses, then the run of trues, then the rest
 def separate_first_pair (L) := ((separate_maximal_false_prefix L).1,
   (separate_maximal_true_prefix (separate_maximal_false_prefix L).2).1,
   (separate_maximal_true_prefix (separate_maximal_false_prefix L).2).2)
@@ -866,12 +868,109 @@ theorem solver_g_correct : solver_g a b ↔
   · exact solver_g_correct_one_direction
   exact solver_g_correct_other_direction
 
-#eval solver_g [(1, true), (3, true), (4, true), (1, true)]
+-- theorem solver_g_correct_cons {a b : (PresentedGroup Braid.braid_rels_coexeter) } :
+--   solver_g (Classical.choose (Quot.exists_rep (Classical.choose (Quotient.exists_rep a))))
+--     (Classical.choose (Quot.exists_rep (Classical.choose (Quotient.exists_rep b)))) ↔
+--   a = b := by
+--   have Ha' := (Classical.choose_spec (Quot.exists_rep (Classical.choose (Quotient.exists_rep a))))
+--   have Hb' := (Classical.choose_spec (Quot.exists_rep (Classical.choose (Quotient.exists_rep b))))
+--   have Ha'' := (Classical.choose_spec (Quotient.exists_rep a))
+--   have Hb'' := (Classical.choose_spec (Quotient.exists_rep b))
+--   constructor
+--   · intro it
+--     rw [← Ha'', ← Hb'']
+--     rw [← Ha', ← Hb']
+--     exact solver_g_correct_one_direction it
+--   intro it
+--   rw [← Ha'', ← Hb''] at it
+--   rw [← Ha', ← Hb'] at it
+--   exact solver_g_correct_other_direction it --sorry --exact solver_g_correct_other_direction
+
+--start with elements of the free group
+def solver_fg (a b : FreeGroup ℕ) : Bool := by
+  apply @Quot.lift₂ _ _ _ FreeGroup.Red.Step FreeGroup.Red.Step solver_g _ _ a b
+  · intro a1 b1 c1 relsy
+    have HAC := Quot.sound relsy
+    change FreeGroup.mk _ = FreeGroup.mk _ at HAC
+    cases hi : solver_g a1 b1
+    · symm
+      apply eq_false_of_ne_true
+      intro h1
+      apply solver_g_correct_one_direction at h1
+      rw [← HAC] at h1
+      apply solver_g_correct_other_direction at h1
+      aesop
+    apply solver_g_correct.1 at hi
+    symm
+    apply solver_g_correct_other_direction
+    rw [← HAC, hi]
+  intro a1 b1 c1 relsy
+  have HBC := Quot.sound relsy
+  change FreeGroup.mk _ = FreeGroup.mk _ at HBC
+  cases hi : solver_g a1 c1
+  · symm
+    apply eq_false_of_ne_true
+    intro h1
+    apply solver_g_correct_one_direction at h1
+    rw [← HBC] at h1
+    apply solver_g_correct_other_direction at h1
+    aesop
+  apply solver_g_correct.1 at hi
+  symm
+  apply solver_g_correct_other_direction
+  rw [← HBC, hi]
+
+theorem solver_fg_correct : solver_fg a b ↔
+    PresentedGroup.mk Braid.braid_rels_coexeter a =
+    PresentedGroup.mk Braid.braid_rels_coexeter b := by
+  rcases Quot.exists_rep a with ⟨a, rfl⟩
+  rcases Quot.exists_rep b with ⟨b, rfl⟩
+  exact solver_g_correct
+
+def braid_solver (a b : PresentedGroup Braid.braid_rels_coexeter) : Bool := by
+  apply Quotient.lift₂ solver_fg _ a b
+  intro a b c d hac hbd
+  have HAC := Quotient.sound hac
+  change (PresentedGroup.mk Braid.braid_rels_coexeter) a = (PresentedGroup.mk Braid.braid_rels_coexeter) c at HAC
+  have HBD := Quotient.sound hbd
+  change (PresentedGroup.mk Braid.braid_rels_coexeter) b = (PresentedGroup.mk Braid.braid_rels_coexeter) d at HBD
+  cases hi : solver_fg a b
+  · symm
+    apply eq_false_of_ne_true
+    intro h1
+    apply solver_fg_correct.1 at h1
+    rw [← HAC, ← HBD] at h1
+    apply solver_fg_correct.2 at h1
+    aesop
+  apply solver_fg_correct.1 at hi
+  symm
+  apply solver_fg_correct.2
+  aesop
+
+theorem braid_solver_correct : braid_solver a b ↔ a = b := by
+  rcases Quotient.exists_rep a with ⟨a, rfl⟩
+  rcases Quotient.exists_rep b with ⟨b, rfl⟩
+  exact solver_fg_correct
+
+open Braid in
+#eval braid_solver ((σi 1 * σi 2 * σi 1)) ((σi 2 * σi 1 * σi 2))
+
+#eval solver_g [(1, true), (2, true), (4, true), (1, true)]
   [(2, true), (1, true), (2, true), (4, true)]
 -- try quotient lift
 
+#show_braid_word_help ([[(3, true), (2, true), (0, false), (3, true)],
+  [(3, true), (2, true), (3, true), (0, false)],
+  [(2, true), (3, true), (2, true), (0, false)]] : List (List ((ℕ × Bool))))
+
+def foo1 := (reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true)]).1
+
+#show_braid_word_help ([foo1,
+  [(3, true), (2, true), (3, true), (0, false)],
+  [(2, true), (3, true), (2, true), (0, false)]] : List (List ((ℕ × Bool))))
+
 #eval (reverse_complex [(3, false), (1, true), (2, true), (1, true)]).1
-#show_braid_word ((reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true), (4, true)]).1 : List (ℕ × Bool))
+#show_braid_word_help ([(reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true), (4, true)]).1, []] : List (List (ℕ × Bool)))
 #eval (reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true), (4, true)]).1
 #eval (reverse_complex [(3, false), (2, true), (2, true), (1, true)]).1.length
 #eval (reverse_complex [(2, false), (2, false), (1, false), (1, false), (2, true), (2, true), (1, true), (1, true)]).1.length
