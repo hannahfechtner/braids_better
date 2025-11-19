@@ -138,5 +138,5 @@ def fraction_form (L : List (ℕ × Bool)) : List (List (ℕ × Bool)) × (List 
   termination_by L.length
 
 #show_braid_word_help ((fraction_form ([(1, false), (2, false), (1, true), (2, true), (3, false), (4, false)] : List (ℕ × Bool))).1 : List (List (ℕ × Bool)))
-#show_braid_word_help ((fraction_form [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true)]).1 : List (List (ℕ × Bool)))
+#show_braid_word_help ((fraction_form [(1, false), (0, false), (2, false), (2, false), (3, true), (3, true), (4, true)]).1 : List (List (ℕ × Bool)))
 #show_braid_word_help ((fraction_form [(1, true), (2, false), (2, false), (1, true), (2, false), (3, true), (4, true)]).1 : List (List (ℕ × Bool)))

@@ -171,6 +171,9 @@ theorem find_it_pair {a b : ℕ × Bool} (h : find_it [a,b] = some (c, d, e)) :
 abbrev triangle : Type := Σ a b : List (ℕ), Σ c : List (ℕ × Bool), PLift (a.length > 0 ∧ b.length > 0) ×
     (SemiThue reversing (to_up_plain a ++ to_over_plain b) c)
 
+abbrev triangle' (a b : List (ℕ)) : Type := Σ c : List (ℕ × Bool),
+  (SemiThue reversing (to_up_plain a ++ to_over_plain b) c)
+
 noncomputable def get_pg (a : triangle) : Σ bot mid top, PartialGrid (to_up a.1)
     (to_over a.2.1) bot mid top × PLift (remove_ones (bot ++ mid ++ top) = a.2.2.1) := by
   have H := @stepOne_mid (to_up_plain a.1 ++ to_over_plain a.2.1) a.2.2.1 a.2.2.2.2
@@ -240,6 +243,8 @@ noncomputable def get_pg (a : triangle) : Σ bot mid top, PartialGrid (to_up a.1
   exact Hc.2.2
 
 noncomputable def get_n' (a : triangle) : ℕ := ab_len a.1 a.2.1 - (rw_length_rev a.2.2.2.2)
+
+noncomputable def get_n'' (a : triangle' a1 a2) : ℕ := ab_len a1 a2 - (rw_length_rev a.2)
 
 set_option pp.notation true
 
@@ -684,10 +689,12 @@ noncomputable def st_pgf_len (h : SemiThue reversing (to_up_plain a ++ to_over_p
   use c1
   have H3 := one_step_of_reg_w_len h2
   rcases H3 with ⟨h4, hl4⟩
-  rw [hl4.1]
+  rw [hl4]
   have H2 := @pgf_of_st_w_len _ _ (to_up a) (to_over b) h4 rfl (is_false_up) (to_up_len_pos)
     (is_true_over) (to_over_len_pos)
-  exact H2
+  use H2
+  constructor
+  aesop
 
 noncomputable def get_frontier_style_converse (h1 : pgf a b mid) :
   Σ c d e, (h : PartialGrid a b c d e) ×
@@ -904,6 +911,64 @@ def solver_helper' (a : triangle) : {h : triangle // h.1 = a.1 ∧ h.2.1 = a.2.1
     simp [a4.1.1.1]
     simp [a4.1.1.2]
 
+def solver_helper'' {a1 a2} (ha1 : a1.length > 0) (ha2 : a2.length > 0) (a : triangle' a1 a2) :
+    triangle' a1 a2 :=
+  match hb' : find_it a.1 with
+  | none => a
+  | some (c, d, e) =>
+    match hd : d.1.dist d.2 with
+    | 0 => solver_helper'' ha1 ha2 ⟨c ++ [] ++ e,
+        by
+          apply a.2.trans
+          rw [find_it_spec hb']
+          exact SemiThue.reduction (reversing.basic hd)⟩
+    | 1 => solver_helper'' ha1 ha2 ⟨(c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e),
+        by
+          apply a.2.trans
+          rw [find_it_spec hb']
+          exact SemiThue.reduction (reversing.close hd)⟩
+    | Nat.succ (Nat.succ n) => solver_helper'' ha1 ha2 ⟨(c ++ [(d.2, true), (d.1, false)] ++ e),
+        by
+          apply a.2.trans
+          rw [find_it_spec hb']
+          exact SemiThue.reduction (reversing.apart (by omega))⟩
+    termination_by get_n'' a
+    decreasing_by
+    · rcases a with ⟨a3, a4⟩
+      simp only
+      rcases find_it_spec hb' with ⟨b1, b2, b3⟩
+      rcases d with ⟨x, y⟩
+      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+      · simp [rw_length_rev]
+      · apply st_smaller_than_g
+        assumption
+        assumption
+      apply st_smaller_than_g
+      assumption
+      assumption
+    · rcases a with ⟨a3, a4⟩
+      rcases find_it_spec hb' with ⟨b1, b2, b3⟩
+      rcases d with ⟨x, y⟩
+      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+      · simp [rw_length_rev]
+      · apply st_smaller_than_g
+        assumption
+        assumption
+      apply st_smaller_than_g
+      assumption
+      assumption
+    rcases a with ⟨a3, a4⟩
+    rcases find_it_spec hb' with ⟨b1, b2, b3⟩
+    rcases d with ⟨x, y⟩
+    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+    · simp [rw_length_rev]
+    · apply st_smaller_than_g
+      assumption
+      assumption
+    apply st_smaller_than_g
+    assumption
+    assumption
+
 theorem solver_helper_find_it_none' : find_it (solver_helper a)= none := by
   induction ha : get_n' a using Nat.strongRecOn generalizing a
   rw [solver_helper]
@@ -1051,6 +1116,77 @@ theorem solver_helper_find_it_none (a) : find_it (solver_helper' a).1.2.2.1 = no
   simp [a4.1.1.2]
   rfl
 
+
+theorem solver_helper_find_it_none'' {a1 a2} {ha1 : a1.length > 0} {ha2 : a2.length > 0}
+    (a : triangle' a1 a2)  : find_it (solver_helper'' ha1 ha2 a).1= none := by
+  induction ha : get_n'' a using Nat.strongRecOn generalizing a
+  rw [solver_helper'']
+  split
+  · assumption
+  split
+  · rename_i ih l m o p hd
+    apply @ih
+      (get_n'' ⟨l ++ [] ++ o,
+          by
+          apply a.2.trans
+          rw [find_it_spec p]
+          exact SemiThue.reduction (reversing.basic hd)⟩)
+    rw [← ha]
+    rcases a with ⟨a3, a4⟩
+    rcases find_it_spec p with ⟨b1, b2, b3⟩
+    have H : m.1 = m.2 := by exact Nat.eq_of_dist_eq_zero hd
+    rcases m with ⟨x, y⟩
+    simp only at H
+    subst H
+    unfold get_n''
+    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+    · simp [rw_length_rev]
+    · apply st_smaller_than_g
+      assumption
+      assumption
+    apply st_smaller_than_g
+    assumption
+    assumption
+    rfl
+  · rename_i ih m n o p hd
+    apply @ih (get_n'' ⟨(m ++ [(n.2, true), (n.1, true), (n.2, false), (n.1, false)] ++ o),
+        by
+          apply a.2.trans
+          rw [find_it_spec p]
+          exact SemiThue.reduction (reversing.close hd)⟩)
+    rcases a with ⟨a3, a4⟩
+    rcases find_it_spec p with ⟨b1, b2, b3⟩
+    rcases n with ⟨x, y⟩
+    rw [← ha]
+    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+    · simp [rw_length_rev]
+    · apply st_smaller_than_g
+      assumption
+      assumption
+    apply st_smaller_than_g
+    assumption
+    assumption
+    rfl
+  rename_i ih l m n o p hd
+  apply @ih (get_n'' ⟨(l ++ [(m.2, true), (m.1, false)] ++ n),
+        by
+          apply a.2.trans
+          rw [find_it_spec o]
+          exact SemiThue.reduction (reversing.apart (by omega))⟩)
+  rcases a with ⟨a3, a4⟩
+  rcases find_it_spec o with ⟨b1, b2, b3⟩
+  rcases m with ⟨x, y⟩
+  rw [← ha]
+  apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
+  · simp [rw_length_rev]
+  · apply st_smaller_than_g
+    assumption
+    assumption
+  apply st_smaller_than_g
+  assumption
+  assumption
+  rfl
+
 def in_order_of_find_it_none (h : find_it a = none) : in_order a := by
   induction a with
   | nil =>
@@ -1096,16 +1232,25 @@ def solver_helper_in_order (a) : in_order (solver_helper' a).1.2.2.1 := by
   have H := solver_helper_find_it_none a
   exact in_order_of_find_it_none H
 
+def solver_helper_in_order'' {ha1 : a1.length > 0} {ha2 : a2.length > 0} (a : triangle' a1 a2) : in_order (solver_helper'' ha1 ha2 a).1 := by
+  have H := @solver_helper_find_it_none'' _ _ ha1 ha2 a
+  exact in_order_of_find_it_none H
 
 def solver_long (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
   solver_helper' ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
+
+def solver_long'' (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
+  solver_helper'' ha hb ⟨to_up_plain a ++ to_over_plain b, SemiThue.refl _ ⟩
 
 def solver_long_in_order (a b) (ha : List.length a > 0) (hb : List.length b > 0) :
   in_order (solver_long a b ha hb).1.2.2.1 := by
   have H := solver_helper_find_it_none ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
   exact in_order_of_find_it_none H
 
-
+def solver_long_in_order'' (a b) (ha : List.length a > 0) (hb : List.length b > 0) :
+  in_order (solver_long'' a b ha hb).1 := by
+  have H := @solver_helper_find_it_none'' _ _ ha hb ⟨to_up_plain a ++ to_over_plain b, SemiThue.refl _ ⟩
+  exact in_order_of_find_it_none H
 
 def solver_equiv (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThue reversing
     (to_up_plain a ++ to_over_plain b) (solver_long a b ha hb).1.2.2.1 := by
@@ -1114,6 +1259,9 @@ def solver_equiv (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThue r
   convert H
   exact (solver_long a b ha hb).2.1.symm
   exact (solver_long a b ha hb).2.2.symm
+
+def solver_equiv'' (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThue reversing
+    (to_up_plain a ++ to_over_plain b) (solver_long'' a b ha hb).1 := (solver_long'' a b ha hb).2
 
 def final_solver (a b : List ℕ) : Bool :=
   match a with
@@ -1125,6 +1273,17 @@ def final_solver (a b : List ℕ) : Bool :=
     match b with
     | [] => false
     | b1 :: b2 => (solver_long (a1 :: a2) (b1 :: b2) (by simp) (by simp)).1.2.2.1 = []
+
+def final_solver'' (a b : List ℕ) : Bool :=
+  match a with
+  | [] =>
+    match b with
+    | [] => true
+    | b1 :: b2 => false
+  | a1 :: a2 =>
+    match b with
+    | [] => false
+    | b1 :: b2 => (@solver_long'' (a1 :: a2) (b1 :: b2) (by simp) (by simp)).1 = []
 
 def in_order_over_plain_up_plain : in_order (to_over_plain c ++ to_up_plain d) := by
   use to_over_plain c
@@ -1605,6 +1764,29 @@ theorem correct_one_dir (h : final_solver a b) : PresentedMonoid.mk braid_rels_m
         rw [to_over_plain, to_up_plain]
         simp
       have H := @solver_equiv (a1 :: a2) (b1 :: b2) (by simp) (by simp)
+      rw [h] at H
+      exact H
+
+theorem correct_one_dir'' (h : final_solver'' a b) : PresentedMonoid.mk braid_rels_m_inf a =
+  PresentedMonoid.mk braid_rels_m_inf b := by
+  match a with
+  | [] =>
+    match b with
+    | [] => rfl
+    | b1 :: b2 =>
+      simp [final_solver''] at h
+  | a1 :: a2 =>
+    match b with
+    | [] => simp [final_solver''] at h
+    | b1 :: b2 =>
+      simp [final_solver''] at h
+      rw [← List.append_nil (a1 :: a2), ← List.append_nil (b1 :: b2)]
+      apply bm_equiv_of_reversing (by simp) (by simp)
+      conv =>
+        enter [3]
+        rw [to_over_plain, to_up_plain]
+        simp
+      have H := @solver_equiv'' (a1 :: a2) (b1 :: b2) (by simp) (by simp)
       rw [h] at H
       exact H
 
@@ -3032,7 +3214,7 @@ theorem correct_other_dir (h : PresentedMonoid.mk braid_rels_m_inf a =
     exact (gridt_of_grid H).some
   have hr := grid_to_rev Ht
   change SemiThue reversing _ [] at hr
-  have hpg := step_three (grid_to_rev Ht)
+  --have hpg := step_three hr
   match a with
   | [] =>
     match b with
@@ -3057,3 +3239,40 @@ theorem correct_other_dir (h : PresentedMonoid.mk braid_rels_m_inf a =
       rw [← He]
       apply eq_of_SemiThue_in_order h2
       apply solver_helper_in_order
+
+theorem correct_other_dir'' (h : PresentedMonoid.mk braid_rels_m_inf a =
+    PresentedMonoid.mk braid_rels_m_inf b) : final_solver'' a b := by
+  have H : grid (a*1) (b*1) 1 1 := by
+    apply grid_of_eq
+    rw [mul_one, mul_one]
+    exact h
+  rw [mul_one, mul_one] at H
+  have Ht : gridt a b 1 1 := by
+    exact (gridt_of_grid H).some
+  have hr := grid_to_rev Ht
+  change SemiThue reversing _ [] at hr
+  have hpg := step_three (grid_to_rev Ht)
+  match a with
+  | [] =>
+    match b with
+    | [] =>
+      simp [final_solver'']
+    | b1 :: b2 =>
+      simp [final_solver'']
+      have H := eq_of_SemiThue_true hr to_over_plain_true
+      simp [to_over_plain] at H
+  | a1 :: a2 =>
+    match b with
+    | [] =>
+      simp [final_solver'']
+      simp [to_over_plain] at hr
+      have H := eq_of_SemiThue_false hr to_up_plain_false
+      simp [to_up_plain] at H
+    | b1 :: b2 =>
+      simp [final_solver'']
+      have H := @solver_equiv'' (a1 :: a2) (b1 :: b2) (by simp) (by simp)
+      rcases restricted_confluence hr H with ⟨e, h1, h2⟩
+      have He : e = [] := (eq_of_SemiThue_true h1 is_true_nil).symm
+      rw [← He]
+      apply eq_of_SemiThue_in_order h2
+      apply solver_helper_in_order''

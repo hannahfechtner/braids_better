@@ -177,150 +177,89 @@ theorem top_left_length_pg {a b c d e i} (h : PartialGrid a b c d e) : a = [(i, 
   have H := top_left_pg h ha hb
   aesop
 
-
-theorem adjacent_length_pg (h : PartialGrid a b c d e) (hij : i.dist j = 1) : a = [(i, false)] → b = [(j, true)] →
-    ((c ++ d ++ e) = [(j, true), (i, true), (j, false), (i, false)] → h.length = 1) ∧
-    ((c ++ d ++ e) = [(i, false), (j, true)] → h.length = 0)  := by
+theorem adjacent_length_pg (h : PartialGrid a b c d e) :
+    a = [(i, false)] → b = [(j, true)] →
+    (c = [(j, true), (i, true)] ∧ d = [] ∧ e = [(j, false), (i, false)] → h.length = 1) ∧
+    (c = [] ∧ d = [(i, false), (j, true)] ∧ e = [] → h.length = 0)  := by
   induction h with
   | single_gridt h =>
     cases h; all_goals simp [to_over_plain, to_up_plain, PartialGrid.length]
-  | empty a b ha ha1 hb hb =>
-    intro ha hb
-    rw [PartialGrid.length]
-    constructor
-    · intro hab
-      aesop
-    intro hab
-    aesop
+  | empty a b ha ha1 hb hb => aesop
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
-    rename_i a b bot up b2 bot2 mid2 up2
     intro a_is b_is
+    specialize g1_ih a_is
     rcases List.append_eq_singleton_iff.1 b_is with hb | hb
-    · have H := side_side_pg g1 a_is hb.1
-      specialize g2_ih H.2.1 hb.2
-      rw [PartialGrid.length]
-      aesop
-    specialize g1_ih a_is hb.1
+    · sorry
+    specialize g1_ih hb.1
     constructor
     · intro hmid
-      have hbots : bot ++ bot2 = [(j, true), (i, true)] := by sorry
-      match bot with
-      | [] => sorry
-      | bot₁ :: bot₂ =>
-        match bot2 with
-        | [] => sorry
-        | bot2₁ :: bot2₂ =>
-          rcases List.append_eq_len_two (by simp) (by simp) hbots with ⟨hbot1, hbot2⟩
-          simp_all
-          sorry
-      --have hbot : bot = [(j, true), (i, true)] := by sorry
-      --have hup : up = [(j, false), (i, false)] := by sorry
-    intro hmid
+      aesop
+      -- actually this might be doable
+      -- gross, but doable
+      sorry
+
+    sorry
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    intro a_is b_is
+    rcases List.append_eq_singleton_iff.1 b_is with hb | hb
+    · sorry
+    sorry
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    intro a_is b_is
+    rcases List.append_eq_singleton_iff.1 a_is with hb | hb
+    · sorry
+    sorry
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    intro a_is b_is
+    rcases List.append_eq_singleton_iff.1 a_is with hb | hb
+    · sorry
     sorry
 
-  | horizontal_append h g1 g2 g1_ih g2_ih => sorry
-  | vertical_append_one g1 g2 g1_ih g2_ih => sorry
-  | vertical_append g1 g2 h g1_ih g2_ih => sorry
-  -- induction h with
-  -- | single_gridt h =>
-  --   cases h with
-  --   | empty => simp
-  --   | top_bottom i => simp
-  --   | sides i => simp
-  --   | top_left i => simp [PartialGrid.length]
-  --   | adjacent i k h => simp [PartialGrid.length]
-  --   | separated i j h => simp [PartialGrid.length]
-  -- | empty a b ha ha1 hb hb =>
-  --   intro a_is b_is rm
-  --   simp [a_is, b_is, remove_ones] at rm
-  -- | horizontal_append_one g1 g2 g1_ih g2_ih =>
-  --   intro a_is b_is
-  --   rcases List.append_eq_singleton_iff.1 b_is with hb | hb
-  --   · have H := PartialGrid.top_length_pos g1
-  --     rw [hb.1] at H
-  --     simp at H
-  --   have H := PartialGrid.top_length_pos g2
-  --   rw [hb.2] at H
-  --   simp at H
-  -- | horizontal_append h g1 g2 g1_ih g2_ih =>
-  --   intro a_is b_is
-  --   rcases List.append_eq_singleton_iff.1 b_is with hb | hb
-  --   · have H := PartialGrid.top_length_pos g1
-  --     rw [hb.1] at H
-  --     simp at H
-  --   have H := PartialGrid.top_length_pos g2
-  --   rw [hb.2] at H
-  --   simp at H
-  -- | vertical_append_one g1 g2 g1_ih g2_ih =>
-  --   intro a_is b_is
-  --   rcases List.append_eq_singleton_iff.1 a_is with hb | hb
-  --   · have H := PartialGrid.left_length_pos g2
-  --     rw [hb.1] at H
-  --     simp at H
-  --   have H := PartialGrid.left_length_pos g1
-  --   rw [hb.2] at H
-  --   simp at H
-  -- | vertical_append g1 g2 h g1_ih g2_ih =>
-  --   intro a_is b_is
-  --   rcases List.append_eq_singleton_iff.1 a_is with hb | hb
-  --   · have H := PartialGrid.left_length_pos g2
-  --     rw [hb.1] at H
-  --     simp at H
-  --   have H := PartialGrid.left_length_pos g1
-  --   rw [hb.2] at H
-  --   simp at H
 
 theorem separated_length_pg (h : PartialGrid a b c d e) : a = [(i, false)] → b = [(k, true)] →
     (c ++ d ++ e) = [(k, true), (i, false)] → i.dist k > 1 → h.length = 1 := by
-  sorry
-  -- induction h with
-  -- | single_gridt h =>
-  --   cases h with
-  --   | empty => simp
-  --   | top_bottom i => simp
-  --   | sides i => simp
-  --   | top_left i => simp [PartialGrid.length]
-  --   | adjacent i k h => simp [PartialGrid.length]
-  --   | separated i j h => simp [PartialGrid.length]
-  -- | empty a b ha ha1 hb hb =>
-  --   intro a_is b_is rm
-  --   simp [a_is, b_is, remove_ones] at rm
-  -- | horizontal_append_one g1 g2 g1_ih g2_ih =>
-  --   intro a_is b_is
-  --   rcases List.append_eq_singleton_iff.1 b_is with hb | hb
-  --   · have H := PartialGrid.top_length_pos g1
-  --     rw [hb.1] at H
-  --     simp at H
-  --   have H := PartialGrid.top_length_pos g2
-  --   rw [hb.2] at H
-  --   simp at H
-  -- | horizontal_append h g1 g2 g1_ih g2_ih =>
-  --   intro a_is b_is
-  --   rcases List.append_eq_singleton_iff.1 b_is with hb | hb
-  --   · have H := PartialGrid.top_length_pos g1
-  --     rw [hb.1] at H
-  --     simp at H
-  --   have H := PartialGrid.top_length_pos g2
-  --   rw [hb.2] at H
-  --   simp at H
-  -- | vertical_append_one g1 g2 g1_ih g2_ih =>
-  --   intro a_is b_is
-  --   rcases List.append_eq_singleton_iff.1 a_is with hb | hb
-  --   · have H := PartialGrid.left_length_pos g2
-  --     rw [hb.1] at H
-  --     simp at H
-  --   have H := PartialGrid.left_length_pos g1
-  --   rw [hb.2] at H
-  --   simp at H
-  -- | vertical_append g1 g2 h g1_ih g2_ih =>
-  --   intro a_is b_is
-  --   rcases List.append_eq_singleton_iff.1 a_is with hb | hb
-  --   · have H := PartialGrid.left_length_pos g2
-  --     rw [hb.1] at H
-  --     simp at H
-  --   have H := PartialGrid.left_length_pos g1
-  --   rw [hb.2] at H
-  --   simp at H
+  induction h with
+  | single_gridt h => cases h; all_goals simp [to_over_plain, to_up_plain, PartialGrid.length]
+  | empty a b ha ha1 hb hb => aesop
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    intro a_is b_is
+    rcases List.append_eq_singleton_iff.1 b_is with hb | hb
+    · intro hmid hd
+      rw [PartialGrid.length]
+      specialize g1_ih a_is
+      have H := PartialGrid.top_length_pos g1
+      rw [hb.1] at H
+      simp at H
+    have H := PartialGrid.top_length_pos g2
+    rw [hb.2] at H
+    simp at H
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    intro a_is b_is
+    rcases List.append_eq_singleton_iff.1 b_is with hb | hb
+    · have H := PartialGrid.top_length_pos g1
+      rw [hb.1] at H
+      simp at H
+    have H := PartialGrid.top_length_pos g2
+    rw [hb.2] at H
+    simp at H
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    intro a_is b_is
+    rcases List.append_eq_singleton_iff.1 a_is with hb | hb
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb.1] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb.2] at H
+    simp at H
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    intro a_is b_is
+    rcases List.append_eq_singleton_iff.1 a_is with hb | hb
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb.1] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb.2] at H
+    simp at H
 
 def split_vertically_pg' (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b₁ ++ b₂ →
   b₁.length > 0 → b₂.length > 0 →
@@ -483,24 +422,24 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
   induction h with
   | single_gridt h =>
     cases h with
-    | empty =>
-      intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over_plain] at b_is
-      apply congr_arg List.length at b_is
-      simp only [List.map_nil, List.length_nil, List.length_append] at b_is
-      omega
-    | top_bottom i =>
-      intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over_plain] at b_is
-      apply congr_arg List.length at b_is
-      simp at b_is
-      omega
-    | sides i =>
-      intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over_plain] at b_is
-      apply congr_arg List.length at b_is
-      simp [List.length_cons, List.length_nil, zero_add, List.length_append] at b_is
-      omega
+    -- | empty =>
+    --   intro b₁ b₂ b_is b₁_len b₂_len
+    --   simp only [to_over_plain] at b_is
+    --   apply congr_arg List.length at b_is
+    --   simp only [List.map_nil, List.length_nil, List.length_append] at b_is
+    --   omega
+    -- | top_bottom i =>
+    --   intro b₁ b₂ b_is b₁_len b₂_len
+    --   simp only [to_over_plain] at b_is
+    --   apply congr_arg List.length at b_is
+    --   simp at b_is
+    --   omega
+    -- | sides i =>
+    --   intro b₁ b₂ b_is b₁_len b₂_len
+    --   simp only [to_over_plain] at b_is
+    --   apply congr_arg List.length at b_is
+    --   simp [List.length_cons, List.length_nil, zero_add, List.length_append] at b_is
+    --   omega
     | top_left i =>
       intro b₁ b₂ b_is b₁_len b₂_len
       simp only [to_over_plain] at b_is
@@ -600,10 +539,9 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
     right
     rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
-    sorry
-    -- have H := PartialGrid.left_length_pos g2
-    -- rw [end_is.1.1] at H
-    -- simp at H
+    have H := PartialGrid.left_length_pos g2
+    rw [end_is.1.1] at H
+    simp at H
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i a1 b1 bot1 mid1 up1 b2 bot2 mid2 up2
     intro b₃ b₄ b_is b₃_len b₄_len
@@ -673,10 +611,9 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         exact ⟨⟨by simp⟩, ⟨trivial⟩⟩
     right
     rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
-    sorry
-    -- have H := PartialGrid.left_length_pos g2
-    -- rw [end_is.1.1] at H
-    -- simp at H
+    have H := PartialGrid.left_length_pos g2
+    rw [end_is.1.1] at H
+    simp at H
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i a1 b1 bot1 up1 a2 bot2 mid2 up2
     intro a₃ a₄ a_is a₃_len a₄_len
@@ -727,18 +664,17 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
             simp at len1
             exact len1.2.1.1
         | d21 :: d22 =>
-          sorry
-          -- have H : is_true bot1 := by exact g2.top_frontier_is_true
-          -- simp at long
-          -- rw [long] at H
-          -- have H2 := middle_frontier_nil_or_caps h2
-          -- rcases H2 with H2 | ⟨front, mid, caboose, spec⟩
-          -- · simp at H2
-          --   exact H2.1.elim
-          -- rw [spec.1] at H
-          -- specialize H (front, false)
-          -- simp [is_true] at H
-          -- exact (H ⟨trivial⟩).1.elim
+          have H : is_true bot1 := by exact g2.top_frontier_is_true
+          simp at long
+          rw [long] at H
+          have H2 := middle_frontier_nil_or_caps h2
+          rcases H2 with H2 | ⟨front, mid, caboose, spec⟩
+          · simp at H2
+            exact H2.1.elim
+          rw [spec.1] at H
+          specialize H (front, false)
+          simp [is_true] at H
+          exact (H ⟨trivial⟩).1.elim
       | d11 :: d12 => sorry
         -- have H : is_true bot1 := by exact g2.top_frontier_is_true
         -- simp only [List.append_nil, List.append_assoc] at long
@@ -1015,23 +951,23 @@ noncomputable def reflect (h : PartialGrid a b c d e) :
   | single_gridt h =>
     rw [bool_swap_to_up_plain, bool_swap_to_over_plain, bool_swap_to_up_plain, bool_swap_to_over_plain, bool_swap_nil]
     cases h with
-    | empty =>
-      use PartialGrid.single_gridt (cell.empty)
-      exact ⟨rfl⟩
-    | top_bottom i =>
-      use PartialGrid.single_gridt (cell.sides i)
-      exact ⟨rfl⟩
-    | sides i =>
-      use PartialGrid.single_gridt (cell.top_bottom i)
-      exact ⟨rfl⟩
+    -- | empty =>
+    --   use PartialGrid.single_gridt (cell.empty)
+    --   exact ⟨rfl⟩
+    -- | top_bottom i =>
+    --   use PartialGrid.single_gridt (cell.sides i)
+    --   exact ⟨rfl⟩
+    -- | sides i =>
+    --   use PartialGrid.single_gridt (cell.top_bottom i)
+    --   exact ⟨rfl⟩
     | top_left i =>
-      use PartialGrid.single_gridt (cell.top_left i)
+      use PartialGrid.single_gridt (cell'.top_left i)
       exact ⟨rfl⟩
     | adjacent i k h =>
-      use PartialGrid.single_gridt (cell.adjacent k i (by rw [Nat.dist_comm] at h; exact h))
+      use PartialGrid.single_gridt (cell'.adjacent k i (by rw [Nat.dist_comm] at h; exact h))
       exact ⟨rfl⟩
     | separated i j h =>
-      use PartialGrid.single_gridt (cell.separated j i (by rw [Or.comm] at h; exact h))
+      use PartialGrid.single_gridt (cell'.separated j i (by rw [Or.comm] at h; exact h))
       exact ⟨rfl⟩
   | empty a b ha ha1 hb hb1 =>
     rw [bool_swap_append]
@@ -1203,47 +1139,37 @@ theorem pg_side_side {a b c d e} (h : PartialGrid a b c d e)
   induction h with
   | single_gridt h =>
     cases h with
-    | empty => simp [to_up_plain] at ha
-    | top_bottom i => simp [ha, hb]
-    | sides i => simp [ha, hb]
+    -- | empty => simp [to_up_plain] at ha
+    -- | top_bottom i => simp [ha, hb]
+    -- | sides i => simp [ha, hb]
     | top_left i => simp [to_over_plain] at hb
     | adjacent i k h => simp [to_over_plain] at hb
     | separated i j h => simp [to_over_plain] at hb
   | empty a b ha ha1 hb hb =>
     rw [ha] at hd
     simp at hd
-  | horizontal_append_one g1 g2 g1_ih g2_ih => sorry
-    -- rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-    -- · have H := PartialGrid.top_length_pos g1
-    --   rw [hb] at H
-    --   simp at H
-    -- have H := PartialGrid.top_length_pos g2
-    -- rw [hb2] at H
-    -- simp at H
-  | horizontal_append h g1 g2 g1_ih g2_ih => sorry
-    -- rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-    -- · have H := PartialGrid.top_length_pos g1
-    --   rw [hb] at H
-    --   simp at H
-    -- have H := PartialGrid.top_length_pos g2
-    -- rw [hb2] at H
-    -- simp at H
-  | vertical_append_one g1 g2 g1_ih g2_ih => sorry
-    -- rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-    -- · have H := PartialGrid.left_length_pos g2
-    --   rw [hb] at H
-    --   simp at H
-    -- have H := PartialGrid.left_length_pos g1
-    -- rw [hb2] at H
-    -- simp at H
-  | vertical_append g1 g2 h g1_ih g2_ih => sorry
-    -- rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-    -- · have H := PartialGrid.left_length_pos g2
-    --   rw [hb] at H
-    --   simp at H
-    -- have H := PartialGrid.left_length_pos g1
-    -- rw [hb2] at H
-    -- simp at H
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    have H := PartialGrid.top_length_pos g2
+    aesop
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    have H := PartialGrid.top_length_pos g2
+    aesop
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb2] at H
+    simp at H
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb2] at H
+    simp at H
 
 theorem pg_top_left {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(i, false)]) (hb : b = [(i, true)]) (hd : d = []) :
@@ -1251,9 +1177,9 @@ theorem pg_top_left {a b c d e} (h : PartialGrid a b c d e)
   induction h with
   | single_gridt h =>
     cases h with
-    | empty => simp [to_up_plain] at ha
-    | top_bottom i => simp [to_up_plain] at ha
-    | sides i => simp [to_over_plain] at hb
+    -- | empty => simp [to_up_plain] at ha
+    -- | top_bottom i => simp [to_up_plain] at ha
+    -- | sides i => simp [to_over_plain] at hb
     | top_left i => simp [ha, hb, to_up_plain, to_over_plain]
     | adjacent i k h =>
       simp [to_up_plain] at ha
@@ -1268,151 +1194,145 @@ theorem pg_top_left {a b c d e} (h : PartialGrid a b c d e)
   | empty a b ha ha1 hb hb =>
     rw [ha] at hd
     simp at hd
-  | horizontal_append_one g1 g2 g1_ih g2_ih => sorry
-    -- rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-    -- · have H := PartialGrid.top_length_pos g1
-    --   rw [hb] at H
-    --   simp at H
-    -- have H := PartialGrid.top_length_pos g2
-    -- rw [hb2] at H
-    -- simp at H
-  | horizontal_append h g1 g2 g1_ih g2_ih => sorry
-    -- rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-    -- · have H := PartialGrid.top_length_pos g1
-    --   rw [hb] at H
-    --   simp at H
-    -- have H := PartialGrid.top_length_pos g2
-    -- rw [hb2] at H
-    -- simp at H
-  | vertical_append_one g1 g2 g1_ih g2_ih => sorry
-    -- rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-    -- · have H := PartialGrid.left_length_pos g2
-    --   rw [hb] at H
-    --   simp at H
-    -- have H := PartialGrid.left_length_pos g1
-    -- rw [hb2] at H
-    -- simp at H
-  | vertical_append g1 g2 h g1_ih g2_ih => sorry
-    -- rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-    -- · have H := PartialGrid.left_length_pos g2
-    --   rw [hb] at H
-    --   simp at H
-    -- have H := PartialGrid.left_length_pos g1
-    -- rw [hb2] at H
-    -- simp at H
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.top_length_pos g1
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.top_length_pos g2
+    rw [hb2] at H
+    simp at H
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.top_length_pos g1
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.top_length_pos g2
+    rw [hb2] at H
+    simp at H
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb2] at H
+    simp at H
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb2] at H
+    simp at H
 
 theorem pg_adjacent {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(i, false)]) (hb : b = [(j, true)]) (hd : d = []) (hij : i.dist j = 1):
-  c = [(j, true), (i, true)] ∧ e = [(j, false), (i, false)] := by sorry
-  -- induction h with
-  -- | single_gridt h =>
-  --   cases h with
-  --   | empty => simp [to_up] at ha
-  --   | top_bottom i => simp [to_up] at ha
-  --   | sides i => simp [to_over] at hb
-  --   | top_left i =>
-  --     simp [to_up] at ha
-  --     simp [to_over] at hb
-  --     aesop
-  --   | adjacent i k h =>
-  --     simp [to_up] at ha
-  --     simp [to_over] at hb
-  --     rw [ha, hb] at h
-  --     simp [to_up, to_over, ha, hb]
-  --   | separated i j h =>
-  --     simp [to_up] at ha
-  --     simp [to_over] at hb
-  --     apply or_dist_iff.mpr at h
-  --     aesop
-  -- | empty a b ha ha1 hb hb =>
-  --   rw [ha] at hd
-  --   simp at hd
-  -- | horizontal_append_one g1 g2 g1_ih g2_ih =>
-  --   rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-  --   · have H := PartialGrid.top_length_pos g1
-  --     rw [hb] at H
-  --     simp at H
-  --   have H := PartialGrid.top_length_pos g2
-  --   rw [hb2] at H
-  --   simp at H
-  -- | horizontal_append h g1 g2 g1_ih g2_ih =>
-  --   rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-  --   · have H := PartialGrid.top_length_pos g1
-  --     rw [hb] at H
-  --     simp at H
-  --   have H := PartialGrid.top_length_pos g2
-  --   rw [hb2] at H
-  --   simp at H
-  -- | vertical_append_one g1 g2 g1_ih g2_ih =>
-  --   rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-  --   · have H := PartialGrid.left_length_pos g2
-  --     rw [hb] at H
-  --     simp at H
-  --   have H := PartialGrid.left_length_pos g1
-  --   rw [hb2] at H
-  --   simp at H
-  -- | vertical_append g1 g2 h g1_ih g2_ih =>
-  --   rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-  --   · have H := PartialGrid.left_length_pos g2
-  --     rw [hb] at H
-  --     simp at H
-  --   have H := PartialGrid.left_length_pos g1
-  --   rw [hb2] at H
-  --   simp at H
+  c = [(j, true), (i, true)] ∧ e = [(j, false), (i, false)] := by
+  induction h with
+  | single_gridt h =>
+    cases h with
+    | top_left i =>
+      simp [to_up_plain] at ha
+      simp [to_over_plain] at hb
+      aesop
+    | adjacent i k h =>
+      simp [to_up_plain] at ha
+      simp [to_over_plain] at hb
+      rw [ha, hb] at h
+      simp [to_up_plain, to_over_plain, ha, hb]
+    | separated i j h =>
+      simp [to_up_plain] at ha
+      simp [to_over_plain] at hb
+      apply or_dist_iff.mpr at h
+      aesop
+  | empty a b ha ha1 hb hb =>
+    rw [ha] at hd
+    simp at hd
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.top_length_pos g1
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.top_length_pos g2
+    rw [hb2] at H
+    simp at H
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.top_length_pos g1
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.top_length_pos g2
+    rw [hb2] at H
+    simp at H
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb2] at H
+    simp at H
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb2] at H
+    simp at H
 
 theorem pg_separated {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(i, false)]) (hb : b = [(j, true)]) (hd : d = []) (hij : i.dist j > 1):
-  c = [(j, true)] ∧ e = [(i, false)] := by sorry
-  -- induction h with
-  -- | single_gridt h =>
-  --   cases h with
-  --   | empty => simp [to_up] at ha
-  --   | top_bottom i => simp [to_up] at ha
-  --   | sides i => simp [to_over] at hb
-  --   | top_left i =>
-  --     simp [to_up] at ha
-  --     simp [to_over] at hb
-  --     aesop
-  --   | adjacent i k h =>
-  --     simp [to_up] at ha
-  --     simp [to_over] at hb
-  --     aesop
-  --   | separated i j h =>
-  --     simp [to_up] at ha
-  --     simp [to_over] at hb
-  --     aesop
-  -- | empty a b ha ha1 hb hb =>
-  --   rw [ha] at hd
-  --   simp at hd
-  -- | horizontal_append_one g1 g2 g1_ih g2_ih =>
-  --   rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-  --   · have H := PartialGrid.top_length_pos g1
-  --     rw [hb] at H
-  --     simp at H
-  --   have H := PartialGrid.top_length_pos g2
-  --   rw [hb2] at H
-  --   simp at H
-  -- | horizontal_append h g1 g2 g1_ih g2_ih =>
-  --   rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-  --   · have H := PartialGrid.top_length_pos g1
-  --     rw [hb] at H
-  --     simp at H
-  --   have H := PartialGrid.top_length_pos g2
-  --   rw [hb2] at H
-  --   simp at H
-  -- | vertical_append_one g1 g2 g1_ih g2_ih =>
-  --   rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-  --   · have H := PartialGrid.left_length_pos g2
-  --     rw [hb] at H
-  --     simp at H
-  --   have H := PartialGrid.left_length_pos g1
-  --   rw [hb2] at H
-  --   simp at H
-  -- | vertical_append g1 g2 h g1_ih g2_ih =>
-  --   rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
-  --   · have H := PartialGrid.left_length_pos g2
-  --     rw [hb] at H
-  --     simp at H
-  --   have H := PartialGrid.left_length_pos g1
-  --   rw [hb2] at H
-    -- simp at H
+  c = [(j, true)] ∧ e = [(i, false)] := by
+  induction h with
+  | single_gridt h =>
+    cases h with
+    | top_left i =>
+      simp [to_up_plain] at ha
+      simp [to_over_plain] at hb
+      aesop
+    | adjacent i k h =>
+      simp [to_up_plain] at ha
+      simp [to_over_plain] at hb
+      aesop
+    | separated i j h =>
+      simp [to_up_plain] at ha
+      simp [to_over_plain] at hb
+      aesop
+  | empty a b ha ha1 hb hb =>
+    rw [ha] at hd
+    simp at hd
+  | horizontal_append_one g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.top_length_pos g1
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.top_length_pos g2
+    rw [hb2] at H
+    simp at H
+  | horizontal_append h g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp hb with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.top_length_pos g1
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.top_length_pos g2
+    rw [hb2] at H
+    simp at H
+  | vertical_append_one g1 g2 g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb2] at H
+    simp at H
+  | vertical_append g1 g2 h g1_ih g2_ih =>
+    rcases List.append_eq_singleton_iff.mp ha with ⟨hb, hb2⟩ | ⟨hb, hb2⟩
+    · have H := PartialGrid.left_length_pos g2
+      rw [hb] at H
+      simp at H
+    have H := PartialGrid.left_length_pos g1
+    rw [hb2] at H
+    simp at H

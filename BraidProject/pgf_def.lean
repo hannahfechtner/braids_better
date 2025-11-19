@@ -147,11 +147,10 @@ def rw_length_one_step_rev (h : SemiThue_one_step reversing a b) : ℕ :=
 
 noncomputable def one_step_trans
   (h1 : SemiThue_one_step grid_style a b) (h2 : SemiThue_one_step grid_style b c) :
-    (h3 : SemiThue_one_step grid_style a c) ×
-    PLift (rw_length_one_step h3 = rw_length_one_step h1 + rw_length_one_step h2) := by
+    {h3 : SemiThue_one_step grid_style a c //
+    rw_length_one_step h3 = rw_length_one_step h1 + rw_length_one_step h2} := by
   induction h2
   · use h1
-    constructor
     simp [rw_length_one_step]
   rename_i d e f g h i j k
   specialize k h1
@@ -159,50 +158,36 @@ noncomputable def one_step_trans
   cases j with
   | basic n =>
     use h4.one_step (grid_style.basic n)
-    constructor
-    rw [rw_length_one_step, rw_length_one_step, len4.1, add_assoc]
+    rw [rw_length_one_step, rw_length_one_step, len4, add_assoc]
   | over n =>
     use h4.one_step (grid_style.over n)
-    constructor
-    rw [rw_length_one_step, rw_length_one_step, len4.1, add_assoc]
+    rw [rw_length_one_step, rw_length_one_step, len4, add_assoc]
   | up n =>
     use h4.one_step (grid_style.up n)
-    constructor
-    rw [rw_length_one_step, rw_length_one_step, len4.1, add_assoc]
+    rw [rw_length_one_step, rw_length_one_step, len4, add_assoc]
   | empty =>
     use h4.one_step (grid_style.empty)
-    constructor
-    rw [rw_length_one_step, rw_length_one_step, len4.1, add_assoc]
+    rw [rw_length_one_step, rw_length_one_step, len4, add_assoc]
   | apart h =>
     use h4.one_step (grid_style.apart h)
-    constructor
-    rw [rw_length_one_step, rw_length_one_step, len4.1, add_assoc]
+    rw [rw_length_one_step, rw_length_one_step, len4, add_assoc]
   | close h =>
     use h4.one_step (grid_style.close h)
-    constructor
-    rw [rw_length_one_step, rw_length_one_step, len4.1, add_assoc]
+    rw [rw_length_one_step, rw_length_one_step, len4, add_assoc]
 
-theorem add_nonsense {a b c d : ℕ} (h : a = b) (h1 : c = d) : a + c = b + d :=
-  Mathlib.Tactic.Ring.add_congr h h1 rfl
-
-noncomputable def one_step_of_reg_w_len {a b} :
-    ((h1 : SemiThue grid_style a b )→ (Σ h2 : SemiThue_one_step grid_style a b,
-    PLift (rw_length h1 = rw_length_one_step h2) )) := by
-  intro h
-  induction h
+noncomputable def one_step_of_reg_w_len {a b} (h1 : SemiThue grid_style a b ) :
+    {h2 : SemiThue_one_step grid_style a b // rw_length h1 = rw_length_one_step h2} := by
+  induction h1
   · use SemiThue_one_step.refl _
-    constructor
     simp [rw_length, rw_length_one_step]
   · rename_i c d e f h
     use SemiThue_one_step.one_step (SemiThue_one_step.refl _) h
-    constructor
     cases h
     all_goals rw [rw_length, rw_length_one_step, rw_length_one_step]
   rename_i ih1 ih2
   use (one_step_trans ih1.1 ih2.1).1
-  constructor
-  rw [rw_length, (one_step_trans ih1.1 ih2.1).2.1]
-  exact Mathlib.Tactic.Ring.add_congr ih1.2.1 ih2.2.1 rfl
+  rw [rw_length, (one_step_trans ih1.1 ih2.1).2]
+  aesop
 
 noncomputable def reg_of_one_step_w_len :
     (h1 : SemiThue_one_step grid_style a b) → (Σ h2 : SemiThue grid_style a b,
@@ -333,38 +318,31 @@ noncomputable def SemiThue_append_right_w_len (c) (h : SemiThue grid_style a b) 
   rw [H.2, ih.2]
 
 noncomputable def pg_to_rev (h : PartialGrid a b c d e) :
-  (h1 : SemiThue grid_style (a ++ b) (c ++ d ++ e)) × PLift (h.length = rw_length h1) := by
+  {h1 : SemiThue grid_style (a ++ b) (c ++ d ++ e) // h.length = rw_length h1} := by
   induction h with
   | single_gridt h =>
     cases h with
     | empty =>
       use SemiThue_empty_w_len.1
-      constructor
       simp [PartialGrid.length, SemiThue_empty_w_len.2]
     | top_bottom i =>
       use (SemiThue_top_bottom_w_len i).1
-      constructor
       simp [PartialGrid.length, (SemiThue_top_bottom_w_len i).2]
     | sides i =>
       use (SemiThue_sides_w_len i).1
-      constructor
       simp [PartialGrid.length, (SemiThue_sides_w_len i).2]
     | top_left i =>
       use (SemiThue_top_left_w_len i).1
-      constructor
       simp [PartialGrid.length, (SemiThue_top_left_w_len i).2]
     | adjacent i k h =>
       use (SemiThue_adjacent_w_len i k h).1
-      constructor
       simp [PartialGrid.length, (SemiThue_adjacent_w_len i k h).2]
     | separated i j h =>
       use (SemiThue_separated_w_len i j (or_dist_iff.mpr h)).1
-      constructor
       simp [PartialGrid.length, (SemiThue_separated_w_len i j (or_dist_iff.mpr h)).2]
   | empty a b ha ha1 hb hb =>
     rw [List.append_nil, List.nil_append]
     use SemiThue.refl _
-    constructor
     simp [PartialGrid.length, rw_length]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i l m n o p q r s
@@ -377,9 +355,8 @@ noncomputable def pg_to_rev (h : PartialGrid a b c d e) :
     have h6 := SemiThue_append_left_w_len n h5
     rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc] at h6
     use SemiThue.trans _ _ _ h4.1 h6.1
-    constructor
-    simp [rw_length, h6.2, h4.2]
-    apply add_nonsense h3_len.1 h5_len.1
+    simp only [rw_length, h4.2, h6.2]
+    aesop
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i l m n o p q r s t
     rw [PartialGrid.length]
@@ -391,9 +368,8 @@ noncomputable def pg_to_rev (h : PartialGrid a b c d e) :
     rw [← List.append_assoc, ← List.append_assoc] at h6
     rw [List.append_assoc o r s, ← List.append_assoc n o (r ++ s)]
     use SemiThue.trans _ _ _ h4.1 h6.1
-    constructor
-    simp [rw_length, h6.2, h4.2]
-    apply add_nonsense h3_len.1 h5_len.1
+    simp only [rw_length, h6.2, h4.2]
+    aesop
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i l m n o p q r s
     rw [PartialGrid.length]
@@ -405,9 +381,8 @@ noncomputable def pg_to_rev (h : PartialGrid a b c d e) :
     have h6 := SemiThue_append_right_w_len o h5
     rw [List.append_assoc, List.append_assoc, List.append_assoc, ← List.append_assoc q] at h6
     use SemiThue.trans _ _ _ h4.1 h6.1
-    constructor
-    simp [rw_length, h6.2, h4.2]
-    apply add_nonsense h3_len.1 h5_len.1
+    simp only [rw_length, h6.2, h4.2]
+    aesop
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i l m n o p q r s
     rw [PartialGrid.length]
@@ -418,69 +393,59 @@ noncomputable def pg_to_rev (h : PartialGrid a b c d e) :
     rw [List.append_assoc, List.append_assoc, List.append_assoc, ← List.append_assoc m n o] at h6
     rw [List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
     use SemiThue.trans _ _ _ h4.1 h6.1
-    constructor
     simp [rw_length, h6.2, h4.2]
-    apply add_nonsense h3_len.1 h5_len.1
-
+    aesop
 
 noncomputable def pgf_to_rev (h : pgf a b mid) :
-  (h1 : SemiThue grid_style (a ++ b) mid) × PLift (h.length = rw_length h1) := by
+  {h1 : SemiThue grid_style (a ++ b) mid // h.length = rw_length h1} := by
   induction h with
   | skeleton ha ha1 hb hb =>
     use SemiThue.refl _
-    constructor
     simp [rw_length, pgf.length]
   | empty h hc ih =>
     rename_i e f g
     subst hc
     rw [pgf.length]
     use SemiThue.trans _ _ _ ih.1 (SemiThue.reduction (grid_style.empty))
-    constructor
-    simp [rw_length, ih.2.1, SemiThue_empty_w_len.2]
+    simp [rw_length, ih.2, SemiThue_empty_w_len.2]
   | top_bottom i h hc ih =>
     rename_i e f g
     subst hc
     rw [pgf.length]
     use SemiThue.trans _ _ _ ih.1 (SemiThue.reduction (grid_style.up _))
-    constructor
-    simp [rw_length, ih.2.1, SemiThue_empty_w_len.2]
+    simp [rw_length, ih.2, SemiThue_empty_w_len.2]
   | sides i h hc ih =>
     rename_i e f g
     subst hc
     rw [pgf.length]
     use SemiThue.trans _ _ _ ih.1 (SemiThue.reduction (grid_style.over _))
-    constructor
-    simp [rw_length, ih.2.1, SemiThue_empty_w_len.2]
+    simp [rw_length, ih.2, SemiThue_empty_w_len.2]
   | top_left i h hc ih =>
     rename_i e f g
     subst hc
     rw [pgf.length]
     use SemiThue.trans _ _ _ ih.1 (SemiThue.reduction (grid_style.basic _))
-    constructor
-    simp [rw_length, ih.2.1, SemiThue_empty_w_len.2]
+    simp [rw_length, ih.2, SemiThue_empty_w_len.2]
   | adjacent i j hd h hc ih =>
     rename_i e f g
     subst hc
     rw [pgf.length]
     use SemiThue.trans _ _ _ ih.1 (SemiThue.reduction (grid_style.close hd))
-    constructor
-    simp [rw_length, ih.2.1, SemiThue_empty_w_len.2]
+    simp [rw_length, ih.2, SemiThue_empty_w_len.2]
   | separated i k hd h hc ih =>
     rename_i e f g
     subst hc
     rw [pgf.length]
     use SemiThue.trans _ _ _ ih.1 (SemiThue.reduction (grid_style.apart hd))
-    constructor
-    simp [rw_length, ih.2.1, SemiThue_empty_w_len.2]
+    simp [rw_length, ih.2, SemiThue_empty_w_len.2]
 
 noncomputable def pgf_of_st_w_len (h : SemiThue_one_step grid_style ab c) (hab : ab = a ++ b)
   (ha : is_false a) (hal : a.length > 0) (hb : is_true b) (hbl : b.length > 0) :
-  (h2 : pgf a b c) × PLift (rw_length_one_step h = pgf.length h2):= by
+  {h2 : pgf a b c // rw_length_one_step h = pgf.length h2} := by
   induction h with
   | refl d =>
     subst hab
     use pgf.skeleton a b hal ha hbl hb
-    constructor
     simp [rw_length_one_step, pgf.length, PartialGrid.length]
   | one_step h1 h2 ih =>
     rename_i d e f g l
@@ -490,42 +455,35 @@ noncomputable def pgf_of_st_w_len (h : SemiThue_one_step grid_style ab c) (hab :
     · rename_i n
       rw [rw_length_one_step]
       use pgf.top_left _ ih.1 rfl
-      constructor
-      rw [pgf.length, ← ih.2.1]
+      rw [pgf.length, ← ih.2]
     · rename_i n
       rw [rw_length_one_step]
       use pgf.sides _ ih.1 rfl
-      constructor
-      rw [pgf.length, ← ih.2.1]
+      rw [pgf.length, ← ih.2]
       rfl
     · rename_i n
       rw [rw_length_one_step]
       use pgf.top_bottom _ ih.1 rfl
-      constructor
-      rw [pgf.length, ← ih.2.1]
+      rw [pgf.length, ← ih.2]
       rfl
     · rw [rw_length_one_step]
       use pgf.empty ih.1 rfl
-      constructor
-      rw [pgf.length, ← ih.2.1]
+      rw [pgf.length, ← ih.2]
       rfl
     · rename_i n
       rw [rw_length_one_step]
       use pgf.separated _ _ n ih.1 rfl
-      constructor
-      rw [pgf.length, ← ih.2.1]
+      rw [pgf.length, ← ih.2]
     rename_i n
     rw [rw_length_one_step]
     use pgf.adjacent _ _ n ih.1 rfl
-    constructor
-    rw [pgf.length, ← ih.2.1]
+    rw [pgf.length, ← ih.2]
 
-noncomputable def get_frontier_style (h : PartialGrid a b c d e) : Σ (h1 : pgf a b (c ++ d ++ e)),
-  PLift ( h.length = h1.length) := by
+noncomputable def get_frontier_style (h : PartialGrid a b c d e) :
+    {h1 : pgf a b (c ++ d ++ e) // h.length = h1.length} := by
   have H := pg_to_rev h
   have H2 := one_step_of_reg_w_len H.1
   have H3 := @pgf_of_st_w_len (a ++ b) _ _ _  H2.1 rfl h.left_frontier_is_false
     (PartialGrid.left_length_pos h) h.top_frontier_is_true (PartialGrid.top_length_pos h)
   use H3.1
-  constructor
-  rw [← H3.2.1, ← H2.2.1, ← H.2.1]
+  aesop

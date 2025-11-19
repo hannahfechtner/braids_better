@@ -13,7 +13,8 @@ inductive SemiThue_one_step (rels : List α → List α → Type) : List α → 
 | one_step {a b c d e : List α} (h1 : SemiThue_one_step rels e (c++a++d)) (h2 : rels a b) :
     SemiThue_one_step rels e (c++b++d)
 
-private noncomputable def one_step_in_front {a b c d e : List α} (h1 : SemiThue_one_step rels (c++a++d) e)
+private noncomputable def one_step_in_front {a b c d e : List α}
+    (h1 : SemiThue_one_step rels (c++a++d) e)
     (h2 : rels b a) : SemiThue_one_step rels (c++b++d) e := by
   have H : ∀ f, SemiThue_one_step rels f e → f = c ++ a ++ d →
       SemiThue_one_step rels (c ++ b ++ d) e := by

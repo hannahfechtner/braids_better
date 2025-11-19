@@ -8,34 +8,29 @@ import BraidProject.Widgets
 def separate_maximal_true_prefix (c : List (ℕ × Bool)) : List (ℕ × Bool) × List (ℕ × Bool) :=
   match c with
   | [] => ([], [])
-  | (c2, false) :: c1 => ([], (c2, false) :: c1)
-  | (d, true) :: e => ([(d, true)] ++ (separate_maximal_true_prefix e).1, (separate_maximal_true_prefix e).2)
+  | (c1, false) :: c2 => ([], (c1, false) :: c2)
+  | (c1, true) :: c2 => ((c1, true) :: (separate_maximal_true_prefix c2).1, (separate_maximal_true_prefix c2).2)
 
 theorem separate_maximal_true_prefix_correct :
     (separate_maximal_true_prefix L).1 ++ (separate_maximal_true_prefix L).2 = L := by
   induction L with
-  | nil => simp [separate_maximal_true_prefix]
+  | nil => exact List.append_nil _
   | cons d e ih =>
     match d with
-    | (d1, false) =>
-      simp [separate_maximal_true_prefix, ih]
+    | (d1, false) => exact List.nil_append _
     | (d2, true) =>
-      simp [separate_maximal_true_prefix, ih]
+      simp only [separate_maximal_true_prefix, List.cons_append, ih]
 
 def separate_maximal_true_prefix_is_true : is_true (separate_maximal_true_prefix L).1 := by
   induction L with
   | nil =>
-    simp [separate_maximal_true_prefix]
     exact is_true_nil
-  | cons d e =>
+  | cons d e ih =>
     match d with
     | (d1, false) =>
-      simp [separate_maximal_true_prefix]
       exact is_true_nil
     | (d2, true) =>
-      simp [separate_maximal_true_prefix]
-      apply is_true_cons
-      assumption
+      exact is_true_cons _ ih
 
 -- give a list, returns the maximal false prefix, and then the rest as a pair
 def separate_maximal_false_prefix (c : List (ℕ × Bool)) : List (ℕ × Bool) × List (ℕ × Bool) :=
@@ -947,17 +942,33 @@ def braid_solver (a b : PresentedGroup Braid.braid_rels_coexeter) : Bool := by
   apply solver_fg_correct.2
   aesop
 
-theorem braid_solver_correct : braid_solver a b ↔ a = b := by
+theorem braid_solver_correct {a b : PresentedGroup Braid.braid_rels_coexeter} : braid_solver a b ↔ a = b := by
   rcases Quotient.exists_rep a with ⟨a, rfl⟩
   rcases Quotient.exists_rep b with ⟨b, rfl⟩
   exact solver_fg_correct
 
+
+instance braid_decidable_helper :
+    DecidableEq (PresentedGroup Braid.braid_rels_coexeter) := by
+  intro a b
+  by_cases h : braid_solver a b = true
+  · exact isTrue (braid_solver_correct.mp h)
+  · exact isFalse (by
+      intro hEq
+      apply braid_solver_correct.mpr at hEq
+      aesop)
+
+def solver_nonsense (a b : PresentedGroup Braid.braid_rels_coexeter) : Bool := a = b
+
+
 open Braid in
 #eval braid_solver ((σi 1 * σi 2 * σi 1)) ((σi 2 * σi 1 * σi 2))
 
+open Braid in
+#eval solver_nonsense ((σi 1 * σi 2 * σi 1)) ((σi 2 * σi 3 * σi 2))
+
 #eval solver_g [(1, true), (2, true), (4, true), (1, true)]
   [(2, true), (1, true), (2, true), (4, true)]
--- try quotient lift
 
 #show_braid_word_help ([[(3, true), (2, true), (0, false), (3, true)],
   [(3, true), (2, true), (3, true), (0, false)],

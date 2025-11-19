@@ -1,5 +1,4 @@
 import BraidProject.Grids_C
-import BraidProject.GridsTwo
 
 open FreeMonoid
 
@@ -148,7 +147,7 @@ theorem i_side_side_t (h : gridt a b c d) : iss_t a b c d := by
 
 def itl_t (a b c d : FreeMonoid ℕ) := ∀ i, a = FreeMonoid.of i → b = FreeMonoid.of i → c = 1 ∧ d = 1
 
-theorem i_top_left_t : gridt a b c d → itl a b c d := by
+theorem i_top_left_t : gridt a b c d → itl_t a b c d := by
   intro h
   induction h with
   | empty => exact fun _ _ _ => ⟨rfl, rfl⟩
@@ -241,7 +240,7 @@ theorem word_top_bottom_t : ∀ a b c, gridt c d a b → d = 1 → a = c ∧ b =
 def ia_t (a b c d : FreeMonoid ℕ) := ∀ i j, a = FreeMonoid.of i → b = FreeMonoid.of j → (Nat.dist i j = 1) →
   c = FreeMonoid.of i * FreeMonoid.of j ∧ d = FreeMonoid.of j * FreeMonoid.of i
 
-theorem i_adjacent_t : gridt a b c d → ia a b c d := by
+theorem i_adjacent_t : gridt a b c d → ia_t a b c d := by
   intro h
   induction h with
   | empty =>
@@ -307,7 +306,7 @@ theorem i_adjacent_t : gridt a b c d → ia a b c d := by
 
 def ij_eq_t (a b c d : FreeMonoid ℕ) := ∀ k, a = of k → b = of k → (c = 1 ∧ d = 1)
 
-theorem helpier_eq_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_eq a b c d := by
+theorem helpier_eq_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_eq_t a b c d := by
   induction h
   · exact fun _ _ h2 => (of_ne_one _ h2.symm).elim
   · exact fun _ h1 _ => (of_ne_one _ h1.symm).elim
@@ -394,7 +393,7 @@ def ij_close_t (a b c d : FreeMonoid ℕ) := ∀ i j, (Nat.dist i j = 1) → a =
   -- | horizontal h1 h2 h1_ih h2_ih => sorry
 
 
-theorem helpier_close_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_close a b c d := by
+theorem helpier_close_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_close_t a b c d := by
   induction h
   · exact fun _ _ _ one _ => (of_ne_one _ one.symm).elim
   · exact fun _ _ _ one _ => (of_ne_one _ one.symm).elim
@@ -471,7 +470,7 @@ theorem helpier_close_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_clos
 def ij_st_t (a b c d : FreeMonoid ℕ) := ∀ i j, (i + 2 <= j ∨ j + 2 <= i) → a = of i → b = of j →
     (c = of i ∧ d = of j)
 
-theorem helpier_ij_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_st a b c d := by
+theorem helpier_ij_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_st_t a b c d := by
   induction h
   · intro i j _ one two
     exact ⟨one, two⟩
@@ -529,7 +528,7 @@ theorem helpier_ij_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_st a b 
     specialize n p q or_thing rfl rfl
     rw [n.1]
     rw [n.2, another.2] at o
-    unfold ij_st at o
+    unfold ij_st_t at o
     rw [another.2, n.2] at m
     have H := i_top_bottom_t m _ rfl rfl
     rw [H.1]
