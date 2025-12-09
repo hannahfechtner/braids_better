@@ -14,6 +14,7 @@ inductive gridt : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeM
   | separated (i j : ℕ) (h : i.dist j > 1) : gridt (of i) (of j) (of i) (of j)
   | vertical (h1: gridt u v u' v') (h2 : gridt a v' c d) : gridt (u * a) v (u' * c) d
   | horizontal (h1: gridt u v u' v') (h2 : gridt u' b c d) : gridt u (v * b) c (v' * d)
+  
 inductive cell : List ℕ → List ℕ → List ℕ → List ℕ → Type
   | empty : (cell [] [] [] [])
   | top_bottom (i : ℕ) : cell [] [i] [] [i]

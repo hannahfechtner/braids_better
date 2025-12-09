@@ -962,10 +962,10 @@ def solver_nonsense (a b : PresentedGroup Braid.braid_rels_coexeter) : Bool := a
 
 
 open Braid in
-#eval braid_solver ((σi 1 * σi 2 * σi 1)) ((σi 2 * σi 1 * σi 2))
+#eval braid_solver (σi 1 * σi 2 * σi 1) (σi 2 * σi 1 * σi 2 * (σi 3)⁻¹* (σi 1*σi 3)⁻¹)
 
 open Braid in
-#eval solver_nonsense ((σi 1 * σi 2 * σi 1)) ((σi 2 * σi 3 * σi 2))
+#eval solver_nonsense ((σi 1 * σi 2 * σi 1)) ((σi 2 * σi 1 * σi 2)⁻¹)
 
 #eval solver_g [(1, true), (2, true), (4, true), (1, true)]
   [(2, true), (1, true), (2, true), (4, true)]

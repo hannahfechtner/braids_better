@@ -1642,8 +1642,6 @@ noncomputable def stepOne_mid (h : SemiThue reversing a b) (ha : skeleton_order 
   · exact skeleton_to_option ha
   exact b'_is
 
-
-
 noncomputable def stepOne (h : SemiThue reversing a b) (ha : skeleton_order a) (hb : in_order b) : Σ b', SemiThue grid_style (to_option a) b' ×
     skeleton_order (to_option a) × in_order b' × PLift (remove_ones b' = b) := by
   rcases rev_to_grid h with ⟨b', gr, b'_is, pt_b⟩
