@@ -25,14 +25,6 @@ theorem alternate_two (a b : α) : alternate a b 2 = .of a * .of b := rfl
 @[simp]
 theorem alternate_three (a b : α) : alternate a b 3 = .of a * .of b * .of a := rfl
 
--- def M_braid (i j : ℕ) : ℕ :=
---   match i.dist j with
---   | 0 => 0
---   | Nat.succ n =>
---     match n with
---     | 0 => 3
---     | Nat.succ _ => 2
-
 def M_braid_inf (i j : ℕ) : ℕ :=
   match i.dist j with
   | 0 => 0
@@ -42,40 +34,18 @@ def M_braid_inf (i j : ℕ) : ℕ :=
 def M_braid_fin {n : ℕ} (i j : Fin n) : ℕ :=
   M_braid_inf i.val j.val
 
---def M_braid_fin (i j : Fin n) : ℕ := if n = 0 ∨ n = 1 then 1 else M_braid i.val j.val
-
 theorem succ_succ_of_ge_plus_two (h : i + 2 ≤ j) : ∃ (n : ℕ), j - i = n.succ.succ := by
   use j-i-2
-  --you can either prove this painfully, step-by-step, or simply use the omega tactic
   omega
-  -- here is the painful method:
-  -- have H : i + 2 - i ≤ j - i := Nat.sub_le_sub_right h i
-  -- simp only [add_tsub_cancel_left] at H
-  -- rcases @Nat.exists_eq_succ_of_ne_zero (j - i - 1) (Nat.sub_ne_zero_iff_lt.mpr H) with ⟨w, hw⟩
-  -- use w
-  -- rw [← hw]
-  -- exact (Nat.sub_add_cancel (Nat.one_le_of_lt H)).symm
 
 theorem M_braid_apart {i j : ℕ} (h : i.dist j ≥ 2) : M_braid_inf i j = 2 := by
   unfold M_braid_inf
-  --painful method:
-  cases hd: i.dist j with
-  | zero => simp [hd] at h
-  | succ n => cases hn: n with
-    | zero => simp [hn, hd] at h
-    | succ _ => simp [hn]
-  -- or you can simply type
-  -- aesop
-  -- which is a tactic that automatically solves simple logical goals like this
+  aesop
 
-theorem M_braid_fin_apart (i j : Fin n) (h : i ≤ j) :
-    M_braid_fin i.castSucc.castSucc j.succ.succ = 2 := by
-  unfold M_braid_fin
+theorem M_braid_fin_apart (i j : Fin n) (h : i.val.dist j ≥ 2) :
+    M_braid_fin i j = 2 := by
   apply M_braid_apart
-  -- here the tactics do not immediately work, as fintypes are involved
-  simp only [Fin.coe_castSucc, Fin.val_succ, ge_iff_le]
-  unfold Nat.dist
-  omega
+  simp only [Fin.coe_castSucc, Fin.val_succ, ge_iff_le, h]
 
 theorem M_braid_close {i : ℕ} : M_braid_inf i (i + 1) = 3 := by
   unfold M_braid_inf
@@ -94,7 +64,7 @@ def ArtinTitsGroup (M : α → α → ℕ) := PresentedGroup (artin_tits_rel_set
 
 def BraidGroupInf := ArtinTitsGroup (M_braid_inf)
 
-def BraidGroupFin (n : ℕ) := ArtinTitsGroup (@M_braid_fin n)
+def BraidGroupFin (n : ℕ) := ArtinTitsGroup (@M_braid_fin n.pred)
 
 def braid_rels_coexeter : Set (FreeGroup ℕ) :=
   Set.range (Function.uncurry (artin_tits_rel M_braid_inf))
@@ -110,48 +80,20 @@ instance (n : ℕ) : Group (BraidGroupFin n) := by
 instance : Group BraidGroupInf := by
   unfold BraidGroupInf; infer_instance
 
-def σ {n : ℕ} (k : Fin n) : BraidGroupFin n := PresentedGroup.of k
+def σ {n : ℕ} (k : Fin n) : BraidGroupFin (n+1) := PresentedGroup.of k
 
 def σi (k : ℕ) : BraidGroupInf := PresentedGroup.of k
 
--- theorem braid_group.braid (i : Fin n) :
---     σ i.castSucc * σ i.succ * σ i.castSucc = σ i.succ * σ i.castSucc * σ i.succ := by
---   symm
---   rw [←mul_inv_eq_one]
---   apply QuotientGroup.eq.mpr
---   apply Subgroup.subset_normalClosure
---   apply Set.mem_range.mpr
---   use (i.castSucc, i.succ)
---   rw [Function.uncurry_apply_pair, Braid.artin_tits_rel, M_braid_fin_close i]
---   simp only [Nat.pred_succ, alternate_three, mul_inv_rev, Nat.succ_eq_add_one, inv_inv, mul_one]
-
--- theorem braid_group_inf.braid (i : ℕ) :
---     σi i * σi i.succ * σi i = σi i.succ * σi i * σi i.succ := by
---   symm
---   rw [←mul_inv_eq_one]
---   apply QuotientGroup.eq.mpr
---   apply Subgroup.subset_normalClosure
---   apply Set.mem_range.mpr
---   use (i, i + 1)
---   simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_close, alternate_three, mul_inv_rev,
---     Nat.succ_eq_add_one, inv_inv, mul_one]
-
 theorem braid_group_inf.braid {i j : ℕ} (hd : i.dist j = 1):
     σi i * σi j * σi i = σi j * σi i * σi j := by
-  have is_three : M_braid_inf i j = 3 := by
-    unfold M_braid_inf
-    simp [hd]
   symm
   rw [←mul_inv_eq_one]
   apply QuotientGroup.eq.mpr
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, j)
-  have is_three : M_braid_inf i j = 3 := by
-    unfold M_braid_inf
-    simp [hd]
-  simp [is_three, Function.uncurry_apply_pair, artin_tits_rel, M_braid_close, alternate_three, mul_inv_rev,
-    Nat.succ_eq_add_one, inv_inv, mul_one]
+  simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_inf, hd, alternate_three,
+    mul_inv_rev, inv_inv, mul_one]
 
 theorem braid_group.braid {i j : Fin n} (hd : i.val.dist j.val = 1):
     σ i * σ j * σ i = σ j * σ i * σ j := by
@@ -167,24 +109,11 @@ theorem braid_group.braid {i j : Fin n} (hd : i.val.dist j.val = 1):
   simp [is_three, Function.uncurry_apply_pair, artin_tits_rel, M_braid_close, alternate_three, mul_inv_rev,
     Nat.succ_eq_add_one, inv_inv, mul_one]
 
--- theorem braid_group.comm {i j : Fin n} (h : i ≤ j) :
---     σ i.castSucc.castSucc * σ j.succ.succ = σ j.succ.succ * σ i.castSucc.castSucc := by
---   symm
---   rw [←mul_inv_eq_one]
---   apply QuotientGroup.eq.mpr
---   apply Subgroup.subset_normalClosure
---   apply Set.mem_range.mpr
---   use (i.castSucc.castSucc, j.succ.succ)
---   rw [Function.uncurry_apply_pair, Braid.artin_tits_rel, M_braid_fin_apart i j h]
---   simp only [alternate_two, mul_inv_rev, inv_inv, mul_one]
-
 theorem separated (h : 2 ≤ e.dist g) : FreeGroup.of e * .of g * (.of e)⁻¹ * (.of g)⁻¹ ∈ braid_rels_coexeter := by
-  unfold braid_rels_coexeter
   refine Set.mem_range.mpr ?_
   use (e, g)
-  simp
-  rw [artin_tits_rel, M_braid_apart h]
-  simp
+  rw [Function.uncurry_apply_pair, artin_tits_rel, M_braid_apart h]
+  simp only [alternate_two, mul_inv_rev]
   rfl
 
 
@@ -199,28 +128,35 @@ theorem braid_group_inf.comm {i j : ℕ} (h : 2 ≤ i.dist j) :
   simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_apart h, alternate_two, mul_inv_rev,
     inv_inv, mul_one]
 
+theorem braid_group.comm {i j : Fin n} (h : 2 ≤ i.val.dist j.val) :
+    σ i * σ j = σ j * σ i := by
+  symm
+  rw [←mul_inv_eq_one]
+  apply QuotientGroup.eq.mpr
+  apply Subgroup.subset_normalClosure
+  apply Set.mem_range.mpr
+  use (i, j)
+  simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_fin_apart i j h, alternate_two, mul_inv_rev,
+    inv_inv, mul_one]
+
 theorem generated_by (H : Subgroup BraidGroupInf) (h : ∀ i : ℕ, σi i ∈ H) :
     ∀ x : BraidGroupInf, x ∈ H := by
   intro x
   apply QuotientGroup.induction_on
   intro z
-  change ⟦z⟧ ∈ H
   apply FreeGroup.induction_on (C := fun z => ⟦z⟧ ∈ H) _ (one_mem H)
   . exact fun i => h i
-  . intro i h
-    apply (Subgroup.inv_mem_iff H).mp
-    exact h
+  . exact fun i h => (Subgroup.inv_mem_iff H).mp h
   intro i j h1 h2
   change QuotientGroup.mk _ ∈ H.carrier
   rw [QuotientGroup.mk_mul]
   exact Subgroup.mul_mem _ h1 h2
 
-  theorem generated_by_fin (H : Subgroup (BraidGroupFin n)) (h : ∀ i : Fin n, σ i ∈ H) :
-    ∀ x : BraidGroupFin n, x ∈ H := by
+  theorem generated_by_fin (H : Subgroup (BraidGroupFin (n+1))) (h : ∀ i : Fin n, σ i ∈ H) :
+    ∀ x : BraidGroupFin (n+1), x ∈ H := by
   intro x
   apply QuotientGroup.induction_on
   intro z
-  change ⟦z⟧ ∈ H
   apply FreeGroup.induction_on (C := fun z => ⟦z⟧ ∈ H) _ (one_mem H)
   . exact fun i => h i
   . intro i h
@@ -232,61 +168,56 @@ theorem generated_by (H : Subgroup BraidGroupInf) (h : ∀ i : ℕ, σi i ∈ H)
   exact Subgroup.mul_mem _ h1 h2
 
 
--- theorem generated_by (n : ℕ) (H : Subgroup (braid_group n)) (h : ∀ i : Fin n, σ' n i ∈ H) :
---     ∀ x : braid_group (n + 1), x ∈ H := by
---   intro x
---   apply QuotientGroup.induction_on
---   intro z
---   change ⟦z⟧ ∈ H
---   apply FreeGroup.induction_on (C := fun z => ⟦z⟧ ∈ H) _ (one_mem H)
---   . intro i
---     specialize h i
---   . intro i j h1 h2
---     change QuotientGroup.mk _ ∈ H.carrier
---     rw [QuotientGroup.mk_mul]
---     exact Subgroup.mul_mem _ h1 h2
+theorem braid_group_2.is_cyclic : ∃ g : (BraidGroupFin 2), ∀ x, x ∈ Subgroup.zpowers g := by
+  use (σ 0)
+  intro x
+  apply generated_by_fin
+  intro i
+  rw [Subgroup.mem_zpowers_iff]
+  use 1
+  have h : i=0 := by
+    omega
+  rw [h]
+  rfl
 
--- theorem braid_group_2.is_cyclic : ∃ g : (braid_group 2), ∀ x, x ∈ Subgroup.zpowers g := by
---   use (σ 0)
---   intro x
---   apply generated_by
---   intro i
---   rw [Subgroup.mem_zpowers_iff]
---   have h : i=0 := by
---     apply Fin.eq_of_val_eq
---     simp
---   use 1
---   rw [h]
---   rfl
+theorem embed_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin (n.pred))),
+    (braid_rels_m (n.pred)) a b → ((FreeMonoid.lift fun a => σ a) a : BraidGroupFin n)=
+    (FreeMonoid.lift fun a => σ a) b := by
+  repeat
+    rcases n
+    · intro _ _ h
+      exfalso
+      apply h
+    rename_i n
+  intro a b h
+  rcases h
+  · rename_i j
+    simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid.lift_eval_of, Nat.pred_succ]
+    apply braid_group.braid
+    unfold Nat.dist
+    aesop
+  simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid.lift_eval_of, Nat.pred_succ]
+  apply braid_group.comm
+  unfold Nat.dist Fin.castSucc Fin.castAdd Fin.castLE Fin.succ
+  simp only
+  omega
 
--- theorem embed_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin (n.pred))),
---     (braid_rels_m (n.pred)) a b → ((FreeMonoid.lift fun a => σ a) a : braid_group n)=
---     (FreeMonoid.lift fun a => σ a) b := by
---   repeat
---     rcases n
---     · intro _ _ h
---       exfalso
---       apply h
---     rename_i n
---   intro a b h
---   rcases h
---   · rename_i j
---     simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid.lift_eval_of, Nat.pred_succ]
---     sorry --apply braid_group.braid
---   simp only [Nat.succ_eq_add_one, map_mul, FreeMonoid.lift_eval_of, Nat.pred_succ]
---   apply braid_group.comm
---   next ih => exact ih
+def embed {n : ℕ} : (BraidMonoid n) →* (BraidGroupFin (n)) :=
+  PresentedMonoid.toMonoid (fun a => @σ (n.pred) a) (embed_helper n)
 
--- def embed {n : ℕ} : (BraidMonoid n) →* (braid_group (n)) :=
---   PresentedMonoid.toMonoid (fun a => @σ (n.pred) a) (embed_helper n)
+theorem embed_inf_helper (a b : FreeMonoid ℕ) (h : braid_rels_m_inf a b) :
+    (FreeMonoid.lift fun a => σi a) a = (FreeMonoid.lift fun a => σi a) b := by
+  cases h
+  · apply braid_group_inf.braid
+    unfold Nat.dist
+    omega
+  simp
+  apply braid_group_inf.comm
+  unfold Nat.dist
+  omega
 
--- theorem embed_inf_helper (a b : FreeMonoid ℕ) (h : braid_rels_m_inf a b) :
---     (FreeMonoid.lift fun a => σi a) a = (FreeMonoid.lift fun a => σi a) b :=
---   braid_rels_m_inf.casesOn h braid_group_inf.braid (fun _ _ d => braid_group_inf.comm
---     (by unfold Nat.dist; omega))
-
--- def embed_inf : BraidMonoidInf →* braid_group_inf :=
---   PresentedMonoid.toMonoid (fun a => σi a) embed_inf_helper
+def embed_inf : BraidMonoidInf →* BraidGroupInf :=
+  PresentedMonoid.toMonoid (fun a => σi a) embed_inf_helper
 
 /-
 We need a theorem that says that we can define a function from the braid group by giving any
