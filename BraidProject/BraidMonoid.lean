@@ -1,6 +1,6 @@
 import BraidProject.PresentedMonoid_mine
 import Mathlib.Data.Nat.Dist
-import BraidProject.Nat_Dist_Additions
+import BraidProject.Additions.NatDist
 import Mathlib.Algebra.FreeMonoid.Symbols
 
 theorem FreeMonoid.eq_one_or_has_last_elem (a : FreeMonoid α) : a = 1 ∨ ∃ front last, a = front * of last := by

@@ -46,12 +46,16 @@ def or_dist_iff_eq_C {i k d : ℕ} : i.dist k = d → PLift (i + d = k) ⊕ PLif
   · right
     apply le_of_not_le at hik
     rw [Nat.dist_comm, Nat.dist_eq_sub_of_le hik] at h
-    exact ⟨(((Nat.sub_eq_iff_eq_add' hik).mp) h).symm⟩ 
+    exact ⟨(((Nat.sub_eq_iff_eq_add' hik).mp) h).symm⟩
 
 theorem dist_succ {i : ℕ} : i.dist (i + 1) = 1 := by
   rw [Nat.dist_eq_sub_of_le (Nat.le_succ i)]
   /- why can't I use the .symm notation? -/
-  exact Eq.symm (Nat.eq_sub_of_add_eq' rfl)
+  symm
+  exact Nat.eq_sub_of_add_eq' rfl
+
+theorem succ_dist {i : ℕ} : (i + 1).dist i = 1 := by
+  rw [Nat.dist_comm, dist_succ]
 
 def trichotomous_dist_C (i j : ℕ) : PLift (Nat.dist i j ≥ 2) ⊕ PLift (Nat.dist i j = 1) ⊕ PLift (i = j) := by
   have H : ∀ t, t = Nat.dist i j → PLift (Nat.dist i j ≥ 2) ⊕ PLift (Nat.dist i j = 1) ⊕ PLift (i = j) := by
