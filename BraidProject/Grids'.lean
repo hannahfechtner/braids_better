@@ -178,7 +178,7 @@ def split_horizontally (a b c d : FreeMonoid ℕ) := ∀ a₁ a₂, a = a₁ * a
 /-- if the left side of a grid consists of two or more arrows, the grid may be divided into a
 top subgrid and a bottom subgrid. edge case where either a₁ or a₂ is 1 is dealt with by appending
 a top-bottom grid -/
-theorem splittable_horizontally_of_grid {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
+theorem splittable_horizontally {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
     split_horizontally a b c d := by
   induction h with
   | empty =>
