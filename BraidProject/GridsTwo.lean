@@ -26,34 +26,6 @@ theorem all_ones : grid a b c d → a = 1 → b = 1 → (c = 1 ∧ d = 1) := by
 
 theorem all_ones_better (h1 : grid 1 1 c d) : c = 1 ∧ d = 1 := all_ones h1 rfl rfl
 
--- def all_one (a b c d : FreeMonoid ℕ) := a = 1 → b = 1 → (c = 1 ∧ d = 1)
-
--- theorem all_ones' : grid a b c d → all_one a b c d := by
---   intro h
---   induction h
---   · exact fun _ _ => ⟨rfl, rfl⟩
---   · exact fun _ two => ⟨rfl, two⟩
---   · exact fun one _ => ⟨one, rfl⟩
---   · exact fun _ _ => ⟨rfl, rfl⟩
---   · exact fun one _ => (of_ne_one _ one).elim
---   · exact fun one two => ⟨one, two⟩
---   · rename_i n o
---     intro one two
---     rw [(FreeMonoid.prod_eq_one one).1, two] at n
---     specialize n rfl rfl
---     rw [n.2, (FreeMonoid.prod_eq_one one).2] at o
---     specialize o rfl rfl
---     rw [n.1, o.1]
---     exact ⟨rfl, o.2⟩
---   rename_i n o
---   intro one two
---   rw [one, (FreeMonoid.prod_eq_one two).1] at n
---   specialize n rfl rfl
---   rw [n.1, (FreeMonoid.prod_eq_one two).2] at o
---   specialize o rfl rfl
---   rw [o.2, n.2]
---   exact ⟨o.1, rfl⟩
-
 theorem i_top_bottom {i : ℕ} (h : grid 1 (of i) c d) : c = 1 ∧ d = of i := by
   generalize hb : of i = b at h
   generalize ha : (1 : FreeMonoid ℕ) = a at h
@@ -308,14 +280,7 @@ theorem helpier_eq {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_eq a b c d
   · intro k eq1 eq2
     rename_i dist
     rw [of_injective eq1, of_injective eq2] at dist
-    simp at dist
-    -- rcases dist
-    -- · rename_i ih
-    --   rw [of_injective eq1, of_injective eq2] at ih
-    --   linarith [ih]
-    -- rename_i ih
-    -- rw [of_injective eq1, of_injective eq2] at ih
-    -- linarith [ih]
+    simp only [Nat.dist_self, gt_iff_lt, not_lt_zero'] at dist
   · rename_i e f g h i j k l m n o
     intro p eq1 eq2
     rcases FreeMonoid.prod_eq_of eq1
@@ -356,32 +321,6 @@ theorem helpier_eq {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_eq a b c d
 def ij_close (a b c d : FreeMonoid ℕ) := ∀ i j, (Nat.dist i j = 1) → a = of i → b = of j →
     (c = of i * of j ∧ d = of j * of i)
 
--- theorem helpier_close' {c d : FreeMonoid ℕ} (h1 : Nat.dist i j =1)
---     (h : grid (of i) (of j) c d) : (c = of i * of j ∧ d = of j * of i):= by
---   generalize one : of i = a at h
---   generalize two : of j = b at h
---   induction h with
---   | empty => exact (of_ne_one _ one).elim
---   | top_bottom k => exact (of_ne_one _ one).elim
---   | sides i => exact (of_ne_one _ two).elim
---   | top_left k =>
---     rw [of_injective one, of_injective two] at h1
---     simp only [Nat.dist_self, zero_ne_one] at h1
-  -- | adjacent k l dist => exact ⟨rfl, rfl⟩
-  -- | separated i j h =>
-  --   rw [of_injective one, of_injective two] at h1
-  --   linarith [or_dist_iff.mpr h, h1]
-  -- | vertical h1 h2 h1_ih h2_ih =>
-  --   rename_i e f g k l m n o
-  --   rcases FreeMonoid.prod_eq_of one.symm with h3 | h4
-  --   · specialize h2_ih h3.2.symm
-  --     rw [h3.1, h3.2, one_mul]
-  --     rw [h3.1] at h1
-  --     have H4 := word_side_side _ _ _ h1
-  --   sorry
-  -- | horizontal h1 h2 h1_ih h2_ih => sorry
-
-
 theorem helpier_close {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_close a b c d := by
   induction h
   · exact fun _ _ _ one _ => (of_ne_one _ one.symm).elim
@@ -400,23 +339,6 @@ theorem helpier_close {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_close a
     exfalso
     rw [dist] at apart
     linarith [apart]
-    -- rcases apart
-    -- · rename_i lt
-    --   rcases or_dist_iff_eq.mp dist
-    --   · rename_i f_is
-    --     rw [← f_is] at lt
-    --     linarith [lt]
-    --   rename_i e_is
-    --   rw [← e_is] at lt
-    --   linarith [lt]
-    -- rename_i gt
-    -- rcases or_dist_iff_eq.mp dist
-    -- · rename_i f_is
-    --   rw [← f_is] at gt
-    --   linarith [gt]
-    -- rename_i e_is
-    -- rw [← e_is] at gt
-    -- linarith [gt]
   · rename_i e f g h i j k l m n o
     intro p q dist one two
     rcases FreeMonoid.prod_eq_of one

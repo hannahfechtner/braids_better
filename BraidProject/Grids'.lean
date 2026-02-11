@@ -6,11 +6,11 @@ import BraidProject.Additions.NatDist
 open FreeMonoid
 
 namespace Braid
-/-- a rectangular grid for the braid monoid, inductively defined as the set of basic cells,
-and vertical and horizontal closure under appending-/
+/-- a rectangular grid for the braid monoid, inductively defined as from the set of basic cells,
+along with vertical and horizontal closure under abutting -/
 inductive grid : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → Prop
   | empty : grid 1 1 1 1
-  | top_bottom (i : ℕ) : grid 1 (of i) (.of i) 1
+  | top_bottom (i : ℕ) : grid 1 (of i) (of i) 1
   | sides (i : ℕ) : grid (of i) 1 1 (of i)
   | top_left (i : ℕ) : grid (of i) (of i) 1 1
   | adjacent (i k : ℕ) (h : i.dist k = 1) : grid (of i) (of k) (of k * of i) (of i * of k)
@@ -88,6 +88,12 @@ theorem braid_eq_of_grid (h : grid a b c d) :
       apply (ConGen.Rel.mul (Quotient.exact h1_ih) (ConGen.Rel.refl _)).trans
       rw [mul_assoc, mul_assoc]
       exact (ConGen.Rel.mul (ConGen.Rel.refl _) (Quotient.exact h2_ih))
+
+theorem braid_equiv_of_grid_empty_sink : grid a b 1 1 → PresentedMonoid.rel braid_rels_m_inf a b := by
+  intro h
+  apply PresentedMonoid.exact
+  rw [← mul_one a, ← mul_one b]
+  exact braid_eq_of_grid h
 
 /- the length of the words labelling the left-bottom and top-right paths in a grid are equal -/
 theorem diag_length_eq (h : grid a b c d) : a.length + c.length = b.length + d.length := by
