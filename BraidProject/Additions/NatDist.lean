@@ -103,3 +103,21 @@ theorem Nat.dist_lt_of_decrease_greater {i j: ℕ} (h : i+1<j) :
   rw [Nat.dist_eq_sub_of_le i_lt_j_minus_1, Nat.dist_eq_sub_of_le (by linarith [h])]
   apply (Nat.sub_lt_sub_iff_right i_lt_j_minus_1).mpr
   exact Nat.sub_lt (Nat.one_le_of_lt h) Nat.one_pos
+
+theorem Nat.dist_no_triangle {a b c n : Nat} (hn : n > 0) : ¬ (a.dist b = n ∧  a.dist c = n ∧ b.dist c = n) := by
+  intro ⟨h1, h2, h3⟩
+  rcases or_dist_iff_eq.mp h1 with ha | hb
+  · rcases or_dist_iff_eq.mp h2 with hc | hd
+    · rcases or_dist_iff_eq.mp h3 with he | hf
+      · linarith
+      linarith
+    · rcases or_dist_iff_eq.mp h3 with hg | hh
+      · linarith
+      · linarith
+  rcases or_dist_iff_eq.mp h2 with hi | hj
+  · rcases or_dist_iff_eq.mp h3 with hk | hl
+    · linarith
+    linarith
+  rcases or_dist_iff_eq.mp h3 with hm | hn
+  · linarith
+  linarith

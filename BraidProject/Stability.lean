@@ -7,7 +7,7 @@ def stable (u v : FreeMonoid ℕ) := ∀ a b, grid u v a b → ∀ u' v',
     grid u' v' a' b' ∧ BraidMonoidInf.mk a = BraidMonoidInf.mk a' ∧
     BraidMonoidInf.mk b = BraidMonoidInf.mk b'
 
-theorem stable_far_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
+theorem stable_apart (i j k : ℕ) (h : Nat.dist j k >= 2) :
     stable (FreeMonoid.of i) (FreeMonoid.of j * FreeMonoid.of k) := by
   intro a b grid_uvab u' v' u_eq v_eq
   rw [BraidMonoidInf.singleton_eq u_eq]
@@ -502,7 +502,7 @@ theorem stable_braid_elem {w y : FreeMonoid ℕ} (h : braid_rels_m_inf w y) :
     ∀ a, stable (of a) w := by
   rcases h
   · exact fun a ↦ stable_close a _ _ dist_succ
-  exact fun a ↦ stable_far_apart a _ _ (or_dist_iff.mpr (Or.inl (by assumption)))
+  exact fun a ↦ stable_apart a _ _ (or_dist_iff.mpr (Or.inl (by assumption)))
 
 theorem stable_braid_elem_symm {w y : FreeMonoid ℕ} (h : braid_rels_m_inf y w) :
     ∀ a, stable (of a) w := by
@@ -511,7 +511,7 @@ theorem stable_braid_elem_symm {w y : FreeMonoid ℕ} (h : braid_rels_m_inf y w)
     apply stable_close
     rw [Nat.dist_comm]
     exact dist_succ
-  exact fun a => stable_far_apart a _ _ (or_dist_iff.mpr (Or.inr (by assumption)))
+  exact fun a => stable_apart a _ _ (or_dist_iff.mpr (Or.inr (by assumption)))
 
 theorem reg_helper (ih : ∀ (u v a b : FreeMonoid ℕ), n ≥ u.length + b.length → grid u v a b →
     ∀ (u' v' : FreeMonoid ℕ), BraidMonoidInf.mk u = BraidMonoidInf.mk u' →
