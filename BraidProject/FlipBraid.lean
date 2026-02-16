@@ -1,6 +1,6 @@
 import BraidProject.BraidMonoid
 import BraidProject.AcrossStrands
-import BraidProject.InductionWithBounds
+import BraidProject.Additions.Induction
 
 open FreeMonoid
 --lemma 3.9 property

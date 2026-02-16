@@ -38,8 +38,12 @@ theorem prod_eq_of {a b : FreeMonoid α} {i : α} (h : a * b = FreeMonoid.of i) 
     exact h
   exact length_eq_zero.mp b_one
 
-theorem FreeMonoid.prod_eq_prod {a b c d : FreeMonoid α} (h : a * b = c * d) :
+theorem prod_eq_prod {a b c d : FreeMonoid α} (h : a * b = c * d) :
     (∃ m, c = a * m ∧ b = m * d) ∨ (∃ m, a = c * m ∧ d = m * b) :=
   List.append_eq_append_iff.mp h
-  
+
+@[to_additive (attr := simp)]
+theorem reverse_one : reverse (1 : FreeMonoid α) = 1 := by
+  apply List.reverse_nil
+
 end FreeMonoid
