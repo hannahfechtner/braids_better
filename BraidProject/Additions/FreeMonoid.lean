@@ -46,4 +46,14 @@ theorem prod_eq_prod {a b c d : FreeMonoid α} (h : a * b = c * d) :
 theorem reverse_one : reverse (1 : FreeMonoid α) = 1 := by
   apply List.reverse_nil
 
+theorem reverse_eq_one : reverse a = 1 ↔ a = 1 := by
+  constructor
+  · intro h
+    rw [← reverse_one, ← h]
+    exact reverse_reverse.symm
+  intro h
+  rw [h, reverse_one]
+
+theorem mem_reverse : a ∈ reverse b ↔ a ∈ b := List.mem_reverse
+
 end FreeMonoid
