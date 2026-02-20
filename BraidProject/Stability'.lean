@@ -2,16 +2,16 @@ import BraidProject.GridsTwo'
 open FreeMonoid Braid Grid DeterminativeSpine
 
 def stable (a b : FreeMonoid ℕ) := ∀ c d, grid a b c d → ∀ a' b',
-  BraidMonoidInf.mk a = BraidMonoidInf.mk a' →
-  BraidMonoidInf.mk b = BraidMonoidInf.mk b' → ∃ c' d',
-    grid a' b' c' d' ∧ BraidMonoidInf.mk c = BraidMonoidInf.mk c' ∧
-    BraidMonoidInf.mk d = BraidMonoidInf.mk d'
+  BraidMonoidInf.mk a = .mk a' →
+  BraidMonoidInf.mk b = .mk b' → ∃ c' d',
+    grid a' b' c' d' ∧ BraidMonoidInf.mk c = .mk c' ∧
+    BraidMonoidInf.mk d = .mk d'
 
 private theorem stable_generator_comm (i j k : ℕ) (h : 2 ≤ j.dist k) :
     stable (FreeMonoid.of i) (FreeMonoid.of j * FreeMonoid.of k) := by
   intro c d grid_abcd a' b' ha' hb'
   rw [BraidMonoidInf.singleton_eq ha']
-  rcases BraidMonoidInf.pair_eq h hb' with ⟨rfl⟩ | ⟨rfl⟩
+  rcases BraidMonoidInf.pair_eq h hb' with rfl | rfl
   · use c, d
   rcases splittable_vertically grid_abcd (of j) (of k) rfl with ⟨u, c₁, c₂, g1, g2, rfl⟩
   rcases trichotomous_dist i j with ij_ge_two_apart | ij_one_apart | ij_eq
@@ -21,36 +21,27 @@ private theorem stable_generator_comm (i j k : ℕ) (h : 2 ≤ j.dist k) :
     · have ⟨hc₂, hd⟩ := generator_generator_apart g2 ik_ge_two_apart
       use of k * of j, of i
       rw [hd, hc₁, hc₂]
-      exact ⟨grid.horizontal (grid.separated i k ik_ge_two_apart)
-        (grid.separated i j ij_ge_two_apart),
-        ⟨PresentedMonoid.sound (BraidMonoidInf.comm_rel h), rfl⟩⟩
+      exact ⟨grid.horizontal (.separated i k ik_ge_two_apart)
+        (.separated i j ij_ge_two_apart), ⟨BraidMonoidInf.comm_rel_eq _ _ h, rfl⟩⟩
     · use of k * of i * of j, of i * of k
       constructor
       · rw [Nat.dist_comm] at h
-        have := (grid.vertical (grid.separated i j ij_ge_two_apart)
-          (grid.separated k j h))
-        exact grid.horizontal (grid.adjacent i k ik_one_apart) this
+        have := grid.vertical (.separated i j ij_ge_two_apart)
+          (.separated k j h)
+        exact grid.horizontal (.adjacent i k ik_one_apart) this
       have ⟨hc₂, hd⟩ := generator_generator_close g2 ik_one_apart
       rw [hc₁, hc₂, hd]
       constructor
-      · apply PresentedMonoid.sound
-        have : PresentedMonoid.rel braid_rels_m_inf (of j * (of k * of i))
-            (of k * (of j * of i)) := by
-          rw [← mul_assoc, ← mul_assoc]
-          apply ConGen.Rel.mul (BraidMonoidInf.comm_rel h)
-          exact (ConGen.Rel.refl _)
-        apply this.trans
-        rw [mul_assoc]
-        apply ConGen.Rel.mul (ConGen.Rel.refl _)
-        apply BraidMonoidInf.comm_rel
-        rw [Nat.dist_comm] at ij_ge_two_apart
-        exact ij_ge_two_apart
+      · simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+        rw [BraidMonoidInf.comm_rel_eq j k h, BraidMonoidInf.comm_rel_rw _ j i]
+        rw [Nat.dist_comm]
+        assumption
       rfl
     rw [ik_eq] at g2
     have ⟨hc₂, hd⟩ := generator_generator_same g2
     rw [hc₁, hd, hc₂, ik_eq]
     use of j, 1
-    exact ⟨grid.horizontal (grid.top_left k) (grid.top_bottom j), ⟨by rw [mul_one], rfl⟩⟩
+    exact ⟨grid.horizontal (.top_left k) (.top_bottom j), ⟨by rw [mul_one], rfl⟩⟩
   · have ⟨hc₁, hu⟩ := generator_generator_close g1 ij_one_apart
     rw [hu] at g2
     rw [hc₁]
@@ -58,7 +49,7 @@ private theorem stable_generator_comm (i j k : ℕ) (h : 2 ≤ j.dist k) :
     rcases trichotomous_dist i k with ik_ge_two_apart | ik_one_apart | ik_eq
     · use of k * of j * of i, of i * of j
       constructor
-      · have := grid.horizontal (grid.separated i k ik_ge_two_apart) (grid.adjacent i j ij_one_apart)
+      · have := grid.horizontal (.separated i k ik_ge_two_apart) (.adjacent i j ij_one_apart)
         exact this
       have ⟨hm, hd₁⟩ := generator_generator_apart g3 ik_ge_two_apart
       rw [hm] at g4
@@ -66,24 +57,18 @@ private theorem stable_generator_comm (i j k : ℕ) (h : 2 ≤ j.dist k) :
       · have ⟨hc₂, hd₂⟩ := generator_generator_apart g4 jk_ge_two_apart
         rw [hc₂, hd, hd₁, hd₂]
         constructor
-        · have : BraidMonoidInf.mk (of j * of i * of k) = BraidMonoidInf.mk (of j * of k * of i) := by
-            rw [mul_assoc, mul_assoc]
-            apply PresentedMonoid.sound
-            apply ConGen.Rel.mul (ConGen.Rel.refl _) (BraidMonoidInf.comm_rel _)
-            aesop
-          apply this.trans
-          apply PresentedMonoid.sound
-          apply ConGen.Rel.mul (BraidMonoidInf.comm_rel _) (ConGen.Rel.refl _)
-          aesop
+        · simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+          rw [BraidMonoidInf.comm_rel_eq k j, BraidMonoidInf.comm_rel_rw _ i k (by assumption)]
+          rw [Nat.dist_comm]; assumption
         rfl
       · aesop
       aesop
     · use of k * of i * of j * of i * of k, of i * of j * of k * of i
       constructor
-      · apply grid.horizontal (grid.adjacent i k ik_one_apart)
-        apply grid.vertical (grid.adjacent i j ij_one_apart)
+      · apply grid.horizontal (.adjacent i k ik_one_apart)
+        apply grid.vertical (.adjacent i j ij_one_apart)
         rw [Nat.dist_comm] at h ik_one_apart
-        apply grid.horizontal (grid.separated k j h) (grid.adjacent k i ik_one_apart)
+        apply grid.horizontal (.separated k j h) (.adjacent k i ik_one_apart)
       have ⟨hm, hd₁⟩ := generator_generator_close g3 ik_one_apart
       rw [hm] at g4
       rcases splittable_vertically g4 _ _ rfl with ⟨n, c₃, c₄, g5, g6, hc₂⟩
@@ -94,48 +79,12 @@ private theorem stable_generator_comm (i j k : ℕ) (h : 2 ≤ j.dist k) :
       have ⟨hc₄, hd₂⟩ := generator_generator_close g6 ij_one_apart
       rw [hc₃, hc₄, hd, hd₁, hd₂]
       constructor
-      · rw [← mul_assoc, ← mul_assoc]
-        have : BraidMonoidInf.mk (of j * of i * of k * of i * of j) =
-            BraidMonoidInf.mk (of j * of k * of i * of k * of j) := by
-          apply PresentedMonoid.sound
-          apply ConGen.Rel.mul _ (ConGen.Rel.refl _)
-          rw [mul_assoc, mul_assoc]
-          apply ConGen.Rel.mul (ConGen.Rel.refl _)
-          apply BraidMonoidInf.braid_rel ik_one_apart
-        apply this.trans
-        have : BraidMonoidInf.mk (of j * of k * of i * of k * of j) =
-            BraidMonoidInf.mk (of k * of j * of i * of k * of j) := by
-          apply PresentedMonoid.sound
-          apply ConGen.Rel.mul _ (ConGen.Rel.refl _)
-          apply ConGen.Rel.mul _ (ConGen.Rel.refl _)
-          apply ConGen.Rel.mul _ (ConGen.Rel.refl _)
-          apply BraidMonoidInf.comm_rel
-          assumption
-        apply this.trans
-        have : BraidMonoidInf.mk (of k * of j * of i * of k * of j) =
-            BraidMonoidInf.mk (of k * of j * of i * of j * of k) := by
-          rw [mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc]
-          apply PresentedMonoid.sound
-          apply ConGen.Rel.mul (ConGen.Rel.refl _)
-          apply ConGen.Rel.mul (ConGen.Rel.refl _)
-          apply ConGen.Rel.mul (ConGen.Rel.refl _)
-          apply BraidMonoidInf.comm_rel
-          rw [Nat.dist_comm]
-          assumption
-        apply this.trans
-        apply PresentedMonoid.sound
-        apply ConGen.Rel.mul _ (ConGen.Rel.refl _)
-        rw [mul_assoc, mul_assoc, mul_assoc, mul_assoc]
-        apply ConGen.Rel.mul (ConGen.Rel.refl _)
-        apply BraidMonoidInf.braid_rel
-        aesop
-      apply PresentedMonoid.sound
-      rw [← mul_assoc]
-      apply ConGen.Rel.mul _ (ConGen.Rel.refl _)
-      rw [mul_assoc, mul_assoc]
-      apply ConGen.Rel.mul (ConGen.Rel.refl _)
-      apply BraidMonoidInf.comm_rel
-      rw [Nat.dist_comm]
+      · simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+        rw [BraidMonoidInf.braid_rel_rw _ i k ik_one_apart, BraidMonoidInf.comm_rel_eq j k h]
+        rw [Nat.dist_comm] at h
+        rw [BraidMonoidInf.comm_rel_rw _ k j h, BraidMonoidInf.braid_rel_rw _ j i ij_one_apart]
+      simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+      rw [BraidMonoidInf.comm_rel_rw _ j k]
       assumption
     rw [← ik_eq, Nat.dist_comm] at h
     aesop
@@ -148,17 +97,17 @@ private theorem stable_generator_comm (i j k : ℕ) (h : 2 ≤ j.dist k) :
   rcases trichotomous_dist i k with ik_ge_two_apart | ik_one_apart | ik_eq
   · use of k, 1
     constructor
-    · exact grid.horizontal (grid.separated i k ik_ge_two_apart) (grid.top_left i)
+    · exact grid.horizontal (.separated i k ik_ge_two_apart) (.top_left i)
     aesop
   · use of k * of i, of k
     constructor
-    · apply grid.horizontal (grid.adjacent i k ik_one_apart)
-      exact grid.vertical (grid.top_left i) (grid.sides k)
+    · apply grid.horizontal (.adjacent i k ik_one_apart)
+      exact grid.vertical (.top_left i) (.sides k)
     aesop
   use of i, 1
   rw [← ik_eq]
   constructor
-  · apply grid.horizontal (grid.top_left i) (grid.top_bottom i)
+  · apply grid.horizontal (.top_left i) (.top_bottom i)
   aesop
 
 private theorem stable_generator_braid (i j k : ℕ) (h : Nat.dist j k = 1) :
@@ -179,9 +128,9 @@ private theorem stable_generator_braid (i j k : ℕ) (h : Nat.dist j k = 1) :
       have ⟨c₂, d⟩ := generator_generator_apart g2 ij_ge_two_apart
       use of k * of j * of k, of i
       constructor
-      · apply grid.horizontal (grid.separated i k ik_ge_two_apart)
-          (grid.horizontal (grid.separated i j ij_ge_two_apart)
-          (grid.separated i k ik_ge_two_apart))
+      · apply grid.horizontal (.separated i k ik_ge_two_apart)
+          (.horizontal (.separated i j ij_ge_two_apart)
+          (.separated i k ik_ge_two_apart))
       aesop
     · have ⟨hu₂, hu⟩ := generator_generator_close g4 ik_one_apart
       rw [hu] at g2
@@ -192,38 +141,19 @@ private theorem stable_generator_braid (i j k : ℕ) (h : Nat.dist j k = 1) :
       have ⟨hc₂, hd₂⟩ := generator_generator_close g6 h
       use of k * of i * of j * of k * of i, of i * of k * of j
       constructor
-      · apply grid.horizontal (grid.adjacent i k ik_one_apart) (grid.horizontal
-          (grid.vertical (grid.separated i j ij_ge_two_apart) (grid.adjacent k j h))
-          (grid.vertical (grid.adjacent i k ik_one_apart)
-          (grid.horizontal (grid.vertical (grid.top_left k) (grid.sides j))
-          (grid.vertical (grid.top_bottom i) (grid.separated j i _)))))
+      · apply grid.horizontal (.adjacent i k ik_one_apart) (.horizontal
+          (.vertical (.separated i j ij_ge_two_apart) (.adjacent k j h))
+          (.vertical (.adjacent i k ik_one_apart)
+          (.horizontal (.vertical (.top_left k) (.sides j))
+          (.vertical (.top_bottom i) (.separated j i _)))))
         rw [Nat.dist_comm] at ij_ge_two_apart
         exact ij_ge_two_apart
       constructor
       · rw [hu₁, hu₂, hc₂]
-        apply PresentedMonoid.sound
-        have H1 : PresentedMonoid.rel braid_rels_m_inf (of j * (of k * of i) * (of j * of k))
-            ((of j * of k * of j) * (of i * of k)) := by
-          conv => lhs; rw [← mul_assoc, ← mul_assoc, mul_assoc _ (of i)]
-          conv => rhs; rw [← mul_assoc, mul_assoc _ (of j)]
-          exact ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl _) (BraidMonoidInf.comm_rel ij_ge_two_apart))
-            (ConGen.Rel.refl _)
-        have H3 : PresentedMonoid.rel braid_rels_m_inf ((of k * of j * of k) * (of i * of k))
-            (of k * of j * (of i * of k * of i)) := by
-          conv => lhs; rw [mul_assoc]
-          apply ConGen.Rel.mul (ConGen.Rel.refl _)
-          rw [← mul_assoc]
-          exact ConGen.Rel.symm (BraidMonoidInf.braid_rel ik_one_apart)
-        have H4 : PresentedMonoid.rel braid_rels_m_inf (of k * of j * (of i * of k * of i))
-            (of k * of i * of j * of k * of i) := by
-          rw [← mul_assoc, ← mul_assoc, mul_assoc (of k) (of j), mul_assoc (of k) (of i)]
-          exact ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl _)
-            (ConGen.Rel.symm (BraidMonoidInf.comm_rel ij_ge_two_apart))) (ConGen.Rel.refl _))
-            (ConGen.Rel.refl _)
-        apply H1.trans
-        apply ConGen.Rel.trans _ H4
-        apply ConGen.Rel.trans _ H3
-        apply ConGen.Rel.mul (ConGen.Rel.symm (BraidMonoidInf.braid_rel h)) (ConGen.Rel.refl _)
+        simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+        rw [Nat.dist_comm] at ik_one_apart h
+        rw [BraidMonoidInf.comm_rel_rw _ i j ij_ge_two_apart, BraidMonoidInf.braid_rel_eq j k h,
+          BraidMonoidInf.braid_rel_rw _ k i ik_one_apart, BraidMonoidInf.comm_rel_rw _ i j ij_ge_two_apart]
       aesop
     rw [Nat.dist_comm] at h
     aesop
@@ -236,9 +166,9 @@ private theorem stable_generator_braid (i j k : ℕ) (h : Nat.dist j k = 1) :
       have ⟨hu₂, hu₄⟩ := generator_generator_close g6 h
       use of k * of j * of i * of k * of j, of i * of j * of k
       constructor
-      · apply grid.horizontal (grid.separated i k ik_ge_two_apart)
-          (grid.horizontal (grid.adjacent i j ij_one_apart)
-          (grid.vertical (grid.separated i k ik_ge_two_apart) (grid.adjacent j k h)))
+      · apply grid.horizontal (.separated i k ik_ge_two_apart)
+          (.horizontal (.adjacent i j ij_one_apart)
+          (.vertical (.separated i k ik_ge_two_apart) (.adjacent j k h)))
       rw [hu₁, hu₂]
       rw [hu] at g2
       rcases splittable_horizontally g2 _ _ rfl with ⟨n₁, d₁, d₂, g7, g8, hd⟩
@@ -256,28 +186,12 @@ private theorem stable_generator_braid (i j k : ℕ) (h : Nat.dist j k = 1) :
       have ⟨hc₂, hd₄⟩ := generator_generator_apart g10 ik_ge_two_apart
       rw [hd, hd₁, hd₂, hd₃, hd₄, hc₂]
       constructor
-      · rw [Nat.dist_comm] at ik_ge_two_apart
-        apply PresentedMonoid.sound
-        have H1 : PresentedMonoid.rel braid_rels_m_inf (of j * of i * (of k * of j) * of i)
-            (of j * of k * (of i * of j * of i)) := by
-          rw [← mul_assoc, ← mul_assoc (of j * of k), ← mul_assoc (of j * of k), mul_assoc _ (of i),
-            mul_assoc _ (of k)]
-          exact ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl _)
-            (BraidMonoidInf.comm_rel ik_ge_two_apart)) (ConGen.Rel.refl _)) (ConGen.Rel.refl _)
-        have H2 := ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl (of j)) (ConGen.Rel.refl (of k)))
-            (BraidMonoidInf.braid_rel ij_one_apart)
-        have H3 : PresentedMonoid.rel braid_rels_m_inf (of j * of k * (of j * of i * of j))
-            (of k * of j * of k * of i * of j) := by
-          conv => lhs; rw [mul_assoc (of j) (of i), ← mul_assoc (of j * of k)]
-          conv => rhs; rw [mul_assoc _ (of i)]
-          exact ConGen.Rel.mul (BraidMonoidInf.braid_rel h) (ConGen.Rel.refl _)
-        have H4 : PresentedMonoid.rel braid_rels_m_inf (of k * of j * of k * of i * of j)
-            (of k * of j * of i * of k * of j) := by
-          conv => rhs; rw [mul_assoc _ (of i)]
-          rw [mul_assoc _ (of k)]
-          exact ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl _)
-            (ConGen.Rel.symm (BraidMonoidInf.comm_rel ik_ge_two_apart))) (ConGen.Rel.refl _)
-        exact H1.trans (H2.trans (H3.trans H4))
+      · simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+        rw [Nat.dist_comm] at ik_ge_two_apart
+        rw [BraidMonoidInf.comm_rel_rw _ i k ik_ge_two_apart,
+            BraidMonoidInf.braid_rel_rw _ i j ij_one_apart, BraidMonoidInf.braid_rel_eq j k h,
+          BraidMonoidInf.comm_rel_rw _ k i]
+        rw [Nat.dist_comm]; assumption
       aesop
     · apply (@Nat.dist_no_triangle i j k 1 (by aesop)).elim
       aesop
@@ -288,8 +202,8 @@ private theorem stable_generator_braid (i j k : ℕ) (h : Nat.dist j k = 1) :
     use of j * of i, 1
     rw [← ik_eq]
     constructor
-    · apply grid.horizontal (grid.top_left i)
-        (grid.horizontal (grid.top_bottom j) (grid.top_bottom i))
+    · apply grid.horizontal (.top_left i)
+        (.horizontal (.top_bottom j) (.top_bottom i))
     rw [hu, hu₃, hu₄, one_mul] at g2
     have ⟨hc₂, hd⟩ := generator_generator_same g2
     aesop
@@ -303,9 +217,9 @@ private theorem stable_generator_braid (i j k : ℕ) (h : Nat.dist j k = 1) :
   rw [ij_eq]
   use of k * of j, 1
   constructor
-  · apply grid.horizontal (grid.adjacent j k h)
-    apply grid.horizontal (grid.vertical (grid.top_left j) (grid.sides k))
-    apply grid.vertical (grid.top_bottom k) (grid.top_left k)
+  · apply grid.horizontal (.adjacent j k h)
+    apply grid.horizontal (.vertical (.top_left j) (.sides k))
+    apply grid.vertical (.top_bottom k) (.top_left k)
   exact ⟨rfl, rfl⟩
 
 private theorem stable_swap : stable a b → stable b a := by
@@ -324,22 +238,22 @@ private theorem stable_word_one : stable a 1 := by
     use 1, y
     constructor
     · exact sides_word y
-    exact ⟨rfl, PresentedMonoid.sound (ConGen.Rel.of x y bxy)⟩
+    exact ⟨rfl, PresentedMonoid.sound (.of x y bxy)⟩
   | refl x =>
     use 1, x
     exact ⟨sides_word x, ⟨by rw [hb], rfl⟩⟩
   | symm brxy _ =>
     rename_i x y _
     use 1, x
-    exact ⟨sides_word x, ⟨rfl, PresentedMonoid.sound (ConGen.Rel.symm brxy)⟩⟩
+    exact ⟨sides_word x, ⟨rfl, PresentedMonoid.sound (.symm brxy)⟩⟩
   | trans h1 h2 _ _ =>
     rename_i x y z _ _
     use 1, z
-    exact ⟨sides_word z, ⟨rfl, PresentedMonoid.sound (ConGen.Rel.trans h1 h2)⟩⟩
+    exact ⟨sides_word z, ⟨rfl, PresentedMonoid.sound (.trans h1 h2)⟩⟩
   | mul h1 h2 _ _ =>
     rename_i x y z w _ _
     use 1, y * w
-    exact ⟨sides_word _, ⟨rfl, PresentedMonoid.sound (ConGen.Rel.mul h1 h2)⟩⟩
+    exact ⟨sides_word _, ⟨rfl, PresentedMonoid.sound (.mul h1 h2)⟩⟩
 
 private theorem stable_one_word : stable 1 v := stable_swap stable_word_one
 
@@ -373,12 +287,12 @@ private theorem stable_first_refl_second_one_step (ih : ∀ (u v a b : FreeMonoi
     rw [hu₁] at grid_right
     have ⟨hd₃, rfl⟩ := one_word grid_right
     constructor
-    · exact grid.horizontal (grid.horizontal grid_left (top_bottom_word g)) grid_right
+    · exact grid.horizontal (.horizontal grid_left (top_bottom_word g)) grid_right
     constructor
     · rw [d_is, d₄_is]
-      apply PresentedMonoid.sound
-      exact ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl _) (ConGen.Rel.of _ _ br))
-        (ConGen.Rel.refl _)
+      simp only [BraidMonoidInf.mul_mk]
+      congr 2
+      apply BraidMonoidInf.sound (ConGen.Rel.of _ _ br)
     rfl
   rename_i head tail
   rcases splittable_horizontally grid_middle _ _ rfl with
@@ -389,7 +303,7 @@ private theorem stable_first_refl_second_one_step (ih : ∀ (u v a b : FreeMonoi
   have H_len : n ≥ tail.length + d₂.length := by
     rw [diag_length_eq gr] at len
     have H1 : (f * j).length + d.length ≤ n + 1 := Nat.le_trans (by simp) len
-    rw [← (diag_length_eq (grid.horizontal (grid.vertical gr_top_middle gr_bottom_middle)
+    rw [← (diag_length_eq (.horizontal (.vertical gr_top_middle gr_bottom_middle)
       grid_right))] at H1
     have : (of head * tail).length + (d₂ * d₃).length > tail.length +
         (d₂ * d₃).length := by simp
@@ -405,15 +319,16 @@ private theorem stable_first_refl_second_one_step (ih : ∀ (u v a b : FreeMonoi
   have H_st : BraidMonoidInf.mk (a₁ * a₂) = BraidMonoidInf.mk (a₁' * a₂') :=
     PresentedMonoid.sound <| ConGen.Rel.mul (PresentedMonoid.exact top_middle_fact.2.2)
     (PresentedMonoid.exact bottom_middle_fact.2.2)
-  rcases ih (a₁ * a₂) j  d₃ d H_len grid_right _ _ H_st rfl with ⟨d₃', c', right_fact⟩
+  rcases ih (a₁ * a₂) j  d₃ d H_len grid_right _ _ H_st
+      rfl with ⟨d₃', c', right_fact⟩
   use  d₁ * d₂' * d₃', c'
   constructor
-  · exact grid.horizontal (grid.horizontal grid_left
-      (grid.vertical top_middle_fact.1 bottom_middle_fact.1)) right_fact.1
+  · exact grid.horizontal (.horizontal grid_left
+      (.vertical top_middle_fact.1 bottom_middle_fact.1)) right_fact.1
   constructor
   · rw [d_is, d₄_is]
-    exact PresentedMonoid.sound <| ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl d₁)
-      (PresentedMonoid.exact bottom_middle_fact.right.left)) (PresentedMonoid.exact right_fact.2.1)
+    simp only [BraidMonoidInf.mul_mk]
+    aesop
   exact right_fact.2.2
 
 private theorem stable_first_refl_second_one_step_symm (ih : ∀ (u v a b : FreeMonoid ℕ), n ≥ u.length + a.length → grid u v a b →

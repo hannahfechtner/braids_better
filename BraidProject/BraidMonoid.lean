@@ -83,6 +83,9 @@ protected theorem inductionOn {δ : BraidMonoidInf → Prop} (q : BraidMonoidInf
     (h : ∀ a, δ (BraidMonoidInf.mk a)) : δ q :=
   Quotient.ind h q
 
+open FreeMonoid
+
+
 -- define the length of elements of the monoid
 def length : BraidMonoidInf → ℕ :=
   PresentedMonoid.lift_of_mul (FreeMonoid.length)
@@ -821,3 +824,13 @@ theorem braid_rel {j k : ℕ} (h : j.dist k = 1) :
   rename_i j_is
   rw [← j_is]
   exact braid_rels_m_inf.adjacent _
+
+theorem comm_rel_eq (i j : ℕ) (h : i.dist j > 1) : BraidMonoidInf.mk (FreeMonoid.of i) * BraidMonoidInf.mk (of j) =
+   BraidMonoidInf.mk (of j) * BraidMonoidInf.mk (of i) := by sorry
+theorem comm_rel_rw (x i j) (h : i.dist j > 1) : x *  BraidMonoidInf.mk (of i) * BraidMonoidInf.mk (of j) =
+   x * BraidMonoidInf.mk (of j) * BraidMonoidInf.mk (of i) := by sorry
+
+theorem braid_rel_eq (i j) (h : i.dist j = 1) : BraidMonoidInf.mk (of i) * .mk (of j) * .mk (of i)=
+   .mk (of j) * .mk (of i) * .mk (of j) := by sorry
+theorem braid_rel_rw (x i j) (h : i.dist j = 1) : x *  BraidMonoidInf.mk (of i) * .mk (of j) * .mk (of i) =
+   x * .mk (of j) * .mk (of i) * .mk (of j) := by sorry

@@ -153,19 +153,13 @@ private theorem generator_generator_close_helper (h : grid a b c d) (ha : a = of
   | top_bottom i => simp only [one_ne_of] at ha
   | sides i => simp only [one_ne_of] at hb
   | top_left i =>
-    apply FreeMonoid.of_injective at ha
-    apply FreeMonoid.of_injective at hb
-    rw [← ha, ← hb] at hij
+    rw [← FreeMonoid.of_injective ha, ← FreeMonoid.of_injective hb] at hij
     simp only [Nat.dist_self, zero_ne_one] at hij
   | adjacent i k h =>
-    apply FreeMonoid.of_injective at ha
-    apply FreeMonoid.of_injective at hb
-    rw [ha, hb]
+    rw [FreeMonoid.of_injective ha, FreeMonoid.of_injective hb]
     simp only [and_self]
   | separated i j h =>
-    apply FreeMonoid.of_injective at ha
-    apply FreeMonoid.of_injective at hb
-    rw [ha, hb] at h
+    rw [FreeMonoid.of_injective ha, FreeMonoid.of_injective hb] at h
     aesop
   | vertical h1 h2 h1_ih h2_ih =>
     rcases FreeMonoid.prod_eq_of ha with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
@@ -196,18 +190,13 @@ private theorem generator_generator_apart_helper (h : grid a b c d) (ha : a = of
   | top_bottom i => simp only [one_ne_of] at ha
   | sides i => simp only [one_ne_of] at hb
   | top_left i =>
-    apply FreeMonoid.of_injective at ha
-    apply FreeMonoid.of_injective at hb
-    rw [← ha, ← hb] at hij
+    rw [← FreeMonoid.of_injective ha, ← FreeMonoid.of_injective hb] at hij
     simp only [Nat.dist_self, gt_iff_lt, not_lt_zero'] at hij
   | adjacent i k h =>
-    apply FreeMonoid.of_injective at ha
-    apply FreeMonoid.of_injective at hb
+    rw [FreeMonoid.of_injective ha, FreeMonoid.of_injective hb] at h
     aesop
   | separated i j h =>
-    apply FreeMonoid.of_injective at ha
-    apply FreeMonoid.of_injective at hb
-    rw [ha, hb] at h
+    rw [FreeMonoid.of_injective ha, FreeMonoid.of_injective hb] at h
     aesop
   | vertical h1 h2 h1_ih h2_ih =>
     rcases FreeMonoid.prod_eq_of ha with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩

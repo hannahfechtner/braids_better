@@ -20,27 +20,22 @@ set_option profiler true
 
 @[simp]
 theorem count_up_self : count_up i i = 1 := by
-  unfold count_up
-  simp
+  unfold count_up; simp
 
 @[simp]
 theorem count_down_self : count_down i i = 1 := by
-  unfold count_down
-  simp
+  unfold count_down; simp
 
 @[simp]
 theorem count_up_succ : count_up i (i+1) = of i := by
-  unfold count_up
-  simp [count_up_self]
+  unfold count_up; simp [count_up_self]
 
 @[simp]
 theorem count_down_succ : count_down (i+1) i = of i := by
-  unfold count_down
-  simp [count_up_self]
+  unfold count_down; simp [count_up_self]
 
 theorem count_up_empty_iff : count_up i j = 1 ↔ j ≤ i := by
-  unfold count_up
-  simp
+  unfold count_up; simp
 
 theorem count_down_empty_iff : count_down i j = 1 ↔ i ≤ j := by
   unfold count_down
@@ -188,7 +183,7 @@ theorem sigma_bar_descending_pop {i j : ℕ} (h: i<j) : sigma_bar j i = sigma_ba
     rw [this, count_down_succ, count_up_self, one_mul]
   rw [count_down_pop h]
 
-theorem sigma_length {i j : ℕ} (h : i < j) : length (sigma_bar i j) = j - i := by
+theorem sigma_bar_length {i j : ℕ} (h : i < j) : length (sigma_bar i j) = j - i := by
   induction j, h using Nat.le_induction with
   | base => unfold sigma_bar; simp
   | succ h lt_k ih =>
@@ -208,7 +203,7 @@ theorem sigma_bar_ascending_bounded (n : ℕ) {k : ℕ}: k ∈ (sigma_bar n 0) �
     simp only [nonpos_iff_eq_zero, Nat.add_eq_zero, one_ne_zero, and_false, ↓reduceIte] at k_in
     exact count_down_bounded _ k_in
 
-theorem sigma_bar_descending_bounded' (n : ℕ) {k : ℕ}: k ∈ sigma_bar 0 n → k < n := by
+theorem sigma_bar_descending_bounded (n : ℕ) {k : ℕ}: k ∈ sigma_bar 0 n → k < n := by
   intro k_in
   unfold sigma_bar at k_in
   simp only [zero_le, ↓reduceIte] at k_in
@@ -217,4 +212,5 @@ theorem sigma_bar_descending_bounded' (n : ℕ) {k : ℕ}: k ∈ sigma_bar 0 n �
 theorem map_sigma_bar_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid.map (fun x => x + k)) (sigma_bar 0 n) →
     x < (n + k) := by
   intro x h
-  sorry
+  rcases mem_map.mp h with ⟨w, w_in, rfl⟩
+  linarith [sigma_bar_descending_bounded _ w_in]

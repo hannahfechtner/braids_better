@@ -64,31 +64,17 @@ theorem braid_eq_of_grid (h : grid a b c d) :
   | sides i => rfl
   | top_left i => rfl
   | adjacent i k h_dist =>
-      apply PresentedMonoid.sound
-      rcases Nat.dist_eq_one h_dist with rfl | rfl
-      · apply PresentedMonoid.swap
-        exact ConGen.Rel.of _ _ (braid_rels_m_inf.adjacent _)
-      exact ConGen.Rel.of _ _ (braid_rels_m_inf.adjacent _)
+    simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+    exact BraidMonoidInf.braid_rel_eq _ _ h_dist
   | separated i j h =>
-      apply PresentedMonoid.sound
-      rcases or_dist_iff.mp h with h1 | h2
-      · apply ConGen.Rel.of
-        exact braid_rels_m_inf.separated _ _ h1
-      apply PresentedMonoid.swap
-      exact ConGen.Rel.of _ _ (braid_rels_m_inf.separated _ _ h2)
+    simp only [BraidMonoidInf.mul_mk]
+    rw [BraidMonoidInf.comm_rel_eq i j h]
   | vertical _ _ h1_ih h2_ih =>
-      apply PresentedMonoid.sound
-      rw [mul_assoc]
-      apply (ConGen.Rel.mul (ConGen.Rel.refl _) (Quotient.exact h2_ih)).trans
-      rw [← mul_assoc, ← mul_assoc]
-      exact ConGen.Rel.mul (Quotient.exact h1_ih) (ConGen.Rel.refl _)
+    simp_all only [BraidMonoidInf.mul_mk, ← mul_assoc]
+    rw [← h1_ih, mul_assoc, h2_ih, ← mul_assoc]
   | horizontal _ _ h1_ih h2_ih =>
-      apply PresentedMonoid.sound
-      rw [← mul_assoc]
-      apply (ConGen.Rel.mul (Quotient.exact h1_ih) (ConGen.Rel.refl _)).trans
-      rw [mul_assoc, mul_assoc]
-      exact (ConGen.Rel.mul (ConGen.Rel.refl _) (Quotient.exact h2_ih))
-
+    simp_all only [BraidMonoidInf.mul_mk, mul_assoc]
+    rw [← h2_ih, ← mul_assoc, h1_ih, ← mul_assoc]
 theorem braid_equiv_of_grid_empty_sink : grid a b 1 1 → PresentedMonoid.rel braid_rels_m_inf a b := by
   intro h
   apply PresentedMonoid.exact

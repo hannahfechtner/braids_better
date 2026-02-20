@@ -1,6 +1,7 @@
 import BraidProject.BraidMonoid
-import BraidProject.AcrossStrands
+import BraidProject.AcrossStrands'
 import BraidProject.Additions.Induction
+import BraidProject.Additions.NatDist
 
 open FreeMonoid
 --lemma 3.9 property
@@ -11,11 +12,6 @@ def three_nine (i j : ℕ) := ∀ k, i + 2 ≤ j → i < k ∧ k < j → BraidMo
 def three_ten (i j : ℕ) := ∀ k, i + 2 ≤ j → i < k ∧ k < j → (BraidMonoidInf.mk (of (k-1) * sigma_bar j i) =
   BraidMonoidInf.mk (sigma_bar j i * of k))
 
-theorem Nat.dist_step {k : ℕ} (h : i<j) : k + 1 <= Nat.dist i j → k ≤ Nat.dist (i + 1) j := by
-  intro three
-  rw [Nat.dist_eq_sub_of_le h]
-  rw [Nat.dist_eq_sub_of_le (Nat.succ_le_succ_iff.mp (by linarith [h]))] at three
-  exact Nat.sub_le_sub_right three 1
 
 theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
     BraidMonoidInf.mk (of k * (sigma_bar i j)) = BraidMonoidInf.mk ((sigma_bar i j) *
@@ -27,12 +23,12 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
     rcases or_dist_iff_eq.mp dist with h1 | h2
     · exact h1.symm
     linarith [i_lt_j, h2]
-  apply induction_above i j H_absdiff three_nine
+  apply induction_dist i j H_absdiff three_nine
   · intro i' j' two_case k' _ h2'
     have H': k'=i'+1 := by linarith [h2', H18 i' j' (h2'.1.trans h2'.2) two_case]
     rw [H', H18 i' j' (h2'.1.trans h2'.2) two_case]
-    simp only [sigma_bar, left_eq_add, OfNat.ofNat_ne_zero, ↓reduceIte, lt_add_iff_pos_right,
-      Nat.ofNat_pos, add_tsub_cancel_left, add_tsub_cancel_right, count_up, count_up_helper]
+    simp only [sigma_bar, le_add_iff_nonneg_right, zero_le, ↓reduceIte, count_up,
+      lt_add_iff_pos_right, Nat.ofNat_pos, count_up_succ, add_tsub_cancel_right]
     exact (BraidMonoidInf.braid dist_succ).symm
   · intro i' j' ge_three ih k' _ h2'
     have hk : k'>= i'+1 := by linarith [h2'.1]
@@ -45,7 +41,7 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
       apply (le_tsub_iff_left _).mp helper
       exact Nat.le_of_lt lt
     have minus_two : j'-1>=i'+2 := Nat.le_pred_of_lt ge_three'
-    apply induction_in_between_with_fact k' hk h2'.2
+    apply induction_bounded k' hk h2'.2
     · have H2 : BraidMonoidInf.mk (of (i'+1) * (sigma_bar i' (j'-1))) = BraidMonoidInf.mk
           ((sigma_bar i' (j'-1)) * of i') := by
         apply ih (i') (j'-1) _ (Nat.dist_lt_of_decrease_greater lt_plus) (i'+1) minus_two ⟨Nat.lt.base i', minus_two⟩
@@ -54,7 +50,7 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
       have H7: (of (i'+1) * (sigma_bar i' j')) =
           of (i'+1) * ((sigma_bar i' (j'-1)))* of (j'-1) := by
         rw [mul_assoc, mul_right_inj]
-        apply sigma_bar_last (h2'.1.trans h2'.2)
+        apply sigma_bar_ascending_pop (h2'.1.trans h2'.2)
       have H9 : BraidMonoidInf.mk ((sigma_bar i' (j'-1)) * of i' * of (j'-1)) =
           BraidMonoidInf.mk ((sigma_bar i' (j'-1)) * of (j'-1) * of i') := by
         rw [mul_assoc, mul_assoc]
@@ -65,7 +61,7 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
       have H10 : ((sigma_bar i' (j'-1))* of (j'-1) * of (i')) =
           (sigma_bar (i') j') * of ((i'+1)-1) := by
         simp only [add_tsub_cancel_right, mul_left_inj]
-        rw [← sigma_bar_last lt]
+        rw [← sigma_bar_ascending_pop lt]
       rw [H7, ← H10]
       have H := @PresentedMonoid.append_right _ _ _ _ (of (j'-1)) (PresentedMonoid.exact H2)
       exact (PresentedMonoid.sound H).trans H9
@@ -73,7 +69,7 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
     intro new_k k_bigger new_k_lt _
     have H7: (of new_k * (sigma_bar i' j')) = of new_k * of i' * (sigma_bar (i'+1) j') := by
       rw [mul_assoc, mul_right_inj]
-      exact sigma_bar_first lt
+      exact sigma_bar_ascending_first lt
     have H8 : BraidMonoidInf.mk (of new_k * of i' * (sigma_bar (i'+1) j')) = BraidMonoidInf.mk
                         (of i' * of new_k * (sigma_bar (i'+1) j')) := by
       -- from the original braid rels, because i and k are far enough apart
@@ -86,14 +82,14 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
         BraidMonoidInf.mk (of i' * ((sigma_bar (i'+1) j') * of (new_k-1))) := by
       have H10 : BraidMonoidInf.mk ((of new_k * (sigma_bar (i'+1) j'))) =
           BraidMonoidInf.mk (((sigma_bar (i'+1) j') * of (new_k-1))) := by
-        apply ih _ _ (Nat.dist_step lt ge_three)
+        apply ih _ _ (Nat.dist_step (by linarith) ge_three)
         · apply Nat.dist_lt_of_increase_smaller
           assumption
         · exact ge_three'
         exact ⟨k_bigger, new_k_lt⟩
       apply BraidMonoidInf.append_left_mk
       rw [H10]
-    rw [H7, mul_assoc, sigma_bar_first lt]
+    rw [H7, mul_assoc, sigma_bar_ascending_first lt]
     apply H8.trans H9
   · exact h1
   exact h2
@@ -108,12 +104,11 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
     rcases H with h1 | h2
     · exact h1.symm
     linarith [i_lt_j, h2]
-  apply induction_above i j H_absdiff three_ten
+  apply induction_dist i j H_absdiff three_ten
   · intro i' j' two_case k' h1' h2'
     have H': k'=i'+1 := by linarith [h1', h2', H18 i' j' (h2'.1.trans h2'.2) two_case]
     rw [H', H18 i' j' (h2'.1.trans h2'.2) two_case]
-    simp only [sigma_bar, add_tsub_cancel_right, add_eq_left, OfNat.ofNat_ne_zero, ↓reduceIte,
-      add_lt_iff_neg_left, not_lt_zero', add_tsub_cancel_left, count_down, count_down_helper]
+    simp [sigma_bar, count_down, count_up]
     apply BraidMonoidInf.braid
     exact dist_succ
   · intro i' j' ge_three ih k' h1' h2'
@@ -126,7 +121,7 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
         exact ge_three
       apply (le_tsub_iff_left _).mp helper
       exact Nat.le_of_lt lt
-    apply induction_in_between_with_fact k' hk h2'.2
+    apply induction_bounded k' hk h2'.2
     · have H2 : BraidMonoidInf.mk (of i' * (sigma_bar (j'-1) i')) =
           BraidMonoidInf.mk ((sigma_bar (j'-1) i') * of (i' +1)) := by
         have ad_h : Nat.dist i' (j'-1) < Nat.dist i' j' := Nat.dist_lt_of_decrease_greater lt_plus
@@ -143,14 +138,14 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
       have H7: (of i' * (sigma_bar j' i')) =  of i' * of (j'-1) * ((sigma_bar (j'-1) i')):= by
         rw [mul_assoc, mul_right_inj]
         conv => lhs; rw [← j_minus_plus]
-        apply sigma_bar_big_first <| Nat.le_pred_of_lt lt
+        apply sigma_bar_descending_first <| Nat.le_pred_of_lt lt
       have H9 : BraidMonoidInf.mk (of (j'-1) * of i' * ((sigma_bar (j'-1) i'))) =
           BraidMonoidInf.mk (of (j'-1) * (sigma_bar (j'-1) i') * of (i'+1)) := by
         rw [mul_assoc, mul_assoc]
         exact BraidMonoidInf.append_left_mk H2
       have H10 : (of (j'-1) * (sigma_bar (j'-1) i') * of (i'+1)) = (sigma_bar j' i')* of (i'+1) := by
         conv => rhs; rw [← j_minus_plus]
-        rw [sigma_bar_big_first]
+        rw [sigma_bar_descending_first]
         exact Nat.le_pred_of_lt lt
       rw [H7, ← H10]
       apply (BraidMonoidInf.append_right_mk (BraidMonoidInf.comm _)).trans H9
@@ -161,14 +156,14 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
     intro new_k k_bigger new_k_lt _ --NEED THIS for it to guess at the last step
     have lt : i'<j' := by apply h2'.1.trans h2'.2
     have H7: (of (new_k -1) * (sigma_bar j' i')) = of (new_k -1) * (sigma_bar j' (i'+1)) * of i' := by
-      rw [sigma_bar_big_last lt, mul_assoc]
+      rw [sigma_bar_descending_pop lt, mul_assoc]
     have H8 : BraidMonoidInf.mk ((of (new_k -1) * (sigma_bar j' (i'+1))) * of i') =
       BraidMonoidInf.mk ((sigma_bar j' (i'+1)) * of (new_k) * of i') := by
       -- from the original braid rels, because i and k are far enough apart
       apply BraidMonoidInf.append_right_mk
       apply ih (i'+1) (j')
       · have H2 : j'-(i'+1)=j'-i'-1 := by exact rfl
-        exact Nat.dist_step lt ge_three
+        exact Nat.dist_step (by linarith) ge_three
       · exact Nat.dist_lt_of_increase_smaller lt_plus
       · exact ge_three'
       exact ⟨k_bigger, new_k_lt⟩
@@ -179,7 +174,7 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
       apply BraidMonoidInf.comm
       apply or_dist_iff.mpr
       aesop
-    rw [H7, sigma_bar_big_last lt]
+    rw [H7, sigma_bar_descending_pop lt]
     exact H8.trans H9
   · exact h1
   exact h2
@@ -191,13 +186,16 @@ def delta_bar : ℕ → FreeMonoid ℕ
 @[simp]
 theorem delta_bar_zero : delta_bar 0 = 1 := rfl
 
+@[simp]
+theorem delta_bar_one : delta_bar 1 = of 0 := by simp [delta_bar, sigma_bar]
+
 theorem delta_bar_bounded (n : ℕ) : ∀ k ∈ delta_bar n, k < n := by
   intro k h
   induction n with
   | zero =>  exact (not_mem_one h).elim
   | succ n ih =>
     rcases mem_mul.mp h with _ | h1
-    · apply sigma_bar_bounded'
+    · apply sigma_bar_descending_bounded
       assumption
     exact Nat.le.step (ih h1)
 
@@ -240,7 +238,9 @@ theorem factor_delta (n : ℕ) : 1 ≤ n → BraidMonoidInf.mk (delta_bar n) =
   | zero => exact fun h => (Set.right_mem_Ico.mp ⟨h, h⟩).elim
   | succ n =>
     induction n with
-    | zero => exact fun _ => rfl
+    | zero =>
+      intro _
+      simp [sigma_bar]
     | succ n ih =>
       intro hn
       have third : BraidMonoidInf.mk (sigma_bar 0 (n+1) * of (n +1) * delta_bar (n + 1)) =
@@ -253,7 +253,7 @@ theorem factor_delta (n : ℕ) : 1 ≤ n → BraidMonoidInf.mk (delta_bar n) =
         rw [mul_assoc, mul_assoc]
         apply BraidMonoidInf.append_left_mk <| @sigma_delta_swap (n) (n+1) Nat.le.refl
       change BraidMonoidInf.mk (sigma_bar 0 (n+2) * delta_bar (n+1)) = _
-      rw [sigma_bar_last hn, sigma_bar_big_first <| Nat.zero_le (n + 1), ← mul_assoc]
+      rw [sigma_bar_ascending_pop hn, sigma_bar_descending_first <| Nat.zero_le (n + 1), ← mul_assoc]
       exact third.trans fourth
 
 theorem swap_sigma_delta (n : ℕ)  : ∀ i : ℕ , (i≤  n-1) →
@@ -267,9 +267,7 @@ theorem swap_sigma_delta (n : ℕ)  : ∀ i : ℕ , (i≤  n-1) →
     | succ n =>
       induction n with
       | zero =>
-        simp only [Nat.zero_eq, Nat.reduceSucc, ge_iff_le, le_refl, tsub_eq_zero_of_le,
-        nonpos_iff_eq_zero, zero_le, forall_eq]
-        rfl
+        simp
       | succ n hn =>
         intro i i_between
         cases i with
@@ -328,7 +326,7 @@ theorem boundary_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidMonoidInf
     | zero =>
       simp only [zero_add, ge_iff_le, le_refl, tsub_eq_zero_of_le, nonpos_iff_eq_zero] at h -- n=1
       rw [h]
-      rfl
+      simp only [zero_add, delta_bar_one]; rfl
     | succ n ih =>
       have H : i<n+1 ∨ i=n+1 ∨ i>n+1 := by exact Nat.lt_trichotomy i (n + 1)
       rcases H with lt | last_two
@@ -379,7 +377,7 @@ theorem boundary_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidMonoidInf
           conv => rhs; rw [← mul_assoc]
           apply BraidMonoidInf.append_right_mk
           have helper : 0 <= n+1 := by linarith
-          rw [sigma_bar_big_first helper]
+          rw [sigma_bar_descending_first helper]
         exfalso
         simp only [add_tsub_cancel_right] at h
         linarith [bigger, h]
@@ -395,30 +393,29 @@ theorem boundary_bounded (i n : ℕ) (h_n : n>0) (h : i ≤ n-1) : ∀ x, x ∈ 
       unfold boundary at h_boundary
       rw [add_tsub_cancel_right] at h_boundary
       rcases Nat.lt_trichotomy i (j + 1) with lt | eq_or_bigger
-      · have not_eq : ¬ i = j+1 := by linarith [lt]
+      · have not_eq : ¬ i = j + 1 := by linarith [lt]
         rw [if_neg not_eq, mem_mul] at h_boundary
         rcases h_boundary with in_bound | in_sigma
         · exact Nat.lt.step (hj (Fin.pos ⟨i, lt⟩) (Nat.lt_succ.mp lt) _ in_bound)
-        exact sigma_bar_bounded _ in_sigma
+        exact sigma_bar_ascending_bounded _ in_sigma
       rcases eq_or_bigger with eq | bigger
       · simp only [eq] at h_boundary
         rw [ite_true, mem_mul] at h_boundary
         rcases h_boundary with in_sigma | in_delta
-        · apply sigma_bar_bounded
-          unfold sigma_bar
-          simp only [Nat.succ_ne_zero (j + 1), ↓reduceIte, not_lt_zero', tsub_zero]
-          unfold sigma_bar at in_sigma
-          simp only [Nat.succ_ne_zero j, ↓reduceIte, not_lt_zero', tsub_zero] at in_sigma
-          rw [@count_down_pop 0 (Nat.succ j) (Nat.zero_le (Nat.succ j)), mem_mul]
-          exact Or.inr in_sigma
+        · apply sigma_bar_descending_bounded
+          simp only [le_add_iff_nonneg_left, zero_le, ↓reduceIte, sigma_bar]
+          simp only [nonpos_iff_eq_zero, Nat.add_eq_zero, one_ne_zero, and_false, ↓reduceIte,
+            count_down, sigma_bar] at in_sigma
+          rw [@count_up_pop 0 (j + 1 + 1) (by linarith), mem_mul]
+          exact Or.inl (mem_reverse.mp in_sigma)
         induction j with
         | zero =>
           simp only [Nat.zero_eq, zero_add, mem_map] at in_delta
           repeat unfold delta_bar at in_delta
           unfold sigma_bar at in_delta
           repeat unfold count_up at in_delta
-          simp only [zero_add, zero_ne_one, ↓reduceIte, zero_lt_one, mul_one, mem_of,
-            exists_eq_left, count_up_helper] at in_delta
+          simp [zero_add, zero_ne_one, ↓reduceIte, zero_lt_one, mul_one, mem_of,
+            exists_eq_left] at in_delta
           rw [← in_delta]
           exact Nat.le.refl
         | succ n _ => exact map_delta_bar_bounded n.succ.succ 1 _ in_delta

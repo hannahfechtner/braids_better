@@ -5,7 +5,6 @@ import Mathlib.Tactic.Linarith
 --should go in finset
 theorem mem_nil : (a : α) ∈ (∅ : Finset α) ↔ False := List.mem_nil_iff a
 
-
 open FreeMonoid
 
 local instance : Coe ℕ (FreeMonoid ℕ) :=
@@ -21,23 +20,7 @@ def count_down : ℕ → ℕ → ℕ → FreeMonoid ℕ
 
 set_option profiler true
 
-theorem not_dense : j < k → k < j+1 → False := by
-  intro lower upper
-  cases Nat.lt_trichotomy k (j+1)
-  · have : k < j ∨ k = j := by exact Nat.lt_succ_iff_lt_or_eq.mp upper
-    cases this
-    · rename_i k_lt_j
-      exact Nat.lt_asymm lower k_lt_j
-    rename_i this
-    rw [this] at lower
-    exact Nat.not_lt.mpr Nat.le.refl lower
-  rename_i last_two
-  cases last_two
-  · rename_i eq
-    rw [eq] at upper
-    exact Nat.not_lt.mpr Nat.le.refl upper
-  rename_i lt
-  exact Nat.not_lt.mpr Nat.le.refl (lt.trans upper)
+theorem not_dense : j < k → k < j + 1 → False := by omega
 
 theorem count_up_pop {b n : ℕ} {h : n>b} : count_up (n-b) b n =
                   (count_up (n-1-b) b (n-1)) * (of (n-1)) := by
@@ -82,8 +65,7 @@ theorem count_up_pop {b n : ℕ} {h : n>b} : count_up (n-b) b n =
       unfold count_up
       simp
     next gt_case =>
-    exfalso
-    exact not_dense lt gt_case
+    omega
   apply H (n-b)
   · simp only
   exact h
