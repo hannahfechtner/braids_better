@@ -56,4 +56,18 @@ theorem reverse_eq_one : reverse a = 1 ↔ a = 1 := by
 
 theorem mem_reverse : a ∈ reverse b ↔ a ∈ b := List.mem_reverse
 
+-- though this one is quickly done!
+theorem bounded (u : FreeMonoid ℕ) : ∃ k, ∀ x ∈ u, x < k := by
+  induction u using FreeMonoid.inductionOn'
+  · use 1
+    exact fun _ h => (not_mem_one h).elim
+  rename_i head tail tail_ih
+  rcases tail_ih with ⟨old_k, kh⟩
+  use Nat.max old_k (head+1)
+  intro x x_in
+  rcases x_in
+  · exact lt_max_of_lt_right Nat.le.refl
+  next x_in_tail =>
+  exact lt_max_iff.mpr (Or.inl (kh x x_in_tail))
+
 end FreeMonoid

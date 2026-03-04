@@ -59,3 +59,11 @@ theorem Nat.dist_no_triangle {a b c n : Nat} (hn : n > 0) : ¬ (a.dist b = n ∧
 theorem Nat.dist_step {k : ℕ} (h : i ≤ j) : k + 1 ≤ Nat.dist i j → k ≤ Nat.dist (i + 1) j := by
   unfold Nat.dist
   omega
+
+theorem Nat.dist_to_eq_le {k i j} (h : i ≤ j) : Nat.dist i j = k → j = i + k := by
+    unfold Nat.dist
+    omega
+
+theorem Nat.dist_to_eq_ge {k i j} (h : i ≥ j) : Nat.dist i j = k → i = j + k := by
+    unfold Nat.dist
+    omega
