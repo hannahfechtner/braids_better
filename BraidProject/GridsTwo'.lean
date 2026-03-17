@@ -7,19 +7,7 @@ namespace Grid
 namespace DeterminativeSpine
 
 private theorem one_one_helper (h : grid a b c d) (ha : a = 1) (hb : b = 1) : c = 1 ∧ d = 1 := by
-  induction h with
-  | empty => exact ⟨rfl, rfl⟩
-  | top_bottom i => exact ⟨hb, rfl⟩
-  | sides i => exact ⟨rfl, ha⟩
-  | top_left i => exact ⟨rfl, rfl⟩
-  | adjacent i k h => simp only [of_ne_one] at ha
-  | separated i j h => simp only [of_ne_one] at ha
-  | vertical h1 h2 h1_ih h2_ih =>
-    have H := FreeMonoid.prod_eq_one ha
-    aesop
-  | horizontal h1 h2 h1_ih h2_ih =>
-    have H := FreeMonoid.prod_eq_one hb
-    aesop
+  induction h ; all_goals aesop
 
 theorem one_one (h1 : grid 1 1 c d) : c = 1 ∧ d = 1 := one_one_helper h1 rfl rfl
 
@@ -135,14 +123,9 @@ private theorem word_word_same_helper (h : grid a b c d) : a = b → c = 1 ∧ d
     rw [← b_is] at g1
     rcases Grid.splittable_vertically g1 _ _ rfl with ⟨u', c₁, c₂, g1', g1'', c_is⟩
     have ⟨hc₁, hu⟩ := generator_generator_same g1'
-    rw [hc₁, one_mul] at c_is
     rw [hu] at g1''
     have ⟨hc₂, hd₁⟩ := one_word g1''
-    rw [hc₂] at c_is
-    rw [c_is] at g2
-    specialize ih g2 rfl
-    rw [d_is, hd₁, one_mul]
-    exact ih
+    grind
 
 theorem word_word_same (h : grid a a c d) : c = 1 ∧ d = 1 := word_word_same_helper h rfl
 
@@ -158,7 +141,7 @@ private theorem generator_generator_close_helper (h : grid a b c d) (ha : a = of
   | adjacent i k h =>
     rw [FreeMonoid.of_injective ha, FreeMonoid.of_injective hb]
     simp only [and_self]
-  | separated i j h =>
+  | separated i j h => 
     rw [FreeMonoid.of_injective ha, FreeMonoid.of_injective hb] at h
     aesop
   | vertical h1 h2 h1_ih h2_ih =>

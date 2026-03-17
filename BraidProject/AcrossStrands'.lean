@@ -32,15 +32,15 @@ theorem count_up_succ : count_up i (i+1) = of i := by
 
 @[simp]
 theorem count_down_succ : count_down (i+1) i = of i := by
-  unfold count_down; simp [count_up_self]
+  unfold count_down; simp
 
 @[simp]
 theorem count_up_succ_succ : count_up i (i+2) = of i  * of (i + 1) := by
-  unfold count_up; simp [count_up_self]
+  unfold count_up; simp
 
 @[simp]
 theorem count_down_succ_succ : count_down (i+2) i = of (i + 1) * of i:= by
-  unfold count_down; simp [count_up_self, FreeMonoid.reverse_mul]
+  unfold count_down; simp [FreeMonoid.reverse_mul]
 
 theorem count_up_empty_iff : count_up i j = 1 ↔ j ≤ i := by
   unfold count_up; simp
@@ -97,11 +97,11 @@ theorem count_up_bounded (k : ℕ) {j b : ℕ} : j ∈ count_up b k → j < k :=
       · rcases Nat.lt_succ_iff_lt_or_eq.mp lt with lt | rfl
         · exact Nat.lt_add_right 1 (ih h1 lt)
         rw [count_up_self] at h1
-        exact (not_mem_one h1).elim
+        exact (notMem_one h1).elim
       linarith
       assumption
   rw [count_up_empty_iff.mpr ge] at h
-  exact (not_mem_one h).elim
+  exact (notMem_one h).elim
 
 theorem count_down_bounded (k : ℕ) {j : ℕ} : j ∈ count_down k b → j < k := by
   intro h
@@ -140,61 +140,19 @@ theorem sigma_braid_succ_succ_descending {i} : sigma_braid (i + 2) i = of (i + 1
   simp [FreeMonoid.reverse_mul]
 
 theorem sigma_braid_ascending_first {i j : ℕ} (h: i < j) : sigma_braid i j =
-    of i * sigma_braid (i + 1) j := by
-  simp only [sigma_braid, mul_ite]
-  split
-  · next h1 =>
-    split
-    · next h3 =>
-      conv => lhs; unfold count_up
-      simp [h]
-    linarith
-  next h2 =>
-  linarith
+    of i * sigma_braid (i + 1) j := by grind only [sigma_braid, count_up]
 
 theorem sigma_braid_ascending_pop {i j : ℕ} (h: i < j) : sigma_braid i j = sigma_braid i (j - 1) *
     of (j-1) := by
-  simp only [sigma_braid, mul_ite]
-  split
-  · next h1 =>
-    split
-    · next h2 => exact count_up_pop h
-    next h3 =>
-    have : i = j - 1 := by omega
-    rw [this, count_down_self, one_mul]
-    have : j = (j - 1) + 1 := by omega
-    conv =>
-    {
-      enter [1, 2]
-      rw [this]
-    }
-    exact count_up_succ
-  next h2 =>
-  linarith
+  grind only [sigma_braid, count_up_pop]
 
 theorem sigma_braid_descending_first {i j : ℕ} (h: i ≥ j) :
     sigma_braid (i + 1) j = (of i) * sigma_braid i j := by
-  simp only [sigma_braid, mul_ite]
-  split
-  · next h1 => linarith
-  next h2 =>
-  split
-  · rw [count_down_first h]
-    have : i = j := by linarith
-    rw [this, count_down_self, count_up_self]
-  rw [count_down_first h]
+  grind only [sigma_braid, count_down_first, count_down_self, count_up_self]
 
 theorem sigma_braid_descending_pop {i j : ℕ} (h: i<j) : sigma_braid j i = sigma_braid j (i + 1) *
     (of i : FreeMonoid ℕ) := by
-  simp only [sigma_braid, ite_mul]
-  split
-  · next h1 => linarith
-  next h2 =>
-  split
-  · next h3 =>
-    have : j = i + 1 := by linarith
-    rw [this, count_down_succ, count_up_self, one_mul]
-  rw [count_down_pop h]
+  grind only [sigma_braid, count_down_pop, count_down_succ, count_up_self]
 
 theorem sigma_braid_length {i j : ℕ} (h : i < j) : length (sigma_braid i j) = j - i := by
   induction j, h using Nat.le_induction with
@@ -202,7 +160,7 @@ theorem sigma_braid_length {i j : ℕ} (h : i < j) : length (sigma_braid i j) = 
   | succ h lt_k ih =>
     rw [sigma_braid_ascending_pop]
     · rw [add_tsub_cancel_right, length_mul, ih, FreeMonoid.length_of]
-      exact (Nat.sub_add_comm (Nat.lt_succ.mp (Nat.le.step lt_k))).symm
+      exact (Nat.sub_add_comm (Nat.lt_succ_iff.mp (Nat.le.step lt_k))).symm
     exact Nat.le.step lt_k
 
 theorem sigma_braid_ascending_bounded (n : ℕ) {k : ℕ}: k ∈ (sigma_braid n 0) → k < n := by
@@ -211,9 +169,9 @@ theorem sigma_braid_ascending_bounded (n : ℕ) {k : ℕ}: k ∈ (sigma_braid n 
   cases n with
   | zero =>
     simp only [le_refl, ↓reduceIte, count_up_self] at k_in
-    exact (not_mem_one k_in).elim
+    exact (notMem_one k_in).elim
   | succ n =>
-    simp only [nonpos_iff_eq_zero, Nat.add_eq_zero, one_ne_zero, and_false, ↓reduceIte] at k_in
+    simp only [nonpos_iff_eq_zero, Nat.add_eq_zero_iff, one_ne_zero, and_false, ↓reduceIte] at k_in
     exact count_down_bounded _ k_in
 
 theorem sigma_braid_descending_bounded (n : ℕ) {k : ℕ}: k ∈ sigma_braid 0 n → k < n := by

@@ -4,25 +4,8 @@ open FreeMonoid
 
 theorem all_ones : grid a b c d → a = 1 → b = 1 → (c = 1 ∧ d = 1) := by
   intro h one two
-  induction h with
-  | empty => exact ⟨rfl, rfl⟩
-  | top_bottom i => exact ⟨rfl, two⟩
-  | sides i => exact ⟨one, rfl⟩
-  | top_left i => exact ⟨rfl, rfl⟩
-  | adjacent i k _ => exact (of_ne_one _ one).elim
-  | separated i j _ => exact (of_ne_one _ one).elim
-  | vertical _ _ h1_ih h2_ih =>
-    specialize h1_ih (FreeMonoid.prod_eq_one one).1 two
-    specialize h2_ih (FreeMonoid.prod_eq_one one).2 h1_ih.2
-    rw [h2_ih.2, h1_ih.1]
-    exact ⟨h2_ih.1, rfl⟩
-  | horizontal _ _ h1_ih h2_ih =>
-    rw [one, (FreeMonoid.prod_eq_one two).1] at h1_ih
-    specialize h1_ih rfl rfl
-    rw [h1_ih.1, (FreeMonoid.prod_eq_one two).2] at h2_ih
-    specialize h2_ih rfl rfl
-    rw [h2_ih.2, h1_ih.2]
-    exact ⟨h2_ih.1, rfl⟩
+  induction h
+  all_goals aesop
 
 theorem all_ones_better (h1 : grid 1 1 c d) : c = 1 ∧ d = 1 := all_ones h1 rfl rfl
 
@@ -38,29 +21,19 @@ theorem i_top_bottom {i : ℕ} (h : grid 1 (of i) c d) : c = 1 ∧ d = of i := b
   | separated i j h => exact (of_ne_one _ ha.symm).elim
   | vertical h1 h2 h1_ih h2_ih =>
     have h3 := (FreeMonoid.prod_eq_one ha.symm)
-    rw [h3.1, ← hb] at h1
-    rw [h3.2] at h2
-    specialize h1_ih hb h3.1.symm
-    rw [h1_ih.1]
-    rw [h1_ih.2] at h2
-    specialize h2_ih (hb.trans h1_ih.2.symm) h3.2.symm
-    rw [h2_ih.1, h2_ih.2]
-    exact ⟨rfl, h1_ih.2⟩
+    grind
   | horizontal h1 h2 h1_ih h2_ih =>
     rcases FreeMonoid.prod_eq_of hb.symm with h3 | h4
     · rw [h3.1, ← ha] at h1
       have H := all_ones_better h1
-      specialize h2_ih h3.2.symm H.1.symm
-      rw [← ha, h3.1, one_mul, H.2, one_mul, h2_ih.1]
-      exact ⟨H.1, h2_ih.2⟩
+      grind
     rename_i e f g j k l m
     rw [← ha, h4.1, h4.2, mul_one]
     specialize h1_ih h4.1.symm ha
     rw [h4.2, h1_ih.1.trans ha.symm] at h2
     have H := all_ones_better h2
-    rw [H.2, mul_one, h1_ih.2]
-    exact ⟨H.1, h4.1⟩
-
+    grind
+    
 theorem i_side_side (h : grid (of i) 1 c d) : c = of i ∧ d = 1 := by
   generalize one : of i = a at h
   generalize two : (1 : FreeMonoid ℕ) = b at h

@@ -23,7 +23,7 @@ theorem induction_dist {k : ℕ} (i j : ℕ) (h : k ≤ Nat.dist i j)
     intro one two bigger_than smaller_thing
     apply hk' (Nat.dist one two - k) _ _ _ _ base_case n_ic
     · rw [new_ad_is, Nat.succ_add k' k] at smaller_thing
-      exact Nat.sub_le_of_le_add (Nat.lt_succ.mp smaller_thing)
+      exact Nat.sub_le_of_le_add (Nat.lt_succ_iff.mp smaller_thing)
     exact Nat.eq_add_of_sub_eq bigger_than rfl
   exact this (Nat.dist i j - k) i j (Nat.eq_add_of_sub_eq h rfl) base_case inductive_case
 

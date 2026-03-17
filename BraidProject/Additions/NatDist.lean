@@ -13,10 +13,10 @@ def or_dist_iff_eq_C {i k d : ℕ} : i.dist k = d → PLift (i + d = k) ⊕ PLif
   · left
     rw [Nat.dist_eq_sub_of_le hik] at h
     exact ⟨(((Nat.sub_eq_iff_eq_add' hik).mp) h).symm⟩
-  · right
-    apply le_of_not_le at hik
-    rw [Nat.dist_comm, Nat.dist_eq_sub_of_le hik] at h
-    exact ⟨(((Nat.sub_eq_iff_eq_add' hik).mp) h).symm⟩
+  right
+  constructor
+  unfold Nat.dist at h
+  omega
 
 theorem dist_succ {i : ℕ} : i.dist (i + 1) = 1 := by unfold Nat.dist; omega
 

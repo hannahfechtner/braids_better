@@ -7,7 +7,7 @@ import BraidProject.Additions.FreeMonoid
 open FreeMonoid
 
 --lemma 3.9 property
-theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
+theorem generator_sigma_braid_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
     BraidMonoidInf.mk (of k * sigma_braid i j) = BraidMonoidInf.mk (sigma_braid i j * of (k-1)) := by
   induction dist : j - i - 2 generalizing i j k
   · have hk : k= i + 1 := by omega
@@ -31,7 +31,7 @@ theorem prepend_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
   unfold Nat.dist ; omega
 
 --lemma 3.10 property
-theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
+theorem sigma_braid_generator_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
       BraidMonoidInf.mk (of (k-1) * (sigma_braid j i)) =
       BraidMonoidInf.mk ((sigma_braid j i) * of k) := by
   unfold sigma_braid count_down
@@ -45,10 +45,10 @@ theorem append_k (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
     have : i ≤ j := by linarith
     simp [sigma_braid, this]
   rw [this]
-  apply prepend_k
+  apply generator_sigma_braid_through
   all_goals omega
 
-theorem move_word_over (L) (hb : ∀ x, x ∈ L → x ≥ j ∧ x < n) : BraidMonoidInf.mk (L * sigma_braid (n+1) j) =
+theorem word_sigma_braid_through (L) (hb : ∀ x, x ∈ L → x ≥ j ∧ x < n) : BraidMonoidInf.mk (L * sigma_braid (n+1) j) =
     BraidMonoidInf.mk ((sigma_braid (n+1) j) * (FreeMonoid.map (λ i => i+1) L)) := by
   induction L with
   | one =>
@@ -57,7 +57,7 @@ theorem move_word_over (L) (hb : ∀ x, x ∈ L → x ≥ j ∧ x < n) : BraidMo
     simp only [map_of]
     have : y ∈ of y := by simp
     specialize hb y this
-    apply append_k _ _ (y + 1)
+    apply sigma_braid_generator_through _ _ (y + 1)
     · linarith
     omega
   | mul x y hx hy =>
@@ -79,7 +79,7 @@ theorem delta_braid_one : delta_braid 1 = of 0 := by simp [delta_braid, sigma_br
 theorem delta_braid_bounded (n : ℕ) : ∀ k ∈ delta_braid n, k < n := by
   intro k h
   induction n with
-  | zero =>  exact (not_mem_one h).elim
+  | zero =>  exact (notMem_one h).elim
   | succ n ih =>
     rcases mem_mul.mp h with _ | h1
     · apply sigma_braid_descending_bounded
@@ -92,7 +92,7 @@ theorem map_delta_braid_bounded (n k x : ℕ) (h : x ∈ FreeMonoid.map (fun x =
   apply delta_braid_bounded at hw
   linarith
 
-theorem move_bigger_across (m : ℕ) (w : FreeMonoid ℕ) : (∀ k ∈ w, k + 1 < m) →
+theorem generator_sigma_braid_past (m : ℕ) (w : FreeMonoid ℕ) : (∀ k ∈ w, k + 1 < m) →
     BraidMonoidInf.mk (of m * w) = BraidMonoidInf.mk (w * of m) := by
   induction w with
   | one => exact fun _ => rfl
@@ -108,17 +108,17 @@ theorem move_bigger_across (m : ℕ) (w : FreeMonoid ℕ) : (∀ k ∈ w, k + 1 
     exact BraidMonoidInf.append_left_mk <| hy <| fun k k_in => h_in k (mem_mul.mpr (Or.inr k_in))
 
 -- m is the moved, n is what delta_braid is
-theorem sigma_delta_swap (n m : ℕ) {h : n < m}: BraidMonoidInf.mk (of m * delta_braid n) =
+theorem generator_delta_braid_past (n m : ℕ) {h : n < m}: BraidMonoidInf.mk (of m * delta_braid n) =
     BraidMonoidInf.mk (delta_braid n * of m) := by
   induction n
   · rfl
-  exact move_bigger_across m (delta_braid _) fun k h1 =>
+  exact generator_sigma_braid_past m (delta_braid _) fun k h1 =>
     Nat.lt_of_le_of_lt (delta_braid_bounded _ k h1) h
 
-theorem factor_delta (n : ℕ) : 1 ≤ n → BraidMonoidInf.mk (delta_braid n) =
+theorem factor_delta_braid (n : ℕ) : 1 ≤ n → BraidMonoidInf.mk (delta_braid n) =
     BraidMonoidInf.mk (delta_braid (n-1) * sigma_braid n 0 ) := by
   cases n with
-  | zero => exact fun h => (Set.right_mem_Ico.mp ⟨h, h⟩).elim
+  | zero => aesop
   | succ n =>
     induction n with
     | zero =>
@@ -130,16 +130,16 @@ theorem factor_delta (n : ℕ) : 1 ≤ n → BraidMonoidInf.mk (delta_braid n) =
       rw [sigma_braid_ascending_pop hn, sigma_braid_descending_first <| Nat.zero_le (n + 1),
         ← mul_assoc, BraidMonoidInf.mul_mk, ih (by linarith), add_tsub_cancel_right,
         add_tsub_cancel_right, ← BraidMonoidInf.mul_mk, ← mul_assoc, mul_assoc _ (of (n + 1)),
-        BraidMonoidInf.mul_mk, BraidMonoidInf.mul_mk, @sigma_delta_swap (n) (n+1) Nat.le.refl]
+        BraidMonoidInf.mul_mk, BraidMonoidInf.mul_mk, @generator_delta_braid_past (n) (n+1) Nat.le.refl]
       conv => rhs; unfold delta_braid
       repeat rw [BraidMonoidInf.mul_mk, mul_assoc]
 
-theorem swap_sigma_delta (n : ℕ)  : ∀ i : ℕ , (i≤  n-1) →
+theorem generator_delta_braid_through (n : ℕ)  : ∀ i : ℕ , (i≤  n-1) →
     BraidMonoidInf.mk (of i * (delta_braid n)) = BraidMonoidInf.mk (delta_braid n * of (n-1-i)) := by
     cases n with
     | zero =>
       intro i h1
-      simp only [Nat.zero_eq, ge_iff_le, zero_le, tsub_eq_zero_of_le, nonpos_iff_eq_zero] at h1
+      simp only [zero_le, tsub_eq_zero_of_le, nonpos_iff_eq_zero] at h1
       rw [h1]
       rfl
     | succ n =>
@@ -150,30 +150,30 @@ theorem swap_sigma_delta (n : ℕ)  : ∀ i : ℕ , (i≤  n-1) →
         intro i i_between
         cases i with
         | zero =>
-          simp only [Nat.zero_eq, Nat.succ_sub_succ_eq_sub, tsub_zero]
-          apply (BraidMonoidInf.append_left_mk (factor_delta (n + 2) (Nat.le_add_left 1 _))).trans
+          simp only [Nat.succ_sub_succ_eq_sub, tsub_zero]
+          apply (BraidMonoidInf.append_left_mk (factor_delta_braid (n + 2) (Nat.le_add_left 1 _))).trans
           apply (BraidMonoidInf.append_right_mk (hn 0 (Nat.zero_le (n + 1 - 1)))).trans
           rw [mul_assoc]
-          apply (BraidMonoidInf.append_left_mk (append_k 0 _ n.succ (Nat.le_add_left _ n)
+          apply (BraidMonoidInf.append_left_mk (sigma_braid_generator_through 0 _ n.succ (Nat.le_add_left _ n)
               ⟨Nat.zero_lt_succ n, Nat.le.refl⟩)).trans
           rw [← mul_assoc]
-          exact (BraidMonoidInf.append_right_mk (factor_delta n.succ.succ NeZero.one_le).symm)
+          exact (BraidMonoidInf.append_right_mk (factor_delta_braid n.succ.succ NeZero.one_le).symm)
         | succ k =>
-          apply (BraidMonoidInf.append_right_mk (prepend_k 0 n.succ.succ k.succ
+          apply (BraidMonoidInf.append_right_mk (generator_sigma_braid_through 0 n.succ.succ k.succ
             (tsub_add_cancel_iff_le.mp rfl) ⟨Fin.pos ⟨k, Nat.le.refl⟩,
-            Nat.lt_succ.mpr i_between⟩)).trans
+            Nat.lt_succ_iff.mpr i_between⟩)).trans
           rw [mul_assoc]
-          apply (BraidMonoidInf.append_left_mk (hn k (Nat.lt_succ.mp i_between))).trans
+          apply (BraidMonoidInf.append_left_mk (hn k (Nat.lt_succ_iff.mp i_between))).trans
           rw [← mul_assoc]
           simp only [Nat.succ_eq_add_one, add_tsub_cancel_right, Nat.reduceSubDiff]
           rfl
 
-theorem swap_sigma_delta_souped {n : ℕ} {w : FreeMonoid ℕ} (w_bounded : ∀x, x ∈ w → x < n) :
+theorem word_delta_braid_through {n : ℕ} {w : FreeMonoid ℕ} (w_bounded : ∀x, x ∈ w → x < n) :
     BraidMonoidInf.mk (w * delta_braid n) = BraidMonoidInf.mk  (delta_braid n * FreeMonoid.map (λ i => (n-1)-i) w) := by
   induction w
   · simp only [one_mul, map_one, mul_one]
   · rename_i y
-    exact swap_sigma_delta n y (Nat.le_sub_one_of_lt (w_bounded y mem_of_self))
+    exact generator_delta_braid_through n y (Nat.le_sub_one_of_lt (w_bounded y mem_of_self))
   rename_i z w hx hy
   rw [map_mul]
   have step_one : BraidMonoidInf.mk (delta_braid n * ((map fun i => n - 1 - i) z * (map fun i => n - 1 - i) w)) =
@@ -193,7 +193,7 @@ def additional_braid (n i: ℕ) : FreeMonoid ℕ :=
   | k+2 => if i = n - 1 then sigma_braid (n-1) 0 * FreeMonoid.map (λ i => i+1) (delta_braid (n-1))
           else additional_braid (k+1) i * sigma_braid n 0
 
-theorem additional_braid_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidMonoidInf.mk (delta_braid n) =
+theorem additional_braid_spec (i n : ℕ) (h_n : n > 0) (h : i < n) : BraidMonoidInf.mk (delta_braid n) =
     BraidMonoidInf.mk (of i * additional_braid n i) := by
   cases n with
   | zero => omega
@@ -207,7 +207,7 @@ theorem additional_braid_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidM
           conv => lhs; unfold additional_braid
           aesop
         rw [this]
-        apply (factor_delta n.succ.succ h_n).trans
+        apply (factor_delta_braid n.succ.succ h_n).trans
         rw [← mul_assoc]
         apply BraidMonoidInf.append_right_mk
         apply ih
@@ -222,9 +222,9 @@ theorem additional_braid_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidM
         have step_two : ∀ L, (∀ x, x ∈ L → x < n+1) → BraidMonoidInf.mk (L * sigma_braid (n+2) 0) =
             BraidMonoidInf.mk ((sigma_braid (n+2) 0) * (FreeMonoid.map (λ i => i+1) (L))) := by
           intro L hb
-          apply move_word_over
+          apply word_sigma_braid_through
           aesop
-        apply (factor_delta _ (by linarith)).trans
+        apply (factor_delta_braid _ (by linarith)).trans
         apply (step_two _ (delta_braid_bounded n.succ)).trans
         conv => rhs; rw [← mul_assoc]
         apply BraidMonoidInf.append_right_mk
@@ -235,10 +235,10 @@ theorem additional_braid_spec (i n : ℕ) (h_n : n > 0) (h : i ≤ n-1) : BraidM
 theorem additional_braid_bounded (i n : ℕ) (h : i ≤ n - 1) (x) (x_in : x ∈ additional_braid n i) :
     x < n := by
   cases n with
-  | zero => exact (not_mem_one x_in).elim
+  | zero => exact (notMem_one x_in).elim
   | succ k =>
     induction k with
-    | zero => exact  (not_mem_one x_in).elim
+    | zero => exact  (notMem_one x_in).elim
     | succ j hj =>
       unfold additional_braid at x_in
       rw [add_tsub_cancel_right] at x_in
@@ -246,9 +246,9 @@ theorem additional_braid_bounded (i n : ℕ) (h : i ≤ n - 1) (x) (x_in : x ∈
       · have not_eq : ¬ i = j + 1 := by linarith [lt]
         rw [if_neg not_eq, mem_mul] at x_in
         rcases x_in with in_bound | in_sigma
-        · exact Nat.lt.step (hj (Nat.lt_succ.mp lt) in_bound)
+        · exact Nat.lt_succ_of_lt (hj (Nat.lt_succ_iff.mp lt) in_bound)
         exact sigma_braid_ascending_bounded _ in_sigma
-      · simp only [Nat.add_left_inj, ↓reduceIte, mem_mul] at x_in
+      · simp only [↓reduceIte, mem_mul] at x_in
         rcases x_in with in_sigma | in_delta
         · apply sigma_braid_descending_bounded
           simp only [le_add_iff_nonneg_left, zero_le, ↓reduceIte, sigma_braid]
@@ -263,7 +263,7 @@ theorem additional_braid_bounded (i n : ℕ) (h : i ≤ n - 1) (x) (x_in : x ∈
 
 theorem multiple_delta_braid_bounded {n k : ℕ} : ∀ x ∈ delta_braid n ^ k, x < n := by
   induction k with
-  | zero => exact fun _ h => (not_mem_one h).elim
+  | zero => exact fun _ h => (notMem_one h).elim
   | succ k hk =>
     intro x h
     rw [pow_succ' (delta_braid n) k] at h
@@ -271,21 +271,21 @@ theorem multiple_delta_braid_bounded {n k : ℕ} : ∀ x ∈ delta_braid n ^ k, 
     · exact delta_braid_bounded _ _ in_delta
     exact hk _ ic
 
-theorem multiple_delta_braid (u : FreeMonoid ℕ) (l n : ℕ) (h : FreeMonoid.length u ≤ l)
+theorem equiv_multiple_delta_braid (u : FreeMonoid ℕ) (l n : ℕ) (h : FreeMonoid.length u ≤ l)
     (bounded : ∀ x, x ∈ u → x < n) : ∃ w, BraidMonoidInf.mk (u * w) = ⟦(delta_braid n)^l⟧ ∧
     ∀ x, x ∈ w → x < n := by
   induction l generalizing u with
   | zero =>
     rw [FreeMonoid.length_eq_zero.mp (nonpos_iff_eq_zero.mp h)]
     use 1
-    exact ⟨rfl, fun _ h => (not_mem_one h).elim⟩
+    exact ⟨rfl, fun _ h => (notMem_one h).elim⟩
   | succ j hj =>
     rcases FreeMonoid.eq_one_or_has_last_elem u with rfl | ⟨front, caboose, rfl⟩
     · use delta_braid n ^ Nat.succ j
       exact ⟨rfl, multiple_delta_braid_bounded⟩
     have front_length : front.length ≤ j := by
       rw [FreeMonoid.length_mul, FreeMonoid.length_of] at h
-      exact Nat.lt_succ.mp h
+      exact Nat.lt_succ_iff.mp h
     have front_bounded : ∀ x, x ∈ front → x < n :=
       fun x x_in => bounded _ <| FreeMonoid.mem_mul.mpr <| .inl x_in
     rcases hj front front_length front_bounded with ⟨w', hw⟩
@@ -297,9 +297,8 @@ theorem multiple_delta_braid (u : FreeMonoid ℕ) (l n : ℕ) (h : FreeMonoid.le
       exact Or.inr (FreeMonoid.mem_of.mpr rfl)
     constructor
     · rw [mul_assoc, BraidMonoidInf.mul_mk, ← mul_assoc, BraidMonoidInf.mul_mk]
-      rw [← additional_braid_spec caboose _ (Nat.zero_lt_of_lt caboose_bounded)
-        (Nat.le_sub_one_of_lt caboose_bounded),← BraidMonoidInf.mul_mk,
-        ← (swap_sigma_delta_souped hw.right)]
+      rw [← additional_braid_spec caboose _ (Nat.zero_lt_of_lt caboose_bounded) caboose_bounded,
+        ← BraidMonoidInf.mul_mk, ← (word_delta_braid_through hw.right)]
       rw [← BraidMonoidInf.mul_mk, ← mul_assoc, BraidMonoidInf.mul_mk, hw.1]
       rfl
     intro x x_in
@@ -309,20 +308,20 @@ theorem multiple_delta_braid (u : FreeMonoid ℕ) (l n : ℕ) (h : FreeMonoid.le
     omega
 
 theorem common_right_mul_inf (u v : BraidMonoidInf) : ∃ u' v', u * v' = v * u' := by
-  induction' u with u
-  induction' v with v
+  induction u with | h u
+  induction v with | h v
   rcases (FreeMonoid.bounded u) with ⟨k1, hk1⟩
   rcases (FreeMonoid.bounded v) with ⟨k2, hk2⟩
-  rcases (multiple_delta_braid u (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
+  rcases (equiv_multiple_delta_braid u (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
     (by aesop) (by aesop)) with ⟨v', hv', _⟩
-  rcases (multiple_delta_braid v (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
+  rcases (equiv_multiple_delta_braid v (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
     (by aesop) (by aesop)) with ⟨u', hu', _⟩
   exact .intro ⟦u'⟧ (.intro ⟦v'⟧ (hv'.trans hu'.symm))
 
 theorem common_right_mul_inf_mk (u v) : ∃ u' v', BraidMonoidInf.mk (u*v') = ⟦v*u'⟧ := by
   rcases common_right_mul_inf ⟦u⟧ ⟦v⟧ with ⟨u', v', huv⟩
-  induction' u' with u''
-  induction' v' with v''
+  induction u' with | h u''
+  induction v' with | h v''
   use u'', v''
   exact huv
 
@@ -331,6 +330,5 @@ theorem common_left_mul_inf (u v : BraidMonoidInf) : ∃ u' v', u' * u = v' * v 
     (BraidMonoidInf.reverse_braid v) with ⟨a, b, hab⟩
   use BraidMonoidInf.reverse_braid b, BraidMonoidInf.reverse_braid a
   have this := congr_arg BraidMonoidInf.reverse_braid hab
-  simp only [BraidMonoidInf.reverse_braid_mul, BraidMonoidInf.reverse_braid_mk,
-    BraidMonoidInf.reverse_reverse] at this
+  simp only [BraidMonoidInf.reverse_braid_mul, BraidMonoidInf.reverse_reverse] at this
   simp [this]

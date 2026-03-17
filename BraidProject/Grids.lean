@@ -41,14 +41,14 @@ theorem grid_sides_word (u : FreeMonoid ℕ) : grid u 1 u 1 := by
   | mul i u ih1 ih2 => exact grid.vertical ih1 ih2
 
 theorem grid_top_bottom_word (u : FreeMonoid ℕ) : grid 1 u 1 u := by
-  induction' u
+  induction u
   · exact grid.empty
   · exact grid.top_bottom _
   · rename_i one two
     exact grid.horizontal one two
 
 theorem grid_top_left_word (u : FreeMonoid ℕ) : grid u u 1 1 := by
-  induction' u
+  induction u
   · exact grid.empty
   · exact grid.top_left _
   · rename_i x y one two

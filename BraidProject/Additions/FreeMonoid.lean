@@ -60,7 +60,7 @@ theorem mem_reverse : a ∈ reverse b ↔ a ∈ b := List.mem_reverse
 theorem bounded (u : FreeMonoid ℕ) : ∃ k, ∀ x ∈ u, x < k := by
   induction u using FreeMonoid.inductionOn'
   · use 1
-    exact fun _ h => (not_mem_one h).elim
+    exact fun _ h => (notMem_one h).elim
   rename_i head tail tail_ih
   rcases tail_ih with ⟨old_k, kh⟩
   use Nat.max old_k (head+1)
