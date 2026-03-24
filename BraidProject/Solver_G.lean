@@ -666,30 +666,7 @@ theorem one_symm_is_really_the_same : mk braid_rels_m_inf a = mk braid_rels_m_in
 
 variable {rels : FreeMonoid ℕ → FreeMonoid ℕ → Prop} {h : IsRightCancelMul (PresentedMonoid rels)} {h1 : IsCommonLeftMultipleMul (PresentedMonoid rels)}
 
-theorem pml_to_presented_group_apply_mk (a : FreeMonoid ℕ) : pml_to_presented_group
-    (@OreLocalization.numeratorHom _ _ _
-    (@oreSetSelf' _ rels h1 h)
-    (PresentedMonoid.mk rels a)) =
-    (PresentedGroup.mk (pm_rels_to_pg_rels rels) (FreeGroup.mk (to_over_plain a)) :
-    PresentedGroup (pm_rels_to_pg_rels rels)) := by
-  induction a using FreeMonoid.inductionOn'
-  · rfl
-  rename_i head tail ih
-  simp [ih, to_over_plain_mul, ← FreeGroup.mul_mk]
-  rfl
-
 variable {h : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)} {h1 : IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf)}
-
-theorem  pml_to_presented_group_injective {α : Type} {rels : FreeMonoid α → FreeMonoid α → Prop}
-  {h : IsRightCancelMul (PresentedMonoid rels)} {h1 : IsCommonLeftMultipleMul (PresentedMonoid rels)} :
-  Function.Injective (pml_to_presented_group : pml h1 h →*
-    PresentedGroup (pm_rels_to_pg_rels rels)) := by
-  apply Function.HasLeftInverse.injective
-  use presented_group_to_pml
-  exact Function.leftInverse_iff_comp.mpr <| comp_eq_of_hom_comp_eq comp_pg_pml_pml_pg_eq_id
-
--- theorem OreLocalization.numeratorHom_inj : Function.Injective (OreLocalization.numeratorHom) := by
---   apply?
 
 theorem right_cancel_extends [h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)] :
   IsRightCancelMul (PresentedMonoid braid_rels_m_inf_one_symm) where
@@ -761,70 +738,7 @@ noncomputable def left_multiple_iso [Mul A] [Mul B] [h2 : IsCommonLeftMultipleMu
     simp at hcd
     use e c, e d
 
-theorem pg_to_pm_fg_mk {h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)}
-  {h3 : IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf)}
-  (h : PresentedGroup.mk Braid.braid_rels_coexeter (FreeGroup.mk e) =
-  (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk d)) (he : is_true e) (hd : is_true d) :
-  PresentedMonoid.mk braid_rels_m_inf (List.map (fun x ↦ x.1) e) =
-  PresentedMonoid.mk braid_rels_m_inf (List.map (fun x ↦ x.1) d) := by
-  have he1 : e = to_over_plain (List.map (fun x ↦ x.1) e) := by
-    exact (recover_from_is_true he).symm
-  have hd1 : d = to_over_plain (List.map (fun x ↦ x.1) d) := by
-    exact (recover_from_is_true hd).symm
-  rw [he1, hd1, ← connect_monoid_group_braid_rels] at h
-  --rw [← pml_to_presented_group_apply_mk] at h
-  --insane errors when i try this twice
-  have h5 : IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf_one_symm) :=
-    left_multiple_iso one_symm_type_iso_me.symm
-  have h4 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf_one_symm) := right_cancel_extends
-  have Hd2 : pml_to_presented_group
-    (@OreLocalization.numeratorHom _ _ _
-    (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 (right_cancel_extends))
-    (PresentedMonoid.mk braid_rels_m_inf_one_symm (List.map (fun x ↦ x.1) d))) =
-    (PresentedGroup.mk (pm_rels_to_pg_rels braid_rels_m_inf_one_symm)
-    (FreeGroup.mk (to_over_plain (List.map (fun x ↦ x.1) d)))) := pml_to_presented_group_apply_mk (List.map (fun x ↦ x.1) d)
-  have he1 : pml_to_presented_group
-    (@OreLocalization.numeratorHom _ _ _
-    (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 (right_cancel_extends))
-    (PresentedMonoid.mk braid_rels_m_inf_one_symm (List.map (fun x ↦ x.1) e))) =
-    (PresentedGroup.mk (pm_rels_to_pg_rels braid_rels_m_inf_one_symm)
-    (FreeGroup.mk (to_over_plain (List.map (fun x ↦ x.1) e)))) := pml_to_presented_group_apply_mk (List.map (fun x ↦ x.1) e)
-  have HTHREE : pml_to_presented_group
-    (@OreLocalization.numeratorHom _ _ _
-    (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 (right_cancel_extends))
-    (PresentedMonoid.mk braid_rels_m_inf_one_symm (List.map (fun x ↦ x.1) d))) = pml_to_presented_group
-    (@OreLocalization.numeratorHom _ _ _
-    (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 h4)
-    (PresentedMonoid.mk braid_rels_m_inf_one_symm (List.map (fun x ↦ x.1) e))) := by
-    rw [Hd2, he1]
-    exact h.symm
-  have H := pml_to_presented_group_injective HTHREE
-  have H5 : Function.Injective (@OreLocalization.numeratorHom
-    (PresentedMonoid braid_rels_m_inf_one_symm)
-    (PresentedMonoid.instMonoid braid_rels_m_inf_one_symm) ⊤
-    oreSetSelf' : PresentedMonoid braid_rels_m_inf_one_symm →*
-    @OreLocalization _ _ ⊤ (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 h4)
-    (PresentedMonoid braid_rels_m_inf_one_symm) _) := by
-    intro x y hxy
-    unfold OreLocalization.numeratorHom at hxy
-    change @OreLocalization.oreDiv _ _ _ (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 h4) _ _ x 1 =
-      @OreLocalization.oreDiv _ _ _ (@oreSetSelf' _ braid_rels_m_inf_one_symm h5 h4) _ _ y 1 at hxy
-    unfold OreLocalization.oreDiv at hxy
-    unfold Quotient.mk' at hxy
-    have H := Quotient.exact hxy
-    rcases H with ⟨a, b, hab⟩
-    simp at hab
-    have another := hab.1
-    rw [← hab.2] at another
-    apply mul_left_cancel at another
-    exact another.symm
-    --this is strange, somehow something feels backwards. in my case it's fine, but check into this
-    have H : IsLeftCancelMul (PresentedMonoid braid_rels_m_inf) := by
-      have H1 : IsCancelMul (PresentedMonoid braid_rels_m_inf) :=
-        CancelMonoid.toIsCancelMul (PresentedMonoid braid_rels_m_inf)
-      exact IsCancelMul.toIsLeftCancelMul
-    apply left_cancel_extends
-  exact one_symm_is_really_the_same.mpr (H5 H.symm)
+-- this is now in orelocalizatinpresented pg_to_pm_fg_mk
 
 theorem invRev_remove_eq_reverse {e : List (α × Bool)} :
   (List.map (fun x ↦ x.1) e).reverse =

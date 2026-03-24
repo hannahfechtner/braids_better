@@ -70,4 +70,19 @@ theorem bounded (u : FreeMonoid ℕ) : ∃ k, ∀ x ∈ u, x < k := by
   next x_in_tail =>
   exact lt_max_iff.mpr (Or.inl (kh x x_in_tail))
 
+theorem lift_comp {M N : Type*} [Monoid M] [Monoid N] (h : α → M) (g : M →* N) :
+    FreeMonoid.lift (g ∘ h) = g.comp (FreeMonoid.lift h) :=
+  FreeMonoid.hom_eq_iff.mpr (congrFun rfl)
+
+theorem lift_comp_apply {M N : Type*} [Monoid M] [Monoid N] (h : α → M) (g : M →* N) (a) :
+    FreeMonoid.lift (g ∘ h) a = g ((FreeMonoid.lift h) a) := by
+  simp [lift_comp h g]
+
+theorem reconstruct_from_projection {L : FreeMonoid (α × β)} {b : β} (h : ∀ x ∈ L, x.2 = b) :
+    FreeMonoid.map (fun x ↦ (x, b)) (FreeMonoid.map (fun x ↦ x.1) L) = L := by
+  induction L with
+  | one => rfl
+  | of x => aesop
+  | mul x y _ _ => aesop
+
 end FreeMonoid

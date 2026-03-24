@@ -56,10 +56,9 @@ inductive braid_rels_m_inf_C : FreeMonoid ℕ → FreeMonoid ℕ → Type
   | adjacent (i : ℕ): braid_rels_m_inf_C (of i * of (i+1) * of i) (of (i+1) * of i * of (i+1))
   | separated (i j : ℕ) (h : i +2 ≤ j) : braid_rels_m_inf_C (of i * of j) (of j * of i)
 
-theorem length_pos {f g : FreeMonoid ℕ} (h : braid_rels_m_inf f g) : f.length > 0 := by
+theorem length_pos {f g : FreeMonoid ℕ} (h : braid_rels_m_inf f g) : f.length > 0 ∧ g.length > 0 := by
   rcases h
-  · simp only [length_mul, length_of, Nat.reduceAdd, gt_iff_lt, Nat.ofNat_pos]
-  simp only [length_mul, length_of, Nat.reduceAdd, gt_iff_lt, Nat.ofNat_pos]
+  all_goals grind [length_mul, length_of]
 
 open PresentedMonoid
 

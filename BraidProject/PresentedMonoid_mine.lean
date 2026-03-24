@@ -319,6 +319,16 @@ theorem lift_of_mul_mk {β : Type} (x : FreeMonoid α) (f : FreeMonoid α → β
     (h : ∀ (a b : FreeMonoid α), rels a b → f a = f b) :
     lift_of_mul f hm h (PresentedMonoid.mk rels x) = f x := rfl
 
+theorem lift_of_eq_mk_of_mulHom {β : Type} [Monoid β] (r : FreeMonoid α)
+    (f : PresentedMonoid rels →* β) :
+    (FreeMonoid.lift fun x => f (PresentedMonoid.of rels x)) r =
+    (f (PresentedMonoid.mk rels r)) := by
+  induction r using FreeMonoid.inductionOn' with
+  | one => exact f.map_one.symm
+  | mul_of b a ih =>
+    rw [map_mul, ih, FreeMonoid.lift_eval_of, PresentedMonoid.mul_mk, map_mul]
+    rfl
+
 def lift_hom {β : Type} [Monoid β] (f :  α → β) (h : ∀ (a b : FreeMonoid α),
     (conGen rels) a b → (FreeMonoid.lift f) a = (FreeMonoid.lift f) b ) :
     (conGen rels).Quotient →* β := Con.lift (conGen rels) (FreeMonoid.lift f) h
@@ -328,8 +338,6 @@ theorem lift_hom_mk {β : Type} [Monoid β] (x : α) (f : α → β)
     (conGen rels) a b → (FreeMonoid.lift f) a = (FreeMonoid.lift f) b ) :
     PresentedMonoid.lift_hom f h (PresentedMonoid.of rels x) = f x :=
     Con.lift_mk' h (FreeMonoid.of x)
-
-
 
 /-- The generators of a presented monoid generate the presented monoid. That is, the submonoid
 closure of the set of generators equals `⊤`. -/
