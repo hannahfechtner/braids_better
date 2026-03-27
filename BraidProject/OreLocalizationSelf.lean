@@ -6,21 +6,19 @@ import BraidProject.Additions.Mixins
 
 open Classical
 
+namespace OreLocalization
 namespace Self
-
-open OreLocalization
 
 variable {M : Type*} [Monoid M] [IsRightCancelMul M] [IsCommonLeftMultipleMul M]
 
+open IsCommonLeftMultipleMul in
 noncomputable instance : OreLocalization.OreSet (⊤ : Submonoid M) where
   ore_right_cancel  := by aesop
-  oreNum r s :=(Classical.choose (Classical.choose_spec
-      (IsCommonLeftMultipleMul.common_left_multiple r s)))
-  oreDenom r s :=⟨(Classical.choose (IsCommonLeftMultipleMul.common_left_multiple r s)), trivial⟩
+  oreNum r s := Classical.choose (Classical.choose_spec (common_left_multiple r s))
+  oreDenom r s :=⟨(Classical.choose (common_left_multiple r s)), trivial⟩
   ore_eq := by
     intro r s
-    have H2 := (Classical.choose_spec (IsCommonLeftMultipleMul.common_left_multiple r s))
-    rcases H2 with ⟨d1, hd1⟩
+    rcases Classical.choose_spec (common_left_multiple r s) with ⟨d1, hd1⟩
     simp [hd1]
 
 local notation "OreLocalizationSelf" => OreLocalization (⊤ : Submonoid M) M
@@ -47,5 +45,3 @@ theorem universalMonoidHom_unique {G₁ : Type} [Group G₁] (f : M →* G₁)
     (φ : OreLocalizationSelf →* G₁)
     (h : ∀ (r : M), (φ ∘ OreLocalization.numeratorHom) r = f r) : φ = universalMonoidHom f :=
   OreLocalization.universalMulHom_unique f _ _ _ h
-
-end Self

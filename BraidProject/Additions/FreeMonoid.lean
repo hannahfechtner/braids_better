@@ -1,5 +1,6 @@
 import Mathlib.Algebra.FreeMonoid.Basic
 import Mathlib.Tactic.Linarith
+import Mathlib.GroupTheory.FreeGroup.Basic
 
 namespace FreeMonoid
 
@@ -84,5 +85,16 @@ theorem reconstruct_from_projection {L : FreeMonoid (α × β)} {b : β} (h : �
   | one => rfl
   | of x => aesop
   | mul x y _ _ => aesop
+
+-- and where do these go
+theorem lift_eq_FreeGroup_lift_comp_of {G₁ : Type} [Group G₁] (f : α → G₁) :
+    FreeMonoid.lift f = (FreeGroup.lift f).comp (FreeMonoid.lift FreeGroup.of) := by
+  rw [← (FreeMonoid.lift_comp FreeGroup.of (FreeGroup.lift f))]
+  aesop
+
+theorem lift_eq_FreeGroup_lift_comp_of_apply {G₁ : Type} [Group G₁] (f : α → G₁) (a : FreeMonoid α) :
+    FreeMonoid.lift f a = (FreeGroup.lift f) (FreeMonoid.lift FreeGroup.of a) := by
+  simpa using congrArg (fun φ : FreeMonoid α →* G₁ => φ a)
+    (FreeMonoid.lift_eq_FreeGroup_lift_comp_of (f := f))
 
 end FreeMonoid

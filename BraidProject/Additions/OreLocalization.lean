@@ -6,3 +6,5 @@ theorem numeratorHom_injective_of_cancellative (R : Type*) [Monoid R] [IsLeftCan
     intro x y hxy
     rcases Quotient.exact hxy with ⟨a, b, hab⟩
     aesop
+
+#check OreLocalization.OreSet

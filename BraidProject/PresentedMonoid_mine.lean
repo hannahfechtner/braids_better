@@ -105,6 +105,13 @@ variable {α : Type*} {rels : FreeMonoid α → FreeMonoid α → Prop}
 
 def rel (rels : FreeMonoid α → FreeMonoid α → Prop) := ConGen.Rel rels
 
+theorem lift_eq_lift_of_rel {G₁ : Type} [Group G₁] (f : α → G₁)
+    (h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂))
+    (a b : FreeMonoid α) (hr : PresentedMonoid.rel rels a b) :
+    (FreeMonoid.lift f) a = (FreeMonoid.lift f) b :=
+  ConGen.Rel.rec (fun x y rxy ↦ h x y rxy) (fun _ ↦ rfl) (fun _ ryx ↦ ryx.symm)
+  (fun _ _ rab rbc ↦ rab.trans rbc) (fun  _ _ ih1 ih2 ↦ by rw [map_mul, map_mul, ih1, ih2]) hr
+
 private inductive rw_system (rels : FreeMonoid α → FreeMonoid α → Prop) : FreeMonoid α → FreeMonoid α → Prop
   | refl : rw_system rels a a
   | reg : ∀ c d, rels a b → rw_system rels (c * a * d) (c * b * d)
