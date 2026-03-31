@@ -97,4 +97,55 @@ theorem lift_eq_FreeGroup_lift_comp_of_apply {G₁ : Type} [Group G₁] (f : α 
   simpa using congrArg (fun φ : FreeMonoid α →* G₁ => φ a)
     (FreeMonoid.lift_eq_FreeGroup_lift_comp_of (f := f))
 
+/-- if two types are isomorphic, the free monoids over those types are isomorphic -/
+@[to_additive /--if two types are isomorphic, the additive free monoids over those types are
+isomorphic-/]
+def congr_iso {α : Type u_1} {β : Type u_2} (e : α ≃ β) : FreeMonoid α ≃* FreeMonoid β := by
+  apply MulEquiv.mk' ⟨FreeMonoid.map e.toFun, FreeMonoid.map e.invFun, _, _⟩
+  · simp
+  all_goals
+  intro x
+  simp
+
+/-- given an isomorphism between α and β, convert a relation predicate to
+have an underlying type of β -/
+@[to_additive /-- given an isomorphism between α and β, convert a relation predicate to
+have an underlying type of β -/]
+def map_rel (e : α ≃ β) (rel : FreeMonoid α → FreeMonoid α → Prop) :
+    FreeMonoid β → FreeMonoid β  → Prop :=
+  fun a b ↦ rel (congr_iso e.symm a) (congr_iso e.symm b)
+
+/-- given an isomorphism between α and β, pull back a relation predicate with underlying type β to
+one with underlying type α -/
+@[to_additive /-- given an isomorphism between α and β, pull back a relation predicate with
+underlying type β to one with underlying type α -/]
+def comap_rel (e : α ≃ β) (rel : FreeMonoid β → FreeMonoid β → Prop) :
+    FreeMonoid α → FreeMonoid α → Prop :=
+  fun a b ↦ rel (congr_iso e a) (congr_iso e b)
+  
+theorem eq_one_or_has_last_elem (a : FreeMonoid α) : a = 1 ∨ ∃ front last, a = front * of last := by
+  induction a using FreeMonoid.inductionOn' with
+  | one => left; rfl
+  | mul_of b a ih =>
+    right
+    cases ih with
+    | inl h => use 1, b; rw [h, one_mul, mul_one]
+    | inr h =>
+      rcases h with ⟨front, last, hfl⟩
+      rw [hfl]
+      use of b * front, last
+      rw [mul_assoc]
+
+theorem parts_eq (h : FreeMonoid.of a * b = FreeMonoid.of c * d) : a = c ∧ b = d := by
+  apply List.append_inj at h
+  simp only [toList_of, List.length_singleton, List.cons.injEq, and_true,
+    EmbeddingLike.apply_eq_iff_eq, true_implies] at h
+  exact h
+
+theorem neq_one {c : FreeMonoid α} (h : c ≠ 1) : ∃ a b, c = FreeMonoid.of a * b := by
+  induction c using FreeMonoid.inductionOn'
+  · exact (h rfl).elim
+  rename_i head tail _
+  use head, tail
+
 end FreeMonoid

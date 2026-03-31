@@ -169,33 +169,30 @@ theorem PresentedMonoidFullLocalization_to_presented_group_surjective :
   Function.RightInverse.surjective <| congrFun (MonoidHom.comp_toFun
   (pmfl_to_presentedGroup_comp_presentedGroup_to_pmfl rels))
 
--- I do not yet know if i want the list version or the freemonoid version
 theorem presentedMonoid_mk_eq_of_presentedGroup_mk_eq_of_positive [IsLeftCancelMul (PresentedMonoid rels)]
-  (h : PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk e) =
-  PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk d))
-  (hd : ∀ x ∈ d, x.2 = true) (he : ∀ x ∈ e, x.2 = true) :
-  PresentedMonoid.mk rels (List.map (fun x ↦ x.1) e) =
-  PresentedMonoid.mk rels (List.map (fun x ↦ x.1) d) := by
+    (h : PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk e) =
+    PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk d))
+    (hd : ∀ x ∈ d, x.2 = true) (he : ∀ x ∈ e, x.2 = true) :
+    PresentedMonoid.mk rels (List.map (fun x ↦ x.1) e) =
+    PresentedMonoid.mk rels (List.map (fun x ↦ x.1) d) := by
   rw [← List.reconstruct_from_projection hd, ← List.reconstruct_from_projection he,
       ← PresentedMonoidFullLocalization_to_presented_group_apply_mk,
       ← PresentedMonoidFullLocalization_to_presented_group_apply_mk] at h
-  exact numeratorHom_injective_of_cancellative _ _
+  apply numeratorHom_injective_of_cancellative _ _
     (PresentedMonoidFullLocalization_to_presented_group_injective rels h)
 
-theorem organized_form (c : PresentedGroup (free_group_set_of_function rels)) : ∃ (a b : PresentedMonoid rels),
-  c = (PresentedMonoidFullLocalization_to_presented_group rels (numeratorHom b))⁻¹ *
-    PresentedMonoidFullLocalization_to_presented_group rels (numeratorHom a)
-     := by
+theorem presentedGroup_exists_fraction_form
+    (c : PresentedGroup (free_group_set_of_function rels)) : ∃ (a b : PresentedMonoid rels),
+    c = (PresentedMonoidFullLocalization_to_presented_group rels (numeratorHom b))⁻¹ *
+    PresentedMonoidFullLocalization_to_presented_group rels (numeratorHom a) := by
   rcases PresentedMonoidFullLocalization_to_presented_group_surjective rels c with ⟨c', hc⟩
   unfold PresentedMonoidFullLocalization at c'
   cases hc' : c' with
   | c r s =>
     use r, s
-    rw [← MonoidHom.id_apply _ c, ← pmfl_to_presentedGroup_comp_presentedGroup_to_pmfl,
-        ← map_inv, ← map_mul, MonoidHom.comp_apply, ← hc, hc']
+    rw [← hc, hc', ← map_inv, ← map_mul]
     simp only [MonoidHom.coe_mk, OneHom.coe_mk, map_mul, map_inv]
-    rw [← MonoidHom.comp_apply, ← MonoidHom.comp_apply, MonoidHom.comp_assoc,
-        presentedGroup_to_pmfl_comp_pmfl_to_presentedGroup, MonoidHom.comp_id, ← map_inv, ← map_mul]
+    rw [← map_inv, ← map_mul]
     change _ = (PresentedMonoidFullLocalization_to_presented_group rels)
       ((1 /ₒ s : PresentedMonoidFullLocalization rels) * (r /ₒ 1 : PresentedMonoidFullLocalization rels))
     rw [mul_div_one]
