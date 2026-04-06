@@ -1,7 +1,6 @@
 import Mathlib.RingTheory.OreLocalization.Basic
 import BraidProject.PresentedMonoid_mine
 import Mathlib.Algebra.Group.Units.Equiv
-open Classical
 
 class HasCommonLeftMultipleData (M : Type*) [Mul M] where
   cl₁ : M → M → M
@@ -71,7 +70,7 @@ private theorem lift_eq_lift_of_rel {G₁ : Type} [Group G₁] (f : α → G₁)
 private def map_denom_into_units {G₁ : Type} [Group G₁] (f : α → G₁)
   (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂)) :
   ↥(⊤ : Submonoid (PresentedMonoid rels)) →* G₁ˣ :=
-  ⟨⟨toUnits ∘ (PresentedMonoid.lift_hom f (lift_eq_lift_of_rel f universal_h)) ∘ (fun x => x.val),
+  ⟨⟨toUnits ∘ (PresentedMonoid.lift f (lift_eq_lift_of_rel f universal_h)) ∘ (fun x => x.val),
     (Units.val_eq_one.mp rfl)⟩,
     (by
       simp only [Function.comp_apply, Submonoid.coe_mul, Subtype.forall]
@@ -94,8 +93,8 @@ noncomputable def presented_fraction_group_to_group {G₁ : Type} [Group G₁] (
     (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂)) :
     (pml rels) →* G₁ :=
     OreLocalization.universalMulHom
-  ⟨⟨PresentedMonoid.lift_hom f (lift_eq_lift_of_rel f universal_h), rfl⟩,
-  by intro x y; simp only; erw [(PresentedMonoid.lift_hom f
+  ⟨⟨PresentedMonoid.lift f (lift_eq_lift_of_rel f universal_h), rfl⟩,
+  by intro x y; simp only; erw [(PresentedMonoid.lift f
   (lift_eq_lift_of_rel f universal_h)).map_mul x y]⟩ (map_denom_into_units f universal_h)
   (fun _ => rfl)
 
@@ -113,12 +112,12 @@ theorem presented_fraction_group_to_group_unique {G₁ : Type} [Group G₁] (f :
   induction r' using FreeMonoid.inductionOn'
   · grind [PresentedMonoid.one_def]
   rename_i head tail ih
-  simp only [PresentedMonoid.mul_mk]
-  erw [(PresentedMonoid.lift_hom f (lift_eq_lift_of_rel f universal_h)).map_mul]
+  simp only [PresentedMonoid.mk_mul]
+  erw [(PresentedMonoid.lift f (lift_eq_lift_of_rel f universal_h)).map_mul]
   rw [← ih, ← OreLocalization.mul_div_one]
   rw [φ.map_mul]
   simp [mul_left_inj]
-  conv => rhs; erw [PresentedMonoid.lift_hom_mk]
+  conv => rhs; erw [PresentedMonoid.lift_mk]
   rw [← hr head]
   rfl
 

@@ -54,7 +54,7 @@ instance : Monoid (PresentedMonoid rels) := Con.monoid (conGen rels)
 and the given relations `rels`. -/
 @[to_additive /--The quotient map from the free additive monoid on `α` to the presented additive
 monoid with the same generators and the given relations `rels`-/]
-def mk (a : FreeMonoid α) : PresentedMonoid rels := Quotient.mk (conGen rels).toSetoid a
+def mk : FreeMonoid α →ₙ* PresentedMonoid rels := ⟨Quotient.mk (conGen rels).toSetoid, fun _ _ => rfl⟩
 
 @[to_additive (attr := simp)]
 theorem mk_mul (a b : FreeMonoid α) : mk rels (a * b) = mk rels a * (mk rels b) := rfl

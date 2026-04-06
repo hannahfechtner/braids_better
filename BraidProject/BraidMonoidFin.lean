@@ -4,9 +4,29 @@ open PresentedMonoid
 
 namespace BraidMonoid -- end this
 
-def rel (n : ℕ):= PresentedMonoid.rel (braid_rels_m n)
+open FreeMonoid in
+inductive braid_rels_multi {n : ℕ} : FreeMonoid (Fin (n + 2)) → FreeMonoid (Fin (n + 2)) → Prop
+  | adjacent (i : Fin (n + 1)) :
+      braid_rels_multi (of i.castSucc * of i.succ * of i.castSucc)
+                       (of i.succ * of i.castSucc * of i.succ)
+  | separated (i j : Fin n) (h : i ≤ j) :
+      braid_rels_multi (of i.castSucc.castSucc * of j.succ.succ)
+                       (of j.succ.succ * of i.castSucc.castSucc)
 
-protected def mk (n : ℕ) := PresentedMonoid.mk (braid_rels_m n)
+def braid_monoid_rels_fin : (n : ℕ) → (FreeMonoid (Fin n) → FreeMonoid (Fin n) → Prop)
+  | 0     => (λ _ _ => False)
+  | 1     => (λ _ _ => False)
+  | n + 2 => @braid_rels_multi n
+
+/-- this is the braid monoid with n strands. those strands are numbered 0 to n-1.
+the generators are numbered 0 to n-2 -/
+def BraidMonoidFin (n : ℕ) := PresentedMonoid (braid_monoid_rels_fin n.pred.pred)
+
+instance (n : ℕ) : Monoid (BraidMonoidFin n) := by unfold BraidMonoidFin; infer_instance
+
+def rel (n : ℕ):= PresentedMonoid.rel (braid_monoid_rels_fin n)
+
+protected def mk (n : ℕ) := PresentedMonoid.mk (braid_monoid_rels_fin n)
 
 theorem mul_mk {n : ℕ} {a b : FreeMonoid (Fin n)} : BraidMonoid.mk n (a * b) =
     BraidMonoid.mk n a * BraidMonoid.mk n b :=
@@ -14,7 +34,7 @@ theorem mul_mk {n : ℕ} {a b : FreeMonoid (Fin n)} : BraidMonoid.mk n (a * b) =
 
 theorem mk_one {n : ℕ} : BraidMonoid.mk n 1 = 1 := rfl
 
-instance {n : ℕ} : Monoid (BraidMonoid n) := by unfold BraidMonoid; infer_instance
+instance {n : ℕ} : Monoid (BraidMonoidFin n) := by unfold BraidMonoidFin; infer_instance
 
 theorem sound : BraidMonoid.rel n a b → BraidMonoid.mk n a = BraidMonoid.mk n b :=
   PresentedMonoid.sound
@@ -25,7 +45,7 @@ theorem refl : BraidMonoid.rel n a a := PresentedMonoid.refl
 theorem reg : ∀ c d, BraidMonoid.rel n a b → BraidMonoid.rel n (c * a * d) (c * b * d) :=
   fun _ _ h => PresentedMonoid.append_right (PresentedMonoid.append_left h)
 theorem symm : ∀ c d, BraidMonoid.rel n a b → BraidMonoid.rel n (c * b * d) (c * a * d) :=
-  fun _ _ h => PresentedMonoid.append_right (PresentedMonoid.append_left (PresentedMonoid.swap h))
+  fun _ _ h => PresentedMonoid.append_right (PresentedMonoid.append_left (PresentedMonoid.symm h))
 theorem concat : BraidMonoid.rel n a b → BraidMonoid.rel n c d →
   BraidMonoid.rel n (a * c) (b * d) := PresentedMonoid.mul
 theorem append_left : BraidMonoid.rel n c d →
@@ -62,7 +82,7 @@ theorem comm {j k : Fin n} (h1 : n >= 3) (h : j - k >= (⟨2, h1⟩ : Fin n)) :
   have hjk : j<=k := by sorry
   have H := braid_rels_multi.separated j k hjk
   have H3 : ∃ (l : ℕ), n = l.succ.succ := by sorry
-  unfold braid_rels_m
+  unfold braid_monoid_rels_fin
   rcases H3 with ⟨l, hl⟩
   sorry
 

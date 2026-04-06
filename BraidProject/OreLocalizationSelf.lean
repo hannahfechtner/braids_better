@@ -4,8 +4,6 @@ import Mathlib.Algebra.Group.Units.Equiv
 import BraidProject.Additions.OreLocalization
 import BraidProject.Additions.Mixins
 
-open Classical
-
 namespace OreLocalization
 namespace Self
 
