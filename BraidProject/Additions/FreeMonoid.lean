@@ -4,6 +4,8 @@ import Mathlib.GroupTheory.FreeGroup.Basic
 
 namespace FreeMonoid
 
+def pmap {p : α → Prop} (f : (a : α) → p a → β ) (l : FreeMonoid (α)):= List.pmap f (toList l)
+
 theorem prod_eq_one {a b : FreeMonoid α} (h : a * b = 1) : a = 1 ∧ b = 1 := by
   have H : FreeMonoid.length (a * b) = 0 := by
     rw [h, length_one]
@@ -54,6 +56,8 @@ theorem reverse_eq_one : reverse a = 1 ↔ a = 1 := by
     exact reverse_reverse.symm
   intro h
   rw [h, reverse_one]
+
+theorem mem_one_iff : a ∈ (1 : FreeMonoid α) ↔ False := List.mem_nil_iff _
 
 theorem mem_reverse : a ∈ reverse b ↔ a ∈ b := List.mem_reverse
 
@@ -122,7 +126,7 @@ underlying type β to one with underlying type α -/]
 def comap_rel (e : α ≃ β) (rel : FreeMonoid β → FreeMonoid β → Prop) :
     FreeMonoid α → FreeMonoid α → Prop :=
   fun a b ↦ rel (congr_iso e a) (congr_iso e b)
-  
+
 theorem eq_one_or_has_last_elem (a : FreeMonoid α) : a = 1 ∨ ∃ front last, a = front * of last := by
   induction a using FreeMonoid.inductionOn' with
   | one => left; rfl
@@ -135,6 +139,14 @@ theorem eq_one_or_has_last_elem (a : FreeMonoid α) : a = 1 ∨ ∃ front last, 
       rw [hfl]
       use of b * front, last
       rw [mul_assoc]
+
+theorem exists_last_elem_of_length_eq_succ (length : length b = Nat.succ n) :
+    ∃ b_front b_last, b = b_front  *  .of b_last := by
+  rcases eq_one_or_has_last_elem b
+  · rename_i b_is_one
+    rw [b_is_one, length_one] at length
+    exact (Nat.succ_ne_zero n length.symm).elim
+  assumption
 
 theorem parts_eq (h : FreeMonoid.of a * b = FreeMonoid.of c * d) : a = c ∧ b = d := by
   apply List.append_inj at h

@@ -3,6 +3,7 @@ import Mathlib.Data.Nat.Dist
 import BraidProject.Additions.NatDist
 import BraidProject.Additions.FreeMonoid
 import Mathlib.Algebra.FreeMonoid.Symbols
+import BraidProject.BraidGroup
 
 open FreeMonoid
 
@@ -26,6 +27,7 @@ def rel := PresentedMonoid.rel braid_monoid_rels_inf
 
 instance : Monoid BraidMonoidInf := by unfold BraidMonoidInf; infer_instance
 
+protected def of : ℕ → BraidMonoidInf := PresentedMonoid.of (braid_monoid_rels_inf)
 protected def mk : FreeMonoid ℕ →ₙ* BraidMonoidInf := PresentedMonoid.mk (braid_monoid_rels_inf)
 
 theorem mk_mul : BraidMonoidInf.mk (a * b) = BraidMonoidInf.mk a * BraidMonoidInf.mk b := rfl
@@ -85,7 +87,7 @@ theorem generators_mk : generators (BraidMonoidInf.mk a) = FreeMonoid.symbols a 
 theorem generators_mul : generators (a * b) = generators a ∪ generators b := by
   induction a
   induction b
-  rw [← map_mul, generators_mk, generators_mk, generators_mk, symbols_mul]
+  rw [← map_mul, generators_mk, generators_mk, generators_mk, FreeMonoid.symbols_mul]
 
 private theorem reverse_eq_of_rels (a b : FreeMonoid ℕ) (h : braid_monoid_rels_inf a b) :
     mk braid_monoid_rels_inf a.reverse = mk braid_monoid_rels_inf b.reverse := by
@@ -172,7 +174,7 @@ theorem pair_eq {j k : ℕ} (h : BraidMonoidInf.mk (of j * of k) = BraidMonoidIn
   apply congrArg length at h
   apply congrArg generators at h1
   rcases length_eq_two.mp h.symm with ⟨c, d, rfl⟩
-  simp only [generators_mk, symbols_mul, symbols_of] at h1
+  simp only [generators_mk, FreeMonoid.symbols_mul, symbols_of] at h1
   have : j ∈ ({c, d} : Finset ℕ) := by grind
   simp only [Finset.mem_insert, Finset.mem_singleton] at this
   rcases this with ⟨one, two, rfl⟩
@@ -333,3 +335,19 @@ theorem braid_rel_rw (x i j) (h : i.dist j = 1) :
     x * .mk (of j) * .mk (of i) * .mk (of j) := by
   rw [mul_assoc x, mul_assoc x, mul_assoc x, mul_assoc x, ← map_mul, ← map_mul, ← map_mul,
       ← map_mul, ← braid h]
+
+
+open Braid in
+theorem toBraidGroup_helper (a b : FreeMonoid ℕ) (h : braid_monoid_rels_inf a b) :
+    (FreeMonoid.lift fun a => σ a) a = (FreeMonoid.lift fun a => σ a) b := by
+  cases h
+  · apply BraidGroupInf.braid
+    unfold Nat.dist
+    omega
+  apply BraidGroupInf.comm
+  unfold Nat.dist
+  omega
+
+open Braid in
+def toBraidGroup : BraidMonoidInf →* BraidGroupInf :=
+  PresentedMonoid.toMonoid (fun a => σ a) toBraidGroup_helper

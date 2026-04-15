@@ -44,7 +44,7 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
     stable (FreeMonoid.of i) (FreeMonoid.of j * FreeMonoid.of k) := by
   intro c d grid_abcd a' b' ha' hb'
   rw [BraidMonoidInf.singleton_eq ha']
-  rcases BraidMonoidInf.pair_eq h hb' with rfl | rfl
+  rcases BraidMonoidInf.pair_eq hb' with rfl | rfl
   · use c, d
   rcases splittable_vertically grid_abcd (of j) (of k) rfl with ⟨u, c₁, c₂, g1, g2, rfl⟩
   rcases trichotomous_dist i j with ij_dist_ge_two | ij_dist_eq_one | ij_eq
@@ -55,7 +55,7 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
       use of k * of j, of i
       rw [hd, hc₁, hc₂]
       exact ⟨grid.horizontal (.separated i k ik_dist_ge_two)
-        (.separated i j ij_dist_ge_two), ⟨BraidMonoidInf.comm_rel_eq _ _ h, rfl⟩⟩
+        (.separated i j ij_dist_ge_two), ⟨BraidMonoidInf.comm_mk _ _ h, rfl⟩⟩
     · use of k * of i * of j, of i * of k
       constructor
       · rw [Nat.dist_comm] at h
@@ -65,8 +65,8 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
       have ⟨hc₂, hd⟩ := generator_generator_close g2 ik_dist_eq_one
       rw [hc₁, hc₂, hd]
       constructor
-      · simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
-        rw [BraidMonoidInf.comm_rel_eq j k h, BraidMonoidInf.comm_rel_rw _ j i]
+      · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
+        rw [BraidMonoidInf.comm_mk j k h, BraidMonoidInf.comm_rel_rw _ j i]
         rw [Nat.dist_comm]
         assumption
       rfl
@@ -90,8 +90,8 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
       · have ⟨hc₂, hd₂⟩ := generator_generator_apart g4 jk_dist_ge_two
         rw [hc₂, hd, hd₁, hd₂]
         constructor
-        · simp only [BraidMonoidInf.mul_mk]
-          rw [BraidMonoidInf.comm_rel_eq k j, BraidMonoidInf.comm_rel_rw _ i k (by assumption)]
+        · simp only [BraidMonoidInf.mk_mul]
+          rw [BraidMonoidInf.comm_mk k j, BraidMonoidInf.comm_rel_rw _ i k (by assumption)]
           rw [Nat.dist_comm]; assumption
         rfl
       · aesop
@@ -112,11 +112,11 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
       have ⟨hc₄, hd₂⟩ := generator_generator_close g6 ij_dist_eq_one
       rw [hc₃, hc₄, hd, hd₁, hd₂]
       constructor
-      · simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
-        rw [BraidMonoidInf.braid_rel_rw _ i k ik_dist_eq_one, BraidMonoidInf.comm_rel_eq j k h]
+      · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
+        rw [BraidMonoidInf.braid_rel_rw _ i k ik_dist_eq_one, BraidMonoidInf.comm_mk j k h]
         rw [Nat.dist_comm] at h
         rw [BraidMonoidInf.comm_rel_rw _ k j h, BraidMonoidInf.braid_rel_rw _ j i ij_dist_eq_one]
-      simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+      simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
       rw [BraidMonoidInf.comm_rel_rw _ j k]
       assumption
     rw [← ik_eq, Nat.dist_comm] at h
@@ -183,11 +183,11 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
         exact ij_ge_two_apart
       constructor
       · rw [hu₁, hu₂, hc₂]
-        simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+        simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
         rw [Nat.dist_comm] at ik_one_apart h
-        rw [BraidMonoidInf.comm_rel_rw _ i j ij_ge_two_apart, BraidMonoidInf.braid_rel_eq j k h,
+        rw [BraidMonoidInf.comm_rel_rw _ i j ij_ge_two_apart, BraidMonoidInf.braid_mk j k h,
           BraidMonoidInf.braid_rel_rw _ k i ik_one_apart, BraidMonoidInf.comm_rel_rw _ i j ij_ge_two_apart]
-      aesop
+      grind
     rw [Nat.dist_comm] at h
     aesop
   · have ⟨hu₁, hm⟩ := generator_generator_close g3 ij_one_apart
@@ -219,10 +219,10 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
       have ⟨hc₂, hd₄⟩ := generator_generator_apart g10 ik_ge_two_apart
       rw [hd, hd₁, hd₂, hd₃, hd₄, hc₂]
       constructor
-      · simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
+      · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
         rw [Nat.dist_comm] at ik_ge_two_apart
         rw [BraidMonoidInf.comm_rel_rw _ i k ik_ge_two_apart,
-            BraidMonoidInf.braid_rel_rw _ i j ij_one_apart, BraidMonoidInf.braid_rel_eq j k h,
+            BraidMonoidInf.braid_rel_rw _ i j ij_one_apart, BraidMonoidInf.braid_mk j k h,
           BraidMonoidInf.comm_rel_rw _ k i]
         rw [Nat.dist_comm]; assumption
       aesop
@@ -255,13 +255,13 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
     apply grid.vertical (.top_bottom k) (.top_left k)
   exact ⟨rfl, rfl⟩
 
-private theorem stable_generator_elem_braid_rels {w y : FreeMonoid ℕ} (h : braid_rels_m_inf w y) :
+private theorem stable_generator_elem_braid_rels {w y : FreeMonoid ℕ} (h : braid_monoid_rels_inf w y) :
     ∀ a, stable (of a) w := by
   rcases h
   · exact fun a ↦ stable_generator_braid_rel a _ _ dist_succ
   exact fun a ↦ stable_generator_comm_rel a _ _ (or_dist_iff.mpr (Or.inl (by assumption)))
 
-private theorem stable_generator_elem_braid_rels_symm {w y : FreeMonoid ℕ} (h : braid_rels_m_inf y w) :
+private theorem stable_generator_elem_braid_rels_symm {w y : FreeMonoid ℕ} (h : braid_monoid_rels_inf y w) :
     ∀ a, stable (of a) w := by
   rcases h
   · intro a
@@ -271,7 +271,7 @@ private theorem stable_generator_elem_braid_rels_symm {w y : FreeMonoid ℕ} (h 
   exact fun a => stable_generator_comm_rel a _ _ (by grind [Nat.dist])
 
 private theorem stable_generator_elem_braid_rels_both {w y : FreeMonoid ℕ}
-    (h : braid_rels_m_inf y w ∨ braid_rels_m_inf w y) :
+    (h : braid_monoid_rels_inf y w ∨ braid_monoid_rels_inf w y) :
     ∀ a, stable (of a) w := by
   cases h with
   | inl h => apply stable_generator_elem_braid_rels_symm h
@@ -281,7 +281,7 @@ private theorem stable_first_refl_second_one_step_both (ih : ∀ (u v a b : Free
     ∀ (u' v' : FreeMonoid ℕ), BraidMonoidInf.mk u = BraidMonoidInf.mk u' →
     BraidMonoidInf.mk v = BraidMonoidInf.mk v' → ∃ a' b', grid u' v' a' b' ∧
     BraidMonoidInf.mk a = BraidMonoidInf.mk a' ∧ BraidMonoidInf.mk b = BraidMonoidInf.mk b')
-    (br : braid_rels_m_inf f g ∨ braid_rels_m_inf g f) (gr : grid e (i * g * j) c d) (len : n + 1 ≥ e.length + c.length) :
+    (br : braid_monoid_rels_inf f g ∨ braid_monoid_rels_inf g f) (gr : grid e (i * g * j) c d) (len : n + 1 ≥ e.length + c.length) :
     ∃ a' b', grid e (i * f * j) a' b' ∧
     BraidMonoidInf.mk c = BraidMonoidInf.mk a' ∧ BraidMonoidInf.mk d = BraidMonoidInf.mk b' := by
   rcases splittable_vertically gr _ _ rfl with ⟨u₁, d₄, d₃, first_grid, grid_right, d_is⟩
@@ -295,7 +295,7 @@ private theorem stable_first_refl_second_one_step_both (ih : ∀ (u v a b : Free
     · exact grid.horizontal (.horizontal grid_left (top_bottom_word f)) grid_right
     constructor
     · rw [d_is, d₄_is]
-      simp only [BraidMonoidInf.mul_mk]
+      simp only [BraidMonoidInf.mk_mul]
       congr 2
       rcases br with h1 | h2
       · symm
@@ -347,7 +347,7 @@ private theorem stable_first_refl_second_one_step_both (ih : ∀ (u v a b : Free
       (.vertical top_middle_fact.1 bottom_middle_fact.1)) right_fact.1
   constructor
   · rw [d_is, d₄_is]
-    simp only [BraidMonoidInf.mul_mk]
+    simp only [BraidMonoidInf.mk_mul]
     aesop
   exact right_fact.2.2
 
@@ -405,7 +405,7 @@ theorem stability (a b : FreeMonoid ℕ) : stable a b := by
           simp only [length_mul] at len
           simp only [length_mul]
           rw [← BraidMonoidInf.length_eq cb, ← BraidMonoidInf.length_eq
-              (PresentedMonoid.sound (PresentedMonoid.rel_alone br))]
+              (PresentedMonoid.sound (PresentedMonoid.rels_alone br))]
           assumption
         rcases stable_first_refl ih b_is b1 b1_len a1 swapped_grid with ⟨a2, b2, gr', hb1, ha1⟩
         use a2, b2
@@ -420,7 +420,7 @@ theorem stability (a b : FreeMonoid ℕ) : stable a b := by
           simp only [length_mul] at len
           simp only [length_mul]
           rw [← BraidMonoidInf.length_eq cb, BraidMonoidInf.length_eq
-                (PresentedMonoid.sound (PresentedMonoid.rel_alone br))]
+                (PresentedMonoid.sound (PresentedMonoid.rels_alone br))]
           assumption
         rcases stable_first_refl ih b_is b1 b1_len a1 swapped_grid with ⟨a2, b2, gr', hb1, ha1⟩
         use a2, b2

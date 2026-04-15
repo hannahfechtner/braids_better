@@ -20,11 +20,13 @@ def braid_monoid_rels_fin : (n : ℕ) → (FreeMonoid (Fin n) → FreeMonoid (Fi
 
 /-- this is the braid monoid with n strands. those strands are numbered 0 to n-1.
 the generators are numbered 0 to n-2 -/
-def BraidMonoidFin (n : ℕ) := PresentedMonoid (braid_monoid_rels_fin n.pred.pred)
+def BraidMonoidFin (n : ℕ) := PresentedMonoid (braid_monoid_rels_fin n.pred)
 
 instance (n : ℕ) : Monoid (BraidMonoidFin n) := by unfold BraidMonoidFin; infer_instance
 
 def rel (n : ℕ):= PresentedMonoid.rel (braid_monoid_rels_fin n)
+
+protected def of (n : ℕ) := PresentedMonoid.of (braid_monoid_rels_fin n)
 
 protected def mk (n : ℕ) := PresentedMonoid.mk (braid_monoid_rels_fin n)
 
@@ -120,3 +122,28 @@ theorem comm_rel {j k : Fin n} (h1 : n≥ 3) (h : j - k >= ⟨2, h1⟩) :
 --   rename_i j_is
 --   rw [← j_is]
 --   exact braid_rels_m_inf.adjacent _
+
+open Braid
+theorem toBraidGroup_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin (n.pred))),
+    (BraidMonoid.braid_monoid_rels_fin (n.pred)) a b → ((FreeMonoid.lift fun a => σₙ a) a : BraidGroupFin n)=
+    (FreeMonoid.lift fun a => σₙ a) b := by
+  repeat
+    rcases n
+    · exact fun _ _ h => h.elim
+    rename_i n
+  intro a b h
+  rcases h
+  · rename_i j
+    simp only [map_mul, Nat.pred_succ]
+    apply BraidGroupFin.braid
+    unfold Nat.dist
+    aesop
+  simp only [map_mul, Nat.pred_succ]
+  apply BraidGroupFin.comm
+  unfold Nat.dist Fin.castSucc Fin.castAdd Fin.castLE Fin.succ
+  simp only
+  omega
+
+def toBraidGroup {n : ℕ} : (BraidMonoidFin n) →* (BraidGroupFin n) := PresentedMonoid.toMonoid _ (toBraidGroup_helper _)
+
+end BraidMonoid

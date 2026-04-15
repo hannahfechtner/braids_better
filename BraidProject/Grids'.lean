@@ -64,20 +64,21 @@ theorem braid_eq_of_grid (h : grid a b c d) :
   | sides i => rfl
   | top_left i => rfl
   | adjacent i k h_dist =>
-    simp only [BraidMonoidInf.mul_mk, ← mul_assoc]
-    exact BraidMonoidInf.braid_rel_eq _ _ h_dist
+    simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
+    exact BraidMonoidInf.braid_mk _ _ h_dist
   | separated i j h =>
-    simp only [BraidMonoidInf.mul_mk]
-    rw [BraidMonoidInf.comm_rel_eq i j h]
+    simp only [BraidMonoidInf.mk_mul]
+    rw [BraidMonoidInf.comm_mk i j h]
   | vertical _ _ h1_ih h2_ih =>
-    simp_all only [BraidMonoidInf.mul_mk, ← mul_assoc]
+    simp_all only [BraidMonoidInf.mk_mul, ← mul_assoc]
     rw [← h1_ih, mul_assoc, h2_ih, ← mul_assoc]
   | horizontal _ _ h1_ih h2_ih =>
-    simp_all only [BraidMonoidInf.mul_mk, mul_assoc]
+    simp_all only [BraidMonoidInf.mk_mul, mul_assoc]
     rw [← h2_ih, ← mul_assoc, h1_ih, ← mul_assoc]
-theorem braid_equiv_of_grid_empty_sink : grid a b 1 1 → PresentedMonoid.rel braid_rels_m_inf a b := by
+    
+theorem braid_equiv_of_grid_empty_sink : grid a b 1 1 → BraidMonoidInf.rel a b := by
   intro h
-  apply PresentedMonoid.exact
+  apply BraidMonoidInf.exact
   rw [← mul_one a, ← mul_one b]
   exact braid_eq_of_grid h
 

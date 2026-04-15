@@ -31,13 +31,17 @@ theorem left_cancellative {a b c : BraidMonoidInf} (h1 : c * a = c * b) :
     rw [hm₁, one_mul, hm₂] at middle_is
     rw [middle_is] at g₂
     have := braid_eq_of_grid g₂
-    rw [mul_one, (FreeMonoid.prod_eq_one f_is.symm).2, mul_one, mul_mk, mul_mk] at this
+    rw [mul_one, (FreeMonoid.prod_eq_one f_is.symm).2, mul_one, mk_mul, mk_mul] at this
     exact this
 
 theorem right_cancellative {a b c : BraidMonoidInf} (h1 : a * c = b * c) : a = b := by
-  apply BraidMonoidInf.eq_iff_reverse_eq_reverse.mp at h1
+  apply BraidMonoidInf.reverse_eq_reverse_iff.mp at h1
   rw [BraidMonoidInf.reverse_braid_mul, BraidMonoidInf.reverse_braid_mul] at h1
-  exact BraidMonoidInf.eq_iff_reverse_eq_reverse.mpr (left_cancellative h1)
+  exact BraidMonoidInf.reverse_eq_reverse_iff.mpr (left_cancellative h1)
+
+instance BraidMonoid_Cancellative : CancelMonoid BraidMonoidInf where
+    mul_right_cancel := fun _ _ _ => right_cancellative
+    mul_left_cancel := fun _ _ _ => left_cancellative
 
 theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d' = d := by
   induction h1 with
@@ -66,7 +70,3 @@ theorem existence : ∀ a b, ∃ c d, grid a b c d := by
   rw [(FreeMonoid.prod_eq_one side_one.symm).1] at top_grid
   rcases splittable_vertically top_grid _ _ rfl with ⟨top_vert, m₁, m₂, top_left, _, _⟩
   use m₁, top_vert
-
-instance BraidMonoid_Cancellative : CancelMonoid (PresentedMonoid braid_rels_m_inf) where
-    mul_right_cancel := fun _ _ _ => right_cancellative
-    mul_left_cancel := fun _ _ _ => left_cancellative

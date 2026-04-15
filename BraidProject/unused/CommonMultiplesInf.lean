@@ -1,9 +1,7 @@
 import BraidProject.BraidMonoid
-import BraidProject.SigmaBar
-import BraidProject.InductionWithBounds
+import BraidProject.FlipBraid'
+import BraidProject.Additions.Induction
 import Mathlib.Algebra.FreeMonoid.Basic
---part two : common right multiples
-
 
 open FreeMonoid
 -- --lemma 3.9 property

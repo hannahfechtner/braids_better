@@ -1,220 +1,250 @@
-import Mathlib.GroupTheory.FreeGroup.Basic
+import Mathlib.Algebra.Group.SubGroup.ZPowers.Basic
+import Mathlib.Data.Int.ConditionallyCompleteOrder
+import Mathlib.Data.Nat.Dist
 import Mathlib.GroupTheory.PresentedGroup
-import Mathlib.GroupTheory.SpecificGroups.Cyclic
-import Mathlib.Data.Fin.Basic
-import BraidProject.BraidMonoid
+import Mathlib.LinearAlgebra.Matrix.Symmetric
+import BraidProject.ArtinTits
 
 namespace Braid
 
-variable (M : α → α → ℕ)
+open ArtinTits
+/-- The Artin-Tits matrix for Artin's braid group on n strands -/
+def BraidMatrixFin {n : ℕ} : ArtinTitsMatrix (Fin n.pred) where
+  M := Matrix.of fun i j : Fin n.pred ↦
+    if i = j then 0
+      else (if (j : ℕ) + 1 = i ∨ (i : ℕ) + 1 = j then 3 else 2)
+  isSymm := by unfold Matrix.IsSymm; aesop
+  off_diagonal := by aesop
 
-def alternate (s t : α) (k : ℕ) :=
-  match k with
-  | 0 => 1
-  | Nat.succ n => FreeGroup.of s * alternate t s n
+/-- The Artin-Tits matrix for Artin's infinite braid group -/
+def BraidMatrixInf : ArtinTitsMatrix ℕ where
+  M := Matrix.of fun i j : ℕ ↦
+    if i = j then 0
+      else (if i.dist j = 1 then 3 else 2)
+  isSymm := by
+    unfold Matrix.IsSymm Matrix.transpose
+    simp only [Matrix.of_apply, EmbeddingLike.apply_eq_iff_eq]
+    ext
+    rw [Nat.dist_comm]
+    aesop
+  off_diagonal := by aesop
 
-def artin_tits_rel (s t : α) : FreeGroup (α) :=
-  alternate s t (M s t) * (alternate t s (M s t))⁻¹
+def BraidGroupInf := ArtinTitsGroup BraidMatrixInf
 
-@[simp]
-theorem alternate_one (a b : α) : alternate a b 1 = .of a := rfl
-
-@[simp]
-theorem alternate_two (a b : α) : alternate a b 2 = .of a * .of b := rfl
-
-@[simp]
-theorem alternate_three (a b : α) : alternate a b 3 = .of a * .of b * .of a := rfl
-
-def M_braid_inf (i j : ℕ) : ℕ :=
-  match i.dist j with
-  | 0 => 0
-  | 1 => 3
-  | _ => 2
-
-def M_braid_fin {n : ℕ} (i j : Fin n) : ℕ :=
-  M_braid_inf i.val j.val
-
-theorem M_braid_separated {i j : ℕ} (h : i.dist j ≥ 2) : M_braid_inf i j = 2 := by
-  unfold M_braid_inf
-  aesop
-
-theorem M_braid_fin_separated (i j : Fin n) (h : i.val.dist j ≥ 2) : M_braid_fin i j = 2 := by
-  apply M_braid_separated
-  simp only [ge_iff_le, h]
-
-theorem M_braid_adjacent {i : ℕ} : M_braid_inf i (i + 1) = 3 := by
-  unfold M_braid_inf
-  simp [Nat.dist, add_tsub_cancel_left]
-
-theorem M_braid_fin_adjacent (i : Fin n) : M_braid_fin i.castSucc i.succ = 3 := by
-  unfold M_braid_fin
-  simp only [Fin.val_succ]
-  exact M_braid_adjacent
-
-def artin_tits_rel_set (M : α → α → ℕ) : Set (FreeGroup α) :=
-  Set.range (Function.uncurry (artin_tits_rel M))
-
-def ArtinTitsGroup (M : α → α → ℕ) := PresentedGroup (artin_tits_rel_set M)
-
-def BraidGroupInf := ArtinTitsGroup (M_braid_inf)
-
-def BraidGroupFin (n : ℕ) := ArtinTitsGroup (@M_braid_fin n.pred)
-
-def braid_rels_coexeter : Set (FreeGroup ℕ) :=
-  Set.range (Function.uncurry (artin_tits_rel M_braid_inf))
-
-def braid_rels_fin_coexeter (n : ℕ): Set (FreeGroup (Fin n)) := Set.range (Function.uncurry (artin_tits_rel M_braid_fin))
-
-instance : Group (ArtinTitsGroup rels ):= by
-  unfold ArtinTitsGroup; infer_instance
-
-instance (n : ℕ) : Group (BraidGroupFin n) := by
-  unfold BraidGroupFin; infer_instance
+def BraidGroupFin (n : ℕ) := ArtinTitsGroup (@BraidMatrixFin n)
 
 instance : Group BraidGroupInf := by
   unfold BraidGroupInf; infer_instance
 
-def σ {n : ℕ} (k : Fin n) : BraidGroupFin (n+1) := PresentedGroup.of k
+instance (n : ℕ) : Group (BraidGroupFin n) := by
+  unfold BraidGroupFin; infer_instance
 
-def σi (k : ℕ) : BraidGroupInf := PresentedGroup.of k
+def σ (k : ℕ) : BraidGroupInf := PresentedGroup.of k
 
-theorem braid_group_inf.braid {i j : ℕ} (hd : i.dist j = 1):
-    σi i * σi j * σi i = σi j * σi i * σi j := by
-  symm
-  rw [←mul_inv_eq_one]
-  apply QuotientGroup.eq.mpr
-  apply Subgroup.subset_normalClosure
-  apply Set.mem_range.mpr
-  use (i, j)
-  simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_inf, hd, alternate_three,
-    mul_inv_rev, inv_inv, mul_one]
+def σₙ {n : ℕ} (k : Fin n.pred) : BraidGroupFin n := PresentedGroup.of k
 
-theorem braid_group.braid {i j : Fin n} (hd : i.val.dist j.val = 1):
+-- def M_braid_inf (i j : ℕ) : ℕ :=
+--   match i.dist j with
+--   | 0 => 0
+--   | 1 => 3
+--   | _ => 2
+
+-- def M_braid_fin {n : ℕ} (i j : Fin n) : ℕ :=
+--   M_braid_inf i.val j.val
+
+-- theorem M_braid_separated {i j : ℕ} (h : i.dist j ≥ 2) : M_braid_inf i j = 2 := by
+--   unfold M_braid_inf
+--   aesop
+
+-- theorem M_braid_fin_separated (i j : Fin n) (h : i.val.dist j ≥ 2) : M_braid_fin i j = 2 := by
+--   apply M_braid_separated
+--   simp only [ge_iff_le, h]
+
+-- theorem M_braid_adjacent {i : ℕ} : M_braid_inf i (i + 1) = 3 := by
+--   unfold M_braid_inf
+--   simp [Nat.dist, add_tsub_cancel_left]
+
+-- theorem M_braid_fin_adjacent (i : Fin n) : M_braid_fin i.castSucc i.succ = 3 := by
+--   unfold M_braid_fin
+--   simp only [Fin.val_succ]
+--   exact M_braid_adjacent
+
+theorem BraidMatrixInf_separated {i j : ℕ} (h : i.dist j ≥ 2) : BraidMatrixInf.1 i j = 2 := by
+  unfold BraidMatrixInf
+  aesop
+
+theorem M_braid_fin_separated {n : ℕ} (i j : Fin n.pred) (h : i.val.dist j ≥ 2) :
+    BraidMatrixFin.1 i j = 2 := by
+  unfold BraidMatrixFin
+  grind [Matrix.of_apply, Nat.dist]
+
+theorem BraidMatrixInf_adjacent {i j : ℕ} (h : i.dist j = 1) : BraidMatrixInf.1 i j = 3 := by
+  unfold BraidMatrixInf
+  aesop
+
+theorem BraidMatrixInf_adjacent' {i : ℕ} : BraidMatrixInf.1 i (i + 1) = 3 := by
+  unfold BraidMatrixInf
+  simp [Nat.dist, add_tsub_cancel_left]
+
+theorem M_braid_fin_adjacent {n : ℕ} (i j : Fin n.pred) (h : i.val.dist j = 1)  : BraidMatrixFin.1 i j = 3 := by
+  unfold BraidMatrixFin
+  grind [Matrix.of_apply, Nat.dist]
+
+variable {α : Type*}
+
+theorem BraidGroupInf.braid {i j : ℕ} (hd : i.dist j = 1):
     σ i * σ j * σ i = σ j * σ i * σ j := by
-  have is_three : M_braid_fin i j = 3 := by
-    unfold M_braid_fin M_braid_inf
-    grind [Nat.dist]
   symm
   rw [←mul_inv_eq_one]
   apply QuotientGroup.eq.mpr
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, j)
-  simp only [Nat.pred_eq_sub_one, Nat.add_one_sub_one, Function.uncurry_apply_pair, artin_tits_rel,
-    is_three, alternate_three, mul_inv_rev]
-  rfl
+  simp only [Function.uncurry_apply_pair, relation, BraidMatrixInf_adjacent, hd,
+    Group.alternate_three, mul_inv_rev, inv_inv, mul_one]
 
-theorem separated (h : 2 ≤ e.dist g) : FreeGroup.of e * .of g * (.of e)⁻¹ * (.of g)⁻¹ ∈
-    braid_rels_coexeter := by
-  refine Set.mem_range.mpr ?_
-  use (e, g)
-  rw [Function.uncurry_apply_pair, artin_tits_rel, M_braid_separated h]
-  simp only [alternate_two, mul_inv_rev]
-  rfl
-
-theorem braid_group_inf.comm {i j : ℕ} (h : 2 ≤ i.dist j) :
-    σi i * σi j = σi j * σi i := by
+theorem BraidGroupFin.braid {n : ℕ} {i j : Fin n.pred} (hd : i.val.dist j.val = 1):
+    σₙ i * σₙ j * σₙ i = σₙ j * σₙ i * σₙ j := by
   symm
   rw [←mul_inv_eq_one]
   apply QuotientGroup.eq.mpr
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, j)
-  simp only [Function.uncurry_apply_pair, artin_tits_rel, M_braid_separated h, alternate_two, mul_inv_rev,
-    inv_inv, mul_one]
+  simp only [Nat.pred_eq_sub_one, M_braid_fin_adjacent _ _ hd, Function.uncurry_apply_pair,
+    relation, mul_inv_rev]
+  rfl
 
-theorem braid_group.comm {i j : Fin n} (h : 2 ≤ i.val.dist j.val) :
+theorem BraidGroupInf.comm {i j : ℕ} (h : 2 ≤ i.dist j) :
     σ i * σ j = σ j * σ i := by
-  have is_two : M_braid_fin i j = 2 := by
-    unfold M_braid_fin M_braid_inf
-    grind [Nat.dist]
   symm
   rw [←mul_inv_eq_one]
   apply QuotientGroup.eq.mpr
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, j)
-  simp only [Nat.pred_eq_sub_one, Nat.add_one_sub_one, Function.uncurry_apply_pair, artin_tits_rel,
-    is_two, alternate_two, mul_inv_rev]
+  simp only [Function.uncurry_apply_pair, relation, BraidMatrixInf_separated h,
+    Group.alternate_two, mul_inv_rev, inv_inv, mul_one]
+
+theorem BraidGroupFin.comm {n : ℕ} {i j : Fin n.pred} (h : 2 ≤ i.val.dist j.val) :
+    σₙ i * σₙ j = σₙ j * σₙ i := by
+  symm
+  rw [←mul_inv_eq_one]
+  apply QuotientGroup.eq.mpr
+  apply Subgroup.subset_normalClosure
+  apply Set.mem_range.mpr
+  use (i, j)
+  simp only [Nat.pred_eq_sub_one, M_braid_fin_separated _ _ h, Function.uncurry_apply_pair, relation,
+    mul_inv_rev]
   rfl
 
-theorem generated_by (H : Subgroup BraidGroupInf) (h : ∀ i : ℕ, σi i ∈ H) :
-    ∀ x : BraidGroupInf, x ∈ H := by
-  intro x
-  apply QuotientGroup.induction_on
-  intro z
-  apply FreeGroup.induction_on (C := fun z => ⟦z⟧ ∈ H) _ (one_mem H)
-  . exact fun i => h i
-  . exact fun i h => (Subgroup.inv_mem_iff H).mp h
-  intro i j h1 h2
-  change QuotientGroup.mk _ ∈ H.carrier
-  rw [QuotientGroup.mk_mul]
-  exact Subgroup.mul_mem _ h1 h2
+theorem generated_by (H : Subgroup BraidGroupInf) (h : ∀ i : ℕ, σ i ∈ H) :
+    ∀ x : BraidGroupInf, x ∈ H := PresentedGroup.generated_by _ _ h
 
-  theorem generated_by_fin (H : Subgroup (BraidGroupFin (n+1))) (h : ∀ i : Fin n, σ i ∈ H) :
-    ∀ x : BraidGroupFin (n+1), x ∈ H := by
-  intro x
-  apply QuotientGroup.induction_on
-  intro z
-  apply FreeGroup.induction_on (C := fun z => ⟦z⟧ ∈ H) _ (one_mem H)
-  . exact fun i => h i
-  . intro i h
-    apply (Subgroup.inv_mem_iff H).mp
-    exact h
-  intro i j h1 h2
-  change QuotientGroup.mk _ ∈ H.carrier
-  rw [QuotientGroup.mk_mul]
-  exact Subgroup.mul_mem _ h1 h2
-
+theorem generated_by_fin (H : Subgroup (BraidGroupFin n)) (h : ∀ i : Fin n.pred, σₙ i ∈ H) :
+    ∀ x : BraidGroupFin n, x ∈ H := PresentedGroup.generated_by _ _ h
 
 theorem braid_group_2.is_cyclic : ∃ g : (BraidGroupFin 2), ∀ x, x ∈ Subgroup.zpowers g := by
-  use (σ 0)
+  use (σₙ ⟨0, by aesop⟩)
   intro x
   apply generated_by_fin
   intro i
   rw [Subgroup.mem_zpowers_iff]
   use 1
-  have h : i=0 := by
-    omega
-  rw [h]
-  rfl
+  have : i = ⟨0, by aesop⟩ := by aesop
+  aesop
 
-theorem embed_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin (n.pred))),
-    (braid_rels_m (n.pred)) a b → ((FreeMonoid.lift fun a => σ a) a : BraidGroupFin n)=
-    (FreeMonoid.lift fun a => σ a) b := by
-  repeat
-    rcases n
-    · exact fun _ _ h => h.elim
-    rename_i n
-  intro a b h
-  rcases h
-  · rename_i j
-    simp only [map_mul, FreeMonoid.lift_eval_of, Nat.pred_succ]
-    apply braid_group.braid
-    unfold Nat.dist
-    aesop
-  simp only [map_mul, FreeMonoid.lift_eval_of, Nat.pred_succ]
-  apply braid_group.comm
-  unfold Nat.dist Fin.castSucc Fin.castAdd Fin.castLE Fin.succ
-  simp only
-  omega
+/-- A map out of the generators of the infinite braid group is liftable
+precisely when it satisfies the braid and commutation relations. -/
+def BraidGroupInf.IsLiftable {G : Type*} [Group G] (f : ℕ → G) : Prop :=
+  (∀ i j : ℕ, i.dist j = 1 → f i * f j * f i = f j * f i * f j) ∧
+  (∀ i j : ℕ, 2 ≤ i.dist j → f i * f j = f j * f i)
 
-def embed {n : ℕ} : (BraidMonoid n) →* (BraidGroupFin (n)) :=
-  PresentedMonoid.toMonoid (fun a => @σ (n.pred) a) (embed_helper n)
+/-- The braid relations imply the general Artin-Tits liftability condition
+for the infinite braid Group. -/
+theorem BraidGroupInf.isLiftable_iff {G : Type*} [Group G] {f : ℕ → G} :
+    BraidGroupInf.IsLiftable f ↔ ArtinTits.IsLiftable BraidMatrixInf f := by
+  constructor
+  · intro hf
+    rcases hf with ⟨hbraid, hcomm⟩
+    intro i j
+    by_cases h1 : i.dist j = 1
+    · rw [BraidMatrixInf_adjacent h1]
+      simp [Group.alternate_three, hbraid i j h1, mul_assoc]
+    by_cases h2 : 2 ≤ i.dist j
+    · rw [BraidMatrixInf_separated h2]
+      simp [Group.alternate_two, hcomm i j h2]
+    grind [Nat.dist]
+  intro hf
+  constructor
+  · intro i j h
+    grind [Group.alternate_three, BraidMatrixInf_adjacent, hf i j]
+  intro i j h
+  grind [Group.alternate_two, BraidMatrixInf_separated, hf i j]
 
-theorem embed_inf_helper (a b : FreeMonoid ℕ) (h : braid_rels_m_inf a b) :
-    (FreeMonoid.lift fun a => σi a) a = (FreeMonoid.lift fun a => σi a) b := by
-  cases h
-  · apply braid_group_inf.braid
-    unfold Nat.dist
-    omega
-  simp
-  apply braid_group_inf.comm
-  unfold Nat.dist
-  omega
+/-- The universal map out of the infinite braid Group. -/
+def BraidGroupInf.toGroup {G : Type*} [Group G] {f : ℕ → G}
+    (hf : BraidGroupInf.IsLiftable f) : BraidGroupInf →* G :=
+  ArtinTits.toGroup BraidMatrixInf ((BraidGroupInf.isLiftable_iff).mp hf)
 
-def embed_inf : BraidMonoidInf →* BraidGroupInf :=
-  PresentedMonoid.toMonoid (fun a => σi a) embed_inf_helper
+/-- The universal map sends the standard generator `σ i` to `f i`. -/
+theorem BraidGroupInf.toGroup_of {G : Type*} [Group G] {f : ℕ → G}
+    (hf : BraidGroupInf.IsLiftable f) (i : ℕ) :
+    BraidGroupInf.toGroup hf (σ i) = f i :=
+  ArtinTits.toGroup_of BraidMatrixInf ((BraidGroupInf.isLiftable_iff).mp hf)
+
+/-- Uniqueness in the universal property of the infinite braid Group. -/
+theorem BraidGroupInf.toGroup_unique {G : Type*} [Group G] {f : ℕ → G}
+    (hf : BraidGroupInf.IsLiftable f) (g : BraidGroupInf →* G)
+    (hg : ∀ i : ℕ, g (σ i) = f i) : BraidGroupInf.toGroup hf = g :=
+  ArtinTits.toGroup_unique BraidMatrixInf g hg _
+
+/-- A map out of the generators of the finite braid group is liftable
+precisely when it satisfies the braid and commutation relations. -/
+def BraidGroupFin.IsLiftable (n : ℕ) {G : Type*} [Group G] (f : Fin n.pred → G) : Prop :=
+  (∀ i j : Fin n.pred, i.val.dist j.val = 1 → f i * f j * f i = f j * f i * f j) ∧
+  (∀ i j : Fin n.pred, 2 ≤ i.val.dist j.val → f i * f j = f j * f i)
+
+/-- The braid relations imply the general Artin-Tits liftability condition
+for the finite braid Group. -/
+theorem BraidGroupFin.isLiftable_iff (n : ℕ) {G : Type*} [Group G] {f : Fin n.pred → G} :
+    BraidGroupFin.IsLiftable n f ↔ ArtinTits.IsLiftable (BraidMatrixFin) f := by
+  constructor
+  · intro hf
+    rcases hf with ⟨hbraid, hcomm⟩
+    intro i j
+    by_cases h1 : i.val.dist j.val = 1
+    · rw [M_braid_fin_adjacent i j h1]
+      simp [Group.alternate_three, hbraid i j h1, mul_assoc]
+    · by_cases h2 : 2 ≤ i.val.dist j.val
+      · rw [M_braid_fin_separated i j h2]
+        simp [Group.alternate_two, hcomm i j h2]
+      grind [Nat.dist]
+  · intro hf
+    constructor
+    · intro i j h
+      grind [Group.alternate_three, M_braid_fin_adjacent, hf i j]
+    intro i j h
+    grind [Group.alternate_two, M_braid_fin_separated, hf i j]
+
+/-- The universal map out of the finite braid Group. -/
+def BraidGroupFin.toGroup (n : ℕ) {G : Type*} [Group G] {f : Fin n.pred → G}
+    (hf : BraidGroupFin.IsLiftable n f) : BraidGroupFin n →* G :=
+  ArtinTits.toGroup (BraidMatrixFin) ((BraidGroupFin.isLiftable_iff n).mp hf)
+
+/-- The universal map sends the standard generator `σₙ i` to `f i`. -/
+theorem BraidGroupFin.toGroup_of (n : ℕ) {G : Type*} [Group G] {f : Fin n.pred → G}
+    (hf : BraidGroupFin.IsLiftable n f) (i : Fin n.pred) :
+    BraidGroupFin.toGroup n hf (σₙ i) = f i := by
+  exact ArtinTits.toGroup_of (BraidMatrixFin) ((BraidGroupFin.isLiftable_iff n).mp hf)
+
+/-- Uniqueness in the universal property of the finite braid Group. -/
+theorem BraidGroupFin.toGroup_unique (n : ℕ) {G : Type*} [Group G] {f : Fin n.pred → G}
+    (hf : BraidGroupFin.IsLiftable n f) (g : BraidGroupFin n →* G)
+    (hg : ∀ i : Fin n.pred, g (σₙ i) = f i) :
+    BraidGroupFin.toGroup n hf = g := by
+  apply ArtinTits.toGroup_unique (BraidMatrixFin) g hg
+end Braid
 
 /-
 We need a theorem that says that we can define a function from the braid group by giving any

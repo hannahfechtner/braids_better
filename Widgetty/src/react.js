@@ -3562,7 +3562,7 @@
     
         // We don't currently support accessors nor proxies. Therefore this
         // copy cannot throw. If we ever supported this then we must handle
-        // exceptions and side-effects. We don't support symbols so they won't
+        // exceptions and side-effects. We don't support generators so they won't
         // be transferred.
     
         for (var key in from) {

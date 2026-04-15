@@ -11,7 +11,7 @@ digraph "import_graph" {
   "Mathlib.GroupTheory.SpecificGroups.Cyclic" -> "BraidProject.BraidGroup";
   "Mathlib.Data.Fin.Basic" -> "BraidProject.BraidGroup";
   "BraidProject.BraidMonoid" -> "BraidProject.BraidGroup";
-  "Mathlib.Algebra.FreeMonoid.Symbols" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "Mathlib.Algebra.FreeMonoid.generators" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.OreLocalizationPresented" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.OreLocalizationSelf" -> "BraidProject.OreLocalizationPresented";
   "Mathlib.GroupTheory.FreeGroup.Basic" -> "BraidProject.OreLocalizationPresented";
@@ -50,7 +50,7 @@ digraph "import_graph" {
   "BraidProject.BraidMonoid" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.PresentedMonoid_mine" -> "BraidProject.BraidMonoid";
   "BraidProject.Nat_Dist_Additions" -> "BraidProject.BraidMonoid";
-  "Mathlib.Algebra.FreeMonoid.Symbols" -> "BraidProject.BraidMonoid";
+  "Mathlib.Algebra.FreeMonoid.generators" -> "BraidProject.BraidMonoid";
   "BraidProject.Nat_Dist_Additions" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Mathlib.Data.Nat.Dist" -> "BraidProject.Nat_Dist_Additions";
   "Mathlib.Tactic.Linarith" -> "BraidProject.Nat_Dist_Additions";
