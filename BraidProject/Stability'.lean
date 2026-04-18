@@ -44,7 +44,7 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
     stable (FreeMonoid.of i) (FreeMonoid.of j * FreeMonoid.of k) := by
   intro c d grid_abcd a' b' ha' hb'
   rw [BraidMonoidInf.singleton_eq ha']
-  rcases BraidMonoidInf.pair_eq hb' with rfl | rfl
+  rcases BraidMonoidInf.length_two_eq hb' with rfl | rfl
   · use c, d
   rcases splittable_vertically grid_abcd (of j) (of k) rfl with ⟨u, c₁, c₂, g1, g2, rfl⟩
   rcases trichotomous_dist i j with ij_dist_ge_two | ij_dist_eq_one | ij_eq
@@ -55,7 +55,7 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
       use of k * of j, of i
       rw [hd, hc₁, hc₂]
       exact ⟨grid.horizontal (.separated i k ik_dist_ge_two)
-        (.separated i j ij_dist_ge_two), ⟨BraidMonoidInf.comm_mk _ _ h, rfl⟩⟩
+        (.separated i j ij_dist_ge_two), ⟨BraidMonoidInf.comm_rw_self _ _ h, rfl⟩⟩
     · use of k * of i * of j, of i * of k
       constructor
       · rw [Nat.dist_comm] at h
@@ -66,7 +66,7 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
       rw [hc₁, hc₂, hd]
       constructor
       · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
-        rw [BraidMonoidInf.comm_mk j k h, BraidMonoidInf.comm_rel_rw _ j i]
+        rw [BraidMonoidInf.comm_rw_self j k h, BraidMonoidInf.comm_rw _ j i]
         rw [Nat.dist_comm]
         assumption
       rfl
@@ -91,7 +91,7 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
         rw [hc₂, hd, hd₁, hd₂]
         constructor
         · simp only [BraidMonoidInf.mk_mul]
-          rw [BraidMonoidInf.comm_mk k j, BraidMonoidInf.comm_rel_rw _ i k (by assumption)]
+          rw [BraidMonoidInf.comm_rw_self k j, BraidMonoidInf.comm_rw _ i k (by assumption)]
           rw [Nat.dist_comm]; assumption
         rfl
       · aesop
@@ -113,11 +113,11 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
       rw [hc₃, hc₄, hd, hd₁, hd₂]
       constructor
       · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
-        rw [BraidMonoidInf.braid_rel_rw _ i k ik_dist_eq_one, BraidMonoidInf.comm_mk j k h]
+        rw [BraidMonoidInf.braid_rw _ i k ik_dist_eq_one, BraidMonoidInf.comm_rw_self j k h]
         rw [Nat.dist_comm] at h
-        rw [BraidMonoidInf.comm_rel_rw _ k j h, BraidMonoidInf.braid_rel_rw _ j i ij_dist_eq_one]
+        rw [BraidMonoidInf.comm_rw _ k j h, BraidMonoidInf.braid_rw _ j i ij_dist_eq_one]
       simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
-      rw [BraidMonoidInf.comm_rel_rw _ j k]
+      rw [BraidMonoidInf.comm_rw _ j k]
       assumption
     rw [← ik_eq, Nat.dist_comm] at h
     aesop
@@ -147,7 +147,7 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
     stable (FreeMonoid.of i) (of j * of k * of j) := by
   intro c d grid_abcd a' b' ha hb
   rw [BraidMonoidInf.singleton_eq ha]
-  rcases BraidMonoidInf.triplet_eq h hb with rfl | rfl
+  rcases BraidMonoidInf.alternating_length_three_eq h hb with rfl | rfl
   · use c, d
   rcases splittable_vertically grid_abcd (of j * of k) (of j) rfl with
     ⟨u, c₁, c₂, g1, g2, rfl⟩
@@ -185,8 +185,8 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
       · rw [hu₁, hu₂, hc₂]
         simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
         rw [Nat.dist_comm] at ik_one_apart h
-        rw [BraidMonoidInf.comm_rel_rw _ i j ij_ge_two_apart, BraidMonoidInf.braid_mk j k h,
-          BraidMonoidInf.braid_rel_rw _ k i ik_one_apart, BraidMonoidInf.comm_rel_rw _ i j ij_ge_two_apart]
+        rw [BraidMonoidInf.comm_rw _ i j ij_ge_two_apart, BraidMonoidInf.braid_rw_self j k h,
+          BraidMonoidInf.braid_rw _ k i ik_one_apart, BraidMonoidInf.comm_rw _ i j ij_ge_two_apart]
       grind
     rw [Nat.dist_comm] at h
     aesop
@@ -221,9 +221,9 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
       constructor
       · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
         rw [Nat.dist_comm] at ik_ge_two_apart
-        rw [BraidMonoidInf.comm_rel_rw _ i k ik_ge_two_apart,
-            BraidMonoidInf.braid_rel_rw _ i j ij_one_apart, BraidMonoidInf.braid_mk j k h,
-          BraidMonoidInf.comm_rel_rw _ k i]
+        rw [BraidMonoidInf.comm_rw _ i k ik_ge_two_apart,
+            BraidMonoidInf.braid_rw _ i j ij_one_apart, BraidMonoidInf.braid_rw_self j k h,
+          BraidMonoidInf.comm_rw _ k i]
         rw [Nat.dist_comm]; assumption
       aesop
     · apply (@Nat.dist_no_triangle i j k 1 (by aesop)).elim
@@ -333,8 +333,8 @@ private theorem stable_first_refl_second_one_step_both (ih : ∀ (u v a b : Free
     have : g.length > 0 ∧ f.length > 0 := by
       rcases br with h1 | h2
       · symm
-        exact length_pos h1
-      exact length_pos h2
+        exact braid_monoid_rels_inf.length_pos h1
+      exact braid_monoid_rels_inf.length_pos h2
     linarith [len, this]
   have H_st : BraidMonoidInf.mk (a₁ * a₂) = BraidMonoidInf.mk (a₁' * a₂') :=
     PresentedMonoid.sound <| ConGen.Rel.mul (PresentedMonoid.exact top_middle_fact.2.2)

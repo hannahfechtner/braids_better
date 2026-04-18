@@ -1,7 +1,7 @@
 import BraidProject.Stability'
 import BraidProject.FlipBraid'
 
-open BraidMonoidInf Braid Grid DeterminativeSpine
+open Braid BraidMonoidInf Grid DeterminativeSpine
 
 theorem grid_of_eq (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
     grid a b 1 1 := by
@@ -39,7 +39,7 @@ theorem right_cancellative {a b c : BraidMonoidInf} (h1 : a * c = b * c) : a = b
   rw [BraidMonoidInf.reverse_braid_mul, BraidMonoidInf.reverse_braid_mul] at h1
   exact BraidMonoidInf.reverse_eq_reverse_iff.mpr (left_cancellative h1)
 
-instance BraidMonoid_Cancellative : CancelMonoid BraidMonoidInf where
+instance BraidMonoidInf_Cancellative : CancelMonoid BraidMonoidInf where
     mul_right_cancel := fun _ _ _ => right_cancellative
     mul_left_cancel := fun _ _ _ => left_cancellative
 

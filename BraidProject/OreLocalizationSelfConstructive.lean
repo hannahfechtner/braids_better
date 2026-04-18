@@ -11,7 +11,7 @@ namespace SelfC
 
 open OreLocalization
 
-variable {M : Type*} [Monoid M] [IsCancelMul M]  [HasCommonLeftMultipleData M]
+variable {M : Type*} [Monoid M] [IsCancelMul M] [HasCommonLeftMultipleData M]
 
 open HasCommonLeftMultipleData
 instance : OreLocalization.OreSet (⊤ : Submonoid M) where

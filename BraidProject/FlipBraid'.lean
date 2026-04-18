@@ -1,10 +1,10 @@
-import BraidProject.BraidMonoid
+import BraidProject.BraidMonoidInf
 import BraidProject.AcrossStrands'
 import BraidProject.Additions.Induction
 import BraidProject.Additions.NatDist
 import BraidProject.Additions.FreeMonoid
 
-open FreeMonoid
+open FreeMonoid Braid
 
 --lemma 3.9 property
 theorem generator_sigma_braid_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
@@ -14,7 +14,7 @@ theorem generator_sigma_braid_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < 
     have hj : j = i + 2 := by omega
     rw [hj, hk]
     simp only [sigma_braid_succ_succ_ascending, add_tsub_cancel_right]
-    exact (BraidMonoidInf.braid dist_succ).symm
+    exact (BraidMonoidInf.braid_mk dist_succ).symm
   rename_i n ih
   have hk : k ≥ i+1 := by omega
   apply induction_bounded k hk h2.2
@@ -22,10 +22,10 @@ theorem generator_sigma_braid_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < 
     ← map_mul, mul_assoc, mul_assoc]
     any_goals omega
     apply BraidMonoidInf.append_left_mk
-    apply BraidMonoidInf.comm
+    apply BraidMonoidInf.comm_mk
     unfold Nat.dist; omega
   intro new_k k_bigger new_k_lt _
-  rw [sigma_braid_ascending_first, ← mul_assoc, map_mul, BraidMonoidInf.comm,
+  rw [sigma_braid_ascending_first, ← mul_assoc, map_mul, BraidMonoidInf.comm_mk,
     ← map_mul, mul_assoc, map_mul, ih]; rfl
   any_goals omega
   unfold Nat.dist ; omega
@@ -99,7 +99,7 @@ theorem generator_sigma_braid_past (m : ℕ) (w : FreeMonoid ℕ) : (∀ k ∈ w
   | one => exact fun _ => rfl
   | of x =>
     intro h
-    apply BraidMonoidInf.comm
+    apply BraidMonoidInf.comm_mk
     specialize h _ FreeMonoid.mem_of_self
     unfold Nat.dist; omega
   | mul x y hx hy =>
@@ -302,29 +302,3 @@ theorem equiv_multiple_delta_braid (u : FreeMonoid ℕ) (l n : ℕ) (h : FreeMon
     · exact additional_braid_bounded caboose n (by omega) _ in_additional_braid
     rcases FreeMonoid.mem_map.mp in_phi with ⟨w, hw⟩
     omega
-
-theorem common_right_mul_inf (u v : BraidMonoidInf) : ∃ u' v', u * v' = v * u' := by
-  induction u with | h u
-  induction v with | h v
-  rcases (FreeMonoid.bounded u) with ⟨k1, hk1⟩
-  rcases (FreeMonoid.bounded v) with ⟨k2, hk2⟩
-  rcases (equiv_multiple_delta_braid u (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
-    (by aesop) (by aesop)) with ⟨v', hv', _⟩
-  rcases (equiv_multiple_delta_braid v (Nat.max (FreeMonoid.length u) (FreeMonoid.length v)) (Nat.max k1 k2)
-    (by aesop) (by aesop)) with ⟨u', hu', _⟩
-  exact .intro ⟦u'⟧ (.intro ⟦v'⟧ (hv'.trans hu'.symm))
-
-theorem common_right_mul_inf_mk (u v) : ∃ u' v', BraidMonoidInf.mk (u*v') = ⟦v*u'⟧ := by
-  rcases common_right_mul_inf ⟦u⟧ ⟦v⟧ with ⟨u', v', huv⟩
-  induction u' with | h u''
-  induction v' with | h v''
-  use u'', v''
-  exact huv
-
-theorem common_left_mul_inf (u v : BraidMonoidInf) : ∃ u' v', u' * u = v' * v := by
-  rcases common_right_mul_inf (BraidMonoidInf.reverse_braid u)
-    (BraidMonoidInf.reverse_braid v) with ⟨a, b, hab⟩
-  use BraidMonoidInf.reverse_braid b, BraidMonoidInf.reverse_braid a
-  have this := congr_arg BraidMonoidInf.reverse_braid hab
-  simp only [BraidMonoidInf.reverse_braid_mul, BraidMonoidInf.reverse_reverse] at this
-  simp [this]
