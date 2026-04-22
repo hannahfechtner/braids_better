@@ -2,6 +2,8 @@ import BraidProject.Grids_C
 
 open FreeMonoid
 
+namespace Braid
+
 theorem all_ones_t : gridt a b c d → a = 1 → b = 1 → (c = 1 ∧ d = 1) := by
   intro h one two
   induction h with
@@ -367,32 +369,6 @@ theorem helpier_eq_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_eq_t a 
 def ij_close_t (a b c d : FreeMonoid ℕ) := ∀ i j, (Nat.dist i j = 1) → a = of i → b = of j →
     (c = of i * of j ∧ d = of j * of i)
 
--- theorem helpier_close' {c d : FreeMonoid ℕ} (h1 : Nat.dist i j =1)
---     (h : gridt (of i) (of j) c d) : (c = of i * of j ∧ d = of j * of i):= by
---   generalize one : of i = a at h
---   generalize two : of j = b at h
---   induction h with
---   | empty => exact (of_ne_one _ one).elim
---   | top_bottom k => exact (of_ne_one _ one).elim
---   | sides i => exact (of_ne_one _ two).elim
---   | top_left k =>
---     rw [of_injective one, of_injective two] at h1
---     simp only [Nat.dist_self, zero_ne_one] at h1
-  -- | adjacent k l dist => exact ⟨rfl, rfl⟩
-  -- | separated i j h =>
-  --   rw [of_injective one, of_injective two] at h1
-  --   linarith [or_dist_iff.mpr h, h1]
-  -- | vertical h1 h2 h1_ih h2_ih =>
-  --   rename_i e f g k l m n o
-  --   rcases FreeMonoid.prod_eq_of one.symm with h3 | h4
-  --   · specialize h2_ih h3.2.symm
-  --     rw [h3.1, h3.2, one_mul]
-  --     rw [h3.1] at h1
-  --     have H4 := word_side_side _ _ _ h1
-  --   sorry
-  -- | horizontal h1 h2 h1_ih h2_ih => sorry
-
-
 theorem helpier_close_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_close_t a b c d := by
   induction h
   · exact fun _ _ _ one _ => (of_ne_one _ one.symm).elim
@@ -411,23 +387,6 @@ theorem helpier_close_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_clos
     exfalso
     rw [dist] at apart
     linarith [apart]
-    -- rcases apart
-    -- · rename_i lt
-    --   rcases or_dist_iff_eq.mp dist
-    --   · rename_i f_is
-    --     rw [← f_is] at lt
-    --     linarith [lt]
-    --   rename_i e_is
-    --   rw [← e_is] at lt
-    --   linarith [lt]
-    -- rename_i gt
-    -- rcases or_dist_iff_eq.mp dist
-    -- · rename_i f_is
-    --   rw [← f_is] at gt
-    --   linarith [gt]
-    -- rename_i e_is
-    -- rw [← e_is] at gt
-    -- linarith [gt]
   · rename_i e f g h i j k l m n o
     intro p q dist one two
     rcases FreeMonoid.prod_eq_of one
@@ -555,8 +514,10 @@ theorem helpier_ij_t {a b c d : FreeMonoid ℕ} (h : gridt a b c d) : ij_st_t a 
   rw [H.2]
   exact ⟨H.1, rfl⟩
 
-theorem i_both_one_t : gridt a b 1 1 → PresentedMonoid.rel braid_rels_m_inf a b := by
+theorem i_both_one_t : gridt a b 1 1 → PresentedMonoid.rel braid_monoid_rels_inf a b := by
   intro h
   apply PresentedMonoid.exact
   rw [← mul_one a, ← mul_one b]
   exact braid_eq_of_gridt h
+
+end Braid

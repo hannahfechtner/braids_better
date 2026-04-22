@@ -1,163 +1,19 @@
-import BraidProject.BraidMonoid
-import BraidProject.Grids
+import BraidProject.BraidMonoidInf
+import BraidProject.Grids'
 import Mathlib.Data.Nat.Dist
 open FreeMonoid
 
-/-- a reversing gridt, inductively defined as the set of basic cells, and a vertical and horizontal
-closure under appending-/
-inductive gridt : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → Type
-  | empty : gridt 1 1 1 1
-  | top_bottom (i : ℕ) : gridt 1 (of i) 1 (.of i)
-  | sides (i : ℕ) : gridt (of i) 1 (of i) 1
-  | top_left (i : ℕ) : gridt (of i) (of i) 1 1
-  | adjacent (i k : ℕ) (h : i.dist k = 1) : gridt (of i) (of k) (of i * of k) (of k * of i)
-  | separated (i j : ℕ) (h : i.dist j > 1) : gridt (of i) (of j) (of i) (of j)
-  | vertical (h1: gridt u v u' v') (h2 : gridt a v' c d) : gridt (u * a) v (u' * c) d
-  | horizontal (h1: gridt u v u' v') (h2 : gridt u' b c d) : gridt u (v * b) c (v' * d)
-  
-inductive cell : List ℕ → List ℕ → List ℕ → List ℕ → Type
-  | empty : (cell [] [] [] [])
-  | top_bottom (i : ℕ) : cell [] [i] [] [i]
-  | sides (i : ℕ) : cell [i] [] [i] []
-  | top_left (i : ℕ) : cell [i] [i] [] []
-  | adjacent (i k : ℕ) (h : Nat.dist i k = 1) : cell [i] [k] [i, k] [k, i]
-  | separated (i j : ℕ) (h : i +2 ≤ j ∨ j+2 <= i) : cell [i] [j] [i] [j]
-
-noncomputable def gridt_from_cell (h : cell a b c d) : gridt a b c d := by
-  induction h with
-  | empty => exact gridt.empty
-  | top_bottom i => exact gridt.top_bottom _
-  | sides i => exact gridt.sides _
-  | top_left i => exact gridt.top_left _
-  | adjacent i k h => exact gridt.adjacent _ _ h
-  | separated i j h => exact gridt.separated _ _ (or_dist_iff.mpr h)
-def gridt.length : gridt a b c d → ℕ := by
-  intro h
-  match h with
-  | gridt.empty => exact 0
-  | gridt.sides _ => exact  0
-  | gridt.top_bottom _ => exact 0
-  | gridt.top_left _ => exact 1
-  | gridt.adjacent _ _ _ => exact 1
-  | gridt.separated _ _ _ => exact 1
-  | gridt.horizontal h1 h2 => exact gridt.length h1 + gridt.length h2
-  | gridt.vertical h1 h2 => exact gridt.length h1 + gridt.length h2
-
-noncomputable def gridt_swap : gridt a b c d → gridt b a d c := by
-  intro h
-  induction h with
-  | empty => exact gridt.empty
-  | top_bottom i => exact gridt.sides i
-  | sides i => exact gridt.top_bottom i
-  | top_left i => exact gridt.top_left i
-  | adjacent i k h => exact gridt.adjacent k i (by rw [Nat.dist_comm] at h; exact h)
-  | separated i j h => exact gridt.separated j i (by rw [Nat.dist_comm] at h; exact h)
-  | vertical _ _ h1 h2 => exact gridt.horizontal h1 h2
-  | horizontal _ _ h1 h2 => exact gridt.vertical h1 h2
-
 /-- An induction principle on free monoids, with cases for `1`, `FreeMonoid.of` and `*`. -/
 @[to_additive (attr := elab_as_elim, induction_eliminator)
-"An induction principle on free monoids, with cases for `0`, `FreeAddMonoid.of` and `+`."]
+/--An induction principle on free monoids, with cases for `0`, `FreeAddMonoid.of` and `+`.-/]
 def FreeMonoid.inductionOn'' {C : FreeMonoid α → Type} (z : FreeMonoid α) (one : C 1)
     (of : ∀ (x : α), C (FreeMonoid.of x)) (mul : ∀ (x y : FreeMonoid α), C x → C y → C (x * y)) :
   C z := List.rec one (fun _ _ ih => mul [_] _ (of _) ih) z
 
-def gridt_sides_word (u : FreeMonoid ℕ) : gridt u 1 u 1 := by
-  induction u using FreeMonoid.inductionOn'' with
-  | one => exact gridt.empty
-  | of => exact gridt.sides _
-  | mul i u ih1 ih2 => exact gridt.vertical ih1 ih2
-
-def gridt_top_bottom_word (u : FreeMonoid ℕ) : gridt 1 u 1 u := by
-  induction' u
-  · exact gridt.empty
-  · exact gridt.top_bottom _
-  · rename_i one two
-    exact gridt.horizontal one two
-
-def gridt_top_left_word (u : FreeMonoid ℕ) : gridt u u 1 1 := by
-  induction' u
-  · exact gridt.empty
-  · exact gridt.top_left _
-  · rename_i x y one two
-    exact gridt.vertical (gridt.horizontal one (gridt_top_bottom_word y))
-      (gridt.horizontal (gridt_sides_word y) two)
-
-/-- relating gridt equivalence to braid equivalence, one way -/
-theorem braid_eq_of_gridt (h : gridt a b c d) :
-    BraidMonoidInf.mk (a * d) = BraidMonoidInf.mk (b * c) := by
-  induction h with
-  | empty => rfl
-  | top_bottom i => rfl
-  | sides i => rfl
-  | top_left i => rfl
-  | adjacent i =>
-      apply PresentedMonoid.sound
-      rw [← mul_assoc, ← mul_assoc]
-      rename_i k h_dist
-      rcases Nat.dist_eq_one h_dist with ha | hb
-      · rw [ha]
-        apply ConGen.Rel.symm
-        apply ConGen.Rel.of
-        apply braid_rels_m_inf.adjacent
-      apply ConGen.Rel.of
-      rw [hb]
-      apply braid_rels_m_inf.adjacent
-  | separated i j h =>
-      apply PresentedMonoid.sound
-      rcases or_dist_iff.mp h
-      · rename_i h1
-        apply ConGen.Rel.of
-        exact braid_rels_m_inf.separated _ _ h1
-      rename_i h2
-      apply ConGen.Rel.symm
-      apply ConGen.Rel.of
-      exact braid_rels_m_inf.separated _ _ h2
-  | vertical _ _ h1_ih h2_ih =>
-      apply PresentedMonoid.sound
-      rw [mul_assoc]
-      apply (ConGen.Rel.mul (ConGen.Rel.refl _) (Quotient.exact h2_ih)).trans
-      rw [← mul_assoc, ← mul_assoc]
-      exact ConGen.Rel.mul (Quotient.exact h1_ih) (ConGen.Rel.refl _)
-  | horizontal _ _ h1_ih h2_ih =>
-      apply PresentedMonoid.sound
-      rw [← mul_assoc]
-      apply (ConGen.Rel.mul (Quotient.exact h1_ih) (ConGen.Rel.refl _)).trans
-      rw [mul_assoc, mul_assoc]
-      exact (ConGen.Rel.mul (ConGen.Rel.refl _) (Quotient.exact h2_ih))
-
-theorem gridt_diag_length_eq (h : gridt a b c d) : a.length + d.length = b.length + c.length := by
-  have H := congr_arg BraidMonoidInf.length (braid_eq_of_gridt h)
-  simp only [BraidMonoidInf.length_mk, length_mul] at H
-  exact H
-
-def FreeMonoid.prod_eq_of' {a b : FreeMonoid α} {i : α} (h : a * b = FreeMonoid.of i) :
-    (PLift (a = 1) × PLift (b = FreeMonoid.of i)) ⊕
-  (PLift (a = FreeMonoid.of i) × PLift (b = 1)) := by
-  have H : FreeMonoid.length (a * b) = 1 := by
-    rw [h]
-    exact FreeMonoid.length_of _
-  rw [FreeMonoid.length_mul] at H
-  match ha : length a with
-  | 0 =>
-    have a_eq : a = 1 := length_eq_zero.mp ha
-    have b_eq : b = of i := by rw [a_eq, one_mul] at h; exact h
-    exact Sum.inl ⟨⟨length_eq_zero.mp ha⟩, ⟨b_eq⟩⟩
-  | (n + 1) =>
-    have b_eq : b = 1 := length_eq_zero.mp (by omega)
-    have a_eq : a = of i := by rw [b_eq, mul_one] at h; exact h
-    exact Sum.inr ⟨⟨a_eq⟩, ⟨b_eq⟩⟩
-
-def split_vertically_t (a b c d : FreeMonoid ℕ) := ∀ b₁ b₂, b = b₁ * b₂ →
-  Σ u d₁ d₂, (gridt a b₁ u d₁) × gridt u b₂ c d₂ × PLift (d = d₁ * d₂)
-
--- def split_vertically_t' (a b c d : FreeMonoid ℕ) (h0 : gridt a b c d) := ∀ b₁ b₂, b = b₁ * b₂ →
---   Σ u d₁ d₂, (h1 : (gridt a b₁ u d₁)) × (h2 : gridt u b₂ c d₂) × PLift (d = d₁ * d₂) ×
---     PLift (h0 = gridt.horizontal h1 h2)
 /-- An induction principle for free monoids which mirrors induction on lists, with cases analogous
 to the empty list and cons -/
-@[to_additive (attr := elab_as_elim) "An induction principle for free monoids which mirrors
-induction on lists, with cases analogous to the empty list and cons"]
+@[to_additive (attr := elab_as_elim) self /--An induction principle for free monoids which mirrors
+induction on lists, with cases analogous to the empty list and cons-/]
 def FreeMonoid.inductionOn''' {p : FreeMonoid α → Type} (a : FreeMonoid α)
     (one : p (1 : FreeMonoid α)) (mul_of : ∀ b a, p a → p (of b * a)) : p a :=
   List.rec one (fun _ _ tail_ih => mul_of _ _ tail_ih) a
@@ -190,12 +46,140 @@ def FreeMonoid.prod_eq_prod' {a b c d : FreeMonoid α} (h : a * b = c * d) :
     simp [hv.2.1.1, hv.2.2.1, ← (parts_eq h).1]
     exact ⟨{down := by rw [← mul_assoc]}, {down := trivial}⟩
 
-  -- have H := List.append_eq_append_iff.mp h
-  -- match H with
-  -- | Sum.inl ⟨middle, hc, hb⟩ =>
-  --     exact Sum.inl ⟨middle, ⟨⟨hc⟩, ⟨hb⟩⟩⟩
-  -- | Sum.inr ⟨middle, ha, hd⟩ =>
-  --     exact Sum.inr ⟨middle, ⟨⟨ha⟩, ⟨hd⟩⟩⟩
+def FreeMonoid.prod_eq_of' {a b : FreeMonoid α} {i : α} (h : a * b = FreeMonoid.of i) :
+    (PLift (a = 1) × PLift (b = FreeMonoid.of i)) ⊕
+  (PLift (a = FreeMonoid.of i) × PLift (b = 1)) := by
+  have H : FreeMonoid.length (a * b) = 1 := by
+    rw [h]
+    exact FreeMonoid.length_of _
+  rw [FreeMonoid.length_mul] at H
+  match ha : length a with
+  | 0 =>
+    have a_eq : a = 1 := length_eq_zero.mp ha
+    have b_eq : b = of i := by rw [a_eq, one_mul] at h; exact h
+    exact Sum.inl ⟨⟨length_eq_zero.mp ha⟩, ⟨b_eq⟩⟩
+  | (n + 1) =>
+    have b_eq : b = 1 := length_eq_zero.mp (by omega)
+    have a_eq : a = of i := by rw [b_eq, mul_one] at h; exact h
+    exact Sum.inr ⟨⟨a_eq⟩, ⟨b_eq⟩⟩
+
+namespace Braid
+
+/-- a reversing gridt, inductively defined as the set of basic cells, and a vertical and horizontal
+closure under appending-/
+inductive gridt : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → Type
+  | empty : gridt 1 1 1 1
+  | top_bottom (i : ℕ) : gridt 1 (of i) (of i) 1
+  | sides (i : ℕ) : gridt (of i) 1 1 (of i)
+  | top_left (i : ℕ) : gridt (of i) (of i) 1 1
+  | adjacent (i k : ℕ) (h : i.dist k = 1) : gridt (of i) (of k) (of k * of i) (of i * of k)
+  | separated (i j : ℕ) (h : i.dist j > 1) : gridt (of i) (of j) (of j) (of i)
+  | vertical (h1: gridt a b c d) (h2 : gridt e c f g) : gridt (a * e) b f (d * g)
+  | horizontal (h1: gridt a b c d) (h2 : gridt d e f g) : gridt a (b * e) (c * f) g
+
+inductive cell : List ℕ → List ℕ → List ℕ → List ℕ → Type
+  | empty : (cell [] [] [] [])
+  | top_bottom (i : ℕ) : cell [] [i] [i] []
+  | sides (i : ℕ) : cell [i] [] [] [i]
+  | top_left (i : ℕ) : cell [i] [i] [] []
+  | adjacent (i k : ℕ) (h : Nat.dist i k = 1) : cell [i] [k] [k, i] [i, k]
+  | separated (i j : ℕ) (h : i +2 ≤ j ∨ j+2 <= i) : cell [i] [j] [j] [i]
+
+noncomputable def gridt_from_cell (h : cell a b c d) : gridt a b c d := by
+  induction h with
+  | empty => exact gridt.empty
+  | top_bottom i => exact gridt.top_bottom _
+  | sides i => exact gridt.sides _
+  | top_left i => exact gridt.top_left _
+  | adjacent i k h => exact gridt.adjacent _ _ h
+  | separated i j h => exact gridt.separated _ _ (or_dist_iff.mpr h)
+
+def gridt.length : gridt a b c d → ℕ := by
+  intro h
+  match h with
+  | gridt.empty => exact 0
+  | gridt.top_bottom _ => exact 0
+  | gridt.sides _ => exact  0
+  | gridt.top_left _ => exact 1
+  | gridt.adjacent _ _ _ => exact 1
+  | gridt.separated _ _ _ => exact 1
+  | gridt.horizontal h1 h2 => exact gridt.length h1 + gridt.length h2
+  | gridt.vertical h1 h2 => exact gridt.length h1 + gridt.length h2
+
+def gridt_of_grid (h : grid a b c d) : Nonempty (gridt a b c d) := by
+  induction h with
+  | empty =>
+    apply Nonempty.intro gridt.empty
+  | top_bottom i => apply Nonempty.intro (gridt.top_bottom i)
+  | sides i => apply Nonempty.intro (gridt.sides i)
+  | top_left i => apply Nonempty.intro (gridt.top_left i)
+  | adjacent i k h => apply Nonempty.intro (gridt.adjacent i k h)
+  | separated i j h => apply Nonempty.intro (gridt.separated i j h)
+  | vertical h1 h2 ih1 ih2 =>
+    exact Nonempty.intro ((Classical.choice ih1).vertical (Classical.choice ih2))
+  | horizontal h1 h2 ih1 ih2 =>
+    exact Nonempty.intro ((Classical.choice ih1).horizontal (Classical.choice ih2))
+
+theorem grid_of_gridt (h : gridt a b c d) : grid a b c d := by
+  induction h with
+  | empty => exact grid.empty
+  | top_bottom i => exact grid.top_bottom i
+  | sides i => exact grid.sides i
+  | top_left i => exact grid.top_left i
+  | adjacent i k h => exact grid.adjacent i k h
+  | separated i j h => exact grid.separated i j h
+  | vertical h1 h2 ih1 ih2 => exact ih1.vertical ih2
+  | horizontal h1 h2 ih1 ih2 => exact ih1.horizontal ih2
+
+noncomputable def gridt_swap : gridt a b c d → gridt b a d c := by
+  intro h
+  have := grid_of_gridt h
+  have := gridt_of_grid (Grid.swap this)
+  use Classical.choice this
+  -- induction h with
+  -- | empty => exact gridt.empty
+  -- | top_bottom i => exact gridt.sides i
+  -- | sides i => exact gridt.top_bottom i
+  -- | top_left i => exact gridt.top_left i
+  -- | adjacent i k h => exact gridt.adjacent k i (by rw [Nat.dist_comm] at h; exact h)
+  -- | separated i j h => exact gridt.separated j i (by rw [Nat.dist_comm] at h; exact h)
+  -- | vertical _ _ h1 h2 => exact gridt.horizontal h1 h2
+  -- | horizontal _ _ h1 h2 => exact gridt.vertical h1 h2
+
+-- def gridt_sides_word (u : FreeMonoid ℕ) : gridt u 1 u 1 := by
+--   induction u using FreeMonoid.inductionOn'' with
+--   | one => exact gridt.empty
+--   | of => exact gridt.sides _
+--   | mul i u ih1 ih2 => exact gridt.vertical ih1 ih2
+
+-- def gridt_top_bottom_word (u : FreeMonoid ℕ) : gridt 1 u 1 u := by
+--   induction u
+--   · exact gridt.empty
+--   · exact gridt.top_bottom _
+--   · rename_i one two
+--     exact gridt.horizontal one two
+
+-- def gridt_top_left_word (u : FreeMonoid ℕ) : gridt u u 1 1 := by
+--   induction u
+--   · exact gridt.empty
+--   · exact gridt.top_left _
+--   · rename_i x y one two
+--     exact gridt.vertical (gridt.horizontal one (gridt_top_bottom_word y))
+--       (gridt.horizontal (gridt_sides_word y) two)
+
+/-- relating gridt equivalence to braid equivalence, one way -/
+theorem braid_eq_of_gridt (h : gridt a b c d) :
+    BraidMonoidInf.mk (a * c) = BraidMonoidInf.mk (b * d) := by
+  have := grid_of_gridt h
+  apply Grid.braid_eq_of_grid this
+ 
+theorem gridt_diag_length_eq (h : gridt a b c d) : a.length + d.length = b.length + c.length := by
+  have H := congr_arg BraidMonoidInf.length (braid_eq_of_gridt h)
+  simp only [BraidMonoidInf.length_mk, length_mul] at H
+  exact H
+
+def split_vertically_t (a b c d : FreeMonoid ℕ) := ∀ b₁ b₂, b = b₁ * b₂ →
+  Σ u d₁ d₂, (gridt a b₁ u d₁) × gridt u b₂ c d₂ × PLift (d = d₁ * d₂)
 
 noncomputable def splittable_vertically_of_gridt {a b c d : FreeMonoid ℕ} (h : gridt a b c d) :
     split_vertically_t a b c d := by
@@ -343,3 +327,5 @@ noncomputable def splittable_horizontally_of_gridt {a b c d : FreeMonoid ℕ} (h
     rcases h2_ih m n heq with ⟨o, p, q, hg3, hg4, ⟨heq'⟩⟩
     use l * o, p, q
     exact ⟨gridt.horizontal hg1 hg3, ⟨gridt.horizontal hg2 hg4, {down := heq'}⟩⟩
+
+end Braid

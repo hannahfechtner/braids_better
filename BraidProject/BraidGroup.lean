@@ -36,9 +36,9 @@ instance : Group BraidGroupInf := by
 instance (n : ℕ) : Group (BraidGroupFin n) := by
   unfold BraidGroupFin; infer_instance
 
-def BraidGroupInf.mk := PresentedGroup.mk (ArtinTits.relation_set BraidMatrixInf)
+def BraidGroupInf.mk := PresentedGroup.mk (ArtinTits.Group.relation_set BraidMatrixInf)
 
-def BraidGroupFin.mk (n : ℕ) := PresentedGroup.mk (ArtinTits.relation_set (@BraidMatrixFin n))
+def BraidGroupFin.mk (n : ℕ) := PresentedGroup.mk (ArtinTits.Group.relation_set (@BraidMatrixFin n))
 
 def σ (k : ℕ) : BraidGroupInf := PresentedGroup.of k
 
@@ -101,8 +101,8 @@ theorem BraidGroupInf.braid {i j : ℕ} (hd : i.dist j = 1):
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, j)
-  simp only [Function.uncurry_apply_pair, relation, BraidMatrixInf_adjacent, hd,
-    Group.alternate_three, mul_inv_rev, inv_inv, mul_one]
+  simp only [Function.uncurry_apply_pair, Group.relation, BraidMatrixInf_adjacent, hd,
+    Monoid.alternate_three, mul_inv_rev, inv_inv, mul_one]
 
 theorem BraidGroupFin.braid {n : ℕ} {i j : Fin n.pred} (hd : i.val.dist j.val = 1):
     σₙ i * σₙ j * σₙ i = σₙ j * σₙ i * σₙ j := by
@@ -113,7 +113,7 @@ theorem BraidGroupFin.braid {n : ℕ} {i j : Fin n.pred} (hd : i.val.dist j.val 
   apply Set.mem_range.mpr
   use (i, j)
   simp only [Nat.pred_eq_sub_one, M_braid_fin_adjacent _ _ hd, Function.uncurry_apply_pair,
-    relation, mul_inv_rev]
+    Group.relation, mul_inv_rev]
   rfl
 
 theorem BraidGroupInf.comm {i j : ℕ} (h : 2 ≤ i.dist j) :
@@ -124,8 +124,8 @@ theorem BraidGroupInf.comm {i j : ℕ} (h : 2 ≤ i.dist j) :
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, j)
-  simp only [Function.uncurry_apply_pair, relation, BraidMatrixInf_separated h,
-    Group.alternate_two, mul_inv_rev, inv_inv, mul_one]
+  simp only [Function.uncurry_apply_pair, Group.relation, BraidMatrixInf_separated h,
+    Monoid.alternate_two, mul_inv_rev, inv_inv, mul_one]
 
 theorem BraidGroupFin.comm {n : ℕ} {i j : Fin n.pred} (h : 2 ≤ i.val.dist j.val) :
     σₙ i * σₙ j = σₙ j * σₙ i := by
@@ -135,8 +135,8 @@ theorem BraidGroupFin.comm {n : ℕ} {i j : Fin n.pred} (h : 2 ≤ i.val.dist j.
   apply Subgroup.subset_normalClosure
   apply Set.mem_range.mpr
   use (i, j)
-  simp only [Nat.pred_eq_sub_one, M_braid_fin_separated _ _ h, Function.uncurry_apply_pair, relation,
-    mul_inv_rev]
+  simp only [Nat.pred_eq_sub_one, M_braid_fin_separated _ _ h, Function.uncurry_apply_pair,
+    Group.relation, mul_inv_rev]
   rfl
 
 theorem BraidGroupInf.generated_by (H : Subgroup BraidGroupInf) (h : ∀ i : ℕ, σ i ∈ H) :
@@ -182,17 +182,17 @@ theorem BraidGroupInf.isLiftable_iff {G : Type*} [Group G] {f : ℕ → G} :
     intro i j
     by_cases h1 : i.dist j = 1
     · rw [BraidMatrixInf_adjacent h1]
-      simp [Group.alternate_three, hbraid i j h1, mul_assoc]
+      simp [Monoid.alternate_three, hbraid i j h1, mul_assoc]
     by_cases h2 : 2 ≤ i.dist j
     · rw [BraidMatrixInf_separated h2]
-      simp [Group.alternate_two, hcomm i j h2]
+      simp [Monoid.alternate_two, hcomm i j h2]
     grind [Nat.dist]
   intro hf
   constructor
   · intro i j h
-    grind [Group.alternate_three, BraidMatrixInf_adjacent, hf i j]
+    grind [Monoid.alternate_three, BraidMatrixInf_adjacent, hf i j]
   intro i j h
-  grind [Group.alternate_two, BraidMatrixInf_separated, hf i j]
+  grind [Monoid.alternate_two, BraidMatrixInf_separated, hf i j]
 
 /-- The universal map out of the infinite braid Group. -/
 def BraidGroupInf.toGroup {G : Type*} [Group G] {f : ℕ → G}
@@ -227,17 +227,17 @@ theorem BraidGroupFin.isLiftable_iff (n : ℕ) {G : Type*} [Group G] {f : Fin n.
     intro i j
     by_cases h1 : i.val.dist j.val = 1
     · rw [M_braid_fin_adjacent i j h1]
-      simp [Group.alternate_three, hbraid i j h1, mul_assoc]
+      simp [Monoid.alternate_three, hbraid i j h1, mul_assoc]
     · by_cases h2 : 2 ≤ i.val.dist j.val
       · rw [M_braid_fin_separated i j h2]
-        simp [Group.alternate_two, hcomm i j h2]
+        simp [Monoid.alternate_two, hcomm i j h2]
       grind [Nat.dist]
   · intro hf
     constructor
     · intro i j h
-      grind [Group.alternate_three, M_braid_fin_adjacent, hf i j]
+      grind [Monoid.alternate_three, M_braid_fin_adjacent, hf i j]
     intro i j h
-    grind [Group.alternate_two, M_braid_fin_separated, hf i j]
+    grind [Monoid.alternate_two, M_braid_fin_separated, hf i j]
 
 /-- The universal map out of the finite braid Group. -/
 def BraidGroupFin.toGroup (n : ℕ) {G : Type*} [Group G] {f : Fin n.pred → G}
@@ -256,6 +256,7 @@ theorem BraidGroupFin.toGroup_unique (n : ℕ) {G : Type*} [Group G] {f : Fin n.
     (hg : ∀ i : Fin n.pred, g (σₙ i) = f i) :
     BraidGroupFin.toGroup n hf = g := by
   apply ArtinTits.toGroup_unique (BraidMatrixFin) g hg
+  
 end Braid
 
 /-

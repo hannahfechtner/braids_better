@@ -217,17 +217,14 @@ open Braid
 theorem toBraidGroup_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin n.pred)),
     (Braid.braid_monoid_rels_fin n) a b → ((FreeMonoid.lift fun a => σₙ a) a : BraidGroupFin n)=
     (FreeMonoid.lift fun a => σₙ a) b := by
-  repeat
-    rcases n
-    · exact fun _ _ h => h.elim
-    rename_i n
   intro a b h
-  rcases h
-  · rename_i j
+  apply braid_monoid_rels_fin_rec h
+  · intro _ _
     simp only [map_mul, Nat.pred_succ]
     apply BraidGroupFin.braid
     unfold Nat.dist
     aesop
+  intro _ _ _ _
   simp only [map_mul, Nat.pred_succ]
   apply BraidGroupFin.comm
   unfold Nat.dist Fin.castSucc Fin.castAdd Fin.castLE Fin.succ
