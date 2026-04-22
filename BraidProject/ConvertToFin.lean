@@ -14,35 +14,35 @@ theorem braid_rels_multi_of_separated {i j n : ℕ} {i_n : i < n + 2} {j_n : j <
       (propext Fin.le_iff_val_le_val)).mpr (Nat.le_sub_of_add_le apart))
 
 theorem braid_monoid_rels_fin_of_inf (n: ℕ) (a b: FreeMonoid ℕ) (holds_in_inf : braid_monoid_rels_inf a b)
-    (bounded_a: ∀ (x : ℕ), x ∈ a → x < n) (bounded_b: ∀ (x : ℕ), x ∈ b → x < n) :
-    braid_monoid_rels_fin n (FreeMonoid.mapNatToFin n a bounded_a) (FreeMonoid.mapNatToFin n b bounded_b) := by
+    (bounded_a: ∀ (x : ℕ), x ∈ a → x < n.pred) (bounded_b: ∀ (x : ℕ), x ∈ b → x < n.pred) :
+    braid_monoid_rels_fin n (FreeMonoid.mapNatToFin n.pred a bounded_a) (FreeMonoid.mapNatToFin n.pred b bounded_b) := by
   induction holds_in_inf
   · rename_i i
-    have : ∃ k, n = Nat.succ (Nat.succ k) := by  -- because it's bigger than n+1
-      have : i+1 < n :=
+    have : ∃ k, n = Nat.succ (Nat.succ (Nat.succ k)) := by  -- because it's bigger than n+1
+      have : i+1 < n.pred :=
         bounded_b (i + 1) (FreeMonoid.mem_mul.mpr (Or.inr FreeMonoid.mem_of_self))
-      use (Nat.pred (Nat.pred n))
+      use (Nat.pred (Nat.pred (Nat.pred n)))
       grind [Nat.pred_eq_sub_one, Nat.succ_eq_add_one]
     rcases this with ⟨k, hk⟩
     subst hk
     have : i + 1 < k + 2 :=
       bounded_a (i + 1) (FreeMonoid.mem_mul.mpr (Or.inl (FreeMonoid.mem_mul.mpr
         (Or.inr (FreeMonoid.mem_of.mpr (Eq.refl (i + 1)))))))
-    apply braid_rels_multi.adjacent (Fin.castPred ⟨i, by linarith⟩ _)
+    apply braid_rels_multi.adjacent ⟨i, _⟩
     grind [Fin.last]
   rename_i i j apart
-  have : ∃ k, n = Nat.succ (Nat.succ k) := by
+  have : ∃ k, n = Nat.succ (Nat.succ (Nat.succ k)) := by
     have := bounded_a j (FreeMonoid.mem_mul.mpr (Or.inr FreeMonoid.mem_of_self))
-    use (Nat.pred (Nat.pred n))
+    use (Nat.pred (Nat.pred (Nat.pred n)))
     repeat rw [Nat.succ_pred]
     all_goals grind [Nat.pred_zero, Nat.zero_or_one_of_pred_eq_zero]
   rcases this with ⟨k, hk⟩
   subst hk
   exact braid_rels_multi_of_separated apart
 
-theorem BraidMonoidFin.eq_of_BraidMonoidInf_eq (n : ℕ) (a b : FreeMonoid ℕ) (bounded_a: ∀ x, x ∈ a → x < n)
-    (bounded_b: ∀ x, x ∈ b→ x < n) (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
-    BraidMonoidFin.mk _ (FreeMonoid.mapNatToFin n a bounded_a) = BraidMonoidFin.mk _ (FreeMonoid.mapNatToFin n b bounded_b) := by
+theorem BraidMonoidFin.eq_of_BraidMonoidInf_eq (n : ℕ) (a b : FreeMonoid ℕ) (bounded_a: ∀ x, x ∈ a → x < n.pred)
+    (bounded_b: ∀ x, x ∈ b→ x < n.pred) (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
+    BraidMonoidFin.mk _ (FreeMonoid.mapNatToFin n.pred a bounded_a) = BraidMonoidFin.mk _ (FreeMonoid.mapNatToFin n.pred b bounded_b) := by
   apply PresentedMonoid.exact at h
   induction h with
   | of x y old =>
@@ -57,7 +57,7 @@ theorem BraidMonoidFin.eq_of_BraidMonoidInf_eq (n : ℕ) (a b : FreeMonoid ℕ) 
   | trans _ _ ih1 ih2 =>
     specialize ih1 bounded_a
     rename_i a b c ab _
-    have bounded_d : ∀ x, x ∈ b → x < n := by
+    have bounded_d : ∀ x, x ∈ b → x < n.pred := by
       intro x hb
       apply bounded_a x
       apply FreeMonoid.mem_symbols.mp
@@ -73,14 +73,14 @@ theorem BraidMonoidFin.eq_of_BraidMonoidInf_eq (n : ℕ) (a b : FreeMonoid ℕ) 
     · exact BraidMonoidFin.concat_mk ih1 ih2
     any_goals aesop
 
-theorem BraidMonoidFin.eq_of_BraidMonoidInf_eq' {x y : FreeMonoid (Fin n)}
+theorem BraidMonoidFin.eq_of_BraidMonoidInf_eq' {n : ℕ} {x y : FreeMonoid (Fin n.pred)}
     (h : BraidMonoidInf.mk ((FreeMonoid.map fun i ↦ ↑i) x) =
     BraidMonoidInf.mk ((FreeMonoid.map fun i ↦ ↑i) y))
     : BraidMonoidFin.mk _ x = BraidMonoidFin.mk _ y := by
   rw [← FreeMonoid.mapNatToFin_map_val x, ← FreeMonoid.mapNatToFin_map_val y]
   exact BraidMonoidFin.eq_of_BraidMonoidInf_eq n _ _ _ _ h
 
-theorem BraidMonoidFin.toBraidMonoidInf_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin n)),
+theorem BraidMonoidFin.toBraidMonoidInf_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin n.pred)),
     braid_monoid_rels_fin n a b →
     (FreeMonoid.lift fun a => BraidMonoidInf.of a.1) a =
     (FreeMonoid.lift fun a => BraidMonoidInf.of a.1) b := by
@@ -91,11 +91,9 @@ theorem BraidMonoidFin.toBraidMonoidInf_helper (n : ℕ) : ∀ (a b : FreeMonoid
   intro a b h
   rcases h
   · rename_i j
-    simp only [map_mul]
     apply BraidMonoidInf.braid_mk
     unfold Nat.dist
     aesop
-  simp only [map_mul]
   apply BraidMonoidInf.comm_mk
   unfold Nat.dist Fin.castSucc Fin.castAdd Fin.castLE Fin.succ
   simp only
@@ -118,13 +116,12 @@ theorem BraidMonoidFin.toBraidMonoidInf_of {n : ℕ} (i : Fin n.pred) :
 
 def BraidMonoidFin.toBraidMonoidInf_injective {n : ℕ} : Function.Injective (@BraidMonoidFin.toBraidMonoidInf n) := by
   intro x y h
-  unfold BraidMonoidFin at x y
   induction x with | h x =>
   induction y with | h y =>
-  rw [← BraidMonoidFin.mk, BraidMonoidFin.toBraidMonoidInf_map_word, BraidMonoidFin.toBraidMonoidInf_map_word] at h
+  rw  [BraidMonoidFin.toBraidMonoidInf_map_word x, BraidMonoidFin.toBraidMonoidInf_map_word] at h
   exact BraidMonoidFin.eq_of_BraidMonoidInf_eq' h
 
-theorem braid_monoid_rels_inf_of_fin {x y : FreeMonoid (Fin n)} (br : braid_monoid_rels_fin n x y) :
+theorem braid_monoid_rels_inf_of_fin {x y : FreeMonoid (Fin n.pred)} (br : braid_monoid_rels_fin n x y) :
     braid_monoid_rels_inf ((FreeMonoid.map fun i ↦ ↑i) x) ((FreeMonoid.map fun i ↦ ↑i) y) := by
   cases n with
   | zero => exact br.elim
@@ -132,15 +129,18 @@ theorem braid_monoid_rels_inf_of_fin {x y : FreeMonoid (Fin n)} (br : braid_mono
     cases n with
     | zero => exact br.elim
     | succ n =>
+      cases n with
+      | zero => exact br.elim
+      | succ n =>
       rcases br with h1 | h2
       · exact braid_monoid_rels_inf.adjacent ↑h1
       rename_i j j_is
       refine braid_monoid_rels_inf.separated (↑h2) (j + 1 + 1) <| Nat.add_le_add_right j_is 2
 
-theorem BraidMonoidInf.eq_of_BraidMonoidFin_eq (n : ℕ) (a b : FreeMonoid (Fin n))
+theorem BraidMonoidInf.eq_of_BraidMonoidFin_eq (n : ℕ) (a b : FreeMonoid (Fin n.pred))
     (h : BraidMonoidFin.mk _ a = BraidMonoidFin.mk _ b) :
-    BraidMonoidInf.mk (FreeMonoid.map (λ i : Fin n => i.val) a) =
-    BraidMonoidInf.mk (FreeMonoid.map (λ i : Fin n => i.val) b) := by
+    BraidMonoidInf.mk (FreeMonoid.map (λ i : Fin n.pred => i.val) a) =
+    BraidMonoidInf.mk (FreeMonoid.map (λ i : Fin n.pred => i.val) b) := by
   induction (BraidMonoidFin.exact h) with
   | of x y br =>
     exact BraidMonoidInf.sound <| PresentedMonoid.rels_alone (braid_monoid_rels_inf_of_fin br)

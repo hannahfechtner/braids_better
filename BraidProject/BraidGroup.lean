@@ -22,11 +22,8 @@ def BraidMatrixInf : ArtinTitsMatrix ℕ where
     if i = j then 0
       else (if i.dist j = 1 then 3 else 2)
   isSymm := by
-    unfold Matrix.IsSymm Matrix.transpose
-    simp only [Matrix.of_apply, EmbeddingLike.apply_eq_iff_eq]
-    ext
-    rw [Nat.dist_comm]
-    aesop
+    grind [Matrix.IsSymm, Matrix.transpose, Matrix.of_apply, EmbeddingLike.apply_eq_iff_eq,
+      Nat.dist]
   off_diagonal := by aesop
 
 def BraidGroupInf := ArtinTitsGroup BraidMatrixInf
@@ -38,6 +35,10 @@ instance : Group BraidGroupInf := by
 
 instance (n : ℕ) : Group (BraidGroupFin n) := by
   unfold BraidGroupFin; infer_instance
+
+def BraidGroupInf.mk := PresentedGroup.mk (ArtinTits.relation_set BraidMatrixInf)
+
+def BraidGroupFin.mk (n : ℕ) := PresentedGroup.mk (ArtinTits.relation_set (@BraidMatrixFin n))
 
 def σ (k : ℕ) : BraidGroupInf := PresentedGroup.of k
 
@@ -138,16 +139,27 @@ theorem BraidGroupFin.comm {n : ℕ} {i j : Fin n.pred} (h : 2 ≤ i.val.dist j.
     mul_inv_rev]
   rfl
 
-theorem generated_by (H : Subgroup BraidGroupInf) (h : ∀ i : ℕ, σ i ∈ H) :
+theorem BraidGroupInf.generated_by (H : Subgroup BraidGroupInf) (h : ∀ i : ℕ, σ i ∈ H) :
     ∀ x : BraidGroupInf, x ∈ H := PresentedGroup.generated_by _ _ h
 
-theorem generated_by_fin (H : Subgroup (BraidGroupFin n)) (h : ∀ i : Fin n.pred, σₙ i ∈ H) :
-    ∀ x : BraidGroupFin n, x ∈ H := PresentedGroup.generated_by _ _ h
+theorem BraidGroupFin.generated_by (H : Subgroup (BraidGroupFin n))
+    (h : ∀ i : Fin n.pred, σₙ i ∈ H) : ∀ x : BraidGroupFin n, x ∈ H :=
+  PresentedGroup.generated_by _ _ h
+
+@[induction_eliminator]
+theorem BraidGroupInf.induction_on {C : BraidGroupInf → Prop}
+    (H : ∀ z : FreeGroup ℕ, C (BraidGroupInf.mk z)) (x : BraidGroupInf) : C x :=
+  PresentedGroup.induction_on x H
+
+@[induction_eliminator]
+theorem BraidGroupFin.induction_on {n : ℕ} {C : BraidGroupFin n → Prop}
+    (H : ∀ z : FreeGroup (Fin n.pred), C (BraidGroupFin.mk n z)) (x : BraidGroupFin n) : C x :=
+  PresentedGroup.induction_on x H
 
 theorem braid_group_2.is_cyclic : ∃ g : (BraidGroupFin 2), ∀ x, x ∈ Subgroup.zpowers g := by
   use (σₙ ⟨0, by aesop⟩)
   intro x
-  apply generated_by_fin
+  apply BraidGroupFin.generated_by
   intro i
   rw [Subgroup.mem_zpowers_iff]
   use 1
@@ -249,6 +261,4 @@ end Braid
 /-
 We need a theorem that says that we can define a function from the braid group by giving any
 function on the generators that satisfies the relations.
-
-This should just be a nicer repackaging of `PresentedGroup.toGroup`.
 -/

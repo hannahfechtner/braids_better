@@ -1,5 +1,5 @@
 import BraidProject.Stability'
-import BraidProject.FlipBraid'
+import BraidProject.CommonMultiples
 
 open Braid BraidMonoidInf Grid DeterminativeSpine
 
@@ -43,6 +43,10 @@ instance BraidMonoidInf_Cancellative : CancelMonoid BraidMonoidInf where
     mul_right_cancel := fun _ _ _ => right_cancellative
     mul_left_cancel := fun _ _ _ => left_cancellative
 
+instance : IsLeftCancelMul BraidMonoidInf := ⟨fun _ _ _ => left_cancellative⟩
+
+instance : IsRightCancelMul BraidMonoidInf := ⟨fun _ _ _ => right_cancellative⟩
+
 theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d' = d := by
   induction h1 with
   | empty => exact fun _ _ h => one_one h
@@ -62,7 +66,7 @@ theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d
 
 theorem existence : ∀ a b, ∃ c d, grid a b c d := by
   intro a b
-  rcases common_right_mul_inf_mk a b with ⟨d1, c1, h⟩
+  rcases common_right_mul_inf_mk a b with ⟨c1, d1, h⟩
   have big_grid : grid (a * c1) (b * d1) 1 1 := by
     apply grid_of_eq
     aesop

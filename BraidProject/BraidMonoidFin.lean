@@ -13,14 +13,15 @@ inductive braid_rels_multi {n : ℕ} : FreeMonoid (Fin (n + 2)) → FreeMonoid (
       braid_rels_multi (of i.castSucc.castSucc * of j.succ.succ)
                        (of j.succ.succ * of i.castSucc.castSucc)
 
-def braid_monoid_rels_fin : (n : ℕ) → (FreeMonoid (Fin n) → FreeMonoid (Fin n) → Prop)
+def braid_monoid_rels_fin : (n : ℕ) → (FreeMonoid (Fin n.pred) → FreeMonoid (Fin n.pred) → Prop)
   | 0     => (λ _ _ => False)
   | 1     => (λ _ _ => False)
-  | n + 2 => @braid_rels_multi n
+  | 2     => (λ _ _ => False)
+  | n + 3 => @braid_rels_multi n
 
 /-- this is the braid monoid with n strands. those strands are numbered 0 to n-1.
 the generators are numbered 0 to n-2 -/
-def BraidMonoidFin (n : ℕ) := PresentedMonoid (braid_monoid_rels_fin n.pred)
+def BraidMonoidFin (n : ℕ) := PresentedMonoid (braid_monoid_rels_fin n)
 
 instance (n : ℕ) : Monoid (BraidMonoidFin n) := by unfold BraidMonoidFin; infer_instance
 
@@ -30,9 +31,9 @@ def rel (n : ℕ):= PresentedMonoid.rel (braid_monoid_rels_fin n)
 
 protected def of (n : ℕ) := PresentedMonoid.of (braid_monoid_rels_fin n)
 
-protected def mk (n : ℕ) := PresentedMonoid.mk (braid_monoid_rels_fin n)
+protected def mk (n : ℕ) : FreeMonoid (Fin n.pred) →ₙ* BraidMonoidFin n := PresentedMonoid.mk (braid_monoid_rels_fin n)
 
-theorem mul_mk {n : ℕ} {a b : FreeMonoid (Fin n)} : BraidMonoidFin.mk n (a * b) =
+theorem mul_mk {n : ℕ} {a b : FreeMonoid (Fin n.pred)} : BraidMonoidFin.mk n (a * b) =
     BraidMonoidFin.mk n a * BraidMonoidFin.mk n b := rfl
 
 theorem mk_one {n : ℕ} : BraidMonoidFin.mk n 1 = 1 := rfl
@@ -44,6 +45,11 @@ theorem sound (h : BraidMonoidFin.rel n a b) : BraidMonoidFin.mk n a = BraidMono
 
 theorem exact (h : BraidMonoidFin.mk n a = BraidMonoidFin.mk n b ) : BraidMonoidFin.rel n a b :=
   Quotient.exact h
+
+@[induction_eliminator]
+theorem inductionOn {n : ℕ} {P : BraidMonoidFin n → Prop} (h : ∀ a, P (BraidMonoidFin.mk n a)) (b):
+  P b := Quot.ind h b
+
 
 -- theorem refl : BraidMonoidFin.rel n a a := PresentedMonoid.refl
 -- theorem reg : ∀ c d, BraidMonoidFin.rel n a b → BraidMonoidFin.rel n (c * a * d) (c * b * d) :=
@@ -125,9 +131,91 @@ theorem concat_mk : BraidMonoidFin.mk n a = BraidMonoidFin.mk n b →
 --   rw [← j_is]
 --   exact braid_rels_m_inf.adjacent _
 
+open FreeMonoid in
+theorem braid_monoid_rels_fin_rec
+    {P : ∀ {n : ℕ}, FreeMonoid (Fin n.pred) → FreeMonoid (Fin n.pred) → Prop}
+    {n : ℕ} {a b : FreeMonoid (Fin n.pred)}
+    (h : braid_monoid_rels_fin n a b)
+    (adj : ∀ {k : ℕ} (i : Fin (k + 1)), P (n := k + 3)
+          (of i.castSucc * of i.succ * of i.castSucc)
+          (of i.succ * of i.castSucc * of i.succ))
+    (sep : ∀ {k : ℕ} (i j : Fin k) (hij : i ≤ j), P (n := k + 3)
+          (of i.castSucc.castSucc * of j.succ.succ)
+          (of j.succ.succ * of i.castSucc.castSucc)) :
+    P a b := by
+  cases n with
+  | zero => cases h
+  | succ n => cases n with
+    | zero =>  cases h
+    | succ n => cases n with
+      | zero => cases h
+      | succ k =>
+          simp only [braid_monoid_rels_fin] at h
+          cases h with
+          | adjacent i => apply adj
+          | separated i j h => apply sep; assumption
+
+private theorem reverse_eq_of_rels {n : ℕ} (a b : FreeMonoid (Fin n.pred)) (h : braid_monoid_rels_fin n a b) :
+    mk (braid_monoid_rels_fin n) a.reverse = mk (braid_monoid_rels_fin n) b.reverse := by
+  apply braid_monoid_rels_fin_rec h
+  · exact fun id_eq ↦ sound (rels_alone (braid_rels_multi.adjacent id_eq))
+  exact fun i j hij ↦ Eq.symm (sound (rels_alone (braid_rels_multi.separated i j hij)))
+
+
+def reverse_braid : BraidMonoidFin n → BraidMonoidFin n :=
+  PresentedMonoid.lift_of_mul (fun x => mk (braid_monoid_rels_fin n) <| FreeMonoid.reverse x)
+  (fun h1 h2 => by simp [FreeMonoid.reverse_mul, h1, h2]) reverse_eq_of_rels
+
+@[simp]
+theorem reverse_braid_one {n : ℕ} : reverse_braid (1 : BraidMonoidFin n) = 1 := rfl
+
+@[simp]
+theorem reverse_braid_mk : reverse_braid (BraidMonoidFin.mk n a) =
+  BraidMonoidFin.mk n (FreeMonoid.reverse a) := rfl
+
+@[simp]
+theorem reverse_braid_mul {a b : BraidMonoidFin n} : reverse_braid (a * b) =
+    reverse_braid b * reverse_braid a := by
+  induction a with | h a1 =>
+  induction b with | h b1 =>
+  rw [← BraidMonoidFin.mul_mk]
+  grind [reverse_braid_mk, FreeMonoid.reverse_mul]
+
+@[simp]
+theorem reverse_reverse : reverse_braid (reverse_braid a) = a := by
+  induction a
+  rw [reverse_braid_mk, reverse_braid_mk, FreeMonoid.reverse_reverse]
+
+theorem rel_reverse_reverse_iff : PresentedMonoid.rel (braid_monoid_rels_fin n) a1.reverse b1.reverse ↔
+  PresentedMonoid.rel (braid_monoid_rels_fin n) a1 b1 := by
+  have : ∀ a1 b1, PresentedMonoid.rel (braid_monoid_rels_fin n) a1 b1 →
+      PresentedMonoid.rel (braid_monoid_rels_fin n) a1.reverse b1.reverse := by
+    intro a1 b1 h
+    induction h with
+    | of _ _ h =>
+      apply braid_monoid_rels_fin_rec h
+      · exact fun {k} i ↦ rels_alone (braid_rels_multi.adjacent i)
+      exact fun {k} i j hij ↦ symm_alone (braid_rels_multi.separated i j hij)
+    | refl _ => exact PresentedMonoid.refl
+    | symm _ h => exact ConGen.Rel.symm h
+    | trans _ _ h1 h2 => exact h1.trans h2
+    | mul _ _ h1 h2 =>
+      rw [FreeMonoid.reverse_mul, FreeMonoid.reverse_mul]
+      exact PresentedMonoid.mul h2 h1
+  grind [FreeMonoid.reverse_reverse]
+
+theorem reverse_eq_reverse_iff : a = b ↔ reverse_braid a = reverse_braid b := by
+  constructor
+  · intro h
+    rw [h]
+  intro h
+  induction a ; induction b
+  simp only [reverse_braid_mk] at h
+  exact PresentedMonoid.sound (rel_reverse_reverse_iff.mp (PresentedMonoid.exact h))
+
 open Braid
-theorem toBraidGroup_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin (n.pred))),
-    (Braid.braid_monoid_rels_fin (n.pred)) a b → ((FreeMonoid.lift fun a => σₙ a) a : BraidGroupFin n)=
+theorem toBraidGroup_helper (n : ℕ) : ∀ (a b : FreeMonoid (Fin n.pred)),
+    (Braid.braid_monoid_rels_fin n) a b → ((FreeMonoid.lift fun a => σₙ a) a : BraidGroupFin n)=
     (FreeMonoid.lift fun a => σₙ a) b := by
   repeat
     rcases n

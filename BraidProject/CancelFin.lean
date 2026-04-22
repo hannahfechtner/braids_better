@@ -1,5 +1,5 @@
 import BraidProject.Cancellability
-import BraidProject.ConvertToFin
+import BraidProject.ConvertToFinHelpMe
 
 open Braid
 
@@ -44,6 +44,10 @@ theorem BraidMonoidFin.left_cancellative {n : ℕ} (a b c : BraidMonoidFin n) (h
   induction b with | h b'
   induction c with | h c'
   exact BraidMonoidFin.cancel_left _ _ _ h
+
+instance {n : ℕ} : IsLeftCancelMul (BraidMonoidFin n) := ⟨fun _ _ _ => BraidMonoidFin.left_cancellative _ _ _⟩
+
+instance {n : ℕ} : IsRightCancelMul (BraidMonoidFin n) := ⟨fun _ _ _ => BraidMonoidFin.right_cancellative _ _ _⟩
 
 instance {n : ℕ} : CancelMonoid (BraidMonoidFin n) where
   mul_right_cancel := fun _ _ _ => BraidMonoidFin.right_cancellative _ _ _
