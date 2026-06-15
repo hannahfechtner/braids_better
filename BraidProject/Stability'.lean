@@ -1,5 +1,9 @@
 import BraidProject.GridsTwo'
-open FreeMonoid Braid Grid DeterminativeSpine
+
+open FreeMonoid Grid DeterminativeSpine
+
+namespace Braid
+namespace Grid
 
 def stable (a b : FreeMonoid ℕ) := ∀ c d, grid a b c d → ∀ a' b',
   BraidMonoidInf.mk a = .mk a' → BraidMonoidInf.mk b = .mk b' → ∃ c' d', grid a' b' c' d' ∧

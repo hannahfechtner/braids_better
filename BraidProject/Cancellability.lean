@@ -3,13 +3,15 @@ import BraidProject.CommonMultiples
 
 open Braid BraidMonoidInf Grid DeterminativeSpine
 
-theorem grid_of_eq (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
+namespace Braid
+
+theorem Grid.of_mk_eq_mk (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
     grid a b 1 1 := by
   rcases (stability _ _ 1 1 (top_left_word a) _ _ rfl h) with ⟨a, b, hg, ha, hb⟩
   rw [BraidMonoidInf.one_of_eq_mk_one ha.symm, BraidMonoidInf.one_of_eq_mk_one hb.symm] at hg
   exact hg
 
-theorem left_cancellative {a b c : BraidMonoidInf} (h1 : c * a = c * b) :
+theorem BraidMonoidInf.left_cancellative {a b c : BraidMonoidInf} (h1 : c * a = c * b) :
     a = b := by
   induction a with | h a'
   induction b with | h b'
@@ -21,7 +23,7 @@ theorem left_cancellative {a b c : BraidMonoidInf} (h1 : c * a = c * b) :
     change BraidMonoidInf.mk _ = BraidMonoidInf.mk _ at h1
     simp only at h1
     rw [mul_assoc, mul_assoc] at h1
-    have := grid_of_eq h1
+    have := Grid.of_mk_eq_mk h1
     rcases splittable_horizontally this _ _ rfl with ⟨middle, f₁, f₂, g₁, g₂, f_is⟩
     rw [(FreeMonoid.prod_eq_one f_is.symm).1] at g₁
     rcases splittable_vertically g₁ _ _ rfl with ⟨s₁, m₁, m₂, g₃, g₄, middle_is⟩
@@ -34,7 +36,7 @@ theorem left_cancellative {a b c : BraidMonoidInf} (h1 : c * a = c * b) :
     rw [mul_one, (FreeMonoid.prod_eq_one f_is.symm).2, mul_one, mk_mul, mk_mul] at this
     exact this
 
-theorem right_cancellative {a b c : BraidMonoidInf} (h1 : a * c = b * c) : a = b := by
+theorem BraidMonoidInf.right_cancellative {a b c : BraidMonoidInf} (h1 : a * c = b * c) : a = b := by
   apply BraidMonoidInf.reverse_eq_reverse_iff.mp at h1
   rw [BraidMonoidInf.reverse_braid_mul, BraidMonoidInf.reverse_braid_mul] at h1
   exact BraidMonoidInf.reverse_eq_reverse_iff.mpr (left_cancellative h1)
@@ -47,7 +49,7 @@ instance : IsLeftCancelMul BraidMonoidInf := ⟨fun _ _ _ => left_cancellative�
 
 instance : IsRightCancelMul BraidMonoidInf := ⟨fun _ _ _ => right_cancellative⟩
 
-theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d' = d := by
+theorem Grid.unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d' = d := by
   induction h1 with
   | empty => exact fun _ _ h => one_one h
   | top_bottom i => exact fun _ _ h => one_generator h
@@ -64,11 +66,11 @@ theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d
     rcases splittable_vertically gr _ _ rfl
     grind
 
-theorem existence : ∀ a b, ∃ c d, grid a b c d := by
+theorem Grid.existence : ∀ a b, ∃ c d, grid a b c d := by
   intro a b
   rcases common_right_mul_inf_mk a b with ⟨c1, d1, h⟩
   have big_grid : grid (a * c1) (b * d1) 1 1 := by
-    apply grid_of_eq
+    apply Grid.of_mk_eq_mk
     aesop
   rcases splittable_horizontally big_grid _ _ rfl with ⟨_, c₁, c₂, top_grid, _, side_one⟩
   rw [(FreeMonoid.prod_eq_one side_one.symm).1] at top_grid

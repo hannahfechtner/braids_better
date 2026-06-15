@@ -36,9 +36,13 @@ instance : Group BraidGroupInf := by
 instance (n : ℕ) : Group (BraidGroupFin n) := by
   unfold BraidGroupFin; infer_instance
 
-def BraidGroupInf.mk := PresentedGroup.mk (ArtinTits.Group.relation_set BraidMatrixInf)
+def braidRelationInf := (ArtinTits.Group.relation_set BraidMatrixInf)
 
-def BraidGroupFin.mk (n : ℕ) := PresentedGroup.mk (ArtinTits.Group.relation_set (@BraidMatrixFin n))
+def braidRelationFin (n : ℕ) := (ArtinTits.Group.relation_set (@BraidMatrixFin n))
+
+def BraidGroupInf.mk := PresentedGroup.mk braidRelationInf
+
+def BraidGroupFin.mk (n : ℕ) := PresentedGroup.mk (braidRelationFin n)
 
 def σ (k : ℕ) : BraidGroupInf := PresentedGroup.of k
 
@@ -256,7 +260,7 @@ theorem BraidGroupFin.toGroup_unique (n : ℕ) {G : Type*} [Group G] {f : Fin n.
     (hg : ∀ i : Fin n.pred, g (σₙ i) = f i) :
     BraidGroupFin.toGroup n hf = g := by
   apply ArtinTits.toGroup_unique (BraidMatrixFin) g hg
-  
+
 end Braid
 
 /-

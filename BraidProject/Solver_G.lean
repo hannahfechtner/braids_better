@@ -2,7 +2,8 @@ import BraidProject.Solver_ST
 import BraidProject.BraidGroup
 import BraidProject.OreLocalizationPresented
 import BraidProject.Cancellability
-import BraidProject.Widgets
+import Mathlib.Tactic.Group
+--import BraidProject.Widgets
 
 -- give a list, returns the maximal true prefix, and then the rest as a pair
 def separate_maximal_true_prefix (c : List (ℕ × Bool)) : List (ℕ × Bool) × List (ℕ × Bool) :=
@@ -20,6 +21,8 @@ theorem separate_maximal_true_prefix_correct :
     | (d1, false) => exact List.nil_append _
     | (d2, true) =>
       simp only [separate_maximal_true_prefix, List.cons_append, ih]
+
+open SignedList
 
 def separate_maximal_true_prefix_is_true : is_true (separate_maximal_true_prefix L).1 := by
   induction L with
@@ -46,7 +49,7 @@ theorem separate_maximal_false_prefix_correct :
   | cons d e ih =>
     match d with
     | (d1, true) =>
-      simp [separate_maximal_false_prefix, ih]
+      simp [separate_maximal_false_prefix]
     | (d2, false) =>
       simp [separate_maximal_false_prefix, ih]
 
@@ -54,12 +57,10 @@ def separate_maximal_false_prefix_is_false : is_false (separate_maximal_false_pr
   induction L with
   | nil =>
     simp [separate_maximal_false_prefix]
-    exact is_false_nil
   | cons d e =>
     match d with
     | (d1, true) =>
       simp [separate_maximal_false_prefix]
-      exact is_false_nil
     | (d2, false) =>
       simp [separate_maximal_false_prefix]
       apply is_false_cons
@@ -108,37 +109,38 @@ theorem separate_first_pair_nil_nil (h : separate_first_pair L = ([], [], c)) : 
     have H2 := @separate_first_pair_length L (by rw [H]; simp)
     simp_all
 
-theorem to_up_plain_no_bool {L : List (ℕ × Bool)} (h : is_false L) :
-  to_up_plain (List.map (fun x ↦ x.1) L.reverse) = L := by
+open Braid
+
+theorem to_vertical_edge_plain_no_bool {L : List (ℕ × Bool)} (h : is_false L) :
+  to_vertical_edge_plain (List.map (fun x ↦ x.1) L.reverse) = L := by
   induction L using List.reverseRecOn with
-  | nil => simp [to_up_plain]
+  | nil => simp [to_vertical_edge_plain]
   | append_singleton l a ih =>
-    have hl : is_false l :=(is_false_append h).1
-    simp [to_up_plain]
-    rw [← List.concat_eq_append, ← List.concat_eq_append, List.concat_inj]
+    have hl : is_false l :=(is_false_of_append h).1
+    simp [to_vertical_edge_plain]
     constructor
-    · unfold to_up_plain at ih
+    · unfold to_vertical_edge_plain at ih
       specialize ih hl
       rw [← ih]
       simp
-    have ha : is_false [a] := (is_false_append h).2
-    specialize ha a ⟨by simp⟩
-    simp [← ha.1]
+    have ha : is_false [a] := (is_false_of_append h).2
+    specialize ha a (by simp)
+    simp [← ha]
 
-theorem to_over_plain_no_bool {L : List (ℕ × Bool)} (h : is_true L) :
-  to_over_plain (List.map (fun x ↦ x.1) L) = L := by
+theorem to_horizontal_edge_plain_no_bool {L : List (ℕ × Bool)} (h : is_true L) :
+  to_horizontal_edge_plain (List.map (fun x ↦ x.1) L) = L := by
   induction L with
-  | nil => simp [to_over_plain]
+  | nil => simp [to_horizontal_edge_plain]
   | cons head tail ih =>
-    have tt : is_true tail := (is_true_split h).2
+    have tt : is_true tail := (is_true_of_cons h).2
     specialize ih tt
-    simp only [to_over_plain, List.map_cons, List.map_map, List.cons.injEq]
+    simp only [to_horizontal_edge_plain, List.map_cons, List.map_map, List.cons.injEq]
     constructor
-    · have ht : is_true [head] := (is_true_split h).1
-      specialize ht head ⟨by simp⟩
-      simp [← ht.1]
+    · have ht : is_true [head] := (is_true_of_cons h).1
+      specialize ht head (by simp)
+      simp [← ht]
     rw [← ih]
-    unfold to_over_plain
+    unfold to_horizontal_edge_plain
     simp
 
 theorem separate_first_pair_cons_false(h : separate_first_pair L = (a, b, c)) :
@@ -146,7 +148,6 @@ theorem separate_first_pair_cons_false(h : separate_first_pair L = (a, b, c)) :
   unfold separate_first_pair
   simp [separate_maximal_false_prefix]
   unfold separate_first_pair at h
-  simp [separate_maximal_false_prefix] at h
   simp_all
 
 theorem c_nil_of_separate_no_true (h : separate_first_pair L = (a, ([], c))) : c = [] := by
@@ -174,189 +175,301 @@ theorem c_nil_of_separate_no_true (h : separate_first_pair L = (a, ([], c))) : c
         apply separate_first_pair_nil_nil h
       | a1 :: a2 =>
         simp [separate_first_pair, separate_maximal_false_prefix] at h
+structure ReverseResult (L : List (ℕ × Bool)) where
+  out : List (ℕ × Bool)
+  ordered : PosNegData out
+  steps : SemiThue reversing L out
 
-def reverse_complex (L : List (ℕ × Bool)) : (L1 : List (ℕ × Bool)) × in_order L1 ×
-    SemiThue reversing L L1 :=
-  match L with
-  | [] => by
-    use []
-    constructor
-    · exact in_order_nil
-    exact SemiThue.refl _
-  | l1 :: l2 =>
-  match hs : separate_first_pair (l1 :: l2) with
-  | ([], (b, c)) => by
-    have hc : c.length < (l1 :: l2).length := by
-      have H := separate_first_pair_correct (l1 :: l2)
-      have c_is : c = (separate_first_pair (l1 :: l2)).2.2 := by simp [hs]
-      rw [c_is]
-      apply congr_arg List.length at H
-      simp only [List.append_assoc, List.length_append, List.length_cons] at H
-      rw [List.length_cons, ← H, ← add_assoc]
-      refine Nat.lt_add_of_pos_left ?_
-      apply separate_first_pair_length ?_
-      simp
-    use (b++ (reverse_complex c).1)
-    have H : is_true b := by
-      have H : b = (separate_first_pair (l1 :: l2)).2.1 := by simp [hs]
-      rw [H]
-      apply separate_first_pair_second_true
-    rcases (reverse_complex c).2.1 with ⟨d, e, hde⟩
-    constructor
-    · use b++d, e
-      constructor
-      · apply is_true_of_true_true H hde.1
-      constructor
-      · exact hde.2.1
-      constructor
-      rw [hde.2.2.1]
-      simp
-    have H := separate_first_pair_correct (l1 :: l2)
-    simp [hs] at H
-    rw [← H]
-    apply SemiThue_append_left (reverse_complex c).2.2
-  | (a1::a2, ([], c)) => by
-    have hc : c = [] := by apply c_nil_of_separate_no_true hs
-    use a1 :: a2
-    have af : is_false (a1 :: a2) := by
-      have H : a1 :: a2 = (separate_first_pair (l1 :: l2)).1 := by simp [hs]
-      rw [H]
-      apply separate_first_pair_first_false
-    have H1 := separate_first_pair_correct (l1 :: l2)
-    have : l1 :: l2 = a1 :: a2 := by simp_all
-    rw [this]
-    constructor
-    · exact in_order_of_false af
-    exact SemiThue.refl _
-  | (a1::a2, (b1::b2, c)) => by
-    have H := solver_long (List.map (fun x => x.1) (a1 :: a2).reverse)
-      (List.map (fun x => x.1) (b1 :: b2)) (by simp) (by simp)
-    have H1 : in_order _ := solver_long_in_order (List.map (fun x => x.1) (a1 :: a2).reverse)
-      (List.map (fun x => x.1) (b1 :: b2)) (by simp) (by simp)
-    rcases H1 with ⟨d, e, hde⟩
-    have hc : c.length < (l1 :: l2).length := by
-      have H := separate_first_pair_correct (l1 :: l2)
-      have c_is : c = (separate_first_pair (l1 :: l2)).2.2 := by simp [hs]
-      rw [c_is]
-      apply congr_arg List.length at H
-      simp only [List.append_assoc, List.length_append, List.length_cons] at H
-      rw [List.length_cons, ← H, ← add_assoc]
-      refine Nat.lt_add_of_pos_left ?_
-      apply separate_first_pair_length ?_
-      simp
-    have H2 := reverse_complex c
-    rcases H2.2.1 with ⟨f, g, hfg⟩
-    match e with
-    | [] =>
-      use d++f++g
-      constructor
-      · use (d ++ f), g
-        constructor
-        · apply is_true_of_true_true hde.1 hfg.1
-        constructor
-        · exact hfg.2.1
-        constructor
-        rfl
-      have H' := separate_first_pair_correct (l1 :: l2)
-      simp only [hs, List.cons_append, List.append_assoc] at H'
-      rw [List.append_nil] at hde
-      rw [← H', ← hde.2.2.1, List.append_assoc _ f g, ← hfg.2.2.1,
-        ← List.cons_append, ← List.cons_append, ← List.append_assoc]
-      apply SemiThue_both_sides
-      · have H'' := @solver_equiv (List.map (fun x => x.1) (a1 :: a2).reverse)
-          (List.map (fun x => x.1) (b1 :: b2)) (by simp) (by simp)
-        have H3 : (to_up_plain (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
-          to_over_plain (List.map (fun x ↦ x.1) (b1 :: b2))) = a1 :: a2 ++ b1 :: b2 := by
-          have af := (separate_first_pair_first_false (l1 :: l2))
-          rw [hs] at af
-          have bt := (separate_first_pair_second_true (l1 :: l2))
-          rw [hs] at bt
-          rw [to_up_plain_no_bool af, to_over_plain_no_bool bt]
-        rw [← H3]
-        exact H''
-      apply H2.2.2
-    | e1 :: e2 =>
-      match f with
-      | [] =>
-        use d ++ (e1 :: e2) ++ g
-        constructor
-        · use d, (e1::e2) ++ g
-          constructor
-          · exact hde.1
-          constructor
-          · apply is_false_of_false_false hde.2.1 hfg.2.1
-          constructor
-          simp
-        have H' := separate_first_pair_correct (l1 :: l2)
-        simp only [hs, List.cons_append, List.append_assoc] at H'
-        rw [List.nil_append] at hfg
-        rw [← H', ← hde.2.2.1, ← hfg.2.2.1,
-          ← List.cons_append, ← List.cons_append, ← List.append_assoc]
-        apply SemiThue_both_sides
-        · have H3 := @solver_equiv (List.map (fun x => x.1) (a1 :: a2).reverse)
-            (List.map (fun x => x.1) (b1 :: b2)) (by simp) (by simp)
-          have H4 : (to_up_plain (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
-            to_over_plain (List.map (fun x ↦ x.1) (b1 :: b2))) = a1 :: a2 ++ b1 :: b2 := by
-            have af := (separate_first_pair_first_false (l1 :: l2))
-            rw [hs] at af
-            have bt := (separate_first_pair_second_true (l1 :: l2))
-            rw [hs] at bt
-            rw [to_up_plain_no_bool af, to_over_plain_no_bool bt]
-          rw [← H4]
-          exact H3
-        apply H2.2.2
-      | f1 :: f2 =>
+theorem separate_tail_length (h : separate_first_pair L = (a, b, c)) (hL : L.length > 0): c.length < L.length := by
+  have H := separate_first_pair_correct L
+  apply congr_arg List.length at H
+  have H1 := separate_first_pair_length hL
+  grind
+
+def helper_for_f_nil (l1 : ℕ × Bool) (l2 : List (ℕ × Bool))
+    (sfpc : (separate_first_pair (l1 :: l2)).1 ++
+      (separate_first_pair (l1 :: l2)).2.1 ++
+      (separate_first_pair (l1 :: l2)).2.2 = l1 :: l2)
+    (a1 : ℕ × Bool) (a2 : List (ℕ × Bool))
+    (b1 : ℕ × Bool) (b2 c : List (ℕ × Bool))
+    (hs : separate_first_pair (l1 :: l2) = (a1 :: a2, b1 :: b2, c))
+    (d : List (ℕ × Bool))
+    (H2 : ReverseResult c)
+    (g : List (ℕ × Bool))
+    (hfg : is_true ([] : List (ℕ × Bool)) ∧ is_false g ∧ H2.out = [] ++ g)
+    (e1 : ℕ × Bool) (e2 : List (ℕ × Bool))
+    (htrue : is_true d)
+    (hfalse : is_false (e1 :: e2))
+    (hout :
+      ((solver_long
+        (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
+        (List.map (fun x ↦ x.1) (b1 :: b2))
+        (by simp) (by simp))).val.2.2.1 = d ++ e1 :: e2)
+    (H3' :
+      SemiThue reversing
+        (to_vertical_edge_plain (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
+          to_horizontal_edge_plain (List.map (fun x ↦ x.1) (b1 :: b2)))
+        ((solver_long
+          (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
+          (List.map (fun x ↦ x.1) (b1 :: b2))
+          (by simp) (by simp))).val.snd.snd.fst) :
+    ReverseResult (l1 :: l2) := by
+  use d ++ (e1 :: e2) ++ g
+  use d, (e1 :: e2) ++ g
+  constructor
+  constructor
+  · exact htrue
+  constructor
+  · apply is_false_append hfalse hfg.2.1
+  · simp only [List.append_assoc, List.cons_append]
+  simp only [hs, List.cons_append, List.append_assoc] at sfpc
+  rw [List.nil_append] at hfg
+  rw [← sfpc, ← hout, ← hfg.2.2,
+    ← List.cons_append, ← List.cons_append, ← List.append_assoc]
+  apply SemiThue.append
+  · have H4 :
+        (to_vertical_edge_plain (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
+          to_horizontal_edge_plain (List.map (fun x ↦ x.1) (b1 :: b2))) =
+        a1 :: a2 ++ b1 :: b2 := by
+      have af := separate_first_pair_first_false (l1 :: l2)
+      rw [hs] at af
+      have bt := separate_first_pair_second_true (l1 :: l2)
+      rw [hs] at bt
+      rw [to_vertical_edge_plain_no_bool af, to_horizontal_edge_plain_no_bool bt]
+    rw [← H4]
+    exact H3'
+  exact H2.steps
+
+def helper_for_f_cons (l1 : ℕ × Bool) (l2 : List (ℕ × Bool))
+    (sfpc : (separate_first_pair (l1 :: l2)).1 ++
+      (separate_first_pair (l1 :: l2)).2.1 ++
+      (separate_first_pair (l1 :: l2)).2.2 = l1 :: l2)
+    (a1 : ℕ × Bool) (a2 : List (ℕ × Bool))
+    (b1 : ℕ × Bool) (b2 c : List (ℕ × Bool))
+    (hs : separate_first_pair (l1 :: l2) = (a1 :: a2, b1 :: b2, c))
+    (d : List (ℕ × Bool))
+    (H2 : ReverseResult c)
+    (f1 : ℕ × Bool) (f2 g : List (ℕ × Bool))
+    (hfg : is_true (f1 :: f2) ∧ is_false g ∧ H2.out = (f1 :: f2) ++ g)
+    (e1 : ℕ × Bool) (e2 : List (ℕ × Bool))
+    (htrue : is_true d)
+    (hfalse : is_false (e1 :: e2))
+    (hout :
+      ((solver_long
+        (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
+        (List.map (fun x ↦ x.1) (b1 :: b2))
+        (by simp) (by simp))).val.2.2.1 = d ++ e1 :: e2)
+    (H3' :
+      SemiThue reversing
+        (to_vertical_edge_plain (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
+          to_horizontal_edge_plain (List.map (fun x ↦ x.1) (b1 :: b2)))
+        ((solver_long
+          (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
+          (List.map (fun x ↦ x.1) (b1 :: b2))
+          (by simp) (by simp))).val.snd.snd.fst) :
+    ReverseResult (l1 :: l2) := by
         have H3 := solver_long (List.map (fun x => x.1) (e1 :: e2).reverse)
           (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp)
-        have H4 : in_order _ := solver_long_in_order (List.map (fun x => x.1) (e1 :: e2).reverse)
+        have H4 : PosNegData _ := solver_long_PosNegData (List.map (fun x => x.1) (e1 :: e2).reverse)
           (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp)
         rcases H4 with ⟨i, j, hij⟩
         use d ++ i ++ j ++ g
+        use (d ++ i), j ++ g
         constructor
-        · use (d ++ i), j ++ g
-          constructor
-          · apply is_true_of_true_true hde.1 hij.1
-          constructor
-          · apply is_false_of_false_false hij.2.1 hfg.2.1
-          constructor
-          simp
-        have H' := separate_first_pair_correct (l1 :: l2)
-        simp only [hs, List.cons_append, List.append_assoc] at H'
-        rw [← H', List.append_assoc d i j, ← hij.2.2.1]
-        have H5 := @solver_equiv (List.map (fun x => x.1) (e1 :: e2).reverse)
-            (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp)
-        have H6 : (to_up_plain (List.map (fun x ↦ x.1) (e1 :: e2).reverse) ++
-            to_over_plain (List.map (fun x ↦ x.1) (f1 :: f2))) = e1 :: e2 ++ f1 :: f2 := by
-          rw [to_up_plain_no_bool hde.2.1, to_over_plain_no_bool hfg.1]
+        constructor
+        · apply is_true_append htrue hij.1.1
+        constructor
+        · apply is_false_append hij.1.2.1 hfg.2.1
+        simp
+        simp only [hs, List.cons_append, List.append_assoc] at sfpc
+        rw [← sfpc, List.append_assoc d i j, ← hij.1.2.2]
+        have H5 := @SemiThue.append_left_right _ _ _ _ d g (@solver_equiv (List.map (fun x => x.1) (e1 :: e2).reverse)
+            (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp))
+        apply SemiThue.trans _ H5
+        have H6 : (to_vertical_edge_plain (List.map (fun x ↦ x.1) (e1 :: e2).reverse) ++
+            to_horizontal_edge_plain (List.map (fun x ↦ x.1) (f1 :: f2))) = e1 :: e2 ++ f1 :: f2 := by
+          rw [to_vertical_edge_plain_no_bool hfalse, to_horizontal_edge_plain_no_bool hfg.1]
         have H7 : SemiThue reversing (a1 :: (a2 ++ b1 :: (b2 ++ c)))
           (d ++ (e1 :: e2 ++ f1 :: f2 ++ g)) := by
           rw [List.append_assoc (e1 :: e2), ← List.append_assoc d,
             ← List.cons_append, ← List.cons_append, ← List.append_assoc]
-          apply SemiThue_both_sides
-          · rw [← hde.2.2.1]
-            have long_eq := @solver_equiv (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
-              (List.map (fun x ↦ x.1) (b1 :: b2)) (by simp) (by simp)
-            apply SemiThue.trans _ _ _ _ long_eq
-            convert SemiThue.refl (a1 :: a2 ++ b1 :: b2)
-            · apply to_up_plain_no_bool
-              have a_is : a1 :: a2 = (separate_first_pair (l1 :: l2)).1 := by simp [hs]
+          apply SemiThue.append
+          · rw [← hout]
+            apply SemiThue.trans _ H3'
+            convert SemiThue.refl
+            · apply to_vertical_edge_plain_no_bool
+              have a_is : a1 :: a2 = (separate_first_pair (l1 :: l2)).1 := by simp only [hs]
               rw [a_is]
               exact separate_first_pair_first_false _
-            apply to_over_plain_no_bool
-            have b_is : b1 :: b2 = (separate_first_pair (l1 :: l2)).2.1 := by simp [hs]
+            apply to_horizontal_edge_plain_no_bool
+            have b_is : b1 :: b2 = (separate_first_pair (l1 :: l2)).2.1 := by simp only [hs]
             rw [b_is]
             exact separate_first_pair_second_true _
-          rw [← hfg.2.2.1]
-          exact H2.2.2
+          rw [← hfg.2.2]
+          exact H2.steps
+        rw [H6]
         apply H7.trans
         rw [← List.append_assoc]
-        apply SemiThue_center
-        rw [← H6]
-        exact H5
+        apply SemiThue.refl
+
+def helper_for_f (l1 : ℕ × Bool) (l2 : List (ℕ × Bool))
+    (sfpc : (separate_first_pair (l1 :: l2)).1 ++ (separate_first_pair (l1 :: l2)).2.1 ++ (separate_first_pair (l1 :: l2)).2.2 =
+      l1 :: l2)
+    (a1 : ℕ × Bool) (a2 : List (ℕ × Bool)) (b1 : ℕ × Bool) (b2 c : List (ℕ × Bool))
+    (hs : separate_first_pair (l1 :: l2) = (a1 :: a2, b1 :: b2, c))
+    (d : List (ℕ × Bool))
+    (H2 : ReverseResult c)
+    (f g : List (ℕ × Bool))
+    (hfg : is_true f ∧ is_false g ∧ H2.out = f ++ g)
+    (e1 : ℕ × Bool)
+    (e2 : List (ℕ × Bool))
+    (htrue : is_true d)
+      (hfalse : is_false (e1 :: e2))
+
+          (hout : (((solver_long (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)) (by simp)
+                      (by simp))).val.2.2.1 =
+            d ++ e1 :: e2))
+    (H3' : SemiThue reversing
+      (to_vertical_edge_plain (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++ to_horizontal_edge_plain (List.map (fun x ↦ x.1) (b1 :: b2)))
+      ((solver_long (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)) (by simp) (by simp))).val.snd.snd.fst)
+    : ReverseResult (l1 :: l2) := by
+    match f with
+    | [] =>
+      exact helper_for_f_nil
+        l1 l2 sfpc a1 a2 b1 b2 c hs d H2 g hfg e1 e2 htrue hfalse hout H3'
+    | f1 :: f2 =>
+      exact helper_for_f_cons
+        l1 l2 sfpc a1 a2 b1 b2 c hs d H2 f1 f2 g hfg e1 e2 htrue hfalse hout H3'
+
+def helper_for_e (l1 : ℕ × Bool) (l2 : List (ℕ × Bool))
+    (sfpc : (separate_first_pair (l1 :: l2)).1 ++ (separate_first_pair (l1 :: l2)).2.1 ++ (separate_first_pair (l1 :: l2)).2.2 =
+      l1 :: l2)
+    (a1 : ℕ × Bool) (a2 : List (ℕ × Bool)) (b1 : ℕ × Bool) (b2 c : List (ℕ × Bool))
+    (hs : separate_first_pair (l1 :: l2) = (a1 :: a2, b1 :: b2, c))
+    (d e : List (ℕ × Bool)) (htrue : is_true d) (hfalse : is_false e)
+    (hout : ((solver_long (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)) (by simp) (by simp))).val.snd.snd.fst =
+      d ++ e) (H2 : ReverseResult c) (f g : List (ℕ × Bool))
+    (hfg : is_true f ∧ is_false g ∧ H2.out = f ++ g) : ReverseResult (l1 :: l2) := by
+  match e with
+    | [] =>
+      use (d++f++g)
+      use (d ++ f), g
+      constructor
+      constructor
+      · apply is_true_append htrue hfg.1
+      constructor
+      · exact hfg.2.1
+      constructor
+      simp only [hs, List.cons_append, List.append_assoc] at sfpc
+      rw [List.append_nil] at hout
+      rw [← sfpc, ← hout, List.append_assoc _ f g, ← hfg.2.2,
+        ← List.cons_append, ← List.cons_append, ← List.append_assoc]
+      apply SemiThue.append
+      · have H'' := @solver_equiv (List.map (fun x => x.1) (a1 :: a2).reverse)
+          (List.map (fun x => x.1) (b1 :: b2)) (by simp only [List.reverse_cons, List.map_append, List.map_reverse, List.map_cons, List.map_nil, List.length_append,
+          List.length_reverse, List.length_map, List.length_cons, List.length_nil, zero_add, gt_iff_lt, lt_add_iff_pos_left,
+          add_pos_iff, zero_lt_one, or_true]) (by simp only [List.map_cons, List.length_cons, List.length_map, gt_iff_lt, lt_add_iff_pos_left, add_pos_iff,
+          zero_lt_one, or_true])
+        have H3 : (to_vertical_edge_plain (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
+          to_horizontal_edge_plain (List.map (fun x ↦ x.1) (b1 :: b2))) = a1 :: a2 ++ b1 :: b2 := by
+          have af := (separate_first_pair_first_false (l1 :: l2))
+          rw [hs] at af
+          have bt := (separate_first_pair_second_true (l1 :: l2))
+          rw [hs] at bt
+          rw [to_vertical_edge_plain_no_bool af, to_horizontal_edge_plain_no_bool bt]
+        rw [← H3]
+        exact H''
+      apply H2.steps
+     | e1 :: e2 =>
+      have H3' := @solver_equiv (List.map (fun x => x.1) (a1 :: a2).reverse)
+            (List.map (fun x => x.1) (b1 :: b2)) (by simp only [List.reverse_cons, List.map_append, List.map_reverse, List.map_cons, List.map_nil, List.length_append,
+            List.length_reverse, List.length_map, List.length_cons, List.length_nil, zero_add, gt_iff_lt, lt_add_iff_pos_left,
+            add_pos_iff, zero_lt_one, or_true]) (by simp only [List.map_cons, List.length_cons, List.length_map, gt_iff_lt, lt_add_iff_pos_left, add_pos_iff,
+            zero_lt_one, or_true])
+      exact helper_for_f l1 l2 sfpc a1 a2 b1 b2 c hs d H2 f g hfg e1 e2 htrue hfalse hout H3'
+
+def reverse_complex_pair_case
+    (l1 : ℕ × Bool) (l2 : List (ℕ × Bool))
+    (a1 : ℕ × Bool) (a2 : List (ℕ × Bool))
+    (b1 : ℕ × Bool) (b2 c : List (ℕ × Bool))
+    (hs : separate_first_pair (l1 :: l2) = (a1 :: a2, b1 :: b2, c))
+    (H2 : ReverseResult c) :
+    ReverseResult (l1 :: l2) := by
+  have H1 : PosNegData _ :=
+    solver_long_PosNegData
+      (List.map (fun x => x.1) (a1 :: a2).reverse)
+      (List.map (fun x => x.1) (b1 :: b2))
+      (by
+        simp only [List.reverse_cons, List.map_append, List.map_reverse,
+          List.map_cons, List.map_nil, List.length_append, List.length_reverse,
+          List.length_map, List.length_cons, List.length_nil, zero_add,
+          gt_iff_lt, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true])
+      (by
+        simp only [List.map_cons, List.length_cons, List.length_map,
+          gt_iff_lt, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true])
+  rcases H1 with ⟨d, e, htrue, hfalse, hout⟩
+  rcases H2.ordered with ⟨f, g, hfg⟩
+  have sfpc := separate_first_pair_correct (l1 :: l2)
+  exact helper_for_e l1 l2 sfpc a1 a2 b1 b2 c hs d e htrue hfalse hout H2 f g hfg.1
+
+-- set_option trace.profiler.useHeartbeats true in
+-- set_option trace.profiler true in
+def reverse_complex (L : List (ℕ × Bool)) : ReverseResult L :=
+  match L with
+  | [] => by
+    use [], PosNegData.nil
+    exact SemiThue.refl
+  | l1 :: l2 =>
+  match hs : separate_first_pair (l1 :: l2) with
+  | ([], (b, c)) => by
+    have hc : c.length < (l1 :: l2).length := separate_tail_length hs (by simp)
+    let rc := reverse_complex c
+    use (b++ rc.1)
+    have H : is_true b := by
+      have H : b = (separate_first_pair (l1 :: l2)).2.1 := by simp only [hs]
+      rw [H]
+      apply separate_first_pair_second_true
+    rcases rc.ordered with ⟨d, e, hde⟩
+    use (b++d), e
+    constructor
+    constructor
+    · apply is_true_append H hde.1.1
+    constructor
+    · exact hde.1.2.1
+    rw [hde.1.2.2]
+    simp only [List.append_assoc]
+    have sfpc := separate_first_pair_correct (l1 :: l2)
+    simp only [hs, List.nil_append] at sfpc
+    rw [← sfpc]
+    apply SemiThue.append_left rc.steps
+  | (a1::a2, ([], c)) => by
+    have hc : c = [] := c_nil_of_separate_no_true hs
+    use a1 :: a2
+    have af : is_false (a1 :: a2) := by
+      have H := separate_first_pair_first_false (l1 :: l2)
+      rw [hs] at H
+      exact H
+    exact PosNegData.of_false af
+    have sfpc := separate_first_pair_correct (l1 :: l2)
+    have : l1 :: l2 = a1 :: a2 := by
+      rw [hc] at hs
+      rw [hs] at sfpc
+      rw [← sfpc]
+      simp only [List.append_nil]
+    rw [this]
+    exact SemiThue.refl
+  | (a1::a2, (b1::b2, c)) => by
+    have hc : c.length < (l1 :: l2).length := separate_tail_length hs (by simp)
+    let H2 := reverse_complex c
+    exact reverse_complex_pair_case l1 l2 a1 a2 b1 b2 c hs H2
   termination_by L.length
+structure ReverseResult' (L : List (ℕ × Bool)) where
+  out : List (ℕ × Bool)
+  ordered : PosNegData out
+  steps : SemiThue reversing L out
 
 def solver_g (L1 L2 : List (ℕ × Bool)) : Bool := by
-  rcases (reverse_complex (L1 ++ (FreeGroup.invRev L2))).2.1 with ⟨d, e, hde⟩
+  rcases (reverse_complex (L1 ++ (FreeGroup.invRev L2))).ordered with ⟨d, e, hde⟩
   exact final_solver (List.map (fun x => x.1) e.reverse) (List.map (fun x => x.1) d)
 
 
@@ -365,16 +478,14 @@ def solver_g (L1 L2 : List (ℕ × Bool)) : Bool := by
 --   sorry
 --   --eq_of_mul_inv_eq_one <| one_of_mem hx
 
-theorem PresentedGroup.mk_mul : PresentedGroup.mk rels (a * b) =
-  PresentedGroup.mk rels a * PresentedGroup.mk rels b := rfl
-
 theorem SemiThue_reversing_to_braid_group_equiv (h : SemiThue reversing a b) :
-  (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk a) =
-  (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk b) := by
+  Braid.BraidGroupInf.mk (FreeGroup.mk a) =
+  Braid.BraidGroupInf.mk (FreeGroup.mk b) := by
   induction h with
-  | refl a => rfl
-  | reduction h =>
+  | refl => rfl
+  | step h =>
     rename_i e f g i
+    unfold Braid.BraidGroupInf.mk
     rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk,
       PresentedGroup.mk_mul, PresentedGroup.mk_mul, PresentedGroup.mk_mul, PresentedGroup.mk_mul,
       mul_left_inj, mul_right_inj]
@@ -383,7 +494,7 @@ theorem SemiThue_reversing_to_braid_group_equiv (h : SemiThue reversing a b) :
       rename_i i j hij
       apply Nat.eq_of_dist_eq_zero at hij
       rw [← hij]
-      change (PresentedGroup.mk Braid.braid_rels_coexeter)
+      change (PresentedGroup.mk ((ArtinTits.Group.relation_set Braid.BraidMatrixInf)))
         (FreeGroup.mk ([(i, false)] ++ [(i, true)])) = _
       rw [← FreeGroup.mul_mk]
       unfold FreeGroup.mk
@@ -391,148 +502,148 @@ theorem SemiThue_reversing_to_braid_group_equiv (h : SemiThue reversing a b) :
       exact eq_div_iff_mul_eq'.mp rfl
     | apart h =>
       rename_i i j
-      change (Braid.σi i)⁻¹ * Braid.σi j = Braid.σi j * (Braid.σi i)⁻¹
-      apply (mul_right_inj (Braid.σi i)).mp
-      apply (mul_left_inj (Braid.σi i)).mp
+      change (Braid.σ i)⁻¹ * Braid.σ j = Braid.σ j * (Braid.σ i)⁻¹
+      apply (mul_right_inj (Braid.σ i)).mp
+      apply (mul_left_inj (Braid.σ i)).mp
       group
       symm
-      exact Braid.braid_group_inf.comm h
+      exact Braid.BraidGroupInf.comm h
     | close h =>
       rename_i i j
-      change (Braid.σi i)⁻¹ * Braid.σi j = Braid.σi j *  Braid.σi i * (Braid.σi j)⁻¹ * (Braid.σi i)⁻¹
-      apply (mul_right_inj (Braid.σi i)).mp
-      apply (mul_left_inj (Braid.σi i)).mp
-      apply (mul_left_inj (Braid.σi j)).mp
+      change (Braid.σ i)⁻¹ * Braid.σ j = Braid.σ j *  Braid.σ i * (Braid.σ j)⁻¹ * (Braid.σ i)⁻¹
+      apply (mul_right_inj (Braid.σ i)).mp
+      apply (mul_left_inj (Braid.σ i)).mp
+      apply (mul_left_inj (Braid.σ j)).mp
       group
       symm
-      exact Braid.braid_group_inf.braid h
-  | trans a b c _ _ ih1 ih2 =>
+      exact Braid.BraidGroupInf.braid h
+  | trans _ _ ih1 ih2 =>
     exact ih1.trans ih2
 
-theorem to_over_plain_of (i : ℕ) : to_over_plain (FreeMonoid.of i) = [(i, true)] := by rfl
+theorem to_horizontal_edge_plain_of (i : ℕ) : to_horizontal_edge_plain (FreeMonoid.of i) = [(i, true)] := by rfl
 
 open Braid in
-theorem bm_to_bg (h : PresentedMonoid.mk braid_rels_m_inf a =
-  PresentedMonoid.mk braid_rels_m_inf b) :
-  (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk (to_over_plain a)) =
-  (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk (to_over_plain b)) := by
+theorem bm_to_bg (h : BraidMonoidInf.mk a =
+  BraidMonoidInf.mk b) :
+  BraidGroupInf.mk (FreeGroup.mk (to_horizontal_edge_plain a)) =
+  BraidGroupInf.mk (FreeGroup.mk (to_horizontal_edge_plain b)) := by
   apply PresentedMonoid.exact at h
   induction h with
   | of x y h =>
     cases h with
-    | adjacent i => exact braid_group_inf.braid dist_succ
+    | adjacent i => exact Braid.BraidGroupInf.braid dist_succ
     | separated i j h =>
-      apply braid_group_inf.comm
+      apply Braid.BraidGroupInf.comm
       apply or_dist_iff.mpr
       left; exact h
   | refl x => rfl
   | symm _ ih => exact ih.symm
   | trans _ _ ih1 ih2 => exact ih1.trans ih2
   | mul _ _ ih1 ih2 =>
-    rw [to_over_plain_mul, to_over_plain_mul, ← FreeGroup.mul_mk,  ← FreeGroup.mul_mk,
-      PresentedGroup.mk_mul, PresentedGroup.mk_mul, ih1, ih2]
+    rw [to_horizontal_edge_plain_mul, to_horizontal_edge_plain_mul, ← FreeGroup.mul_mk,  ← FreeGroup.mul_mk,
+      map_mul, map_mul, ih1, ih2]
 
 theorem PresentedGroup.mk_inv {rels : Set (FreeGroup α)} : (PresentedGroup.mk rels a)⁻¹ =
   (PresentedGroup.mk rels) a⁻¹ := by rfl
 
-theorem pg_mk_fg_inv : ((PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk a))⁻¹ =
-  (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk (FreeGroup.invRev a)) := by
-  rw [PresentedGroup.mk_inv, FreeGroup.inv_mk]
+theorem pg_mk_fg_inv : (Braid.BraidGroupInf.mk (FreeGroup.mk a))⁻¹ =
+  Braid.BraidGroupInf.mk (FreeGroup.mk (FreeGroup.invRev a)) := by
+  rw [← map_inv, FreeGroup.inv_mk]
 
-theorem pg_mk_to_over_plain_inv :
-  ((PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk (to_over_plain a)))⁻¹ =
-  (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk (to_up_plain a)) := by
+open Braid
+theorem pg_mk_to_horizontal_edge_plain_inv :
+  (BraidGroupInf.mk (FreeGroup.mk (to_horizontal_edge_plain a)))⁻¹ =
+  BraidGroupInf.mk (FreeGroup.mk (to_vertical_edge_plain a)) := by
   rw [pg_mk_fg_inv]
   congr
-  unfold to_over_plain to_up_plain FreeGroup.invRev
+  unfold to_horizontal_edge_plain to_vertical_edge_plain FreeGroup.invRev
   simp
 
-theorem to_up_plain_reverse : to_up_plain a.reverse = (to_up_plain a).reverse := by
-  simp [to_up_plain]
+theorem to_vertical_edge_plain_reverse : to_vertical_edge_plain a.reverse = (to_vertical_edge_plain a).reverse := by
+  simp [to_vertical_edge_plain]
 
-theorem recover_from_is_false (h : is_false d) : to_up_plain (List.map (fun x ↦ x.1) d).reverse = (d : List (ℕ × Bool)) := by
-  rw [to_up_plain_reverse]
-  have H : (to_up_plain (List.map (fun x ↦ x.1) d)).reverse.reverse = d.reverse := by
+theorem recover_from_is_false (h : is_false d) : to_vertical_edge_plain (List.map (fun x ↦ x.1) d).reverse = (d : List (ℕ × Bool)) := by
+  rw [to_vertical_edge_plain_reverse]
+  have H : (to_vertical_edge_plain (List.map (fun x ↦ x.1) d)).reverse.reverse = d.reverse := by
     rw [List.reverse_reverse]
     induction d with
-    | nil => simp [to_up_plain]
+    | nil => simp [to_vertical_edge_plain]
     | cons head tail ih =>
-      have tf : is_false tail := (is_false_split h).2
-      unfold to_up_plain at ih
-      simp [to_up_plain, ih tf]
-      have H2 := (is_false_split h).1
-      specialize H2 head ⟨by simp⟩
-      simp [← H2.1]
+      have tf : is_false tail := (is_false_of_cons h).2
+      unfold to_vertical_edge_plain at ih
+      simp [to_vertical_edge_plain, ih tf]
+      have H2 := (is_false_of_cons h).1
+      specialize H2 head (by simp)
+      simp [← H2]
   exact List.reverse_injective H
 
-theorem recover_from_is_true (h : is_true d) : to_over_plain (List.map (fun x ↦ x.1) d) = (d : List (ℕ × Bool)) := by
+theorem recover_from_is_true (h : is_true d) : to_horizontal_edge_plain (List.map (fun x ↦ x.1) d) = (d : List (ℕ × Bool)) := by
   induction d with
-  | nil => simp [to_over_plain]
+  | nil => simp [to_horizontal_edge_plain]
   | cons head tail ih =>
-    have tt : is_true tail := (is_true_split h).2
+    have tt : is_true tail := (is_true_of_cons h).2
     specialize ih tt
-    simp only [to_over_plain, List.map_cons, List.map_map, List.cons.injEq]
+    simp only [to_horizontal_edge_plain, List.map_cons, List.map_map, List.cons.injEq]
     constructor
-    · have ht : is_true [head] := (is_true_split h).1
-      specialize ht head ⟨by simp⟩
-      simp [← ht.1]
+    · have ht : is_true [head] := (is_true_of_cons h).1
+      specialize ht head (by simp)
+      simp [← ht]
     rw [← ih]
-    unfold to_over_plain
+    unfold to_horizontal_edge_plain
     simp
 
+open Braid
+
 theorem solver_g_correct_one_direction : solver_g a b = true →
-    (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk a) =
-    (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk b) := by
+    BraidGroupInf.mk (FreeGroup.mk a) =
+    BraidGroupInf.mk (FreeGroup.mk b) := by
   intro h
   unfold solver_g at h
-  rcases dede : (reverse_complex (a ++ (FreeGroup.invRev b))).2.1 with ⟨d, e, hde⟩
+  rcases dede : (reverse_complex (a ++ (FreeGroup.invRev b))).ordered with ⟨d, e, hde⟩
   have H := correct_one_dir h
-  have H2 := SemiThue_reversing_to_braid_group_equiv ((reverse_complex (a ++ (FreeGroup.invRev b))).2.2)
-  rw [hde.2.2.1] at H2
-  rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk,
-    PresentedGroup.mk_mul, PresentedGroup.mk_mul] at H2
-  have d_is : (reverse_complex (a ++ FreeGroup.invRev b)).snd.1.fst = d := by aesop
+  have H2 := SemiThue_reversing_to_braid_group_equiv ((reverse_complex (a ++ (FreeGroup.invRev b))).steps)
+  rw [hde.1.2.2] at H2
+  rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, map_mul, map_mul] at H2
+  have d_is : (reverse_complex (a ++ FreeGroup.invRev b)).ordered.fst = d := by aesop
   rw [d_is] at H
-  have e_is : (reverse_complex (a ++ FreeGroup.invRev b)).2.1.2.1 = e := by
+  have e_is : (reverse_complex (a ++ FreeGroup.invRev b)).ordered.2.1 = e := by
     rw [dede]
   rw [e_is] at H
   apply bm_to_bg at H
-  apply (mul_right_inj ((PresentedGroup.mk Braid.braid_rels_coexeter)
-    (FreeGroup.mk (to_over_plain (List.map (fun x ↦ x.1) e.reverse))))⁻¹).mpr at H
+  apply (mul_right_inj (BraidGroupInf.mk
+    (FreeGroup.mk (to_horizontal_edge_plain (List.map (fun x ↦ x.1) e.reverse))))⁻¹).mpr at H
   simp at H
-  rw [pg_mk_to_over_plain_inv, recover_from_is_true hde.1, recover_from_is_false hde.2.1] at H
-  apply (mul_right_inj (((PresentedGroup.mk Braid.braid_rels_coexeter)
+  rw [pg_mk_to_horizontal_edge_plain_inv, recover_from_is_true hde.1.1, recover_from_is_false hde.1.2.1] at H
+  apply (mul_right_inj ((BraidGroupInf.mk
         (FreeGroup.mk e))⁻¹)).mpr at H
-  apply (mul_left_inj ((PresentedGroup.mk Braid.braid_rels_coexeter)
+  apply (mul_left_inj (BraidGroupInf.mk
         (FreeGroup.mk e))).mpr at H
   rw [mul_one, inv_mul_cancel, inv_mul_cancel_left] at H
   rw [← H] at H2
-  apply (mul_left_inj ((PresentedGroup.mk Braid.braid_rels_coexeter)
+  apply (mul_left_inj (BraidGroupInf.mk
     (FreeGroup.mk (FreeGroup.invRev b)))⁻¹).mpr at H2
   rw [mul_inv_cancel_right, one_mul] at H2
-  rw [H2, PresentedGroup.mk_inv, FreeGroup.inv_mk, FreeGroup.invRev_invRev]
+  rw [H2, ← map_inv, FreeGroup.inv_mk, FreeGroup.invRev_invRev]
 
 def invRev_true_of_is_false (h : is_false e) : is_true (FreeGroup.invRev e) := by
-  intro a ⟨ha⟩
+  intro a ha
   unfold FreeGroup.invRev at ha
-  constructor
   simp only [List.mem_reverse, List.mem_map, Prod.exists, Bool.exists_bool, Bool.not_false,
     Bool.not_true] at ha
   rcases ha with ⟨c, hc | hd⟩
   · simp [← hc.2]
   exfalso
-  specialize h (c, true) ⟨hd.1⟩
+  specialize h (c, true) hd.1
   simp only [Bool.true_eq_false] at h
-  exact h.1
 
 theorem lift_of_group : (FreeMonoid.lift FreeGroup.of) (FreeMonoid.of i) = FreeGroup.of i := by rfl
 
 theorem lift_of_group_two {a : FreeMonoid ℕ} : (FreeMonoid.lift FreeGroup.of) a =
-  FreeGroup.mk (to_over_plain a) := by
+  FreeGroup.mk (to_horizontal_edge_plain a) := by
   induction a using FreeMonoid.inductionOn' with
   | one => rfl
   | mul_of b a ih =>
-    simp [to_over_plain_mul, ih, ← FreeGroup.mul_mk]
+    simp [to_horizontal_edge_plain_mul, ih, ← FreeGroup.mul_mk]
     change FreeGroup.of b = FreeGroup.mk [(b, true)]
     rfl
 
@@ -542,9 +653,9 @@ inductive braid_rels_m_inf_one_symm : FreeMonoid ℕ → FreeMonoid ℕ → Prop
   | separated (i j : ℕ) (h : i.dist j ≥ 2) : braid_rels_m_inf_one_symm (of i * of j) (of j * of i)
   | basic (i) : braid_rels_m_inf_one_symm (of i) (of i)
 
-theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_one_symm =
-  Braid.braid_rels_coexeter := by
-  unfold pm_rels_to_pg_rels
+theorem connect_monoid_group_braid_rels : PresentedGroup.free_group_set_of_function braid_rels_m_inf_one_symm =
+  Braid.braidRelationInf := by
+  unfold PresentedGroup.free_group_set_of_function
   ext
   rename_i y
   constructor
@@ -554,16 +665,16 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
     rw [← hl, lift_of_group_two, lift_of_group_two]
     cases hbr with
     | adjacent i j hd =>
-      simp only [to_over_plain_mul, ← FreeGroup.mul_mk]
-      simp only [to_over_plain_of]
-      unfold Braid.braid_rels_coexeter
+      simp only [to_horizontal_edge_plain_mul, ← FreeGroup.mul_mk]
+      simp only [to_horizontal_edge_plain_of]
+      unfold Braid.braidRelationInf
       use (i, j)
-      simp only [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid_inf, dist_succ, Braid.alternate, hd]
+      simp only [Function.uncurry_apply_pair, ArtinTits.Group.relation, BraidMatrixInf_adjacent, Monoid.alternate, hd]
       rfl
     | separated i j h =>
-      simp only [to_over_plain_mul, ← FreeGroup.mul_mk]
-      simp only [to_over_plain_of]
-      unfold Braid.braid_rels_coexeter
+      simp only [to_horizontal_edge_plain_mul, ← FreeGroup.mul_mk]
+      simp only [to_horizontal_edge_plain_of]
+      unfold Braid.braidRelationInf
       use (i, j)
       have H : ∃ n, i.dist (j) = Nat.succ (Nat.succ n) := by
         match hij : i.dist j with
@@ -577,22 +688,24 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
             omega
           | Nat.succ n2 => use n2
       rcases H with ⟨n, hn⟩
-      simp only [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid_inf, hn, Braid.alternate]
+      simp only [Function.uncurry_apply_pair, ArtinTits.Group.relation, BraidMatrixInf_separated h, Monoid.alternate]
       rfl
     | basic i =>
-      rw [mul_inv_cancel (FreeGroup.mk (to_over_plain (FreeMonoid.of i)))]
+      rw [mul_inv_cancel (FreeGroup.mk (to_horizontal_edge_plain (FreeMonoid.of i)))]
       use (i, i)
-      simp [Function.uncurry_apply_pair, Braid.artin_tits_rel, Braid.M_braid_inf, Braid.alternate]
+      simp [Function.uncurry_apply_pair, ArtinTits.Group.relation]
   intro h
   simp only [Set.mem_setOf_eq, Prod.exists]
-  unfold Braid.braid_rels_coexeter at h
-  simp only [Set.mem_range, Prod.exists, Function.uncurry_apply_pair] at h
+  unfold Braid.braidRelationInf at h
+  unfold ArtinTits.Group.relation_set at h
+  simp at h
   rcases h with ⟨a, b, br⟩
-  unfold Braid.artin_tits_rel at br
-  unfold Braid.M_braid_inf at br
+  unfold ArtinTits.Group.relation at br
   cases hab : a.dist b with
   | zero =>
-    simp [hab, Braid.alternate] at br
+    have : a = b := Nat.eq_of_dist_eq_zero hab
+    rw [this] at br
+    simp at br
     rw [← br]
     use [27], [27]
     constructor
@@ -601,7 +714,7 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
   | succ n =>
     cases hn : n with
     | zero =>
-      simp [hn, hab, Braid.alternate] at br
+      simp [BraidMatrixInf_adjacent, hn, hab] at br
       rw [← br]
       use [a, b, a], [b, a, b]
       constructor
@@ -609,7 +722,8 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
         exact braid_rels_m_inf_one_symm.adjacent _ _ hab
       rfl
     | succ n2 =>
-      simp [hn, hab, Braid.alternate] at br
+      have : a.dist b > 1 := by linarith
+      simp [BraidMatrixInf_separated this] at br
       rw [← br]
       use [a, b], [b, a]
       constructor
@@ -618,24 +732,24 @@ theorem connect_monoid_group_braid_rels : pm_rels_to_pg_rels braid_rels_m_inf_on
       rfl
 
 open PresentedMonoid in
-theorem one_symm_is_really_the_same : mk braid_rels_m_inf a = mk braid_rels_m_inf b ↔
+theorem one_symm_is_really_the_same : mk braid_monoid_rels_inf a = mk braid_monoid_rels_inf b ↔
   mk braid_rels_m_inf_one_symm a = mk braid_rels_m_inf_one_symm b := by
   constructor
   · intro h
-    apply BraidMonoidInf.exact at h
+    apply PresentedMonoid.exact at h
     apply PresentedMonoid.sound
     induction h with
     | of x y h2 =>
       cases h2 with
       | adjacent i =>
-        exact PresentedMonoid.rel_alone <| braid_rels_m_inf_one_symm.adjacent _ _ dist_succ
+        exact PresentedMonoid.rels_alone <| braid_rels_m_inf_one_symm.adjacent _ _ dist_succ
       | separated i j h =>
-        apply PresentedMonoid.rel_alone
+        apply PresentedMonoid.rels_alone
         apply braid_rels_m_inf_one_symm.separated
         apply or_dist_iff.mpr
         left; exact h
     | refl x => exact PresentedMonoid.refl
-    | symm _ ih => exact swap ih
+    | symm _ ih => exact PresentedMonoid.symm ih
     | trans _ _ ih1 ih2 => exact PresentedMonoid.trans ih1 ih2
     | mul _ _ ih1 ih2 => exact mul ih1 ih2
   intro h
@@ -648,19 +762,21 @@ theorem one_symm_is_really_the_same : mk braid_rels_m_inf a = mk braid_rels_m_in
       apply or_dist_iff_eq.mp at h
       rcases h with h | h
       · rw [← h]
-        exact rel_alone <| braid_rels_m_inf.adjacent i
-      apply swap
-      apply rel_alone
+        apply rels_alone
+        apply braid_monoid_rels_inf.adjacent
+
+      apply PresentedMonoid.symm
+      apply rels_alone
       rw [← h]
-      exact braid_rels_m_inf.adjacent j
+      exact braid_monoid_rels_inf.adjacent j
     | separated i j h =>
       apply or_dist_iff.mp at h
       rcases h with h | h
-      · exact rel_alone <| braid_rels_m_inf.separated _ _ h
-      exact swap <| rel_alone <| braid_rels_m_inf.separated _ _ h
+      · exact rels_alone <| braid_monoid_rels_inf.separated _ _ h
+      exact PresentedMonoid.symm <| rels_alone <| braid_monoid_rels_inf.separated _ _ h
     | basic i => exact BraidMonoidInf.exact rfl
   | refl x => exact BraidMonoidInf.exact rfl
-  | symm _ ih => exact swap ih
+  | symm _ ih => exact PresentedMonoid.symm ih
   | trans _ _ ih1 ih2 => exact PresentedMonoid.trans ih1 ih2
   | mul _ _ ih1 ih2 => exact mul ih1 ih2
 
@@ -668,7 +784,7 @@ variable {rels : FreeMonoid ℕ → FreeMonoid ℕ → Prop} {h : IsRightCancelM
 
 variable {h : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)} {h1 : IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf)}
 
-theorem right_cancel_extends [h2 : IsRightCancelMul (PresentedMonoid braid_rels_m_inf)] :
+theorem right_cancel_extends [h2 : IsRightCancelMul BraidMonoidInf] :
   IsRightCancelMul (PresentedMonoid braid_rels_m_inf_one_symm) where
   mul_right_cancel := by
     intro a b c h
@@ -676,13 +792,14 @@ theorem right_cancel_extends [h2 : IsRightCancelMul (PresentedMonoid braid_rels_
     rcases Quotient.exists_rep b with ⟨b1, hb1⟩
     rcases Quotient.exists_rep c with ⟨c1, hc1⟩
     rw [← ha1, ← hb1, ← hc1] at h
-    change ⟦a1 * b1⟧ = ⟦c1 * b1⟧ at h
     apply one_symm_is_really_the_same.mpr at h
-    rw [PresentedMonoid.mul_mk, PresentedMonoid.mul_mk, mul_left_inj] at h
-    rw [← ha1, ← hc1]
+    simp only [PresentedMonoid.mk_mul] at h
+    change BraidMonoidInf.mk b1 * _ = _ * _ at h
+    rw  [mul_left_inj] at h
+    rw [← hb1, ← hc1]
     exact one_symm_is_really_the_same.mp h
 
-theorem left_cancel_extends [h2 : IsLeftCancelMul (PresentedMonoid braid_rels_m_inf)] :
+theorem left_cancel_extends [h2 : IsLeftCancelMul BraidMonoidInf] :
   IsLeftCancelMul (PresentedMonoid braid_rels_m_inf_one_symm) where
   mul_left_cancel := by
     intro a b c h
@@ -692,7 +809,8 @@ theorem left_cancel_extends [h2 : IsLeftCancelMul (PresentedMonoid braid_rels_m_
     rw [← ha1, ← hb1, ← hc1] at h
     change ⟦a1 * b1⟧ = ⟦a1 * c1⟧ at h
     apply one_symm_is_really_the_same.mpr at h
-    rw [PresentedMonoid.mul_mk, PresentedMonoid.mul_mk, mul_right_inj] at h
+    change BraidMonoidInf.mk _ = BraidMonoidInf.mk _ at h
+    rw [map_mul, map_mul, mul_right_inj] at h
     rw [← hb1, ← hc1]
     exact one_symm_is_really_the_same.mp h
 
@@ -704,9 +822,9 @@ theorem fm_lift_pm_of_eq_pm_mk : (FreeMonoid.lift (PresentedMonoid.of rels)) a =
     simp [ih]
     rfl
 
-noncomputable def map_to_one_symm : (PresentedMonoid braid_rels_m_inf) →*
+noncomputable def map_to_one_symm : (PresentedMonoid braid_monoid_rels_inf) →*
   PresentedMonoid braid_rels_m_inf_one_symm := by
-  apply PresentedMonoid.lift_hom (PresentedMonoid.of braid_rels_m_inf_one_symm)
+  apply PresentedMonoid.lift (PresentedMonoid.of braid_rels_m_inf_one_symm)
   intro a b cg
   apply PresentedMonoid.sound at cg
   apply one_symm_is_really_the_same.mp at cg
@@ -714,8 +832,8 @@ noncomputable def map_to_one_symm : (PresentedMonoid braid_rels_m_inf) →*
   exact cg
 
 noncomputable def map_from_one_symm : (PresentedMonoid braid_rels_m_inf_one_symm) →*
-  PresentedMonoid braid_rels_m_inf := by
-  apply PresentedMonoid.lift_hom (PresentedMonoid.of braid_rels_m_inf)
+  PresentedMonoid braid_monoid_rels_inf := by
+  apply PresentedMonoid.lift (PresentedMonoid.of braid_monoid_rels_inf)
   intro a b cg
   apply PresentedMonoid.sound at cg
   apply one_symm_is_really_the_same.mpr at cg
@@ -723,7 +841,7 @@ noncomputable def map_from_one_symm : (PresentedMonoid braid_rels_m_inf_one_symm
   exact cg
 
 noncomputable def one_symm_type_iso_me : (PresentedMonoid braid_rels_m_inf_one_symm) ≃*
-  PresentedMonoid braid_rels_m_inf := by
+  PresentedMonoid braid_monoid_rels_inf := by
   refine MonoidHom.toMulEquiv map_from_one_symm map_to_one_symm ?_ ?_
   exact PresentedMonoid.ext_iff.mpr (congrFun rfl)
   exact PresentedMonoid.ext_iff.mpr (congrFun rfl)
@@ -738,41 +856,71 @@ noncomputable def left_multiple_iso [Mul A] [Mul B] [h2 : IsCommonLeftMultipleMu
     simp at hcd
     use e c, e d
 
+noncomputable def cancel_mul_iso [Mul A] [Mul B] [h2 : IsCancelMul A] (e : A ≃* B) :
+  IsCancelMul B where
+  mul_left_cancel := by
+    intro a b c h
+    apply congr_arg e.symm at h
+    rw [map_mul, map_mul] at h
+    apply (h2.mul_left_cancel (e.symm a)) at h
+    rw [EmbeddingLike.apply_eq_iff_eq] at h
+    exact h
+  mul_right_cancel := by
+    intro a b c h
+    apply congr_arg e.symm at h
+    rw [map_mul, map_mul] at h
+    apply (h2.mul_right_cancel (e.symm a)) at h
+    rw [EmbeddingLike.apply_eq_iff_eq] at h
+    exact h
+
 -- this is now in orelocalizatinpresented pg_to_pm_fg_mk
 
 theorem invRev_remove_eq_reverse {e : List (α × Bool)} :
   (List.map (fun x ↦ x.1) e).reverse =
   (List.map ((fun x ↦ x.1) ∘ fun g ↦ (g.1, !g.2)) e).reverse := by simp
 
+set_option maxHeartbeats 2000000
 theorem solver_g_correct_other_direction :
-    (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk a) =
-    (PresentedGroup.mk Braid.braid_rels_coexeter) (FreeGroup.mk b) →
+    BraidGroupInf.mk (FreeGroup.mk a) =
+    BraidGroupInf.mk (FreeGroup.mk b) →
     solver_g a b = true := by
   intro h
   unfold solver_g
   apply correct_other_dir
-  rcases dede : (reverse_complex (a ++ (FreeGroup.invRev b))).2.1 with ⟨d, e, hde⟩
-  have d_is : (reverse_complex (a ++ FreeGroup.invRev b)).snd.1.fst = d := by aesop
-  have e_is : (reverse_complex (a ++ FreeGroup.invRev b)).2.1.2.1 = e := by
+  rcases dede : (reverse_complex (a ++ (FreeGroup.invRev b))).ordered with ⟨d, e, hde⟩
+  have d_is : (reverse_complex (a ++ FreeGroup.invRev b)).ordered.fst = d := by aesop
+  have e_is : (reverse_complex (a ++ FreeGroup.invRev b)).ordered.2.1 = e := by
     rw [dede]
   rw [d_is, e_is]
-  have H2 := SemiThue_reversing_to_braid_group_equiv ((reverse_complex (a ++ (FreeGroup.invRev b))).2.2)
-  rw [hde.2.2.1, ← FreeGroup.mul_mk, PresentedGroup.mk_mul, h, ← FreeGroup.inv_mk,
-    ← PresentedGroup.mk_inv, mul_inv_cancel, ← FreeGroup.mul_mk, PresentedGroup.mk_mul] at H2
-  apply (mul_left_inj ((PresentedGroup.mk Braid.braid_rels_coexeter)
+  have H2 := SemiThue_reversing_to_braid_group_equiv ((reverse_complex (a ++ (FreeGroup.invRev b))).steps)
+  rw [hde.1.2.2, ← FreeGroup.mul_mk, map_mul, h, ← FreeGroup.inv_mk,
+    map_inv, mul_inv_cancel, ← FreeGroup.mul_mk, map_mul] at H2
+  apply (mul_left_inj (BraidGroupInf.mk
     (FreeGroup.mk e))⁻¹).mpr at H2
-  rw [one_mul, mul_inv_cancel_right, PresentedGroup.mk_inv, FreeGroup.inv_mk] at H2
-  apply pg_to_pm_fg_mk at H2
-  specialize H2 (invRev_true_of_is_false hde.2.1) hde.1
-  rw [← H2]
+  rw [one_mul, mul_inv_cancel_right, ← map_inv, FreeGroup.inv_mk] at H2
+  have : IsCommonLeftMultipleMul (PresentedMonoid braid_rels_m_inf_one_symm) := by
+    have : IsCommonLeftMultipleMul (PresentedMonoid braid_monoid_rels_inf) := by
+      change IsCommonLeftMultipleMul BraidMonoidInf
+      infer_instance
+    apply left_multiple_iso one_symm_type_iso_me.symm
+  have : IsCancelMul (PresentedMonoid braid_rels_m_inf_one_symm) := by
+    have : IsCancelMul (PresentedMonoid braid_monoid_rels_inf) := by
+      change IsCancelMul BraidMonoidInf
+      infer_instance
+    apply cancel_mul_iso one_symm_type_iso_me.symm
+  unfold BraidGroupInf.mk at H2
+  rw [← connect_monoid_group_braid_rels] at H2
+  have H := @OreLocalization.Presented.presentedMonoid_mk_eq_of_presentedGroup_mk_eq_of_positive _ _ _ _ _ _ _ H2
+  specialize H hde.1.1 (invRev_true_of_is_false hde.1.2.1)
+  apply one_symm_is_really_the_same.mpr at H
+  unfold BraidMonoidInf.mk
+  erw [← H]
   congr 1
   simp [FreeGroup.invRev, invRev_remove_eq_reverse]
-  exact RightCancelSemigroup.toIsRightCancelMul (PresentedMonoid braid_rels_m_inf)
-  exact ⟨common_left_mul_inf⟩
 
 theorem solver_g_correct : solver_g a b ↔
-  PresentedGroup.mk Braid.braid_rels_coexeter (FreeGroup.mk a) =
-  PresentedGroup.mk Braid.braid_rels_coexeter (FreeGroup.mk b) := by
+  BraidGroupInf.mk (FreeGroup.mk a) =
+  BraidGroupInf.mk (FreeGroup.mk b) := by
   constructor
   · exact solver_g_correct_one_direction
   exact solver_g_correct_other_direction
@@ -830,19 +978,19 @@ def solver_fg (a b : FreeGroup ℕ) : Bool := by
   rw [← HBC, hi]
 
 theorem solver_fg_correct : solver_fg a b ↔
-    PresentedGroup.mk Braid.braid_rels_coexeter a =
-    PresentedGroup.mk Braid.braid_rels_coexeter b := by
+    BraidGroupInf.mk a =
+    BraidGroupInf.mk b := by
   rcases Quot.exists_rep a with ⟨a, rfl⟩
   rcases Quot.exists_rep b with ⟨b, rfl⟩
   exact solver_g_correct
 
-def braid_solver (a b : PresentedGroup Braid.braid_rels_coexeter) : Bool := by
+def braid_solver (a b : BraidGroupInf) : Bool := by
   apply Quotient.lift₂ solver_fg _ a b
   intro a b c d hac hbd
   have HAC := Quotient.sound hac
-  change (PresentedGroup.mk Braid.braid_rels_coexeter) a = (PresentedGroup.mk Braid.braid_rels_coexeter) c at HAC
+  change BraidGroupInf.mk a = BraidGroupInf.mk c at HAC
   have HBD := Quotient.sound hbd
-  change (PresentedGroup.mk Braid.braid_rels_coexeter) b = (PresentedGroup.mk Braid.braid_rels_coexeter) d at HBD
+  change BraidGroupInf.mk b = BraidGroupInf.mk d at HBD
   cases hi : solver_fg a b
   · symm
     apply eq_false_of_ne_true
@@ -856,14 +1004,14 @@ def braid_solver (a b : PresentedGroup Braid.braid_rels_coexeter) : Bool := by
   apply solver_fg_correct.2
   aesop
 
-theorem braid_solver_correct {a b : PresentedGroup Braid.braid_rels_coexeter} : braid_solver a b ↔ a = b := by
+theorem braid_solver_correct {a b : BraidGroupInf} : braid_solver a b ↔ a = b := by
   rcases Quotient.exists_rep a with ⟨a, rfl⟩
   rcases Quotient.exists_rep b with ⟨b, rfl⟩
   exact solver_fg_correct
 
 
 instance braid_decidable_helper :
-    DecidableEq (PresentedGroup Braid.braid_rels_coexeter) := by
+    DecidableEq (BraidGroupInf) := by
   intro a b
   by_cases h : braid_solver a b = true
   · exact isTrue (braid_solver_correct.mp h)
@@ -872,23 +1020,26 @@ instance braid_decidable_helper :
       apply braid_solver_correct.mpr at hEq
       aesop)
 
-def solver_nonsense (a b : PresentedGroup Braid.braid_rels_coexeter) : Bool := a = b
+def solver_nonsense (a b : BraidGroupInf) : Bool := a = b
 
 
 open Braid in
-#eval braid_solver (σi 1 * σi 2 * σi 1) (σi 2 * σi 1 * σi 2 * (σi 3)⁻¹* (σi 1*σi 3)⁻¹)
+#eval braid_solver (σ 1 * σ 2 * σ 1) (σ 2 * σ 1 * σ 2 * (σ 3)⁻¹* (σ 3))
 
 open Braid in
-#eval solver_nonsense ((σi 1 * σi 2 * σi 1)) ((σi 2 * σi 1 * σi 2)⁻¹)
+#eval solver_nonsense ((σ 1 * σ 2 * σ 1)) ((σ 2 * σ 1 * σ 2)⁻¹)
 
 #eval solver_g [(1, true), (2, true), (4, true), (1, true)]
   [(2, true), (1, true), (2, true), (4, true)]
 
+def foo1 := (reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true)]).1
+
+#eval foo1
+#exit
 #show_braid_word_help ([[(3, true), (2, true), (0, false), (3, true)],
   [(3, true), (2, true), (3, true), (0, false)],
   [(2, true), (3, true), (2, true), (0, false)]] : List (List ((ℕ × Bool))))
 
-def foo1 := (reverse_complex [(1, false), (1, false), (2, false), (2, false), (3, true), (3, true), (4, true)]).1
 
 #show_braid_word_help ([foo1,
   [(3, true), (2, true), (3, true), (0, false)],

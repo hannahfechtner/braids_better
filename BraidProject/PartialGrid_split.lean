@@ -1,23 +1,25 @@
-import BraidProject.Gridt_length
-import BraidProject.PartialGrids_C
-import BraidProject.Remove_Ones
+import BraidProject.GridData_length
+import BraidProject.PartialGrid
+import BraidProject.SignedOptionList
+
+open Braid
 
 theorem all_ones_length_pg (h : PartialGrid a b c d e) : a = [(none, false)] → b = [(none, true)] → h.length = 0 := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty => simp [PartialGrid.length]
     | top_bottom i => simp [PartialGrid.length]
     | sides i => simp [PartialGrid.length]
     | top_left i =>
       intro h1
-      simp [to_up] at h1
+      simp [to_vertical_edge] at h1
     | adjacent i k h =>
       intro h1
-      simp [to_up] at h1
+      simp [to_vertical_edge] at h1
     | separated i j h =>
       intro h1
-      simp [to_up] at h1
+      simp [to_vertical_edge] at h1
   | empty a b ha ha1 hb hb => simp [PartialGrid.length]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     intro a_is b_is
@@ -58,20 +60,20 @@ theorem all_ones_length_pg (h : PartialGrid a b c d e) : a = [(none, false)] →
 
 theorem top_bottom_length_pg (h : PartialGrid a b c d e) : a = [(none, false)] → b = [(some i, true)] → h.length = 0 := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty => simp [PartialGrid.length]
     | top_bottom i =>  simp [PartialGrid.length]
     | sides i =>  simp [PartialGrid.length]
     | top_left i =>
       intro ha
-      simp [to_up] at ha
+      simp [to_vertical_edge] at ha
     | adjacent i k h =>
       intro ha
-      simp [to_up] at ha
+      simp [to_vertical_edge] at ha
     | separated i j h =>
       intro ha
-      simp [to_up] at ha
+      simp [to_vertical_edge] at ha
   | empty a b ha ha1 hb hb => simp [PartialGrid.length]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     intro a_is b_is
@@ -112,20 +114,20 @@ theorem top_bottom_length_pg (h : PartialGrid a b c d e) : a = [(none, false)] �
 
 theorem side_side_length_pg {a b c d e i} (h : PartialGrid a b c d e) : a = [(some i, false)] → b = [(none, true)] → h.length = 0 := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty => simp [PartialGrid.length]
     | top_bottom i =>  simp [PartialGrid.length]
     | sides i =>  simp [PartialGrid.length]
     | top_left i =>
       intro ha hb
-      simp [to_over] at hb
+      simp [to_horizontal_edge] at hb
     | adjacent i k h =>
       intro ha hb
-      simp [to_over] at hb
+      simp [to_horizontal_edge] at hb
     | separated i j h =>
       intro ha hb
-      simp [to_over] at hb
+      simp [to_horizontal_edge] at hb
   | empty a b ha ha1 hb hb => simp [PartialGrid.length]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     intro a_is b_is
@@ -164,10 +166,11 @@ theorem side_side_length_pg {a b c d e i} (h : PartialGrid a b c d e) : a = [(so
     rw [hb.2] at H
     simp at H
 
+open SignedOptionList
 theorem top_left_length_pg {a b c d e i} (h : PartialGrid a b c d e) : a = [(some i, false)] → b = [(some i, true)] →
-  remove_ones (c ++ d ++ e) = [] → h.length = 1 := by
+  toSignedList (c ++ d ++ e) = [] → h.length = 1 := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty => simp
     | top_bottom i => simp
@@ -178,7 +181,7 @@ theorem top_left_length_pg {a b c d e i} (h : PartialGrid a b c d e) : a = [(som
   | empty a b ha ha1 hb hb =>
     intro ha hb rm
     rw [ha, hb] at rm
-    simp [remove_ones] at rm
+    simp [toSignedList] at rm
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     intro a_is b_is
     rcases List.append_eq_singleton_iff.1 b_is with hb | hb
@@ -217,9 +220,9 @@ theorem top_left_length_pg {a b c d e i} (h : PartialGrid a b c d e) : a = [(som
     simp at H
 
 theorem adjacent_length_pg (h : PartialGrid a b c d e) : a = [(some i, false)] → b = [(some j, true)] →
-    remove_ones (c ++ d ++ e) = [(j, true), (i, true), (j, false), (i, false)] → i.dist j = 1 → h.length = 1 := by
+    toSignedList (c ++ d ++ e) = [(j, true), (i, true), (j, false), (i, false)] → i.dist j = 1 → h.length = 1 := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty => simp
     | top_bottom i => simp
@@ -229,7 +232,7 @@ theorem adjacent_length_pg (h : PartialGrid a b c d e) : a = [(some i, false)] �
     | separated i j h => simp [PartialGrid.length]
   | empty a b ha ha1 hb hb =>
     intro a_is b_is rm
-    simp [a_is, b_is, remove_ones] at rm
+    simp [a_is, b_is, toSignedList] at rm
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     intro a_is b_is
     rcases List.append_eq_singleton_iff.1 b_is with hb | hb
@@ -268,9 +271,9 @@ theorem adjacent_length_pg (h : PartialGrid a b c d e) : a = [(some i, false)] �
     simp at H
 
 theorem separated_length_pg (h : PartialGrid a b c d e) : a = [(some i, false)] → b = [(some k, true)] →
-    remove_ones (c ++ d ++ e) = [(k, true), (i, false)] → i.dist k > 1 → h.length = 1 := by
+    toSignedList (c ++ d ++ e) = [(k, true), (i, false)] → i.dist k > 1 → h.length = 1 := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty => simp
     | top_bottom i => simp
@@ -280,7 +283,7 @@ theorem separated_length_pg (h : PartialGrid a b c d e) : a = [(some i, false)] 
     | separated i j h => simp [PartialGrid.length]
   | empty a b ha ha1 hb hb =>
     intro a_is b_is rm
-    simp [a_is, b_is, remove_ones] at rm
+    simp [a_is, b_is, toSignedList] at rm
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     intro a_is b_is
     rcases List.append_eq_singleton_iff.1 b_is with hb | hb
@@ -341,13 +344,75 @@ def split_vertically_pg' (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b₁
 def List.append_eq_singleton_C (h : a ++ b = [c]) : PLift (a = [] ∧ b = [c]) ⊕ PLift (a = [c] ∧ b = []) := by
   induction a with
   | nil =>
-    simp [List.append_eq_singleton_iff] at h
+    simp only [nil_append] at h
     exact Sum.inl ⟨rfl, h⟩
   | cons x xs ih =>
     simp at h
     right
     constructor
     simp [h]
+
+open FreeMonoid
+
+/-- An induction principle on free monoids, with cases for `1`, `FreeMonoid.of` and `*`. -/
+@[to_additive (attr := elab_as_elim, induction_eliminator)
+/--An induction principle on free monoids, with cases for `0`, `FreeAddMonoid.of` and `+`.-/]
+def FreeMonoid.inductionOn'' {C : FreeMonoid α → Type} (z : FreeMonoid α) (one : C 1)
+    (of : ∀ (x : α), C (FreeMonoid.of x)) (mul : ∀ (x y : FreeMonoid α), C x → C y → C (x * y)) :
+  C z := List.rec one (fun _ _ ih => mul [_] _ (of _) ih) z
+
+/-- An induction principle for free monoids which mirrors induction on lists, with cases analogous
+to the empty list and cons -/
+@[to_additive (attr := elab_as_elim) self /--An induction principle for free monoids which mirrors
+induction on lists, with cases analogous to the empty list and cons-/]
+def FreeMonoid.inductionOn''' {p : FreeMonoid α → Type} (a : FreeMonoid α)
+    (one : p (1 : FreeMonoid α)) (mul_of : ∀ b a, p a → p (of b * a)) : p a :=
+  List.rec one (fun _ _ tail_ih => mul_of _ _ tail_ih) a
+
+def FreeMonoid.prod_eq_prod' {a b c d : FreeMonoid α} (h : a * b = c * d) :
+  (Σ from_middle, PLift (c = a * from_middle) × PLift (b = from_middle * d)) ⊕
+  (Σ to_middle, PLift (a = c * to_middle) × PLift (d = to_middle * b)) := by
+  induction a using FreeMonoid.inductionOn''' generalizing c with
+  | one =>
+    simp_all
+    left
+    use c
+    exact ⟨{down := rfl}, {down := rfl}⟩
+  | mul_of a as ih =>
+    cases c
+    · right
+      use of a * as
+      simp [h]
+      exact ⟨{down := trivial}, {down := trivial}⟩
+    rename_i x xs
+    cases ih (parts_eq h).2
+    · rename_i hv
+      left
+      use hv.1
+      simp [hv.2.1.1, hv.2.2.1, ← (parts_eq h).1]
+      exact ⟨{down := by rw [← mul_assoc]}, {down := trivial}⟩
+    rename_i hv
+    right
+    use hv.1
+    simp [hv.2.1.1, hv.2.2.1, ← (parts_eq h).1]
+    exact ⟨{down := by rw [← mul_assoc]}, {down := trivial}⟩
+
+def FreeMonoid.prod_eq_of' {a b : FreeMonoid α} {i : α} (h : a * b = FreeMonoid.of i) :
+    (PLift (a = 1) × PLift (b = FreeMonoid.of i)) ⊕
+  (PLift (a = FreeMonoid.of i) × PLift (b = 1)) := by
+  have H : FreeMonoid.length (a * b) = 1 := by
+    rw [h]
+    exact FreeMonoid.length_of _
+  rw [FreeMonoid.length_mul] at H
+  match ha : length a with
+  | 0 =>
+    have a_eq : a = 1 := length_eq_zero.mp ha
+    have b_eq : b = of i := by rw [a_eq, one_mul] at h; exact h
+    exact Sum.inl ⟨⟨length_eq_zero.mp ha⟩, ⟨b_eq⟩⟩
+  | (n + 1) =>
+    have b_eq : b = 1 := length_eq_zero.mp (by omega)
+    have a_eq : a = of i := by rw [b_eq, mul_one] at h; exact h
+    exact Sum.inr ⟨⟨a_eq⟩, ⟨b_eq⟩⟩
 
 def List.append_eq_append' {a b c d : List α} (h : a ++ b = c ++ d) :
     (Σ from_middle, PLift (c = a ++ from_middle) × PLift (b = from_middle ++ d)) ⊕
@@ -362,13 +427,13 @@ def List.cases_C (a : List α) : PLift (a = []) ⊕ PLift (a.length > 0) :=
 theorem not_both_empty : PartialGrid a b c d e → d = [] → e = [] → False := by
   intro h
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     intro ha hb
-    simp [to_up] at hb
+    simp [to_vertical_edge] at hb
     rename_i c _
     match c with
-    | [] => simp at hb
-    | c1 :: c2 => simp at hb
+    | [] => split at hb; simp at hb; aesop
+    | c1 :: c2 => split at hb; simp at hb; aesop
   | empty a b ha ha1 hb hb1 =>
     intro h1
     apply congr_arg List.length at h1
@@ -395,13 +460,13 @@ theorem not_both_empty : PartialGrid a b c d e → d = [] → e = [] → False :
 theorem not_both_empty_early : PartialGrid a b c d e → c = [] → d = [] → False := by
   intro h
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     intro ha hb
-    simp [to_over] at ha
+    simp [to_horizontal_edge] at ha
     rename_i c
     match c with
-    | [] => simp at ha
-    | c1 :: c2 => simp at ha
+    | [] => split at ha; simp at ha; aesop
+    | c1 :: c2 => split at ha; simp at ha; aesop
   | empty a b ha ha1 hb hb1 =>
     intro _ h1
     apply congr_arg List.length at h1
@@ -425,24 +490,26 @@ theorem not_both_empty_early : PartialGrid a b c d e → c = [] → d = [] → F
 
 theorem pg_not_mid_right_empty : PartialGrid a b c [] [] → False := fun h => not_both_empty h rfl rfl
 
+open SignedList
+-- de.ete the other extends mahybe?
 noncomputable def PartialGrid.extend_bottom_w_len (h : PartialGrid a b c d e) (a2) (h2 : is_false a2) (h3 : a2 ≠ []) :
     (h1 : PartialGrid (a2 ++ a) b [] (a2 ++ c ++ d) e) × PLift (h.length = h1.length):= by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases a2 with
     | nil => simp at h3
     | cons head tail =>
-      rename_i d
+      rename_i c d
       rw [List.append_nil]
-      have H := PartialGrid.vertical_append_one (PartialGrid.single_gridt h)
-        (PartialGrid.empty (head :: tail) (to_over d) (by simp) h2 to_over_len_pos is_true_over)
-      use PartialGrid.vertical_append_one (PartialGrid.single_gridt h)
-        (PartialGrid.empty (head :: tail) (to_over d) (by simp) h2 to_over_len_pos is_true_over)
+      have H := PartialGrid.vertical_append_one (PartialGrid.single_cell h)
+        (PartialGrid.empty (head :: tail) (to_horizontal_edge c) (by simp) h2 to_horizontal_edge_length_pos is_true_to_horizontal_edge)
+      use PartialGrid.vertical_append_one (PartialGrid.single_cell h)
+        (PartialGrid.empty (head :: tail) (to_horizontal_edge c) (by simp) h2 to_horizontal_edge_length_pos is_true_to_horizontal_edge)
       constructor
       simp [PartialGrid.length]
   | empty a b ha ha1 hb hb =>
     rw [List.append_nil, ← List.append_assoc]
-    use PartialGrid.empty (a2 ++ a) b (by rw [List.length_append]; omega) (is_false_of_false_false h2 ha1) (by assumption) hb
+    use PartialGrid.empty (a2 ++ a) b (by rw [List.length_append]; omega) (SignedList.is_false_append h2 ha1) (by assumption) hb
     simp [PartialGrid.length]
     exact ⟨trivial⟩
   | horizontal_append_one g1 g2 ih1 ih2 =>
@@ -471,41 +538,41 @@ noncomputable def PartialGrid.extend_bottom_w_len (h : PartialGrid a b c d e) (a
 
 noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : split_vertically_pg' h := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty =>
       intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over] at b_is
+      simp only [to_horizontal_edge] at b_is
       apply congr_arg List.length at b_is
       simp only [List.length_cons, List.length_nil, zero_add, List.length_append] at b_is
       omega
     | top_bottom i =>
       intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over] at b_is
+      simp only [to_horizontal_edge] at b_is
       apply congr_arg List.length at b_is
       simp [List.length_cons, List.length_nil, zero_add, List.length_append] at b_is
       omega
     | sides i =>
       intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over] at b_is
+      simp only [to_horizontal_edge] at b_is
       apply congr_arg List.length at b_is
       simp [List.length_cons, List.length_nil, zero_add, List.length_append] at b_is
       omega
     | top_left i =>
       intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over] at b_is
+      simp only [to_horizontal_edge] at b_is
       apply congr_arg List.length at b_is
       simp [List.length_cons, List.length_nil, zero_add, List.length_append] at b_is
       omega
     | adjacent i k h =>
       intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over] at b_is
+      simp only [to_horizontal_edge] at b_is
       apply congr_arg List.length at b_is
       simp [List.length_cons, List.length_nil, zero_add, List.length_append] at b_is
       omega
     | separated i j h =>
       intro b₁ b₂ b_is b₁_len b₂_len
-      simp only [to_over] at b_is
+      simp only [to_horizontal_edge] at b_is
       apply congr_arg List.length at b_is
       simp [List.length_cons, List.length_nil, zero_add, List.length_append] at b_is
       omega
@@ -515,7 +582,7 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
     use a ++ b₁
     have itb₁ : is_true b₁ := by
       rw [b_is] at hb1
-      exact (is_true_append hb1).1
+      exact (is_true_of_append hb1).1
     use b₂
     use PartialGrid.empty a b₁ ha ha1 b₁_len itb₁
     constructor
@@ -538,7 +605,7 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
         rw [one.1, ← two.1]
         use up1, bot1, [], bot2, mid2
         use g1, g2
-        simp [one.1, two.1, PartialGrid.length]
+        simp only [List.append_assoc, List.append_nil, PartialGrid.length]
         exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
       rcases g2_ih _ _ two.1 fm_l b₄_len with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
       · left
@@ -718,26 +785,24 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
           have H : is_true bot1 := by exact g2.top_frontier_is_true
           simp at long
           rw [long] at H
-          have H2 := PartialGrid.middle_frontier_nil_or_caps h2
+          have H2 := PartialGrid.middle_frontier_spec h2
           rcases H2 with H2 | ⟨front, mid, caboose, spec⟩
           · simp at H2
             exact H2.1.elim
           rw [spec.1] at H
           specialize H (front, false)
-          simp [is_true] at H
-          exact (H ⟨trivial⟩).1.elim
+          simp at H
       | d11 :: d12 =>
         have H : is_true bot1 := by exact g2.top_frontier_is_true
         simp only [List.append_nil, List.append_assoc] at long
         rw [long] at H
-        have H2 := PartialGrid.middle_frontier_nil_or_caps h1
+        have H2 := PartialGrid.middle_frontier_spec h1
         rcases H2 with H2 | ⟨front, mid, caboose, spec⟩
         · simp at H2
           exact H2.1.elim
         rw [spec.1] at H
         specialize H (front, false)
-        simp [is_true] at H
-        exact (H ⟨trivial⟩).1.elim
+        simp at H
     rcases bad with ⟨d1, d2, h3, ⟨len⟩, up1_is, ⟨d1h2_empty⟩, ⟨a2h4⟩⟩
     rw [up1_is.1] at g1
     right
@@ -749,45 +814,24 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
     · match d1 with
       | [] =>
         have both_c : is_true (c1 ++ c2) :=
-            is_true_of_true_true h1.bottom_frontier_is_true h2.bottom_frontier_is_true
+            is_true_append h1.bottom_frontier_is_true h2.bottom_frontier_is_true
         have bot1_is : bot1 = c1 ++ c2 := by
           rw [List.append_nil] at long
-          rcases PartialGrid.middle_frontier_nil_or_caps g1 with H | ⟨front, mid, caboose, spec⟩
+          rcases PartialGrid.middle_frontier_spec g1 with H | ⟨front, mid, caboose, spec⟩
           · rw [H.1] at h
             simp at h
           rw [spec.1] at long
-          rcases PartialGrid.middle_frontier_nil_or_caps h2 with H | ⟨front1, mid1, caboose1, spec1⟩
-          · simp [H.1] at long
+          simp only [List.cons_append, List.nil_append, List.append_assoc] at long
+          rcases PartialGrid.middle_frontier_spec h2 with H | ⟨front1, mid1, caboose1, spec1⟩
+          · simp only [H.1, List.append_nil] at long
             rw [← long] at both_c
             specialize both_c (front, false)
-            simp [is_true] at both_c
-            exact (both_c ⟨trivial⟩).1.elim
-          rw [spec1.1] at long
-          rcases list_splits_somewhere long with ⟨h1⟩ | ⟨tm, one, two⟩ | ⟨fm, one, two⟩
-          · exact h1.1
-          · match tm with
-            | [] =>
-              simp at one
-              exact one
-            | (a, true) :: a1 =>
-              simp at two
-            | (a, false) :: a1 =>
-              have H : is_true bot1 := g2.top_frontier_is_true
-              rw [one] at H
-              specialize H (a, false)
-              simp at H
-              exact (H ⟨trivial⟩).1.elim
-          match fm with
-          | [] =>
-            rw [List.append_nil] at one
-            exact one
-          | (a, true) :: a1 =>
-            simp at two
-          | (a, false) :: a1 =>
-            rw [← one] at both_c
-            specialize both_c (a, false)
             simp at both_c
-            exact (both_c ⟨trivial⟩).1.elim
+          rw [spec1.1] at long
+          simp only [List.cons_append, List.nil_append] at long
+          have := SignedList.eq_of_is_true_append_false_append_eq (g2.top_frontier_is_true) both_c
+            (by simp only [List.append_assoc, List.cons_append, List.nil_append]; exact long)
+          aesop
         have mid_is : mid1 = d2 := by
           simp [bot1_is] at long
           exact long
@@ -853,44 +897,20 @@ noncomputable def splittable_vertically_of_pg' (h : PartialGrid a b c d e) : spl
       | d11 :: d12 =>
         have H0 : is_true bot1 := by exact g2.top_frontier_is_true
         have bot1_is : bot1 = c1 := by
-          rcases PartialGrid.middle_frontier_nil_or_caps h1 with H | ⟨front, mid, caboose, spec⟩
+          rcases PartialGrid.middle_frontier_spec h1 with H | ⟨front, mid, caboose, spec⟩
           · simp at H
             exact H.1.elim
           rw [spec.1] at long
-          rcases PartialGrid.middle_frontier_nil_or_caps g1 with H | ⟨front1, mid1, caboose1, spec1⟩
+          rcases PartialGrid.middle_frontier_spec g1 with H | ⟨front1, mid1, caboose1, spec1⟩
           · simp [H.1] at long
             rw [long] at H0
             specialize H0 (front, false)
-            simp [is_true] at H0
-            specialize H0 ⟨trivial⟩
-            exact H0.1.elim
+            simp at H0
           rw [spec1.1] at long
           simp at long
-          rcases list_splits_somewhere long with ⟨h1⟩ | ⟨tm, one, two⟩ | ⟨fm, one, two⟩
-          · exact h1.1
-          · match tm with
-            | [] =>
-              simp at one
-              exact one
-            | (a, true) :: a1 =>
-              simp at two
-            | (a, false) :: a1 =>
-              rw [one] at H0
-              specialize H0 (a, false)
-              simp at H0
-              exact (H0 ⟨trivial⟩).1.elim
-          match fm with
-          | [] =>
-            rw [List.append_nil] at one
-            exact one
-          | (a, true) :: a1 =>
-            simp at two
-          | (a, false) :: a1 =>
-            have H36 : is_true c1 := h1.bottom_frontier_is_true
-            rw [← one] at H36
-            specialize H36 (a, false)
-            simp at H36
-            exact (H36 ⟨trivial⟩).1.elim
+          have := SignedList.eq_of_is_true_append_false_append_eq (g2.top_frontier_is_true) h1.bottom_frontier_is_true
+            (by simp only [List.append_assoc, List.cons_append, List.nil_append]; exact long)
+          grind
         simp [bot1_is] at long
         match c1 with
         | [] =>
@@ -938,17 +958,17 @@ noncomputable def split_horizontally_pg (h : PartialGrid a b c d e) := ∀ a1 a2
 
 def bool_swap (a : List (α × Bool)) : List (α × Bool) := List.map (fun x => (x.1, !x.2)) a.reverse
 
-theorem bool_swap_to_over : bool_swap (to_over a) = to_up a := by
-  induction a with
-  | nil => simp [to_over, to_up, bool_swap]
-  | cons head tail ih =>
-    simp [bool_swap, to_over, ih, to_up]
+theorem bool_swap_to_horizontal_edge : bool_swap (to_horizontal_edge a) = to_vertical_edge a := by
+  cases a with
+  | nil => simp [to_horizontal_edge, to_vertical_edge, bool_swap]
+  | cons head tail =>
+    simp [bool_swap, to_horizontal_edge,to_vertical_edge]
 
-theorem bool_swap_to_up : bool_swap (to_up a) = to_over a := by
-  induction a with
-  | nil => simp [to_over, to_up, bool_swap]
-  | cons head tail ih =>
-    simp [bool_swap, to_up, ih, to_over]
+theorem bool_swap_to_vertical_edge : bool_swap (to_vertical_edge a) = to_horizontal_edge a := by
+  cases a with
+  | nil => simp [to_horizontal_edge, to_vertical_edge, bool_swap]
+  | cons head tail =>
+    simp [bool_swap, to_vertical_edge, to_horizontal_edge]
 
 theorem bool_swap_idem : bool_swap (bool_swap a) = a := by
   induction a with
@@ -969,54 +989,45 @@ theorem bool_swap_length : (bool_swap a).length = a.length := by
 def bool_swap_true (h : is_true a) : is_false (bool_swap a) := by
   simp [is_false, bool_swap]
   intro a1 a1_in
-  constructor
-  simp at a1_in
-  rcases a1_in.1 with ⟨w, h4 | h5⟩
-  · specialize h (w, false) ⟨h4.1⟩
-    simp at h
-    exact h.1.elim
-  rw [← h5.2]
+  specialize h (a1, false) a1_in
+  simp at h
 
 def bool_swap_false (h : is_false a) : is_true (bool_swap a) := by
   simp [is_true, bool_swap]
   intro a1 a1_in
-  constructor
-  simp at a1_in
-  rcases a1_in.1 with ⟨w, h4 | h5⟩
-  · rw [← h4.2]
-  specialize h (w, true) ⟨h5.1⟩
+  specialize h (a1, true) a1_in
   simp at h
-  exact h.1.elim
 
 theorem nil_of_bool_swap_eq_nil (h : bool_swap a = []) : a = [] := by
   apply congr_arg bool_swap at h
   rw [bool_swap_idem, bool_swap_nil] at h
   exact h
 
+open GridData in
 noncomputable def reflect (h : PartialGrid a b c d e) :
     (h1 : PartialGrid (bool_swap b) (bool_swap a) (bool_swap e) (bool_swap d) (bool_swap c)) ×
     PLift (h.length = h1.length) := by
   induction h with
-  | single_gridt h =>
-    rw [bool_swap_to_up, bool_swap_to_over, bool_swap_to_up, bool_swap_to_over, bool_swap_nil]
+  | single_cell h =>
+    rw [bool_swap_to_vertical_edge, bool_swap_to_horizontal_edge, bool_swap_to_vertical_edge, bool_swap_to_horizontal_edge, bool_swap_nil]
     cases h with
     | empty =>
-      use PartialGrid.single_gridt (cell.empty)
+      use PartialGrid.single_cell (CellData.empty)
       exact ⟨rfl⟩
     | top_bottom i =>
-      use PartialGrid.single_gridt (cell.sides i)
+      use PartialGrid.single_cell (CellData.sides i)
       exact ⟨rfl⟩
     | sides i =>
-      use PartialGrid.single_gridt (cell.top_bottom i)
+      use PartialGrid.single_cell (CellData.top_bottom i)
       exact ⟨rfl⟩
     | top_left i =>
-      use PartialGrid.single_gridt (cell.top_left i)
+      use PartialGrid.single_cell (CellData.top_left i)
       exact ⟨rfl⟩
     | adjacent i k h =>
-      use PartialGrid.single_gridt (cell.adjacent k i (by rw [Nat.dist_comm] at h; exact h))
+      use PartialGrid.single_cell (CellData.adjacent k i (by rw [Nat.dist_comm] at h; exact h))
       exact ⟨rfl⟩
     | separated i j h =>
-      use PartialGrid.single_gridt (cell.separated j i (by rw [Or.comm] at h; exact h))
+      use PartialGrid.single_cell (CellData.separated j i (by rw [Nat.dist_comm] at h; exact h))
       exact ⟨rfl⟩
   | empty a b ha ha1 hb hb1 =>
     rw [bool_swap_append]
@@ -1030,7 +1041,7 @@ noncomputable def reflect (h : PartialGrid a b c d e) :
     rcases g1_ih with ⟨h3, len3⟩
     rcases g2_ih with ⟨h4, len4⟩
     use PartialGrid.vertical_append_one h3 h4
-    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]; rfl⟩
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rw [bool_swap_append, bool_swap_append, bool_swap_append, ← List.append_assoc]
     rcases g1_ih with ⟨h3, len3⟩
@@ -1043,7 +1054,7 @@ noncomputable def reflect (h : PartialGrid a b c d e) :
     rcases g1_ih with ⟨h3, len3⟩
     rcases g2_ih with ⟨h4, len4⟩
     use PartialGrid.horizontal_append_one h3 h4
-    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]; rfl⟩
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rw [bool_swap_append, bool_swap_append, bool_swap_append, ← List.append_assoc]
     rcases g1_ih with ⟨h3, len3⟩
@@ -1153,8 +1164,8 @@ noncomputable def splittable_horizontally_of_pg (h : PartialGrid a b c d e) :
   constructor
   · exact ⟨rfl⟩
   constructor
-  rw [H.2.1, ← H0.2.1, ← len.1]
-
+  rw [H.2.1, len.1]
+  exact H0.2.1
 
 noncomputable def PartialGrid.extend_side_w_len  (h : PartialGrid a b c d e) (b2) (h2 : is_true b2) (h3 : b2 ≠ []) :
     (h1 : PartialGrid a (b ++ b2) c (d ++ e ++ b2) []) × PLift  (h.length = h1.length) := by
@@ -1174,14 +1185,14 @@ theorem pg_empty {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(none, false)]) (hb : b = [(none, true)]) (hd : d = []) :
   c = [(none, true)] ∧ e = [(none, false)] := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
-    | empty => simp [to_over, to_up]
-    | top_bottom i => simp [to_over] at hb
-    | sides i => simp [to_up] at ha
-    | top_left i => simp [to_over] at hb
-    | adjacent i k h => simp [to_over] at hb
-    | separated i j h => simp [to_over] at hb
+    | empty => simp [to_horizontal_edge, to_vertical_edge]
+    | top_bottom i => simp [to_horizontal_edge] at hb
+    | sides i => simp [to_vertical_edge] at ha
+    | top_left i => simp [to_horizontal_edge] at hb
+    | adjacent i k h => simp [to_horizontal_edge] at hb
+    | separated i j h => simp [to_horizontal_edge] at hb
   | empty a b ha ha1 hb hb =>
     rw [ha] at hd
     simp at hd
@@ -1222,14 +1233,14 @@ theorem pg_top_bottom {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(none, false)]) (hb : b = [(some i, true)]) (hd : d = []) :
   c = [(some i, true)] ∧ e = [(none, false)] := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
-    | empty => simp [to_over] at hb
+    | empty => simp [to_horizontal_edge] at hb
     | top_bottom i => simp [ha, hb]
-    | sides i => simp [to_over] at hb
-    | top_left i => simp [to_up] at ha
-    | adjacent i k h => simp [to_up] at ha
-    | separated i j h => simp [to_up] at ha
+    | sides i => simp [to_horizontal_edge] at hb
+    | top_left i => simp [to_vertical_edge] at ha
+    | adjacent i k h => simp [to_vertical_edge] at ha
+    | separated i j h => simp [to_vertical_edge] at ha
   | empty a b ha ha1 hb hb =>
     rw [ha] at hd
     simp at hd
@@ -1270,14 +1281,14 @@ theorem pg_side_side {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(some i, false)]) (hb : b = [(none, true)]) (hd : d = []) :
   c = [(none, true)] ∧ e = [(some i, false)] := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
-    | empty => simp [to_up] at ha
+    | empty => simp [to_vertical_edge] at ha
     | top_bottom i => simp [ha, hb]
     | sides i => simp [ha, hb]
-    | top_left i => simp [to_over] at hb
-    | adjacent i k h => simp [to_over] at hb
-    | separated i j h => simp [to_over] at hb
+    | top_left i => simp [to_horizontal_edge] at hb
+    | adjacent i k h => simp [to_horizontal_edge] at hb
+    | separated i j h => simp [to_horizontal_edge] at hb
   | empty a b ha ha1 hb hb =>
     rw [ha] at hd
     simp at hd
@@ -1318,20 +1329,20 @@ theorem pg_top_left {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(some i, false)]) (hb : b = [(some i, true)]) (hd : d = []) :
   c = [(none, true)] ∧ e = [(none, false)] := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
-    | empty => simp [to_up] at ha
-    | top_bottom i => simp [to_up] at ha
-    | sides i => simp [to_over] at hb
-    | top_left i => simp [ha, hb]
+    | empty => simp [to_vertical_edge] at ha
+    | top_bottom i => simp [to_vertical_edge] at ha
+    | sides i => simp [to_horizontal_edge] at hb
+    | top_left i => simp
     | adjacent i k h =>
-      simp [to_up] at ha
-      simp [to_over] at hb
+      simp [to_vertical_edge] at ha
+      simp [to_horizontal_edge] at hb
       rw [ha, hb] at h
       aesop
     | separated i j h =>
-      simp [to_up] at ha
-      simp [to_over] at hb
+      simp [to_vertical_edge] at ha
+      simp [to_horizontal_edge] at hb
       rw [ha, hb] at h
       aesop
   | empty a b ha ha1 hb hb =>
@@ -1374,24 +1385,23 @@ theorem pg_adjacent {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(some i, false)]) (hb : b = [(some j, true)]) (hd : d = []) (hij : i.dist j = 1):
   c = [(some j, true), (some i, true)] ∧ e = [(some j, false), (some i, false)] := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
-    | empty => simp [to_up] at ha
-    | top_bottom i => simp [to_up] at ha
-    | sides i => simp [to_over] at hb
+    | empty => simp [to_vertical_edge] at ha
+    | top_bottom i => simp [to_vertical_edge] at ha
+    | sides i => simp [to_horizontal_edge] at hb
     | top_left i =>
-      simp [to_up] at ha
-      simp [to_over] at hb
+      simp [to_vertical_edge] at ha
+      simp [to_horizontal_edge] at hb
       aesop
     | adjacent i k h =>
-      simp [to_up] at ha
-      simp [to_over] at hb
+      simp [to_vertical_edge] at ha
+      simp [to_horizontal_edge] at hb
       rw [ha, hb] at h
-      simp [to_up, to_over, ha, hb]
+      simp [to_vertical_edge, to_horizontal_edge, ha, hb]
     | separated i j h =>
-      simp [to_up] at ha
-      simp [to_over] at hb
-      apply or_dist_iff.mpr at h
+      simp [to_vertical_edge] at ha
+      simp [to_horizontal_edge] at hb
       aesop
   | empty a b ha ha1 hb hb =>
     rw [ha] at hd
@@ -1433,22 +1443,22 @@ theorem pg_separated {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(some i, false)]) (hb : b = [(some j, true)]) (hd : d = []) (hij : i.dist j > 1):
   c = [(some j, true)] ∧ e = [(some i, false)] := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
-    | empty => simp [to_up] at ha
-    | top_bottom i => simp [to_up] at ha
-    | sides i => simp [to_over] at hb
+    | empty => simp [to_vertical_edge] at ha
+    | top_bottom i => simp [to_vertical_edge] at ha
+    | sides i => simp [to_horizontal_edge] at hb
     | top_left i =>
-      simp [to_up] at ha
-      simp [to_over] at hb
+      simp [to_vertical_edge] at ha
+      simp [to_horizontal_edge] at hb
       aesop
     | adjacent i k h =>
-      simp [to_up] at ha
-      simp [to_over] at hb
+      simp [to_vertical_edge] at ha
+      simp [to_horizontal_edge] at hb
       aesop
     | separated i j h =>
-      simp [to_up] at ha
-      simp [to_over] at hb
+      simp [to_vertical_edge] at ha
+      simp [to_horizontal_edge] at hb
       aesop
   | empty a b ha ha1 hb hb =>
     rw [ha] at hd

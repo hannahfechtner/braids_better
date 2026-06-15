@@ -8,8 +8,7 @@ def bb_to_fin (L : List (ℕ × Bool)) (n : ℕ) (hL : is_bounded_by n L) : List
 
 def is_bounded_by_no_bool (k : ℕ) (u : List ℕ) := ∀ x ∈ u, x < k
 
-#check make_fin
-
+open Braid
 def bbnb_to_fin (L : List ℕ) (n : ℕ) (hL : is_bounded_by_no_bool n L) : List (Fin n) :=
   List.pmap (fun x => fun h => ⟨x, by apply hL x; apply h⟩) L (fun x h => h)
 
@@ -18,15 +17,15 @@ def make_fin_no_pred  (n : ℕ) (a : FreeMonoid ℕ) (bound : ∀ x ∈ a, x<n) 
 
 theorem braid_rel_inf_to_fin_no_pred (n : ℕ) (a b : FreeMonoid ℕ) (bounded_a: ∀ x, (x ∈ a) → x<n)
     (bounded_b: ∀ x, x∈ b→ x<n) (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
-    BraidMonoid.mk _ (make_fin_no_pred n a bounded_a) = BraidMonoid.mk _ (make_fin_no_pred n b bounded_b) := by
+    BraidMonoidFin.mk _ (make_fin_no_pred n a bounded_a) = BraidMonoidFin.mk _ (make_fin_no_pred n b bounded_b) := by
   have ba' : ∀ x, x ∈ a → x < (n+1).pred := by convert bounded_a
   have bb' : ∀ x, x ∈ b → x < (n+1).pred := by convert bounded_b
-  have H := braid_rel_inf_to_fin (n+1) a b ba' bb' h
+  have H := braid_monoid_rels_inf_to_fin (n+1) a b ba' bb' h
   convert H
 
 theorem correct_one_dir_fin {n : ℕ} (ha : ∀ x ∈ a, x < n) (hb : ∀ x ∈ b, x < n)
-  (h : final_solver a b) : PresentedMonoid.mk (braid_rels_m n) (make_fin_no_pred n a ha) =
-  PresentedMonoid.mk (braid_rels_m n) (make_fin_no_pred n b hb) := by
+  (h : final_solver a b) : PresentedMonoid.mk (braid_monoid_rels_fin n) (make_fin_no_pred n a ha) =
+  PresentedMonoid.mk (braid_monoid_rels_fin n) (make_fin_no_pred n b hb) := by
   match a with
   | [] =>
     match b with
@@ -105,12 +104,12 @@ theorem Semi_Thue_reversing_bounded (h : is_bounded_by n L) (h2 : SemiThue rever
   | trans a b c _ _ _ _ => aesop
 
 theorem reverse_complex_bounded (ha : is_bounded_by n a) : is_bounded_by n (reverse_complex a).1 := by
-  exact Semi_Thue_reversing_bounded ha (reverse_complex a).2.2
+  exact Semi_Thue_reversing_bounded ha (reverse_complex a).steps
 
 theorem FreeGroup.invRev_bounded_by (ha : is_bounded_by n a) : is_bounded_by n (FreeGroup.invRev a) := by
   intro x hx
   unfold invRev at hx
-  simp only [List.mem_map, List.mem_reverse, List.mem_cons, List.not_mem_nil, or_false] at hx
+  simp only [List.mem_map, List.mem_reverse] at hx
   rcases hx with ⟨a1, ha1⟩
   rw [← ha1.2]
   apply ha (a1.1, a1.2) ha1.1
@@ -149,8 +148,8 @@ theorem make_fin_no_pred_inj {n : ℕ} {a b : FreeMonoid ℕ}
   simp only [Fin.mk.injEq] at hx
   exact hx
 
-theorem bm_to_bg_fin' {n : ℕ} {a1 b1 : FreeMonoid (Fin n)}(h : PresentedMonoid.mk (braid_rels_m n) a1 =
-  PresentedMonoid.mk (braid_rels_m n) b1):
+theorem bm_to_bg_fin' {n : ℕ} {a1 b1 : FreeMonoid (Fin n)}(h : PresentedMonoid.mk (braid_monoid_rels_fin n) a1 =
+  PresentedMonoid.mk (braid_monoid_rels_fin n) b1):
   (PresentedGroup.mk (Braid.braid_rels_fin_coexeter n)) (FreeGroup.mk (to_over_plain a1)) =
   (PresentedGroup.mk (Braid.braid_rels_fin_coexeter n)) (FreeGroup.mk (to_over_plain b1)) := by
   apply PresentedMonoid.exact at h

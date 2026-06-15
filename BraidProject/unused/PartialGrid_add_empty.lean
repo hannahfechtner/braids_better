@@ -1,6 +1,8 @@
 import BraidProject.PartialGrid_rw
 
-noncomputable def empty_fill_split (h : empty_fill i j) : Σ a b, PLift (i = [(a, false), (b, true)]) := by
+open Braid
+
+noncomputable def grid_style_trivial_split (h : grid_style_trivial i j) : Σ a b, PLift (i = [(a, false), (b, true)]) := by
   induction h with
   | up =>
     rename_i n
@@ -14,61 +16,63 @@ noncomputable def empty_fill_split (h : empty_fill i j) : Σ a b, PLift (i = [(a
     use none, none
     exact {down := rfl}
 
-noncomputable def empty_fill_means (h : empty_fill i j) : Σ a b c d,
-    (h1 : cell (option_to_cell a) (option_to_cell b) c d) ×
-    PLift (i = [(a, false), (b, true)] ∧ j = to_over d ++ to_up c ∧ (PartialGrid.single_gridt h1).length = 0) := by
+noncomputable def grid_style_trivial_means_new (h : grid_style_trivial i j) : Σ a b c d,
+    (h1 : CellData (option_to_list a) (option_to_list b) c d) ×
+    PLift (i = [(a, false), (b, true)] ∧ j = to_horizontal_edge c ++ to_vertical_edge d ∧ (PartialGrid.single_cell h1).length = 0) := by
   cases h with
   | over n =>
-    use some n, none, [n], []
-    exact ⟨cell.sides n, {down := ⟨rfl, ⟨rfl, by rw [PartialGrid.length]⟩⟩}⟩
+    use some n, none, [], [n]
+    exact ⟨CellData.sides n, {down := ⟨rfl, ⟨rfl, by rw [PartialGrid.length]⟩⟩}⟩
   | up n =>
-    use none, some n, [], [n]
-    exact ⟨cell.top_bottom n, {down := ⟨rfl, ⟨rfl, by rw [PartialGrid.length]⟩⟩}⟩
+    use none, some n, [n], []
+    exact ⟨CellData.top_bottom n, {down := ⟨rfl, ⟨rfl, by rw [PartialGrid.length]⟩⟩}⟩
   | empty =>
     use none, none, [], []
-    exact ⟨cell.empty, {down := ⟨rfl, ⟨rfl, by rw [PartialGrid.length]⟩⟩}⟩
+    exact ⟨CellData.empty, {down := ⟨rfl, ⟨rfl, by rw [PartialGrid.length]⟩⟩}⟩
 
-noncomputable def skeleton_one_one_empty (h : empty_fill i j)
+noncomputable def skeleton_one_one_empty (h : grid_style_trivial i j)
     (ha : a.length > 0) (hb : b.length > 0)
     (i_is : i = [(a3, false), (b3, true)]) (ab : [(a3, false), (b3, true)] = a ++ b) :
     Σ bot mid up, (h1 : PartialGrid a b bot mid up )× PLift (bot ++ mid ++ up = j) × PLift (h1.length = 0) := by
-  rcases empty_fill_means h with ⟨a1, b1, c1, d1, h_cell, i_is', j_is, len⟩
-  use to_over d1, [], to_up c1
+  rcases grid_style_trivial_means_new h with ⟨a1, b1, c1, d1, h_cell, i_is', j_is, len⟩
+  use to_horizontal_edge c1, [], to_vertical_edge d1
   have ab_is := List.append_eq_len_two ha hb ab.symm
   rw [ab_is.1, ab_is.2]
   change _ = [(a3, false)] ++ [(b3, true)] at i_is
   rw [i_is'] at i_is
   have happ := List.append_eq_len_two (by simp) (by simp) i_is.symm
   rw [happ.1, happ.2]
-  rw [← over_oc, ← up_oc]
-  use PartialGrid.single_gridt h_cell
+  rw [← to_vertical_edge_option_to_list, ← to_horizontal_edge_option_to_list]
+  use PartialGrid.single_cell h_cell
   rw [List.append_nil]
   constructor
   · exact {down := j_is.symm}
   exact ⟨len⟩
 
-noncomputable def skeleton_one_cons_empty (h2 : empty_fill i j) (fe : a ++ b = ([(a3, false), (b3, true)] ++ head :: tail))
+open SignedList
+
+noncomputable def skeleton_one_cons_empty (h2 : grid_style_trivial i j) (fe : a ++ b = ([(a3, false), (b3, true)] ++ head :: tail))
     (b_is : b = b1 ++ head :: tail) (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b)
     (ab_is : [(a3, false), (b3, true)] = a ++ b1) (i_is : i = [(a3, false), (b3, true)]):
     Σ bot mid up, (h1 : PartialGrid a b bot mid up) × PLift (bot ++ mid ++ up = [] ++ j ++ head :: tail) ×
     PLift (h1.length = 0):= by
   have ht_true : is_true (head :: tail) := by
     rw [b_is] at hb
-    exact (is_true_append hb).2
-  rcases empty_fill_means h2 with ⟨a2, b2, c2, d2, h_cell, i_is', j_is, hl⟩
-  use to_over d2, to_up c2 ++ head :: tail, []
-  have H2 := PartialGrid.empty (to_up c2) (head :: tail) (by simp [to_up_len_pos]) is_false_up (by simp) ht_true
-  have H3 := PartialGrid.horizontal_append_one (PartialGrid.single_gridt h_cell) H2
-  simp only [up_oc, over_oc, List.singleton_append, List.append_nil] at H3
+    exact (is_true_of_append hb).2
+  rcases grid_style_trivial_means_new h2 with ⟨a2, b2, c2, d2, h_cell, i_is', j_is, hl⟩
+  use to_horizontal_edge c2, to_vertical_edge d2 ++ head :: tail, []
+  have H2 := PartialGrid.empty (to_vertical_edge d2) (head :: tail) (by simp [to_vertical_edge_length_pos]) is_false_to_vertical_edge (by simp) ht_true
+  have H3 := PartialGrid.horizontal_append_one (PartialGrid.single_cell h_cell) H2
+  simp only [to_horizontal_edge_option_to_list, to_vertical_edge_option_to_list, List.singleton_append, List.append_nil] at H3
   have helper := i_is.symm.trans i_is'
   simp only [List.cons.injEq, Prod.mk.injEq, and_true] at helper
   have ha : a = [(a2, false)] := by
     rw [← helper.1]
-    exact bool_change_second ha1 ha ab_is.symm
+    exact eq_left_singleton_of_is_false_append_eq_unfinished_cell ha1 ha (id (Eq.symm ab_is))
   have hb : b = (b2, true) :: head :: tail := by
     rw [← helper.2]
     rw [ha] at fe
-    simp only [List.singleton_append, List.cons_append, List.cons.injEq, Prod.mk.injEq,
+    simp only [List.cons_append, List.cons.injEq, Prod.mk.injEq,
       and_true] at fe
     exact fe.2
   rw [ha, hb]
@@ -76,9 +80,9 @@ noncomputable def skeleton_one_cons_empty (h2 : empty_fill i j) (fe : a ++ b = (
   constructor
   · rw [j_is]
     exact {down := by simp}
-  have : to_over (option_to_cell b2) = [(b2, true)] := by
-    rw [over_oc]
-  have : H3.length = (PartialGrid.horizontal_append_one (PartialGrid.single_gridt h_cell) H2).length :=
+  have : to_horizontal_edge (option_to_list b2) = [(b2, true)] := by
+    rw [to_horizontal_edge_option_to_list]
+  have : H3.length = (PartialGrid.horizontal_append_one (PartialGrid.single_cell h_cell) H2).length :=
     same_type_same_length_pg H3 ((PartialGrid.single_gridt h_cell).horizontal_append_one H2) (up_oc).symm
         (by rw [this]; simp) (by simp) rfl rfl
   rw [PartialGrid.length, hl] at this
@@ -90,12 +94,12 @@ noncomputable def skeleton_one_cons_empty (h2 : empty_fill i j) (fe : a ++ b = (
   constructor
   omega
 
-noncomputable def skeleton_cons_one_empty (h2 : empty_fill i j) (a_is : a = head :: tail ++ a2)
+noncomputable def skeleton_cons_one_empty (h2 : grid_style_trivial i j) (a_is : a = head :: tail ++ a2)
     (ha : is_false a) (hb : is_true b) (ab_is : [(a3, false), (b3, true)] = a2 ++ b1)
     (i_is : i = [(a3, false), (b3, true)]) (b_is : b = b1) (hb1 : b.length > 0) :
     Σ bot mid up, (h1 : PartialGrid a b bot mid up) × PLift (bot ++ mid ++ up = head :: tail ++ j ++ []) ×
     PLift (h1.length = 0):= by
-  rcases empty_fill_means h2 with ⟨a5, b2, c2, d2, h_cell, i_is', j_is, hl⟩
+  rcases grid_style_trivial_means h2 with ⟨a5, b2, c2, d2, h_cell, i_is', j_is, hl⟩
   have ht_false : is_false (head :: tail) := by
     rw [a_is] at ha
     exact (is_false_append ha).1
@@ -133,13 +137,13 @@ noncomputable def skeleton_cons_one_empty (h2 : empty_fill i j) (a_is : a = head
   exact this
 
 
-noncomputable def skeleton_cons_cons_empty (gs : empty_fill i j)
+noncomputable def skeleton_cons_cons_empty (gs : grid_style_trivial i j)
     (ha : is_false (head :: tail)) (hb : is_true (headb :: tailb))
     (i_is : i = [(a3, false), (b3, true)]) :
     Σ bot mid up, (h1 : PartialGrid (head :: tail ++ [(a3, false)])
     ([(b3, true)] ++ headb :: tailb) bot mid up) ×
     PLift (bot ++ mid ++ up = head :: tail ++ j ++ headb :: tailb) × PLift (h1.length = 0):= by
-  rcases empty_fill_means gs with ⟨a5, b2, c2, d2, h_cell, i_is', j_is, hl⟩
+  rcases grid_style_trivial_means gs with ⟨a5, b2, c2, d2, h_cell, i_is', j_is, hl⟩
   use [], head :: tail ++ to_over d2 ++ to_up c2 ++ headb :: tailb, []
   have H2 := PartialGrid.empty (head :: tail) (to_over d2) (by simp) ha (by simp [to_over_len_pos]) is_true_over
   have H3 := PartialGrid.vertical_append_one (PartialGrid.single_gridt h_cell) H2
@@ -168,11 +172,11 @@ noncomputable def skeleton_cons_cons_empty (gs : empty_fill i j)
 open PartialGrid
 
 noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
-    (hg : empty_fill i j) (fe : bot ++ mid ++ up = k ++ i ++ l) :
+    (hg : grid_style_trivial i j) (fe : bot ++ mid ++ up = k ++ i ++ l) :
     Σ nb nm nu, (h1 : PartialGrid a b nb nm nu) × PLift (nb ++ nm ++ nu = k ++ j ++ l) ×
     List.Suffix' up nu × List.Prefix' bot nb ×
     PLift (h.length = h1.length) := by
-  rcases empty_fill_split hg with ⟨a1, b1, ⟨i_is⟩⟩
+  rcases grid_style_trivial_split hg with ⟨a1, b1, ⟨i_is⟩⟩
   rw [i_is] at fe
   induction h generalizing k l with
   | single_gridt h =>
@@ -545,8 +549,8 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
     constructor
     simp [PartialGrid.length, botp.2.1]
 
-noncomputable def pg_of_st_empty_fill (h : PartialGrid a b c d e)
-    (hst : SemiThue empty_fill (c ++ d ++ e) f) :
+noncomputable def pg_of_st_grid_style_trivial (h : PartialGrid a b c d e)
+    (hst : SemiThue grid_style_trivial (c ++ d ++ e) f) :
     Σ c1 d1 e1,
     (h1 : PartialGrid a b c1 d1 e1) × PLift (f = c1 ++ d1 ++ e1) ×
     PLift (h.length = h1.length) := by
@@ -576,4 +580,4 @@ noncomputable def pg_of_st_empty_fill (h : PartialGrid a b c d e)
 
 noncomputable def pg_of_move_ones (h : PartialGrid a b c d e) : Σ c1 d1 e1,
     (h1 : PartialGrid a b c1 d1 e1) × PLift (move_ones (c ++ d ++ e) = c1 ++ d1 ++ e1) ×
-    PLift (h.length = h1.length) := pg_of_st_empty_fill h (equiv_move_ones_empty_fill)
+    PLift (h.length = h1.length) := pg_of_st_grid_style_trivial h (equiv_move_ones_grid_style_trivial)

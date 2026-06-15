@@ -1,157 +1,161 @@
 import BraidProject.PartialGrid_split
 set_option maxHeartbeats 1000000
 
-def to_up_plain (a : List α) : List (α × Bool) := List.map (fun x => (x, false)) a.reverse
+namespace Braid
 
-def to_over_plain {α : Type} (a : List α) : List (α × Bool) := List.map (fun x => (x, true)) a
+def to_vertical_edge_plain (a : List α) : List (α × Bool) := List.map (fun x => (x, false)) a.reverse
 
-theorem remove_up_is_plain : remove_ones (to_up i) = to_up_plain i := by
+def to_horizontal_edge_plain {α : Type} (a : List α) : List (α × Bool) := List.map (fun x => (x, true)) a
+
+theorem remove_up_is_plain : SignedOptionList.toSignedList (to_vertical_edge i) = to_vertical_edge_plain i := by
   induction i with
   | nil => rfl
   | cons head tail ih =>
     match tail with
     | [] =>
-      simp [remove_ones, to_up_plain]
+      simp [SignedOptionList.toSignedList, to_vertical_edge_plain]
     | t1 :: t2 =>
-      have H1 : (to_up (head :: t1 :: t2)) = (to_up (t1 :: t2)) ++ [(some head, false)] := by
-        simp [to_up]
-      rw [H1, remove_ones_append, ih]
-      simp [to_up_plain, remove_ones]
+      have H1 : (to_vertical_edge (head :: t1 :: t2)) = (to_vertical_edge (t1 :: t2)) ++ [(some head, false)] := by
+        simp [to_vertical_edge]
+      rw [H1, SignedOptionList.toSignedList_append, ih]
+      simp [to_vertical_edge_plain, SignedOptionList.toSignedList]
 
-theorem remove_over_is_plain : remove_ones (to_over j) = to_over_plain j := by
+theorem remove_over_is_plain : SignedOptionList.toSignedList (to_horizontal_edge j) = to_horizontal_edge_plain j := by
   induction j with
   | nil => rfl
   | cons head tail ih =>
     match tail with
     | [] =>
-      simp [remove_ones, to_over_plain]
+      simp [SignedOptionList.toSignedList, to_horizontal_edge_plain]
     | t1 :: t2 =>
-      have H1 : (to_over (head :: t1 :: t2)) = [(some head, true)] ++ (to_over (t1 :: t2)) := by
-        simp [to_over]
-      rw [H1, remove_ones_append, ih]
-      simp [to_over_plain, remove_ones]
+      have H1 : (to_horizontal_edge (head :: t1 :: t2)) = [(some head, true)] ++ (to_horizontal_edge (t1 :: t2)) := by
+        simp [to_horizontal_edge]
+      rw [H1, SignedOptionList.toSignedList_append, ih]
+      simp [to_horizontal_edge_plain, SignedOptionList.toSignedList]
 
-theorem eq_remover_of_remove_ones_eq_to_over_plain (h : remove_ones b = to_over_plain j) : j = remover b := by
+open SignedOptionList
+theorem eq_toList_of_SignedOptionList.toSignedList_eq_to_horizontal_edge_plain (h : SignedOptionList.toSignedList b = to_horizontal_edge_plain j) : j = toList b := by
   induction b generalizing j with
   | nil =>
-    simp [remove_ones, to_over_plain] at h
-    simp [h, remover]
+    simp [SignedOptionList.toSignedList, to_horizontal_edge_plain] at h
+    simp [h, toList]
   | cons head tail ih =>
     match head with
     | (none, _) =>
-      simp [remove_ones] at h
-      simp [remover]
+      simp [SignedOptionList.toSignedList] at h
+      simp [toList]
       exact ih h
     | (some a, _) =>
-      simp [remove_ones] at h
-      simp [remover]
+      simp [SignedOptionList.toSignedList] at h
+      simp [toList]
       match j with
-      | [] => simp [to_over_plain] at h
+      | [] => simp [to_horizontal_edge_plain] at h
       | j1 :: j2 =>
-        simp [to_over_plain] at h
-        unfold to_over_plain at ih
+        simp [to_horizontal_edge_plain] at h
+        unfold to_horizontal_edge_plain at ih
         specialize ih h.2
         aesop
 
-theorem remove_ones_eq_to_over_plain_of_eq_remover (h  : j = remover b) (hb : is_true b) :
-    remove_ones b = to_over_plain j := by
+open SignedList
+
+theorem SignedOptionList.toSignedList_eq_to_horizontal_edge_plain_of_eq_toList (h  : j = toList b) (hb : is_true b) :
+    SignedOptionList.toSignedList b = to_horizontal_edge_plain j := by
   induction b generalizing j with
   | nil =>
-    simp [remover] at h
-    simp [remove_ones, to_over_plain]
+    simp [toList] at h
+    simp [SignedOptionList.toSignedList, to_horizontal_edge_plain]
     exact h
   | cons head tail ih =>
     match head with
     | (none, _) =>
-      simp [remove_ones]
-      simp [remover] at h
+      simp [SignedOptionList.toSignedList]
+      simp [toList] at h
       apply ih h
-      exact (is_true_split hb).2
+      exact (is_true_of_cons hb).2
     | (some a, true) =>
-      simp [remove_ones]
-      simp [remover] at h
+      simp [SignedOptionList.toSignedList]
+      simp [toList] at h
       match j with
-      | [] => simp [to_over_plain] at h
+      | [] => simp [to_horizontal_edge_plain] at h
       | j1 :: j2 =>
-        simp [to_over_plain] at h
-        unfold to_over_plain at ih
+        simp [to_horizontal_edge_plain] at h
+        unfold to_horizontal_edge_plain at ih
         specialize ih h.2
         rw [ih]
-        simp [to_over_plain]
+        simp [to_horizontal_edge_plain]
         aesop
-        exact (is_true_split hb).2
+        exact (is_true_of_cons hb).2
     | (some a, false) =>
-      specialize hb (some a, false) ⟨by simp⟩
+      specialize hb (some a, false) (by simp)
       simp at hb
-      exact hb.1.elim
 
-theorem to_over_plain_remover_eq_remove_ones(h : is_true b) : to_over_plain (remover b) = remove_ones b := by
+theorem to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList(h : is_true b) : to_horizontal_edge_plain (toList b) = SignedOptionList.toSignedList b := by
   induction b with
   | nil => rfl
   | cons head tail ih =>
     match head with
     | (none, _) =>
-      simp [to_over_plain, remove_ones, ← ih (is_true_split h).2, remover]
+      simp [to_horizontal_edge_plain, SignedOptionList.toSignedList, ← ih (is_true_of_cons h).2, toList]
     | (some a, true) =>
-      simp [to_over_plain, remove_ones, ← ih (is_true_split h).2, remover]
+      simp [to_horizontal_edge_plain, SignedOptionList.toSignedList, ← ih (is_true_of_cons h).2, toList]
     | (some a, false) =>
-      have H := (is_true_split h).1 (some a, false) ⟨by simp⟩
+      have H := (is_true_of_cons h).1 (some a, false) (by simp)
       simp at H
-      exact H.1.elim
 
-theorem to_up_plain_remover_rev_eq_remove_ones (h : is_false a) : to_up_plain (remover a.reverse) = remove_ones a := by
+theorem to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList (h : is_false a) : to_vertical_edge_plain (toList a.reverse) = SignedOptionList.toSignedList a := by
   induction a with
   | nil => rfl
   | cons head tail ih =>
     match head with
     | (none, _) =>
-      simp [to_up_plain, remove_ones, ← ih (is_false_split h).2, remover_append, remover]
+      simp [to_vertical_edge_plain, SignedOptionList.toSignedList, ← ih (is_false_of_cons h).2, toList_append, toList]
     | (some a, true) =>
-      have H := (is_false_split h).1 (some a, true) ⟨by simp⟩
+      have H := (is_false_of_cons h).1 (some a, true) (by simp)
       simp at H
-      exact H.1.elim
     | (some a, false) =>
-      simp [to_up_plain, remove_ones, ← ih (is_false_split h).2, remover_append, remover]
+      simp [to_vertical_edge_plain, SignedOptionList.toSignedList, ← ih (is_false_of_cons h).2, toList_append, toList]
 
-theorem to_up_plain_inj (h : to_up_plain a = to_up_plain b) : a = b := by
-  simp [to_up_plain] at h
+theorem to_vertical_edge_plain_inj (h : to_vertical_edge_plain a = to_vertical_edge_plain b) : a = b := by
+  simp [to_vertical_edge_plain] at h
   exact (List.map_inj_right (by simp)).mp h
 
-theorem to_over_plain_inj (h : to_over_plain a = to_over_plain b) : a = b := by
-  simp [to_over_plain] at h
+theorem to_horizontal_edge_plain_inj (h : to_horizontal_edge_plain a = to_horizontal_edge_plain b) : a = b := by
+  simp [to_horizontal_edge_plain] at h
   exact (List.map_inj_right (by simp)).mp h
 
-theorem helper_pg_empty (h : PartialGrid a b c d e) : remove_ones a = [] → remove_ones b =  [] →
-    remove_ones c = [] ∧ remove_ones e = [] ∧ h.length = 0 := by
+open Braid
+
+theorem helper_pg_empty (h : PartialGrid a b c d e) : SignedOptionList.toSignedList a = [] → SignedOptionList.toSignedList b =  [] →
+    SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList e = [] ∧ h.length = 0 := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
-    | empty => simp [PartialGrid.length, remove_ones]
-    | top_bottom i => simp [PartialGrid.length, remove_ones]
-    | sides i => simp [PartialGrid.length, remove_ones]
+    | empty => simp [PartialGrid.length, SignedOptionList.toSignedList]
+    | top_bottom i => simp [PartialGrid.length, SignedOptionList.toSignedList]
+    | sides i => simp [PartialGrid.length, SignedOptionList.toSignedList]
     | top_left i =>
       intro ha
-      simp [remove_ones, to_up] at ha
+      simp [SignedOptionList.toSignedList, to_vertical_edge] at ha
     | adjacent i k h =>
       intro ha
-      simp [remove_ones, to_up] at ha
+      simp [SignedOptionList.toSignedList, to_vertical_edge] at ha
     | separated i j h =>
       intro ha
-      simp [remove_ones, to_up] at ha
+      simp [SignedOptionList.toSignedList, to_vertical_edge] at ha
   | empty a b ha ha1 hb hb => simp [PartialGrid.length]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i f g h i j k l m
     intro f_is gj_is
-    rw [remove_ones_append] at gj_is
+    rw [SignedOptionList.toSignedList_append] at gj_is
     apply List.append_eq_nil_iff.mp at gj_is
     specialize g1_ih f_is gj_is.1
     specialize g2_ih g1_ih.2.1 gj_is.2
-    rw [remove_ones_append, PartialGrid.length]
+    rw [SignedOptionList.toSignedList_append, PartialGrid.length]
     aesop
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i f g i j k l m n o
     intro f_is gl_is
-    rw [remove_ones_append] at gl_is
+    rw [SignedOptionList.toSignedList_append] at gl_is
     apply List.append_eq_nil_iff.mp at gl_is
     specialize g1_ih f_is gl_is.1
     specialize g2_ih g1_ih.2.1 gl_is.2
@@ -160,93 +164,93 @@ theorem helper_pg_empty (h : PartialGrid a b c d e) : remove_ones a = [] → rem
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i f g h i j k l m
     intro jf_is g_is
-    rw [remove_ones_append] at jf_is
+    rw [SignedOptionList.toSignedList_append] at jf_is
     apply List.append_eq_nil_iff.mp at jf_is
     specialize g1_ih jf_is.2 g_is
     specialize g2_ih jf_is.1 g1_ih.1
-    rw [remove_ones_append, PartialGrid.length]
+    rw [SignedOptionList.toSignedList_append, PartialGrid.length]
     aesop
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i f g i j k l m n o
     intro lf_is g_is
-    rw [remove_ones_append] at lf_is
+    rw [SignedOptionList.toSignedList_append] at lf_is
     apply List.append_eq_nil_iff.mp at lf_is
     specialize g1_ih lf_is.2 g_is
     specialize g2_ih lf_is.1 g1_ih.1
     rw [PartialGrid.length]
     aesop
 
-theorem empty_rm_pg_len (h : PartialGrid a b c d e) : remove_ones a = [] → remove_ones b =  [] →
+theorem empty_rm_pg_len (h : PartialGrid a b c d e) : SignedOptionList.toSignedList a = [] → SignedOptionList.toSignedList b =  [] →
     h.length = 0 := by
   have H := helper_pg_empty h
   aesop
 
-theorem to_up_len : (to_up a).length > 0 := by
+theorem to_vertical_edge_len : (to_vertical_edge a).length > 0 := by
   match a with
-  | [] => simp [to_up]
-  | a1 :: a2 => simp [to_up]
+  | [] => simp [to_vertical_edge]
+  | a1 :: a2 => simp [to_vertical_edge]
 
-theorem to_over_len : (to_over b).length > 0 := by
+theorem to_horizontal_edge_len : (to_horizontal_edge b).length > 0 := by
   match b with
-  | [] => simp [to_over]
-  | b1 :: b2 => simp [to_over]
+  | [] => simp [to_horizontal_edge]
+  | b1 :: b2 => simp [to_horizontal_edge]
 
-theorem to_up_plain_append : to_up_plain (a ++ b) = to_up_plain b ++ to_up_plain a := by simp [to_up_plain]
-theorem to_over_plain_append : to_over_plain (a ++ b) = to_over_plain a ++ to_over_plain b := by simp [to_over_plain]
-theorem remove_ones_len(a : List (Option α × Bool))  : (remove_ones a).length ≤ a.length := by
+theorem to_vertical_edge_plain_append : to_vertical_edge_plain (a ++ b) = to_vertical_edge_plain b ++ to_vertical_edge_plain a := by simp [to_vertical_edge_plain]
+theorem to_horizontal_edge_plain_append : to_horizontal_edge_plain (a ++ b) = to_horizontal_edge_plain a ++ to_horizontal_edge_plain b := by simp [to_horizontal_edge_plain]
+theorem SignedOptionList.toSignedList_len(a : List (Option α × Bool))  : (SignedOptionList.toSignedList a).length ≤ a.length := by
   induction a with
-  | nil => simp [remove_ones]
+  | nil => simp [SignedOptionList.toSignedList]
   | cons head tail ih =>
     match head with
     | (none, _) =>
-      simp [remove_ones] at ih
-      simp [remove_ones, ih]
+      simp [SignedOptionList.toSignedList] at ih
+      simp [SignedOptionList.toSignedList, ih]
       omega
     | (some a, true) =>
-      simp [remove_ones] at ih
-      simp [remove_ones, ih]
+      simp [SignedOptionList.toSignedList] at ih
+      simp [SignedOptionList.toSignedList, ih]
     | (some a, false) =>
-      simp [remove_ones] at ih
-      simp [remove_ones, ih]
+      simp [SignedOptionList.toSignedList] at ih
+      simp [SignedOptionList.toSignedList, ih]
 
-theorem remove_ones_eq_append (h : remove_ones a = b ++ c) :
-    ∃ a1 a2, a=a1++a2 ∧ remove_ones a1 = b ∧ remove_ones a2 = c := by
+theorem SignedOptionList.toSignedList_eq_append (h : SignedOptionList.toSignedList a = b ++ c) :
+    ∃ a1 a2, a=a1++a2 ∧ SignedOptionList.toSignedList a1 = b ∧ SignedOptionList.toSignedList a2 = c := by
   induction a generalizing b c with
   | nil =>
-    simp [remove_ones] at h
+    simp [SignedOptionList.toSignedList] at h
     aesop
   | cons head tail ih =>
     match head with
     | (none, b) =>
-      simp [remove_ones] at h
+      simp [SignedOptionList.toSignedList] at h
       specialize ih h
       rcases ih with ⟨a1, a2, a_is, b_is, c_is⟩
       use (none, b) :: a1, a2
-      simp_all [remove_ones]
+      simp_all [SignedOptionList.toSignedList]
     | (some d, e) =>
       match b with
       | [] =>
         match c with
         | [] => aesop
         | c1 :: c2 =>
-          simp [remove_ones] at h
+          simp [SignedOptionList.toSignedList] at h
           use [], (some d, e) :: tail
           aesop
       | b1 :: b2 =>
-        simp [remove_ones] at h
+        simp [SignedOptionList.toSignedList] at h
         match b2 with
         | [] =>
           use [(some d, e)], tail
-          simp_all [remove_ones]
+          simp_all [SignedOptionList.toSignedList]
         | b21 :: b22 =>
           specialize ih h.2
           rcases ih with ⟨a1, a2, a_is, b_is, c_is⟩
           use (some d, e) :: a1, a2
-          simp_all [remove_ones]
+          simp_all [SignedOptionList.toSignedList]
 
-theorem remove_ones_eq_to_up_plain_prod {m q : List α} (h : remove_ones a = to_up_plain (m ++ q)) :
+theorem SignedOptionList.toSignedList_eq_to_vertical_edge_plain_prod {m q : List α} (h : SignedOptionList.toSignedList a = to_vertical_edge_plain (m ++ q)) :
    m = [] ∨ q = [] ∨ ∃ (a1 a2 : List (Option α × Bool)), a1.length > 0 ∧ a2.length > 0 ∧
-        a = a1 ++ a2 ∧ remove_ones a1 = to_up_plain q ∧ remove_ones a2 = to_up_plain m  := by
+        a = a1 ++ a2 ∧ SignedOptionList.toSignedList a1 = to_vertical_edge_plain q ∧ SignedOptionList.toSignedList a2 = to_vertical_edge_plain m  := by
   induction m generalizing a q with
   | nil => exact Or.inl rfl
   | cons m1 m2 ih =>
@@ -255,23 +259,23 @@ theorem remove_ones_eq_to_up_plain_prod {m q : List α} (h : remove_ones a = to_
     | [] => exact Or.inl rfl
     | q1 :: q2 =>
       right
-      rw [to_up_plain_append] at h
-      rcases remove_ones_eq_append h with ⟨a1, a2, a_is, a1s, a2s⟩
+      rw [to_vertical_edge_plain_append] at h
+      rcases SignedOptionList.toSignedList_eq_append h with ⟨a1, a2, a_is, a1s, a2s⟩
       use a1, a2
-      have a1l := remove_ones_len a1
-      have a2l := remove_ones_len a2
+      have a1l := SignedOptionList.toSignedList_len a1
+      have a2l := SignedOptionList.toSignedList_len a2
       have a1le := congr_arg List.length a1s
       have a2le := congr_arg List.length a2s
-      simp [to_up_plain] at a1le
-      simp [to_up_plain] at a2le
+      simp [to_vertical_edge_plain] at a1le
+      simp [to_vertical_edge_plain] at a2le
       have a1_len : a1.length > 0 := by
         omega
       have a2_len : a2.length > 0 := by omega
       aesop
 
-theorem remove_ones_eq_to_over_plain_prod {n : List (α)} (h : remove_ones b = to_over_plain (n ++ q)) :
+theorem SignedOptionList.toSignedList_eq_to_horizontal_edge_plain_prod {n : List (α)} (h : SignedOptionList.toSignedList b = to_horizontal_edge_plain (n ++ q)) :
   n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
-          b = b1 ++ b2 ∧ remove_ones b1 = to_over_plain n ∧ remove_ones b2 = to_over_plain q := by
+          b = b1 ++ b2 ∧ SignedOptionList.toSignedList b1 = to_horizontal_edge_plain n ∧ SignedOptionList.toSignedList b2 = to_horizontal_edge_plain q := by
   induction n generalizing b q with
   | nil => exact Or.inl rfl
   | cons n1 n2 ih =>
@@ -280,15 +284,15 @@ theorem remove_ones_eq_to_over_plain_prod {n : List (α)} (h : remove_ones b = t
     | [] => exact Or.inl rfl
     | q1 :: q2 =>
       right
-      rw [to_over_plain_append] at h
-      rcases remove_ones_eq_append h with ⟨b1, b2, b_is, b1s, b2s⟩
+      rw [to_horizontal_edge_plain_append] at h
+      rcases SignedOptionList.toSignedList_eq_append h with ⟨b1, b2, b_is, b1s, b2s⟩
       use b1, b2
-      have b1l := remove_ones_len b1
-      have b2l := remove_ones_len b2
+      have b1l := SignedOptionList.toSignedList_len b1
+      have b2l := SignedOptionList.toSignedList_len b2
       have b1le := congr_arg List.length b1s
       have b2le := congr_arg List.length b2s
-      simp only [to_over_plain, List.map_cons, List.length_cons, List.length_map] at b1le
-      simp only [to_over_plain, List.map_cons, List.length_cons, List.length_map] at b2le
+      simp only [to_horizontal_edge_plain, List.map_cons, List.length_cons, List.length_map] at b1le
+      simp only [to_horizontal_edge_plain, List.map_cons, List.length_cons, List.length_map] at b2le
       have b1_len : b1.length > 0 := by omega
       have b2_len : b2.length > 0 := by omega
       aesop
@@ -312,7 +316,7 @@ theorem List.suffix_of_append {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨
   | f1 :: f2 =>
     left
     rw [s2]
-    exact suffix_append ([f1] ++ f2) a
+    exact List.suffix_append ([f1] ++ f2) a
 
 theorem List.prefix_of_append_mine {a b c : List α} (h : a <+: b ++ c) : a <+: b ∨ ∃ a2, a2.length > 0 ∧
   a = b ++ a2 ∧ a2 <+: c := by
@@ -323,7 +327,7 @@ theorem List.prefix_of_append_mine {a b c : List α} (h : a <+: b ++ c) : a <+: 
     | t1 :: t2 =>
       left
       rw [s1]
-      exact prefix_append a (t1 :: t2)
+      exact List.prefix_append a (t1 :: t2)
   match fm with
   | [] => aesop
   | f1 :: f2 =>
@@ -336,19 +340,19 @@ theorem List.prefix_of_append_mine {a b c : List α} (h : a <+: b ++ c) : a <+: 
     simp [s2]
 
 theorem helper_bajillion {q m2 : List α}
-    (ha : remove_ones a <:+ to_up_plain q ++ to_up_plain (m1 :: m2)) :
-    remove_ones a <:+ to_up_plain (m1 :: m2) ∨
+    (ha : SignedOptionList.toSignedList a <:+ to_vertical_edge_plain q ++ to_vertical_edge_plain (m1 :: m2)) :
+    SignedOptionList.toSignedList a <:+ to_vertical_edge_plain (m1 :: m2) ∨
     ∃ (a1 a2 : List (Option α × Bool)), a1.length > 0 ∧ a = a1 ++ a2 ∧
-    remove_ones a2 = to_up_plain (m1 :: m2) ∧ remove_ones a1 <:+ to_up_plain q := by
+    SignedOptionList.toSignedList a2 = to_vertical_edge_plain (m1 :: m2) ∧ SignedOptionList.toSignedList a1 <:+ to_vertical_edge_plain q := by
   rcases List.suffix_of_append ha with one | two
   · left
     exact one
   rcases two with ⟨a1, a1_len, a_is, a1_suff⟩
   right
-  rcases remove_ones_eq_append a_is with ⟨a3, a4, a_is, a3a1, m4⟩
+  rcases SignedOptionList.toSignedList_eq_append a_is with ⟨a3, a4, a_is, a3a1, m4⟩
   use a3, a4
   constructor
-  · have H := remove_ones_len a3
+  · have H := SignedOptionList.toSignedList_len a3
     rw [a3a1] at H
     omega
   constructor
@@ -358,23 +362,23 @@ theorem helper_bajillion {q m2 : List α}
   rw [a3a1]
   assumption
 
-theorem helper_kajillion {α : Type} {n q : List α} {b : List (Option α × Bool)} (h : remove_ones b <+: to_over_plain n ++ to_over_plain q) (hn : n.length > 0):
-  remove_ones b <+: to_over_plain n ∨ ∃ (b₁ b₂ : List (Option α × Bool)), b₁.length > 0 ∧ b₂.length > 0 ∧ b = b₁ ++ b₂ ∧
-    remove_ones b₁ = to_over_plain n ∧ remove_ones b₂ <+: to_over_plain q := by
+theorem helper_kajillion {α : Type} {n q : List α} {b : List (Option α × Bool)} (h : SignedOptionList.toSignedList b <+: to_horizontal_edge_plain n ++ to_horizontal_edge_plain q) (hn : n.length > 0):
+  SignedOptionList.toSignedList b <+: to_horizontal_edge_plain n ∨ ∃ (b₁ b₂ : List (Option α × Bool)), b₁.length > 0 ∧ b₂.length > 0 ∧ b = b₁ ++ b₂ ∧
+    SignedOptionList.toSignedList b₁ = to_horizontal_edge_plain n ∧ SignedOptionList.toSignedList b₂ <+: to_horizontal_edge_plain q := by
   rcases List.prefix_of_append_mine h with one | two
   · left
     exact one
   rcases two with ⟨b1, b1_len, b_is, b1_pref⟩
   right
-  rcases remove_ones_eq_append b_is with ⟨a3, a4, a_is, a3a1, m4⟩
+  rcases SignedOptionList.toSignedList_eq_append b_is with ⟨a3, a4, a_is, a3a1, m4⟩
   use a3, a4
   constructor
-  · have H := remove_ones_len a3
+  · have H := SignedOptionList.toSignedList_len a3
     rw [a3a1] at H
-    simp [to_over_plain] at H
+    simp [to_horizontal_edge_plain] at H
     omega
   constructor
-  · have H := remove_ones_len a4
+  · have H := SignedOptionList.toSignedList_len a4
     rw [m4] at H
     omega
   aesop
@@ -383,31 +387,29 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
     (i1 : PartialGrid a2 b mid4 e5 d5) (i2 : PartialGrid a1 mid4 mid d4 e4)
     (hf : d4 ++ e4 ++ e5 ++ d5 = d2 ++ e2) :
     (d2 = d4 ++ e4 ++ e5 ∧ d5 = e2) ∨ (d2 = d4 ∧ e5 = [] ∧ e2 = e4 ++ d5) := by
-  rcases PartialGrid.middle_frontier_nil_or_caps i1 with ⟨⟨e5_nil⟩⟩ | ⟨fronte5, mide5, caboosee5, ⟨spece5⟩⟩
+  rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e5_nil⟩⟩ | ⟨fronte5, mide5, caboosee5, ⟨spece5⟩⟩
   · right
     rw [e5_nil, List.append_nil] at hf
-    rcases PartialGrid.middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
+    rcases PartialGrid.middle_frontier_spec h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
     · rw [d2_nil, List.nil_append] at hf
-      rcases PartialGrid.middle_frontier_nil_or_caps i2 with ⟨⟨d4_nil⟩⟩ | ⟨frontd4, middled4, caboosed4, ⟨specd4⟩⟩
+      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨d4_nil⟩⟩ | ⟨frontd4, middled4, caboosed4, ⟨specd4⟩⟩
       · rw [d4_nil, List.nil_append] at hf
         aesop
       rw [specd4] at hf
       have H : is_false e2 := h1.right_frontier_is_false
       rw [← hf] at H
-      specialize H (caboosed4, true) ⟨by simp⟩
+      specialize H (caboosed4, true) (by simp)
       simp at H
-      exact H.1.elim
     rw [specd2] at hf
     have H : is_false (e4 ++ d5) := by
-        apply is_false_of_false_false
+        apply is_false_append
         · exact i2.right_frontier_is_false
         exact i1.right_frontier_is_false
-    rcases PartialGrid.middle_frontier_nil_or_caps i2 with ⟨⟨d4_nil⟩⟩ | ⟨frontd4, middled4, caboosed4, ⟨specd4⟩⟩
+    rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨d4_nil⟩⟩ | ⟨frontd4, middled4, caboosed4, ⟨specd4⟩⟩
     · rw [d4_nil, List.nil_append] at hf
       rw [hf] at H
-      specialize H (caboosed2, true) ⟨by simp⟩
+      specialize H (caboosed2, true) (by simp)
       simp at H
-      exact H.1.elim
     rw [specd4] at hf
     simp at hf
     have to_split : (middled4 ++ [(caboosed4, true)]) ++ (e4 ++ d5) =
@@ -424,9 +426,8 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
           simp only [List.getLast?_append, List.getLast?_singleton, Option.some_or, Option.some.injEq] at s1
           exact s1.symm
         rw [s2, t2_is] at H
-        specialize H (caboosed2, true) ⟨by simp⟩
+        specialize H (caboosed2, true) (by simp)
         simp at H
-        exact H.1.elim
     cases fm using List.reverseRecOn with
     | nil => aesop
     | append_singleton f1 f2 =>
@@ -438,9 +439,8 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
         simp only [List.getLast?_append, List.getLast?_singleton, Option.some_or, Option.some.injEq] at s1
         exact s1.symm
       rw [f2_is] at H
-      specialize H (caboosed4, true) ⟨by simp⟩
+      specialize H (caboosed4, true) (by simp)
       simp at H
-      exact H.1.elim
   left
   rw [spece5] at hf
   rcases List.append_eq_append_iff.mp hf with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
@@ -448,7 +448,7 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
     | nil => aesop
     | append_singleton t1 t2 =>
       exfalso
-      rcases PartialGrid.middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, midd2, caboosed2, ⟨specd2⟩⟩
+      rcases PartialGrid.middle_frontier_spec h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, midd2, caboosed2, ⟨specd2⟩⟩
       · simp [d2_nil] at s1
       rw [specd2] at s1
       have H : t2 = (caboosed2, true) := by
@@ -457,9 +457,8 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
         exact s1.symm
       have H1 : is_false d5 := i1.right_frontier_is_false
       rw [s2, H] at H1
-      specialize H1 (caboosed2, true) ⟨by simp⟩
+      specialize H1 (caboosed2, true) (by simp)
       simp at H1
-      exact H1.1.elim
   cases fm using List.reverseRecOn with
   | nil => aesop
   | append_singleton f1 f2 =>
@@ -469,9 +468,8 @@ theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
       exact s1.symm
     have H1 : is_false e2 := by exact h1.right_frontier_is_false
     rw [s2, H] at H1
-    specialize H1 (caboosee5, true) ⟨by simp⟩
+    specialize H1 (caboosee5, true) (by simp)
     simp at H1
-    exact H1.1.elim
 
 theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
     (i1 : PartialGrid a b1 d3 e3 mid1) (i2 : PartialGrid mid1 b2 d4 e4 e2)
@@ -481,25 +479,23 @@ theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
   have d3_t : is_true d3 := i1.bottom_frontier_is_true
   have d4_t : is_true d4 := i2.bottom_frontier_is_true
   have mid1_f : is_false mid1 := i2.left_frontier_is_false
-  rcases PartialGrid.middle_frontier_nil_or_caps h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
+  rcases PartialGrid.middle_frontier_spec h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
   · left
     rw [d2_nil, List.append_nil] at hf
-    rcases PartialGrid.middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
     · rw [e3_nil, List.nil_append] at hf
-      rcases PartialGrid.middle_frontier_nil_or_caps i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
       · rw [e4_nil, List.append_nil] at hf
         aesop
       rw [spece4] at hf
       rw [hf] at mid_t
-      specialize mid_t (fronte4, false) ⟨(by simp)⟩
+      specialize mid_t (fronte4, false) (by simp)
       simp at mid_t
-      exact mid_t.1.elim
     rw [spece3] at hf
     rw [hf] at mid_t
-    specialize mid_t (fronte3, false) ⟨by simp⟩
+    specialize mid_t (fronte3, false) (by simp)
     simp at mid_t
-    exact mid_t.1.elim
-  rcases PartialGrid.middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+  rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
   · left
     rw [e3_nil, List.nil_append] at hf
     simp [e3_nil]
@@ -510,24 +506,22 @@ theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
       | t1 :: t2 =>
         rw [specd2] at s2
         simp at s2
-        have H : is_true (d3 ++ d4) := is_true_of_true_true d3_t d4_t
+        have H : is_true (d3 ++ d4) := is_true_append d3_t d4_t
         rw [s1, ← s2.1] at H
-        specialize H (frontd2, false) ⟨by simp⟩
+        specialize H (frontd2, false) (by simp)
         simp at H
-        exact H.1.elim
     match fm with
     | [] => aesop
     | f1 :: f2 =>
       rw [specd2] at s2
-      rcases PartialGrid.middle_frontier_nil_or_caps i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
       · aesop
       rw [spece4] at s2
       simp at s2
       rw [← s2.1] at s1
       rw [s1] at mid_t
-      specialize mid_t (fronte4, false) ⟨by simp⟩
+      specialize mid_t (fronte4, false) (by simp)
       simp at mid_t
-      exact mid_t.1.elim
   right
   rcases List.append_eq_append_iff.mp hf with
     ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
@@ -537,32 +531,30 @@ theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
       rw [specd2] at s2
       simp at s2
       rw [s1, ← s2.1] at d3_t
-      specialize d3_t (frontd2, false) ⟨by simp⟩
+      specialize d3_t (frontd2, false) (by simp)
       simp at d3_t
-      exact d3_t.1.elim
   match fm with
   | [] => aesop
   | f1 :: f2 =>
     rw [specd2] at s2
-    rcases PartialGrid.middle_frontier_nil_or_caps i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
     · aesop
     rw [spece3] at s2
     simp at s2
     rw [s1, ← s2.1] at mid_t
-    specialize mid_t (fronte3, false) ⟨by simp⟩
+    specialize mid_t (fronte3, false) (by simp)
     simp at mid_t
-    exact mid_t.1.elim
 
-theorem partial_grid_rm_empty_helper (h : PartialGrid a b c d e) : remove_ones a = [] → remove_ones b = [] →
-    (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = []) := by
+theorem partial_grid_rm_empty_helper (h : PartialGrid a b c d e) : SignedOptionList.toSignedList a = [] → SignedOptionList.toSignedList b = [] →
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = []) := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty => simp_all
     | top_bottom i => simp_all
     | sides i => simp_all
-    | top_left i => simp_all [to_up, remove_ones]
-    | adjacent i k h => simp_all [to_up, remove_ones]
+    | top_left i => simp_all [to_vertical_edge, SignedOptionList.toSignedList]
+    | adjacent i k h => simp_all [to_vertical_edge, SignedOptionList.toSignedList]
     | separated i j h => simp_all
   | empty a b ha ha1 hb hb => simp_all
   | horizontal_append_one g1 g2 g1_ih g2_ih => simp_all
@@ -570,35 +562,35 @@ theorem partial_grid_rm_empty_helper (h : PartialGrid a b c d e) : remove_ones a
   | vertical_append_one g1 g2 g1_ih g2_ih => simp_all
   | vertical_append g1 g2 h g1_ih g2_ih => simp_all
 
-theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a = [] → remove_ones b = [(i, true)] →
-    (remove_ones c = [(i, true)] ∧ remove_ones d = [] ∧ remove_ones e = []) ∨
-    (remove_ones c = [] ∧ remove_ones d = [(i, true)] ∧ remove_ones e = []) := by
+theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : SignedOptionList.toSignedList a = [] → SignedOptionList.toSignedList b = [(i, true)] →
+    (SignedOptionList.toSignedList c = [(i, true)] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = []) ∨
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, true)] ∧ SignedOptionList.toSignedList e = []) := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
     | empty => simp_all
     | top_bottom i => simp_all
     | sides i => simp_all
-    | top_left i => simp_all [to_up, remove_ones]
-    | adjacent i k h => simp_all [to_up, remove_ones]
+    | top_left i => simp_all [to_vertical_edge, SignedOptionList.toSignedList]
+    | adjacent i k h => simp_all [to_vertical_edge, SignedOptionList.toSignedList]
     | separated i j h => simp_all
   | empty a b ha ha1 hb hb => simp_all
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
     intro j_is kn_is
-    rw [remove_ones_append] at kn_is
+    rw [SignedOptionList.toSignedList_append] at kn_is
     rcases List.append_eq_singleton_iff.mp kn_is with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
     · have H := partial_grid_rm_empty_helper g1 j_is k_is
       simp_all
-    simp_all only [remove_ones_nil, true_and, List.ne_cons_self, false_and, and_false, or_false,
-      forall_const, IsEmpty.forall_iff, imp_self, List.append_nil, remove_ones_append,
+    simp_all only [SignedOptionList.toSignedList_nil, true_and, List.ne_cons_self, false_and, and_false, or_false,
+      forall_const, IsEmpty.forall_iff, List.append_nil, SignedOptionList.toSignedList_append,
       List.cons_append, List.nil_append, List.cons.injEq]
     have H := partial_grid_rm_empty_helper g2 g1_ih.2 n_is
     simp_all
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q r
     intro j_is ko_is
-    rw [remove_ones_append] at ko_is
+    rw [SignedOptionList.toSignedList_append] at ko_is
     rcases List.append_eq_singleton_iff.mp ko_is with
       ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
     · have H := partial_grid_rm_empty_helper g1 j_is k_is
@@ -606,14 +598,14 @@ theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a =
       rcases g2_ih with h1 | h2
       · simp_all
       simp_all
-    have hn : remove_ones n = [] := by aesop
+    have hn : SignedOptionList.toSignedList n = [] := by aesop
     have H := partial_grid_rm_empty_helper g2 hn o_is
     simp_all
   | vertical_append_one g1 g2 g1_ih g2_ih => simp_all
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
     intro oj_is k_is
-    rw [remove_ones_append] at oj_is
+    rw [SignedOptionList.toSignedList_append] at oj_is
     simp at oj_is
     specialize g1_ih oj_is.2 k_is
     rcases g1_ih with h1 | h2
@@ -624,23 +616,23 @@ theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a =
     have H := partial_grid_rm_empty_helper g2 oj_is.1 h2.1
     simp_all
 
--- noncomputable def partial_grid_rm_top_helper_c (h : PartialGrid a b c d e) : remove_ones a = [] → remove_ones b = [(i, true)] →
---     PLift (remove_ones c = [(i, true)] ∧ remove_ones d = [] ∧ remove_ones e = []) ⊕
---     PLift (remove_ones c = [] ∧ remove_ones d = [(i, true)] ∧ remove_ones e = []) := by
+-- noncomputable def partial_grid_rm_top_helper_c (h : PartialGrid a b c d e) : SignedOptionList.toSignedList a = [] → SignedOptionList.toSignedList b = [(i, true)] →
+--     PLift (SignedOptionList.toSignedList c = [(i, true)] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = []) ⊕
+--     PLift (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, true)] ∧ SignedOptionList.toSignedList e = []) := by
 --   induction h with
 --   | single_gridt h =>
 --     cases h with
---     | empty => intro h1 h2; simp_all [remove_ones]
---     | top_bottom i => intro h1 h2; simp_all [remove_ones]; left; constructor; trivial
---     | sides i => intro h1 h2; simp_all [remove_ones]
---     | top_left i => intro h1 h2; simp_all [remove_ones]
---     | adjacent i k h => intro h1 h2; simp_all [remove_ones]
---     | separated i j h => intro h1 h2; simp_all [remove_ones]
---   | empty a b ha ha1 hb hb => intro h1 h2; simp_all [remove_ones]; right; constructor; trivial
+--     | empty => intro h1 h2; simp_all [SignedOptionList.toSignedList]
+--     | top_bottom i => intro h1 h2; simp_all [SignedOptionList.toSignedList]; left; constructor; trivial
+--     | sides i => intro h1 h2; simp_all [SignedOptionList.toSignedList]
+--     | top_left i => intro h1 h2; simp_all [SignedOptionList.toSignedList]
+--     | adjacent i k h => intro h1 h2; simp_all [SignedOptionList.toSignedList]
+--     | separated i j h => intro h1 h2; simp_all [SignedOptionList.toSignedList]
+--   | empty a b ha ha1 hb hb => intro h1 h2; simp_all [SignedOptionList.toSignedList]; right; constructor; trivial
 --   | horizontal_append_one g1 g2 g1_ih g2_ih =>
 --     rename_i j k l m n o p q
 --     intro j_is kn_is
---     rw [remove_ones_append] at kn_is
+--     rw [SignedOptionList.toSignedList_append] at kn_is
 --     rcases List.append_eq_singleton_C kn_is with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
 --     · have H := partial_grid_rm_empty_helper g1 j_is k_is
 --       specialize g2_ih H.2.2 n_is
@@ -656,7 +648,7 @@ theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a =
 --   | horizontal_append h g1 g2 g1_ih g2_ih =>
 --     rename_i j k l m n o p q r
 --     intro j_is ko_is
---     rw [remove_ones_append] at ko_is
+--     rw [SignedOptionList.toSignedList_append] at ko_is
 --     rcases List.append_eq_singleton_C ko_is with
 --       ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
 --     · have H := partial_grid_rm_empty_helper g1 j_is k_is
@@ -665,7 +657,7 @@ theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a =
 --       · simp_all [h1.1]; right; constructor; trivial
 --       simp_all [h2.1]; right; constructor; trivial
 --     specialize g1_ih j_is k_is
---     have hn : remove_ones n = [] := by
+--     have hn : SignedOptionList.toSignedList n = [] := by
 --       rcases g1_ih with ⟨⟨h1⟩⟩| ⟨⟨h2⟩⟩
 --       · aesop
 --       aesop
@@ -676,7 +668,7 @@ theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a =
 --     simp_all
 --     right; constructor; trivial
 --   | vertical_append_one g1 g2 g1_ih g2_ih =>
---     intro h1 h2; simp_all [remove_ones]
+--     intro h1 h2; simp_all [SignedOptionList.toSignedList]
 --     specialize g1_ih h1.2 h2
 --     rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --     · specialize g2_ih h1.1 h3.1
@@ -687,7 +679,7 @@ theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a =
 --   | vertical_append g1 g2 h g1_ih g2_ih =>
 --     rename_i j k l m n o p q r
 --     intro oj_is k_is
---     rw [remove_ones_append] at oj_is
+--     rw [SignedOptionList.toSignedList_append] at oj_is
 --     simp at oj_is
 --     specialize g1_ih oj_is.2 k_is
 --     rcases g1_ih with h1 | h2
@@ -700,27 +692,27 @@ theorem partial_grid_rm_top_helper (h : PartialGrid a b c d e) : remove_ones a =
 --     right; constructor; trivial
 
 theorem partial_grid_rm_top_helper_w (h : PartialGrid a b c d e)
-    (h1 : remove_ones b = [(i, true), (j, true)]) (h2 : remove_ones a = []) :
-    (remove_ones c = [] ∧ remove_ones d = [(i, true), (j, true)] ∧ remove_ones e = []) ∨
-    (remove_ones c = [(i, true)] ∧ remove_ones d = [(j, true)] ∧ remove_ones e = []) ∨
-    (remove_ones c = [(i, true), (j, true)] ∧ remove_ones d = [] ∧ remove_ones e = []) := by
+    (h1 : SignedOptionList.toSignedList b = [(i, true), (j, true)]) (h2 : SignedOptionList.toSignedList a = []) :
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, true), (j, true)] ∧ SignedOptionList.toSignedList e = []) ∨
+    (SignedOptionList.toSignedList c = [(i, true)] ∧ SignedOptionList.toSignedList d = [(j, true)] ∧ SignedOptionList.toSignedList e = []) ∨
+    (SignedOptionList.toSignedList c = [(i, true), (j, true)] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = []) := by
   change _ = [(i, true)] ++ [(j, true)] at h1
-  rcases remove_ones_eq_append h1 with ⟨a1, a2, ha⟩
+  rcases SignedOptionList.toSignedList_eq_append h1 with ⟨a1, a2, ha⟩
   have ha1 : a1.length > 0 := by
-    have H := remove_ones_len a1
+    have H := SignedOptionList.toSignedList_len a1
     aesop
   have ha2 : a2.length > 0 := by
-    have H := remove_ones_len a2
+    have H := SignedOptionList.toSignedList_len a2
     aesop
   rcases splittable_vertically_of_pg' h _ _ ha.1 ha1 ha2 with
     ⟨mid, d1, e1, d2, e2, i1, i2, ⟨long⟩, len⟩ | baaad
   · have H := partial_grid_rm_top_helper i1 h2 ha.2.1
-    have hmid : remove_ones mid = [] := by aesop
+    have hmid : SignedOptionList.toSignedList mid = [] := by aesop
     have H2 := partial_grid_rm_top_helper i2 hmid ha.2.2
-    have hc : remove_ones e = [] := by aesop
+    have hc : SignedOptionList.toSignedList e = [] := by aesop
     simp [hc]
-    have H : [(i, true), (j, true)] = remove_ones c ++ remove_ones d := by
-      apply congr_arg remove_ones at long
+    have H : [(i, true), (j, true)] = SignedOptionList.toSignedList c ++ SignedOptionList.toSignedList d := by
+      apply congr_arg SignedOptionList.toSignedList at long
       simp at long
       rcases H with h3 | h4
       · rcases H2 with h5 | h6
@@ -733,13 +725,13 @@ theorem partial_grid_rm_top_helper_w (h : PartialGrid a b c d e)
         exact long.symm
       simp [h4, h8] at long
       exact long.symm
-    match hc : remove_ones c with
+    match hc : SignedOptionList.toSignedList c with
     | [] =>
-      match hd : remove_ones d with
+      match hd : SignedOptionList.toSignedList d with
       | [] => simp [hc, hd] at H
       | d1 :: d2 => aesop
     | c1 :: c2 =>
-      match hd : remove_ones d with
+      match hd : SignedOptionList.toSignedList d with
       | [] =>
         simp_all
       | d1 :: d2 =>
@@ -754,23 +746,23 @@ theorem partial_grid_rm_top_helper_w (h : PartialGrid a b c d e)
   aesop
 
 theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
-    (h1 : remove_ones a = [(i, false)]) (h2 : remove_ones b = []) :
-    (remove_ones c = [] ∧ remove_ones d = [(i, false)] ∧ remove_ones e = []) ∨
-    (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = [(i, false)]) := by
+    (h1 : SignedOptionList.toSignedList a = [(i, false)]) (h2 : SignedOptionList.toSignedList b = []) :
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, false)] ∧ SignedOptionList.toSignedList e = []) ∨
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = [(i, false)]) := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h with
-    | empty => simp_all [remove_ones]
-    | top_bottom i => simp_all [remove_ones]
-    | sides i => simp_all [remove_ones]
-    | top_left i => simp_all [to_up, remove_ones]
-    | adjacent i k h => simp_all [to_up, remove_ones]
+    | empty => simp_all [SignedOptionList.toSignedList]
+    | top_bottom i => simp_all [SignedOptionList.toSignedList]
+    | sides i => simp_all [SignedOptionList.toSignedList]
+    | top_left i => simp_all [to_vertical_edge, SignedOptionList.toSignedList]
+    | adjacent i k h => simp_all [to_vertical_edge, SignedOptionList.toSignedList]
     | separated i j h => simp_all
   | empty a b ha ha1 hb hb => simp_all
   | horizontal_append_one g1 g2 g1_ih g2_ih => simp_all
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q r
-    simp [remove_ones_append] at h2
+    simp [SignedOptionList.toSignedList_append] at h2
     simp_all
     rcases g1_ih with h3 | h4
     · simp_all
@@ -782,7 +774,7 @@ theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
     simp_all
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
-    rw [remove_ones_append] at h1
+    rw [SignedOptionList.toSignedList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
     · simp_all
       have H := partial_grid_rm_empty_helper g2 n_is g1_ih.1
@@ -791,10 +783,10 @@ theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
     simp_all
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
-    rw [remove_ones_append] at h1
+    rw [SignedOptionList.toSignedList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
     · simp_all
-      have l_is : remove_ones l = [] := by aesop
+      have l_is : SignedOptionList.toSignedList l = [] := by aesop
       have H := partial_grid_rm_empty_helper g2 o_is l_is
       simp_all
     have H := partial_grid_rm_empty_helper g1 j_is h2
@@ -804,21 +796,21 @@ theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
     simp_all
 
 -- noncomputable def partial_grid_rm_side_helper_c (h : PartialGrid a b c d e)
---     (h1 : remove_ones a = [(i, false)]) (h2 : remove_ones b = []) :
---     PLift (remove_ones c = [] ∧ remove_ones d = [(i, false)] ∧ remove_ones e = []) ⊕
---     PLift (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = [(i, false)]) := by
+--     (h1 : SignedOptionList.toSignedList a = [(i, false)]) (h2 : SignedOptionList.toSignedList b = []) :
+--     PLift (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, false)] ∧ SignedOptionList.toSignedList e = []) ⊕
+--     PLift (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = [(i, false)]) := by
 --   induction h with
 --   | single_gridt h =>
 --     cases h with
---     | empty => simp_all [remove_ones]
---     | top_bottom i => simp_all [remove_ones]
---     | sides i => simp_all [remove_ones]; right; constructor; trivial
---     | top_left i => simp_all [to_up, remove_ones]
---     | adjacent i k h => simp_all [to_up, remove_ones]
+--     | empty => simp_all [SignedOptionList.toSignedList]
+--     | top_bottom i => simp_all [SignedOptionList.toSignedList]
+--     | sides i => simp_all [SignedOptionList.toSignedList]; right; constructor; trivial
+--     | top_left i => simp_all [to_vertical_edge, SignedOptionList.toSignedList]
+--     | adjacent i k h => simp_all [to_vertical_edge, SignedOptionList.toSignedList]
 --     | separated i j h => simp_all; right; constructor; trivial
 --   | empty a b ha ha1 hb hb => simp_all; left; constructor; trivial
 --   | horizontal_append_one g1 g2 g1_ih g2_ih =>
---     simp [remove_ones_append] at h2
+--     simp [SignedOptionList.toSignedList_append] at h2
 --     specialize g1_ih h1 h2.1
 --     rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --     · simp_all
@@ -828,7 +820,7 @@ theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
 --     simp_all; right; constructor; trivial
 --   | horizontal_append h g1 g2 g1_ih g2_ih =>
 --     rename_i j k l m n o p q r
---     simp [remove_ones_append] at h2
+--     simp [SignedOptionList.toSignedList_append] at h2
 --     specialize g1_ih h1 h2.1
 --     rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --     · have H := partial_grid_rm_empty_helper g2 h3.2.2 h2.2
@@ -840,10 +832,10 @@ theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
 --     simp_all; right; constructor; trivial
 --   | vertical_append_one g1 g2 g1_ih g2_ih =>
 --     rename_i j k l m n o p q
---     rw [remove_ones_append] at h1
+--     rw [SignedOptionList.toSignedList_append] at h1
 --     rcases List.append_eq_singleton_C h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
 --     · specialize g1_ih j_is h2
---       have H : remove_ones l = [] := by
+--       have H : SignedOptionList.toSignedList l = [] := by
 --         rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --         · aesop
 --         aesop
@@ -860,10 +852,10 @@ theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
 --     right; constructor; trivial
 --   | vertical_append g1 g2 h g1_ih g2_ih =>
 --     rename_i j k l m n o p q r
---     rw [remove_ones_append] at h1
+--     rw [SignedOptionList.toSignedList_append] at h1
 --     rcases List.append_eq_singleton_C h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
 --     · specialize g1_ih j_is h2
---       have l_is : remove_ones l = [] := by
+--       have l_is : SignedOptionList.toSignedList l = [] := by
 --         rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --         · aesop
 --         aesop
@@ -879,26 +871,26 @@ theorem partial_grid_rm_side_helper (h : PartialGrid a b c d e)
 --     simp_all; left; constructor; trivial
 
 theorem partial_grid_rm_side_helper_w (h : PartialGrid a b c d e)
-    (h1 : remove_ones a = [(i, false), (j, false)]) (h2 : remove_ones b = []) :
-    (remove_ones c = [] ∧ remove_ones d = [(i, false), (j, false)] ∧ remove_ones e = []) ∨
-    (remove_ones c = [] ∧ remove_ones d = [(i, false)] ∧ remove_ones e = [(j, false)]) ∨
-    (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = [(i, false), (j, false)]) := by
+    (h1 : SignedOptionList.toSignedList a = [(i, false), (j, false)]) (h2 : SignedOptionList.toSignedList b = []) :
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, false), (j, false)] ∧ SignedOptionList.toSignedList e = []) ∨
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, false)] ∧ SignedOptionList.toSignedList e = [(j, false)]) ∨
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = [(i, false), (j, false)]) := by
   change _ = [(i, false)] ++ [(j, false)] at h1
-  rcases remove_ones_eq_append h1 with ⟨a1, a2, ha⟩
+  rcases SignedOptionList.toSignedList_eq_append h1 with ⟨a1, a2, ha⟩
   have ha1 : a1.length > 0 := by
-    have H := remove_ones_len a1
+    have H := SignedOptionList.toSignedList_len a1
     aesop
   have ha2 : a2.length > 0 := by
-    have H := remove_ones_len a2
+    have H := SignedOptionList.toSignedList_len a2
     aesop
   rcases splittable_horizontally_of_pg h _ _ ha.1 ha2 ha1 with ⟨mid, d1, e1, d2, e2, i1, i2, ⟨long⟩, len⟩ | baaad
   · have H := partial_grid_rm_side_helper i1 ha.2.2 h2
-    have hmid : remove_ones mid = [] := by aesop
+    have hmid : SignedOptionList.toSignedList mid = [] := by aesop
     have H2 := partial_grid_rm_side_helper i2 ha.2.1 hmid
-    have hc : remove_ones c = [] := by aesop
+    have hc : SignedOptionList.toSignedList c = [] := by aesop
     simp [hc]
-    have H : [(i, false), (j, false)] = remove_ones d ++ remove_ones e := by
-      apply congr_arg remove_ones at long
+    have H : [(i, false), (j, false)] = SignedOptionList.toSignedList d ++ SignedOptionList.toSignedList e := by
+      apply congr_arg SignedOptionList.toSignedList at long
       simp at long
       rcases H with h3 | h4
       · rcases H2 with h5 | h6
@@ -911,10 +903,10 @@ theorem partial_grid_rm_side_helper_w (h : PartialGrid a b c d e)
         exact long
       simp [h4, h8] at long
       exact long
-    match hd : remove_ones d with
+    match hd : SignedOptionList.toSignedList d with
     | [] => aesop
     | d1 :: d2 =>
-      match he :remove_ones e with
+      match he :SignedOptionList.toSignedList e with
       | [] => aesop
       | e1 :: e2 =>
         rcases List.append_eq_len_two (by simp [hd]) (by simp [he]) H.symm
@@ -923,17 +915,17 @@ theorem partial_grid_rm_side_helper_w (h : PartialGrid a b c d e)
   have H := partial_grid_rm_side_helper i1 ha.2.2 h2
   aesop
 
-theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove_ones a = [(i, false)])
-  (h2 : remove_ones b = [(i, true)]) : (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = []) ∨
-  (remove_ones c = [] ∧ remove_ones d = [(i, false), (i, true)] ∧ remove_ones e = []) := by
+theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : SignedOptionList.toSignedList a = [(i, false)])
+  (h2 : SignedOptionList.toSignedList b = [(i, true)]) : (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = []) ∨
+  (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, false), (i, true)] ∧ SignedOptionList.toSignedList e = []) := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h
-    all_goals simp_all [remove_ones]
+    all_goals simp_all [SignedOptionList.toSignedList]
   | empty a b ha ha1 hb hb => simp_all
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
-    rw [remove_ones_append] at h2
+    rw [SignedOptionList.toSignedList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
     · have H := partial_grid_rm_side_helper g1 h1 k_is
       simp_all
@@ -942,32 +934,32 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
     simp_all
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q r
-    rw [remove_ones_append] at h2
+    rw [SignedOptionList.toSignedList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
     · have H := partial_grid_rm_side_helper g1 h1 k_is
       rcases H with h3 | h4
       · have H2 := partial_grid_rm_top_helper g2 h3.2.2 o_is
         aesop
       aesop
-    have n_is : remove_ones n = [] := by aesop
+    have n_is : SignedOptionList.toSignedList n = [] := by aesop
     have H := partial_grid_rm_empty_helper g2 n_is o_is
     aesop
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
-    rw [remove_ones_append] at h1
+    rw [SignedOptionList.toSignedList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
     · specialize g1_ih j_is h2
-      have l_nil : remove_ones l = [] := by aesop
+      have l_nil : SignedOptionList.toSignedList l = [] := by aesop
       have H := partial_grid_rm_empty_helper g2 n_is l_nil
       aesop
     have H := partial_grid_rm_top_helper g1 j_is h2
     simp_all
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
-    rw [remove_ones_append] at h1
+    rw [SignedOptionList.toSignedList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
     · specialize g1_ih j_is h2
-      have l_nil : remove_ones l = [] := by aesop
+      have l_nil : SignedOptionList.toSignedList l = [] := by aesop
       have H := partial_grid_rm_empty_helper g2 o_is l_nil
       aesop
     have H := partial_grid_rm_top_helper g1 j_is h2
@@ -977,18 +969,18 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
     have H := partial_grid_rm_side_helper g2 o_is h4.1
     aesop
 
--- noncomputable def partial_grid_rm_top_left_helper_c (h : PartialGrid a b c d e) (h1 : remove_ones a = [(i, false)])
---   (h2 : remove_ones b = [(i, true)]) : PLift (remove_ones c = [] ∧ remove_ones d = [] ∧ remove_ones e = []) ⊕
---   PLift (remove_ones c = [] ∧ remove_ones d = [(i, false), (i, true)] ∧ remove_ones e = []) := by
+-- noncomputable def partial_grid_rm_top_left_helper_c (h : PartialGrid a b c d e) (h1 : SignedOptionList.toSignedList a = [(i, false)])
+--   (h2 : SignedOptionList.toSignedList b = [(i, true)]) : PLift (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = []) ⊕
+--   PLift (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, false), (i, true)] ∧ SignedOptionList.toSignedList e = []) := by
 --   induction h with
 --   | single_gridt h =>
 --     cases h
---     all_goals simp_all [remove_ones]
+--     all_goals simp_all [SignedOptionList.toSignedList]
 --     left; constructor; trivial
 --   | empty a b ha ha1 hb hb => simp_all; right;  constructor; trivial
 --   | horizontal_append_one g1 g2 g1_ih g2_ih =>
 --     rename_i j k l m n o p q
---     rw [remove_ones_append] at h2
+--     rw [SignedOptionList.toSignedList_append] at h2
 --     rcases List.append_eq_singleton_C h2 with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
 --     · have H := partial_grid_rm_side_helper_c g1 h1 k_is
 --       rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
@@ -999,11 +991,11 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
 --       · simp_all; left; constructor; trivial
 --       simp_all; right; constructor; trivial
 --     specialize g1_ih h1 k_is
---     have H : remove_ones m = [] := by
+--     have H : SignedOptionList.toSignedList m = [] := by
 --       rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --       · aesop
 --       aesop
---     have H2 : remove_ones l = [] := by
+--     have H2 : SignedOptionList.toSignedList l = [] := by
 --       rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --       · aesop
 --       aesop
@@ -1011,7 +1003,7 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
 --     simp_all; left; constructor; trivial
 --   | horizontal_append h g1 g2 g1_ih g2_ih =>
 --     rename_i j k l m n o p q r
---     rw [remove_ones_append] at h2
+--     rw [SignedOptionList.toSignedList_append] at h2
 --     rcases List.append_eq_singleton_C h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
 --     · have H := partial_grid_rm_side_helper_c g1 h1 k_is
 --       rcases H with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
@@ -1025,7 +1017,7 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
 --       · simp_all; left; constructor; trivial
 --       simp_all; right; constructor; trivial
 --     specialize g1_ih h1 k_is
---     have n_is : remove_ones n = [] := by
+--     have n_is : SignedOptionList.toSignedList n = [] := by
 --       rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --       · simp_all
 --       simp_all
@@ -1036,10 +1028,10 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
 --     simp_all; right; constructor; trivial
 --   | vertical_append_one g1 g2 g1_ih g2_ih =>
 --     rename_i j k l m n o p q
---     rw [remove_ones_append] at h1
+--     rw [SignedOptionList.toSignedList_append] at h1
 --     rcases List.append_eq_singleton_C h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
 --     · specialize g1_ih j_is h2
---       have l_nil : remove_ones l = [] := by
+--       have l_nil : SignedOptionList.toSignedList l = [] := by
 --         rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --         · aesop
 --         aesop
@@ -1058,10 +1050,10 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
 --     simp_all
 --   | vertical_append g1 g2 h g1_ih g2_ih =>
 --     rename_i j k l m n o p q r
---     rw [remove_ones_append] at h1
+--     rw [SignedOptionList.toSignedList_append] at h1
 --     rcases List.append_eq_singleton_C h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
 --     · specialize g1_ih j_is h2
---       have l_nil : remove_ones l = [] := by
+--       have l_nil : SignedOptionList.toSignedList l = [] := by
 --         rcases g1_ih with ⟨⟨h3⟩⟩ | ⟨⟨h4⟩⟩
 --         · aesop
 --         aesop
@@ -1083,29 +1075,26 @@ theorem partial_grid_rm_top_left_helper (h : PartialGrid a b c d e) (h1 : remove
 --     simp_all; right; constructor; trivial
 
 theorem partial_grid_rm_adjacent_helper
-  (h : PartialGrid a b c d e) (h1 : remove_ones a = [(i, false)])
-  (h2 : remove_ones b = [(j, true)]) (hij : i.dist j = 1):
-  (remove_ones c = [] ∧ remove_ones d = [(i, false), (j, true)] ∧ remove_ones e = []) ∨
-  (remove_ones c = [] ∧ remove_ones d = [(j, true), (i, true), (j, false), (i, false)] ∧ remove_ones e = [])  ∨
-  (remove_ones c = [] ∧ remove_ones d = [(j, true), (i, true), (j, false)] ∧ remove_ones e = [(i, false)]) ∨
-  (remove_ones c = [] ∧ remove_ones d = [(j, true), (i, true)] ∧ remove_ones e = [(j, false), (i, false)]) ∨
-  (remove_ones c = [(j, true)] ∧ remove_ones d = [(i, true), (j, false), (i, false)] ∧ remove_ones e = []) ∨
-  (remove_ones c = [(j, true)] ∧ remove_ones d = [(i, true), (j, false)] ∧ remove_ones e = [(i, false)]) ∨
-  (remove_ones c = [(j, true)] ∧ remove_ones d = [(i, true)] ∧ remove_ones e = [(j, false), (i, false)]) ∨
-  (remove_ones c = [(j, true), (i, true)] ∧ remove_ones d = [(j, false), (i, false)] ∧ remove_ones e = []) ∨
-  (remove_ones c = [(j, true), (i, true)] ∧ remove_ones d = [(j, false)] ∧ remove_ones e = [(i, false)]) ∨
-  (remove_ones c = [(j, true), (i, true)] ∧ remove_ones d = [] ∧ remove_ones e = [(j, false), (i, false)]) := by
+  (h : PartialGrid a b c d e) (h1 : SignedOptionList.toSignedList a = [(i, false)])
+  (h2 : SignedOptionList.toSignedList b = [(j, true)]) (hij : i.dist j = 1):
+  (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, false), (j, true)] ∧ SignedOptionList.toSignedList e = []) ∨
+  (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(j, true), (i, true), (j, false), (i, false)] ∧ SignedOptionList.toSignedList e = [])  ∨
+  (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(j, true), (i, true), (j, false)] ∧ SignedOptionList.toSignedList e = [(i, false)]) ∨
+  (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(j, true), (i, true)] ∧ SignedOptionList.toSignedList e = [(j, false), (i, false)]) ∨
+  (SignedOptionList.toSignedList c = [(j, true)] ∧ SignedOptionList.toSignedList d = [(i, true), (j, false), (i, false)] ∧ SignedOptionList.toSignedList e = []) ∨
+  (SignedOptionList.toSignedList c = [(j, true)] ∧ SignedOptionList.toSignedList d = [(i, true), (j, false)] ∧ SignedOptionList.toSignedList e = [(i, false)]) ∨
+  (SignedOptionList.toSignedList c = [(j, true)] ∧ SignedOptionList.toSignedList d = [(i, true)] ∧ SignedOptionList.toSignedList e = [(j, false), (i, false)]) ∨
+  (SignedOptionList.toSignedList c = [(j, true), (i, true)] ∧ SignedOptionList.toSignedList d = [(j, false), (i, false)] ∧ SignedOptionList.toSignedList e = []) ∨
+  (SignedOptionList.toSignedList c = [(j, true), (i, true)] ∧ SignedOptionList.toSignedList d = [(j, false)] ∧ SignedOptionList.toSignedList e = [(i, false)]) ∨
+  (SignedOptionList.toSignedList c = [(j, true), (i, true)] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = [(j, false), (i, false)]) := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h
-    all_goals simp_all [remove_ones]
-    rename_i h
-    apply or_dist_iff.mpr at h
-    aesop
+    all_goals simp_all [SignedOptionList.toSignedList]
   | empty a b ha ha1 hb hb => simp_all
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
-    rw [remove_ones_append] at h2
+    rw [SignedOptionList.toSignedList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
     · have H := partial_grid_rm_side_helper g1 h1 k_is
       simp_all
@@ -1117,7 +1106,7 @@ theorem partial_grid_rm_adjacent_helper
     aesop
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q r
-    rw [remove_ones_append] at h2
+    rw [SignedOptionList.toSignedList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
     · have H := partial_grid_rm_side_helper g1 h1 k_is
       rcases H with h3 | h4
@@ -1126,8 +1115,8 @@ theorem partial_grid_rm_adjacent_helper
       aesop
     simp_all
     rename_i j'
-    have H : remove_ones n = [] ∨ remove_ones n = [(i, false)] ∨
-      remove_ones n = [(j', false), (i, false)] := by aesop
+    have H : SignedOptionList.toSignedList n = [] ∨ SignedOptionList.toSignedList n = [(i, false)] ∨
+      SignedOptionList.toSignedList n = [(j', false), (i, false)] := by aesop
     rcases H with h3 | h4 | h5
     · have H := partial_grid_rm_empty_helper g2 h3 o_is
       aesop
@@ -1137,7 +1126,7 @@ theorem partial_grid_rm_adjacent_helper
     aesop
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
-    rw [remove_ones_append] at h1
+    rw [SignedOptionList.toSignedList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
     · specialize g1_ih j_is h2
       simp_all
@@ -1147,17 +1136,17 @@ theorem partial_grid_rm_adjacent_helper
     simp_all
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i k l m n o p q r s
-    rw [remove_ones_append] at h1
+    rw [SignedOptionList.toSignedList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨p_is, k_is⟩ | ⟨p_is, k_is⟩
     · specialize g1_ih k_is h2
-      have H : remove_ones m = [] ∨ remove_ones m = [(j, true)] ∨ remove_ones m = [(j, true), (i, true)] := by
+      have H : SignedOptionList.toSignedList m = [] ∨ SignedOptionList.toSignedList m = [(j, true)] ∨ SignedOptionList.toSignedList m = [(j, true), (i, true)] := by
         rcases g1_ih with h1 | h1 | h1 | h1 | h1 | h1 | h1 | h1 | h1 | h1
         any_goals apply Or.inl h1.1
         any_goals apply Or.inr (Or.inl h1.1)
         any_goals apply Or.inr (Or.inr h1.1)
       rcases H with h1 | h1 | h1
       · have H := partial_grid_rm_empty_helper g2 p_is h1
-        simp only [H.1, true_and, remove_ones_append, H.2.1, H.2.2, List.nil_append]
+        simp only [H.1, true_and, SignedOptionList.toSignedList_append, H.2.1, H.2.2, List.nil_append]
         simp only [h1, true_and] at g1_ih
         aesop
       · have H := partial_grid_rm_top_helper g2 p_is h1
@@ -1173,20 +1162,20 @@ theorem partial_grid_rm_adjacent_helper
     have H := partial_grid_rm_side_helper g2 p_is h1.1
     aesop
 
-theorem partial_grid_rm_separated_helper (h : PartialGrid a b c d e) (h1 : remove_ones a = [(i, false)])
-    (h2 : remove_ones b = [(j, true)]) (hij : i.dist j > 1): (remove_ones c = [] ∧ remove_ones d = [(i, false), (j, true)] ∧ remove_ones e = []) ∨
-    (remove_ones c = [] ∧ remove_ones d = [(j, true), (i, false)] ∧ remove_ones e = [])  ∨
-    (remove_ones c = [] ∧ remove_ones d = [(j, true)] ∧ remove_ones e = [(i, false)]) ∨
-    (remove_ones c = [(j, true)] ∧ remove_ones d = [(i, false)] ∧ remove_ones e = []) ∨
-    (remove_ones c = [(j, true)] ∧ remove_ones d = [] ∧ remove_ones e = [(i, false)]) := by
+theorem partial_grid_rm_separated_helper (h : PartialGrid a b c d e) (h1 : SignedOptionList.toSignedList a = [(i, false)])
+    (h2 : SignedOptionList.toSignedList b = [(j, true)]) (hij : i.dist j > 1): (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(i, false), (j, true)] ∧ SignedOptionList.toSignedList e = []) ∨
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(j, true), (i, false)] ∧ SignedOptionList.toSignedList e = [])  ∨
+    (SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList d = [(j, true)] ∧ SignedOptionList.toSignedList e = [(i, false)]) ∨
+    (SignedOptionList.toSignedList c = [(j, true)] ∧ SignedOptionList.toSignedList d = [(i, false)] ∧ SignedOptionList.toSignedList e = []) ∨
+    (SignedOptionList.toSignedList c = [(j, true)] ∧ SignedOptionList.toSignedList d = [] ∧ SignedOptionList.toSignedList e = [(i, false)]) := by
   induction h with
-  | single_gridt h =>
+  | single_cell h =>
     cases h
-    all_goals simp_all [remove_ones]
+    all_goals simp_all [SignedOptionList.toSignedList]
   | empty a b ha ha1 hb hb => simp_all
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
-    rw [remove_ones_append] at h2
+    rw [SignedOptionList.toSignedList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
     · have H := partial_grid_rm_side_helper g1 h1 k_is
       simp_all
@@ -1195,7 +1184,7 @@ theorem partial_grid_rm_separated_helper (h : PartialGrid a b c d e) (h1 : remov
     simp_all
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q r
-    rw [remove_ones_append] at h2
+    rw [SignedOptionList.toSignedList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
     · have H := partial_grid_rm_side_helper g1 h1 k_is
       rcases H with h3 | h4
@@ -1203,7 +1192,7 @@ theorem partial_grid_rm_separated_helper (h : PartialGrid a b c d e) (h1 : remov
         aesop
       aesop
     simp_all
-    have n_is : remove_ones n = [] ∨ remove_ones n = [(i, false)] := by aesop
+    have n_is : SignedOptionList.toSignedList n = [] ∨ SignedOptionList.toSignedList n = [(i, false)] := by aesop
     rcases n_is with hn | hn
     · have H := partial_grid_rm_empty_helper g2 hn o_is
       aesop
@@ -1211,11 +1200,11 @@ theorem partial_grid_rm_separated_helper (h : PartialGrid a b c d e) (h1 : remov
     aesop
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
-    rw [remove_ones_append] at h1
+    rw [SignedOptionList.toSignedList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
     · specialize g1_ih j_is h2
       rename_i j'
-      have l_nil : remove_ones l = [] ∨ remove_ones l = [(j', true)]:= by aesop
+      have l_nil : SignedOptionList.toSignedList l = [] ∨ SignedOptionList.toSignedList l = [(j', true)]:= by aesop
       rcases l_nil with hl | hl
       · have H := partial_grid_rm_empty_helper g2 n_is hl
         aesop
@@ -1225,11 +1214,11 @@ theorem partial_grid_rm_separated_helper (h : PartialGrid a b c d e) (h1 : remov
     simp_all
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
-    rw [remove_ones_append] at h1
+    rw [SignedOptionList.toSignedList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
     · specialize g1_ih j_is h2
       rename_i j'
-      have l_nil : remove_ones l = [] ∨ remove_ones l = [(j', true)]:= by aesop
+      have l_nil : SignedOptionList.toSignedList l = [] ∨ SignedOptionList.toSignedList l = [(j', true)]:= by aesop
       rcases l_nil with hl | hl
       · have H := partial_grid_rm_empty_helper g2 o_is hl
         aesop
@@ -1248,7 +1237,7 @@ theorem suffix_of_singleton (h : l <:+ [a]) : l = [] ∨ l = [a] := by
   | [] => aesop
   | r1 :: r2 => aesop
 
-def suffix_of_singleton_c (h : List.Suffix' l [a]) : PLift (l = []) ⊕ PLift (l = [a]) := by
+def suffix_of_singleton_c (h : List.SuffixData l [a]) : PLift (l = []) ⊕ PLift (l = [a]) := by
   rcases h with ⟨r, ⟨hr⟩⟩
   match r with
   | [] => right; constructor; aesop
@@ -1264,7 +1253,7 @@ theorem prefix_of_singleton (h : l <+: [a]) : l = [] ∨ l = [a] := by
     have H : l.length = 0 := by omega
     aesop
 
-def prefix_of_singleton_c (h : List.Prefix' l [a]) : PLift (l = []) ⊕ PLift (l = [a]) := by
+def prefix_of_singleton_c (h : List.PrefixData l [a]) : PLift (l = []) ⊕ PLift (l = [a]) := by
   rcases h with ⟨r, ⟨hr⟩⟩
   match r with
   | [] => right; constructor; aesop
@@ -1277,66 +1266,66 @@ def prefix_of_singleton_c (h : List.Prefix' l [a]) : PLift (l = []) ⊕ PLift (l
 
 -- theorem unique_g_pg_c
 --     (g1 : PartialGrid a2 b2 bot2 [] up2)
---     (ha : to_up a1 = a2)
---     (b4_is : to_over b4 = b2)
---     (b9 : gridt a1 b4 b6 b7) : to_up_plain b6 = remove_ones up2 ∧ to_over_plain b7 = remove_ones bot2 := by
+--     (ha : to_vertical_edge a1 = a2)
+--     (b4_is : to_horizontal_edge b4 = b2)
+--     (b9 : gridt a1 b4 b6 b7) : to_vertical_edge_plain b6 = SignedOptionList.toSignedList up2 ∧ to_horizontal_edge_plain b7 = SignedOptionList.toSignedList bot2 := by
 --     have H := gridt_of_PartialGrid g1
 --     unfold gridt_option at H
 --     have H3 := unicity_c b9 H
 --     rw [← ha, ← b4_is] at H3
---     specialize H3 remover_up_rev.symm remover_over.symm
+--     specialize H3 toList_up_rev.symm toList_over.symm
 --     rw [← H3.1.1, ← H3.2.1]
 --     constructor
---     · apply to_up_plain_remover_rev_eq_remove_ones
+--     · apply to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
 --       exact g1.right_frontier_is_false
---     apply to_over_plain_remover_eq_remove_ones
+--     apply to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
 --     exact g1.bottom_frontier_is_true
 
 theorem unique_g_pg_c_ones_okay
     (g1 : PartialGrid a2 b2 bot2 [] up2)
-    (ha : to_up_plain a1 = remove_ones a2)
-    (b4_is : to_over_plain b4 = remove_ones b2)
-    (b9 : gridt a1 b4 b6 b7) : to_up_plain b6 = remove_ones up2 ∧ to_over_plain b7 = remove_ones bot2 := by
-    have ha1 : a1 = remover a2.reverse := by
-      rw [← to_up_plain_remover_rev_eq_remove_ones] at ha
-      · exact to_up_plain_inj ha
+    (ha : to_vertical_edge_plain a1 = SignedOptionList.toSignedList a2)
+    (b4_is : to_horizontal_edge_plain b4 = SignedOptionList.toSignedList b2)
+    (b9 : GridData a1 b4 b7 b6) : to_vertical_edge_plain b6 = SignedOptionList.toSignedList up2 ∧ to_horizontal_edge_plain b7 = SignedOptionList.toSignedList bot2 := by
+    have ha1 : a1 = toList a2.reverse := by
+      rw [← to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList] at ha
+      · exact to_vertical_edge_plain_inj ha
       exact g1.left_frontier_is_false
-    have hb4 : b4 = remover b2 := by
-      rw [← to_over_plain_remover_eq_remove_ones] at b4_is
-      · exact to_over_plain_inj b4_is
+    have hb4 : b4 = toList b2 := by
+      rw [← to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList] at b4_is
+      · exact to_horizontal_edge_plain_inj b4_is
       exact g1.top_frontier_is_true
-    have H := gridt_of_PartialGrid g1
-    unfold gridt_option at H
-    have H3 := unicity_c b9 H
+    have H := GridData_of_PartialGrid g1
+    unfold GridData_option at H
+    have H3 := GridData.unicity b9 H
     specialize H3 ha1 hb4
     rw [← H3.1.1, ← H3.2.1]
     constructor
-    · apply to_up_plain_remover_rev_eq_remove_ones
+    · apply to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
       exact g1.right_frontier_is_false
-    apply to_over_plain_remover_eq_remove_ones
+    apply to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
     exact g1.bottom_frontier_is_true
 
-theorem to_over_plain_prod (a b : FreeMonoid ℕ) : to_over_plain (a * b) = to_over_plain a ++ to_over_plain b := by
-  have H : to_over_plain a ++ to_over_plain b = to_over_plain (a.toList ++ b.toList) := by
-    simp [to_over_plain]
+theorem to_horizontal_edge_plain_prod (a b : FreeMonoid ℕ) : to_horizontal_edge_plain (a * b) = to_horizontal_edge_plain a ++ to_horizontal_edge_plain b := by
+  have H : to_horizontal_edge_plain a ++ to_horizontal_edge_plain b = to_horizontal_edge_plain (a.toList ++ b.toList) := by
+    simp [to_horizontal_edge_plain]
     convert
     rfl
   rw [H]
   convert
   rfl
 
-theorem to_up_plain_prod (a b : FreeMonoid ℕ) : to_up_plain (a * b) = to_up_plain b ++ to_up_plain a := by
-  have H : to_up_plain b ++ to_up_plain a = to_up_plain (a.toList ++ b.toList) := by
-    simp [to_up_plain]
+theorem to_vertical_edge_plain_prod (a b : FreeMonoid ℕ) : to_vertical_edge_plain (a * b) = to_vertical_edge_plain b ++ to_vertical_edge_plain a := by
+  have H : to_vertical_edge_plain b ++ to_vertical_edge_plain a = to_vertical_edge_plain (a.toList ++ b.toList) := by
+    simp [to_vertical_edge_plain]
     convert
     rfl
   rw [H]
   convert
   rfl
 
-theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
-  : (remove_ones a = to_up_plain i → remove_ones b <+: to_over_plain j → remove_ones mid <+: to_over_plain l)
-  ∧ (remove_ones b = to_over_plain j → remove_ones a <:+ to_up_plain i → remove_ones e2 <:+ to_up_plain k) := by
+theorem same_time (h : GridData i j l k) (h1 : PartialGrid a b mid d2 e2)
+  : (SignedOptionList.toSignedList a = to_vertical_edge_plain i → SignedOptionList.toSignedList b <+: to_horizontal_edge_plain j → SignedOptionList.toSignedList mid <+: to_horizontal_edge_plain l)
+  ∧ (SignedOptionList.toSignedList b = to_horizontal_edge_plain j → SignedOptionList.toSignedList a <:+ to_vertical_edge_plain i → SignedOptionList.toSignedList e2 <:+ to_vertical_edge_plain k) := by
   induction h generalizing a b mid d2 e2 with
   | empty =>
     constructor
@@ -1397,8 +1386,8 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
       · have H := partial_grid_rm_side_helper h1 a_is h3
         aesop
       have H := partial_grid_rm_adjacent_helper h1 a_is h4 h
-      have H : remove_ones mid = [] ∨ remove_ones mid = [(k, true)] ∨
-        remove_ones mid = [(k, true), (i, true)] := by aesop
+      have H : SignedOptionList.toSignedList mid = [] ∨ SignedOptionList.toSignedList mid = [(k, true)] ∨
+        SignedOptionList.toSignedList mid = [(k, true), (i, true)] := by aesop
       change _ <+: [(k, true), (i, true)]
       aesop
     intro b_is a_is
@@ -1406,8 +1395,8 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
     · have H := partial_grid_rm_top_helper h1 h3 b_is
       aesop
     have H := partial_grid_rm_adjacent_helper h1 h4 b_is h
-    have H : remove_ones mid = [] ∨ remove_ones mid = [(k, true)] ∨
-        remove_ones mid = [(k, true), (i, true)] := by aesop
+    have H : SignedOptionList.toSignedList mid = [] ∨ SignedOptionList.toSignedList mid = [(k, true)] ∨
+        SignedOptionList.toSignedList mid = [(k, true), (i, true)] := by aesop
     change _ <:+ [(k, false), (i, false)]
     aesop
   | separated i j h =>
@@ -1429,25 +1418,26 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
     constructor
     · intro ha hb
       have ha1 : m = [] ∨ q = [] ∨ ∃ a1 a2, a1.length > 0 ∧ a2.length > 0 ∧
-          a = a1 ++ a2 ∧ remove_ones a1 = to_up_plain q ∧ remove_ones a2 = to_up_plain m :=
-        remove_ones_eq_to_up_plain_prod ha
+          a = a1 ++ a2 ∧ SignedOptionList.toSignedList a1 = to_vertical_edge_plain q ∧ SignedOptionList.toSignedList a2 = to_vertical_edge_plain m :=
+        SignedOptionList.toSignedList_eq_to_vertical_edge_plain_prod ha
       rcases ha1 with m_nil | q_nil | ⟨a1, a2, a1_len, a2_len, ha1, a1q, a2m⟩
-      · have H : remove_ones a = to_up_plain q := by
+      · have H : SignedOptionList.toSignedList a = to_vertical_edge_plain q := by
           rw [m_nil] at ha
           convert ha
-        have on : o = [] ∧ p = n := word_side_side_t _ _ _ t m_nil
+        have on := GridData.DeterminativeSpine.one_word t m_nil
         specialize h2_ih h1
         have new_h2_ih := h2_ih.1 H
-        rw [on.2] at new_h2_ih
+        rw [on.1] at new_h2_ih
         exact new_h2_ih hb
-      · have H : remove_ones a = to_up_plain m := by
+      · have H : SignedOptionList.toSignedList a = to_vertical_edge_plain m := by
           rw [q_nil] at ha
           convert ha
-          simp; rfl
-        have rs : r = [] ∧ s = p := word_side_side_t _ _ _ h2 q_nil
+          change m = m.toList ++ [] -- i need a helper here! this is utter chaos
+          erw [List.append_nil]; rfl
+        have rs := GridData.DeterminativeSpine.one_word h2 q_nil
         specialize h1_ih h1
         have new_h2_ih := h1_ih.1 H hb
-        rw [rs.2]
+        rw [rs.1]
         exact new_h2_ih
       rcases splittable_horizontally_of_pg h1 _ _ ha1 a2_len a1_len
         with ⟨mid, d1, e1, d2, e2, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
@@ -1457,34 +1447,36 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
       rcases baaad with ⟨_, _, _, _, _, _, ⟨mid_nil⟩, _⟩
       aesop
     intro hb ha
-    have ha1 : remove_ones a <:+ to_up_plain q ++ to_up_plain m := by
-      rw [to_up_plain_prod m q] at ha
+    have ha1 : SignedOptionList.toSignedList a <:+ to_vertical_edge_plain q ++ to_vertical_edge_plain m := by
+      rw [to_vertical_edge_plain_prod m q] at ha
       exact ha
-    rw [to_up_plain_prod o r]
+    rw [to_vertical_edge_plain_prod]
     match m with
     | [] =>
-      nth_rewrite 2 [to_up_plain] at ha1
+      nth_rewrite 2 [to_vertical_edge_plain] at ha1
       simp at ha1
       specialize h2_ih h1
-      have on : o = [] ∧ p = n := word_side_side_t _ _ _ t rfl
-      rw [← on.2] at hb
+      have on := GridData.DeterminativeSpine.one_word t rfl
+      rw [← on.1] at hb
       have h_new := h2_ih.2 hb ha1
-      rw [on.1]
-      nth_rewrite 2 [to_up_plain]
+      rw [on.2]
+      nth_rewrite 2 [to_vertical_edge_plain]
       simp
+      change _ <:+ _ ++ []
+      erw [List.append_nil]
       exact h_new
     | m1 :: m2 =>
-      have H : remove_ones a <:+ to_up_plain (m1 :: m2) ∨
+      have H : SignedOptionList.toSignedList a <:+ to_vertical_edge_plain (m1 :: m2) ∨
         ∃ a1 a2, a1.length > 0 ∧ a = a1 ++ a2 ∧
-        remove_ones a2 = to_up_plain  (m1 :: m2) ∧ remove_ones a1 <:+ to_up_plain q := by
+        SignedOptionList.toSignedList a2 = to_vertical_edge_plain  (m1 :: m2) ∧ SignedOptionList.toSignedList a1 <:+ to_vertical_edge_plain q := by
         exact helper_bajillion ha1
       rcases H with ha1 | ⟨a1, a2, a1_len, a1_is, ha11⟩
-      · have H2 : remove_ones e2 <:+ to_up_plain o := (h1_ih h1).2 hb ha1
+      · have H2 := (h1_ih h1).2 hb ha1
         exact suffix_of_append H2
       have a2_len : a2.length > 0 := by
-        have H := remove_ones_len a2
+        have H := SignedOptionList.toSignedList_len a2
         rw [ha11.1] at H
-        simp [to_up_plain] at H
+        simp [to_vertical_edge_plain] at H
         omega
       rcases splittable_horizontally_of_pg h1 _ _ a1_is a2_len a1_len
           with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
@@ -1498,7 +1490,7 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
           exact suffix_of_append two
         rw [fb.2.1] at i1
         have H := unique_g_pg_c_ones_okay i1 ha11.1.symm hb.symm t
-        rw [fb.2.2, remove_ones_append, H.1]
+        rw [fb.2.2, SignedOptionList.toSignedList_append, H.1]
         refine List.suffix_append_right ?_
         exact (h2_ih i2).2 H.2.symm ha11.2
       rcases baaad with ⟨db, c11, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
@@ -1509,17 +1501,17 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
     rename_i m n o p q r s t
     constructor
     · intro a_is b_is
-      rw [to_over_plain_prod] at b_is
+      rw [to_horizontal_edge_plain_prod] at b_is
       match n with
       | [] =>
-        have H := word_top_bottom_t _ _ _ t rfl
+        have H := GridData.DeterminativeSpine.word_one t rfl
         specialize h2_ih h1
-        simp_all [to_over_plain]
+        simp_all [to_horizontal_edge_plain]
       | n1 :: n2 =>
         rcases helper_kajillion b_is (by simp) with one | two
         · specialize h1_ih h1
           have new_ih := h1_ih.1 a_is one
-          rw [to_over_plain_prod]
+          rw [to_horizontal_edge_plain_prod]
           exact List.prefix_of_append new_ih
         rcases two with ⟨b1, b2, b1_len, b2_len, b_is, b1_n, b2_q⟩
         rcases splittable_vertically_of_pg' h1 _ _ b_is b1_len b2_len
@@ -1532,37 +1524,38 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
           rcases nonsense with h_one | h_two
           · rw [h_one.2] at i1
             have H := unique_g_pg_c_ones_okay i1 a_is.symm b1_n.symm t
-            rw [h_one.1, h_one.2, List.append_nil, remove_ones_append, to_over_plain_prod, H.2]
-            exact (List.prefix_append_right_inj (remove_ones d3)).mpr ((h2_ih).1 H.1.symm)
+            rw [h_one.1, h_one.2, List.append_nil, SignedOptionList.toSignedList_append, to_horizontal_edge_plain_prod, H.2]
+            exact (List.prefix_append_right_inj (SignedOptionList.toSignedList d3)).mpr ((h2_ih).1 H.1.symm)
           have helper := h1_ih.1
-          rw [h_two.1, to_over_plain_prod]
+          rw [h_two.1, to_horizontal_edge_plain_prod]
           exact List.prefix_of_append helper
         rcases baaad with ⟨db, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
         specialize h1_ih h3
         have H2 := h1_ih.1 a_is (by rw [b1_n])
-        rw [to_over_plain_prod]
+        rw [to_horizontal_edge_plain_prod]
         exact List.prefix_of_append H2
     intro b_is a_is
     have hb1 : n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
-        b = b1 ++ b2 ∧ remove_ones b1 = to_over_plain n ∧ remove_ones b2 = to_over_plain q :=
-      remove_ones_eq_to_over_plain_prod b_is
+        b = b1 ++ b2 ∧ SignedOptionList.toSignedList b1 = to_horizontal_edge_plain n ∧ SignedOptionList.toSignedList b2 = to_horizontal_edge_plain q :=
+      SignedOptionList.toSignedList_eq_to_horizontal_edge_plain_prod b_is
     rcases hb1 with n_nil | q_nil | ⟨b1, b2, b1_len, b2_len, b1_is, b1n, b2q⟩
-    · have H : remove_ones b = to_over_plain q := by
+    · have H : SignedOptionList.toSignedList b = to_horizontal_edge_plain q := by
         rw [n_nil] at b_is
         convert b_is
-      have op := word_top_bottom_t _ _ _ t n_nil
+      have op := GridData.DeterminativeSpine.word_one t n_nil
       specialize h2_ih h1
       have new_h2_ih := h2_ih.2 H
-      rw [op.1] at new_h2_ih
+      rw [op.2] at new_h2_ih
       exact new_h2_ih a_is
-    · have H : remove_ones b = to_over_plain n := by
+    · have H : SignedOptionList.toSignedList b = to_horizontal_edge_plain n := by
         rw [q_nil] at b_is
         convert b_is
-        simp; rfl
-      have rs := word_top_bottom_t _ _ _ h2 q_nil
+        change n = n.toList ++ []
+        erw [List.append_nil]; rfl
+      have rs := GridData.DeterminativeSpine.word_one h2 q_nil
       specialize h1_ih h1
       have new_h2_ih := h1_ih.2 H a_is
-      rw [rs.1]
+      rw [rs.2]
       exact new_h2_ih
     rcases splittable_vertically_of_pg' h1 _ _ b1_is b1_len b2_len
         with ⟨mid4, d4, e4, e5, d5, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
@@ -1572,39 +1565,36 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
     rcases baaad with ⟨d5, d6, i3, _ , ⟨e2_nil⟩, ⟨d2_is⟩, ⟨b2_is⟩⟩
     aesop
 
-theorem Suffix'_of_nil (h : List.Suffix' a []) : a = [] := by
+theorem SuffixData_of_nil (h : List.SuffixData a []) : a = [] := by
   rcases h with ⟨b, ⟨hb⟩⟩
   simp at hb
   aesop
 
-theorem Prefix'_of_nil (h : List.Prefix' a []) : a = [] := by
+theorem PrefixData_of_nil (h : List.PrefixData a []) : a = [] := by
   rcases h with ⟨b, ⟨hb⟩⟩
-  simp at hb
   aesop
 
-noncomputable def prefix_to_c (h : a <+: b) : List.Prefix' a b := by
-  have H := h.choose_spec
-  rw [← H]
-  exact List.prefix_append_self_C
+noncomputable def prefix_to_c (h : a <+: b) : List.PrefixData a b := by
+  rw [← h.choose_spec]
+  exact List.PrefixData.append_self
 
-noncomputable def suffix_to_c (h : a <:+ b) : List.Suffix' a b := by
-  have H := h.choose_spec
-  rw [← H]
-  exact List.suffix_append_self_C
+noncomputable def suffix_to_c (h : a <:+ b) : List.SuffixData a b := by
+  rw [← h.choose_spec]
+  exact List.SuffixData.append_self
 
-theorem prefix_from_c (h : List.Prefix' a b) : a <+: b := by
+theorem prefix_from_c (h : List.PrefixData a b) : a <+: b := by
   rcases h with ⟨c, hc⟩
   rw [← hc.1]
   exact List.prefix_append a c
 
-theorem suffix_from_c (h : List.Suffix' a b) : a <:+ b := by
+theorem suffix_from_c (h : List.SuffixData a b) : a <:+ b := by
   rcases h with ⟨c, hc⟩
   rw [← hc.1]
   exact List.suffix_append c a
 
-noncomputable def same_time_c (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
-  : (remove_ones a = to_up_plain i → List.Prefix' (remove_ones b) (to_over_plain j) → List.Prefix' (remove_ones mid) (to_over_plain l))
-  × (remove_ones b = to_over_plain j → List.Suffix' (remove_ones a) (to_up_plain i) → List.Suffix' (remove_ones e2) (to_up_plain k)) := by
+noncomputable def same_time_c (h : GridData i j l k) (h1 : PartialGrid a b mid d2 e2)
+  : (SignedOptionList.toSignedList a = to_vertical_edge_plain i → List.PrefixData (SignedOptionList.toSignedList b) (to_horizontal_edge_plain j) → List.PrefixData (SignedOptionList.toSignedList mid) (to_horizontal_edge_plain l))
+  × (SignedOptionList.toSignedList b = to_horizontal_edge_plain j → List.SuffixData (SignedOptionList.toSignedList a) (to_vertical_edge_plain i) → List.SuffixData (SignedOptionList.toSignedList e2) (to_vertical_edge_plain k)) := by
   constructor
   · intro ha hb
     have H := (same_time h h1).1 ha (prefix_from_c hb)
