@@ -46,11 +46,4 @@ theorem lift_of_eq_one_of_mem_free_group_set_of_function
 theorem mk_mul : PresentedGroup.mk rels (a * b) = PresentedGroup.mk rels a * PresentedGroup.mk rels b := by
   rw [map_mul]
 
--- @[simp]
--- theorem toGroup.mk {rels : FreeMonid α → FreeMonid α → Prop} {f : PresentedMonoid rels → G} [Group G]
---   (h : ∀ r ∈ free_group_set_of_function rels, @FreeGroup.lift (PresentedMonoid rels) G _ f r = 1) {x : FreeMonoid α} :
---   @toGroup (PresentedMonoid rels) G _ f (free_group_set_of_function rels) h (PresentedGroup.mk (free_group_set_of_function rels)
---    (FreeGroup.mk (List.map (fun x => (x, true)) a))) = f (PresentedMonoid.mk rels a) :=
---   sorry
-
 end PresentedGroup

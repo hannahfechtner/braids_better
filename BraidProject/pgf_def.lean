@@ -478,7 +478,7 @@ noncomputable def get_frontier_style (h : PartialGrid a b c d e) :
     {h1 : pgf a b (c ++ d ++ e) // h.length = h1.length} := by
   have H := pg_to_rev h
   have H2 := one_step_of_reg_w_len H.1
-  have H3 := @pgf_of_st_w_len (a ++ b) _ _ _  H2.1 rfl h.left_frontier_is_false
-    (PartialGrid.left_length_pos h) h.top_frontier_is_true (PartialGrid.top_length_pos h)
+  have H3 := @pgf_of_st_w_len (a ++ b) _ _ _  H2.1 rfl h.left_side_is_false
+    (PartialGrid.left_side_length_pos h) h.top_side_is_true (PartialGrid.top_length_pos h)
   use H3.1
   aesop

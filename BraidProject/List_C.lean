@@ -29,6 +29,7 @@ def PrefixData {α : Type} (l₁ l₂ : List α) : Type :=
 def SuffixData {α : Type} (l₁ l₂ : List α) : Type :=
   Σ pr, PLift (pr ++ l₁ = l₂)
 
+
 @[simp]
 def PrefixData.nil : PrefixData [] u := by
   use u
@@ -83,6 +84,51 @@ def PrefixData.of_append_left : PrefixData (l ++ l₁) (l ++ l₂) → PrefixDat
     use w
     constructor
     grind
+
+
+theorem SuffixData.of_nil (h : List.SuffixData a []) : a = [] := by
+  rcases h with ⟨b, ⟨hb⟩⟩
+  simp at hb
+  aesop
+
+def SuffixData.of_singleton (h : List.SuffixData l [a]) : PLift (l = []) ⊕ PLift (l = [a]) := by
+  rcases h with ⟨r, ⟨hr⟩⟩
+  match r with
+  | [] => right; constructor; aesop
+  | r1 :: r2 => left; constructor; aesop
+
+theorem PrefixData.of_nil (h : List.PrefixData a []) : a = [] := by
+  rcases h with ⟨b, ⟨hb⟩⟩
+  aesop
+
+def PrefixData.of_singleton (h : List.PrefixData l [a]) : PLift (l = []) ⊕ PLift (l = [a]) := by
+  rcases h with ⟨r, ⟨hr⟩⟩
+  match r with
+  | [] => right; constructor; aesop
+  | r1 :: r2 =>
+    apply congr_arg List.length at hr
+    simp at hr
+    have H : l.length = 0 := by omega
+    left; constructor
+    aesop
+
+noncomputable def PrefixData.from_IsPrefix (h : a <+: b) : List.PrefixData a b := by
+  rw [← h.choose_spec]
+  exact List.PrefixData.append_self
+
+noncomputable def SuffixData.from_IsSuffix (h : a <:+ b) : List.SuffixData a b := by
+  rw [← h.choose_spec]
+  exact List.SuffixData.append_self
+
+theorem PrefixData.to_IsPrefix (h : List.PrefixData a b) : a <+: b := by
+  rcases h with ⟨c, hc⟩
+  rw [← hc.1]
+  exact List.prefix_append a c
+
+theorem SuffixData.to_IsSuffix (h : List.SuffixData a b) : a <:+ b := by
+  rcases h with ⟨c, hc⟩
+  rw [← hc.1]
+  exact List.suffix_append c a
 
 def InfixData {α : Type} (l₁ l₂ : List α) : Type :=
   Σ pr sx, PLift (pr ++ l₁ ++ sx = l₂)

@@ -63,7 +63,7 @@ theorem empty_frontier_unique (h1: PartialGrid a1 b1 c1 d1 e1) (h2 : PartialGrid
     rw [hd2] at d1_is
     simp only [List.nil_eq, List.append_eq_nil_iff] at d1_is
     apply (not_both_empty h6 d1_is.1 rfl).elim
-  | horizontal_append h g1 g2 g1_ih g2_ih =>
+  | horizontal_append g1 g2 h g1_ih g2_ih =>
     rename_i i j k l m n o p q
     rcases splittable_vertically_of_pg' h2 _ _ hb.symm (PartialGrid.top_length_pos g1) (PartialGrid.top_length_pos g2)
       with ⟨mid, c4, d4, c5, d5, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
@@ -77,7 +77,7 @@ theorem empty_frontier_unique (h1: PartialGrid a1 b1 c1 d1 e1) (h2 : PartialGrid
       true_and, List.length_nil, lt_self_iff_false]
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i i j k l m n o p
-    rcases splittable_horizontally_of_pg h2 _ _ ha.symm (PartialGrid.left_length_pos g1) (PartialGrid.left_length_pos g2)
+    rcases splittable_horizontally_of_pg h2 _ _ ha.symm (PartialGrid.left_side_length_pos g1) (PartialGrid.left_side_length_pos g2)
       with ⟨mid, c4, d4, c5, d5, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
     · specialize g1_ih i1
       specialize g2_ih i2
@@ -101,7 +101,7 @@ theorem empty_frontier_unique (h1: PartialGrid a1 b1 c1 d1 e1) (h2 : PartialGrid
     exact not_both_empty_early h2 c2_is hd2
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i i j k l m n o p q
-    rcases splittable_horizontally_of_pg h2 _ _ ha.symm (PartialGrid.left_length_pos g1) (PartialGrid.left_length_pos g2)
+    rcases splittable_horizontally_of_pg h2 _ _ ha.symm (PartialGrid.left_side_length_pos g1) (PartialGrid.left_side_length_pos g2)
       with ⟨mid, c4, d4, c5, d5, i1, i2, ⟨long⟩, ⟨len⟩⟩ | b
     · specialize g1_ih i1
       specialize g2_ih i2
@@ -130,7 +130,7 @@ theorem empty_helper
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     simp at c_is
     exact (not_both_empty_early g1 c_is.1 rfl).elim
-  | horizontal_append h g1 g2 g1_ih g2_ih =>
+  | horizontal_append g1 g2 h g1_ih g2_ih =>
     rcases middle_frontier_spec g1 with ⟨⟨mid_nil⟩⟩ | ⟨frontm, midm, caboosem, specm⟩
     · exact (not_both_empty_early g1 c_is mid_nil).elim
     rcases middle_frontier_spec g2 with ⟨⟨mid2_nil⟩⟩ | ⟨frontm2, midm2, caboosem2, specm2⟩
@@ -138,12 +138,12 @@ theorem empty_helper
     rw [specm.1, specm2.1] at d_is
     rename_i f g i j k l m n o
     rcases List.append_eq_append_iff.mp d_is with ⟨as, one, two⟩ | ⟨as, one, two⟩
-    · have H : is_false f := g1.left_frontier_is_false
+    · have H : is_false f := g1.left_side_is_false
       rw [one] at H
       specialize H (caboosem, true) (by simp)
       simp at H
     have H : is_true (g ++ l) := by
-      apply is_true_append g1.top_frontier_is_true g2.top_frontier_is_true
+      apply is_true_append g1.top_side_is_true g2.top_side_is_true
     rw [two] at H
     specialize H (frontm2, false) (by simp)
     simp at H
@@ -160,12 +160,12 @@ theorem empty_helper
     rcases List.append_eq_append_iff.mp d_is with ⟨as, one, two⟩ | ⟨as, one, two⟩
     · have H : is_false (l ++ f) := by
         apply is_false_append
-        exact g2.left_frontier_is_false
-        exact g1.left_frontier_is_false
+        exact g2.left_side_is_false
+        exact g1.left_side_is_false
       rw [one] at H
       specialize H (caboosem2, true) (by simp)
       simp at H
-    have H : is_true g := g1.top_frontier_is_true
+    have H : is_true g := g1.top_side_is_true
     rw [two] at H
     specialize H (frontm, false) (by simp)
     simp at H
@@ -404,10 +404,11 @@ noncomputable def skeleton_cons_cons_real (gs : grid_style_nontrivial i j)
   have hd : (head :: (tail ++ to_horizontal_edge c2 ++ to_vertical_edge d2 ++ headb :: tailb)) =
     (head :: tail ++ to_horizontal_edge c2 ++ [] ++ (to_vertical_edge d2 ++ headb :: tailb)) := by simp
   rw [ha', hb', hd]
-  use PartialGrid.horizontal_append (by simp)
+  use PartialGrid.horizontal_append
     (PartialGrid.vertical_append_one (PartialGrid.single_cell h_cell)
     (PartialGrid.empty (head :: tail) (to_horizontal_edge c2) (by simp) ha (by simp [to_horizontal_edge_length_pos]) is_true_to_horizontal_edge))
     (PartialGrid.empty (to_vertical_edge d2) (headb :: tailb) to_vertical_edge_length_pos is_false_to_vertical_edge (by simp) hb)
+    (by simp)
   constructor
   · exact {down := by simp [j_is]}
   constructor
@@ -436,10 +437,11 @@ noncomputable def skeleton_cons_cons_empty (gs : grid_style_trivial i j)
   have hd : (head :: (tail ++ to_horizontal_edge c2 ++ to_vertical_edge d2 ++ headb :: tailb)) =
     (head :: tail ++ to_horizontal_edge c2 ++ [] ++ (to_vertical_edge d2 ++ headb :: tailb)) := by simp
   rw [ha', hb', hd]
-  use PartialGrid.horizontal_append (by simp)
+  use PartialGrid.horizontal_append
     (PartialGrid.vertical_append_one (PartialGrid.single_cell h_cell)
     (PartialGrid.empty (head :: tail) (to_horizontal_edge c2) (by simp) ha (by simp [to_horizontal_edge_length_pos]) is_true_to_horizontal_edge))
     (PartialGrid.empty (to_vertical_edge d2) (headb :: tailb) to_vertical_edge_length_pos is_false_to_vertical_edge (by simp) hb)
+    (by simp)
   constructor
   · exact {down := by simp [j_is]}
   constructor
@@ -541,7 +543,7 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
     constructor
     simp only [PartialGrid.length, ← h6.2.1]
     omega
-  | horizontal_append h g1 g2 g1_ih g2_ih =>
+  | horizontal_append g1 g2 h g1_ih g2_ih =>
     rename_i a2 b2 bot2 mid2 up2 b3 bot3 mid3 up3
     have := double_split_horiz (bottom_frontier_is_true g1) (Sum.inl ⟨bottom_frontier_is_true g2⟩)
       (right_frontier_is_false g2) fe (middle_frontier_spec g1)
@@ -550,7 +552,7 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
     · rcases hl with ⟨k₁, k₂, k_is, k1_is, k2_is⟩
       rcases g2_ih k2_is.symm with ⟨bot3, mid3, up3, hpg, hf⟩
       use bot2, mid2 ++ bot3++mid3, up3
-      use PartialGrid.horizontal_append h g1 hpg
+      use PartialGrid.horizontal_append g1 hpg h
       simp [k_is, k1_is, hf.1.1]
       constructor
       · exact ⟨trivial⟩
@@ -631,7 +633,7 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
         rw [List.nil_append] at spec
         have nonsense := spec.symm
         subst nonsense
-        use PartialGrid.horizontal_append (by simp) hpg g2
+        use PartialGrid.horizontal_append hpg g2 (by simp)
         constructor
         · rw [← List.append_assoc] at hf
           change bot4 ++ ([head] ++ tail) ++ up4 = k ++ j ++ l₁ ++ up4 at hf
@@ -660,7 +662,7 @@ noncomputable def add_cell_w_len (h : PartialGrid a b bot mid up)
         have nonsense : head :: tail ++ [] ++ (heade :: taile ++ bot3 ++ mid3) =
           (head :: tail ++ heade :: taile ++ bot3 ++ mid3) := by simp
         rw [← nonsense]
-        use PartialGrid.horizontal_append (by simp) hpg H3.1
+        use PartialGrid.horizontal_append hpg H3.1 (by simp)
         constructor
         · rw [l_is, l1_is]
           rw [← spec, ← List.append_assoc, ← List.append_assoc] at hf
@@ -895,7 +897,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
     refine ⟨h5, ⟨List.PrefixData.append_left h6.1, ?_⟩⟩
     constructor
     simp only [PartialGrid.length, ← h6.2.1]
-  | horizontal_append h g1 g2 g1_ih g2_ih =>
+  | horizontal_append g1 g2 h g1_ih g2_ih =>
     rename_i a2 b2 bot2 mid2 up2 b3 bot3 mid3 up3
     have := double_split_horiz (bottom_frontier_is_true g1) (Sum.inl ⟨bottom_frontier_is_true g2⟩)
       (right_frontier_is_false g2) fe (middle_frontier_spec g1)
@@ -904,7 +906,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
     · rcases hl with ⟨k₁, k₂, k_is, k1_is, k2_is⟩
       rcases g2_ih k2_is.symm with ⟨bot3, mid3, up3, hpg, hf⟩
       use bot2, mid2 ++ bot3++mid3, up3
-      use PartialGrid.horizontal_append h g1 hpg
+      use PartialGrid.horizontal_append g1 hpg h
       simp [k_is, k1_is, hf.1.1]
       constructor
       · exact ⟨trivial⟩
@@ -980,7 +982,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
         rw [List.nil_append] at spec
         have nonsense := spec.symm
         subst nonsense
-        use PartialGrid.horizontal_append (by simp) hpg g2
+        use PartialGrid.horizontal_append hpg g2 (by simp)
         constructor
         · rw [← List.append_assoc] at hf
           change bot4 ++ ([head] ++ tail) ++ up4 = k ++ j ++ l₁ ++ up4 at hf
@@ -1008,7 +1010,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
         have nonsense : head :: tail ++ [] ++ (heade :: taile ++ bot3 ++ mid3) =
           (head :: tail ++ heade :: taile ++ bot3 ++ mid3) := by simp
         rw [← nonsense]
-        use PartialGrid.horizontal_append (by simp) hpg H3.1
+        use PartialGrid.horizontal_append hpg H3.1 (by simp)
         constructor
         · rw [l_is, l1_is]
           rw [← spec, ← List.append_assoc, ← List.append_assoc] at hf
@@ -1166,7 +1168,7 @@ theorem pg_top_bottom_frontier (h : PartialGrid a b c d e) (ha : SignedOptionLis
     | separated i j h => simp [SignedOptionList.toSignedList] at ha
   | empty a b ha ha1 hb hb => simp [SignedOptionList.toSignedList, ha]
   | horizontal_append_one g1 g2 g1_ih g2_ih => simp_all
-  | horizontal_append h g1 g2 g1_ih g2_ih => simp_all
+  | horizontal_append g1 g2 h g1_ih g2_ih => simp_all
   | vertical_append_one g1 g2 g1_ih g2_ih => simp_all
   | vertical_append g1 g2 h g1_ih g2_ih => simp_all
 
@@ -1183,7 +1185,7 @@ theorem pg_side_frontier (h : PartialGrid a b c d e) (hb : SignedOptionList.toSi
     | separated i j h => simp [SignedOptionList.toSignedList] at hb
   | empty a b ha ha1 hb hb1 => simp [SignedOptionList.toSignedList, hb]
   | horizontal_append_one g1 g2 g1_ih g2_ih => simp_all
-  | horizontal_append h g1 g2 g1_ih g2_ih => simp_all
+  | horizontal_append g1 g2 h g1_ih g2_ih => simp_all
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     specialize g1_ih hb
     specialize g2_ih g1_ih.2

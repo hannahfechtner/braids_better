@@ -174,7 +174,7 @@ def big_split_first (hbot2 : is_true bot2) (h : bot2 ++ bot3 ++ mid3 ++ up3 = k 
 open Braid PartialGrid
 
 def double_split_helper_two_one  (h : mid2 ++ bot3 = [(a1, false), (b1, true)] ++ b)
-    (hm2 : middle_end mid2) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
+    (hm2 : middle_frontier_end_spec mid2) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
     (Σ m2, PLift (mid2 = [(a1, false), (b1, true)] ++ m2)) := by
   induction bot3 using List.reverseRecOn generalizing b with
   | nil =>
@@ -212,7 +212,7 @@ def double_split_helper_two_one  (h : mid2 ++ bot3 = [(a1, false), (b1, true)] +
       exact @ihb frontbb h.1 (Sum.inr ⟨(is_false_of_append h4.1).1⟩)
 
 def double_split_helper_two_three (h : bot3 ++ mid3 = k ++ [(a1, false), (b1, true)] ++ l)
-    (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) (hm3 : middle_start mid3):
+    (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) (hm3 : middle_frontier_start_spec mid3):
     Σ m3 m4, PLift (mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ l = m4) := by
   induction bot3 generalizing k with
   | nil =>
@@ -249,7 +249,7 @@ def double_split_helper_two_three (h : bot3 ++ mid3 = k ++ [(a1, false), (b1, tr
         exact Sum.inr ⟨(is_false_of_cons h2.1).2⟩
       exact @ih tailk h.2 h2
 
-theorem empty_middle_helper {b : Bool} (hm2 : middle_end mid2) (hm3 : middle_start mid3)
+theorem empty_middle_helper {b : Bool} (hm2 : middle_frontier_end_spec mid2) (hm3 : middle_frontier_start_spec mid3)
     (h : mid2 ++ [(a', b)] ++ mid3 = [(a1, false), (b1, true)]) : False := by
     rcases hm2 with h3 | h4
     · rcases hm3 with h5 | h6
@@ -273,8 +273,8 @@ theorem empty_middle_helper {b : Bool} (hm2 : middle_end mid2) (hm3 : middle_sta
     simp at h
 
 def double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)])
-    (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
+    (hm2 : middle_frontier_end_spec mid2)
+    (hm3 : middle_frontier_start_spec mid3) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
     (Σ m2, PLift (mid2 = [(a1, false), (b1, true)] ++ m2)) ⊕ Σ m3, PLift (mid3 = m3 ++ [(a1, false), (b1, true)]) := by
   have len := congr_arg List.length h
   simp only [List.append_assoc, List.length_append, List.length_cons,
@@ -339,16 +339,16 @@ def double_split_helper_three_one_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b
     omega
 
 def double_split_helper_three_one (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)])
-    (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
+    (hm2 : middle_frontier_end_spec mid2)
+    (hm3 : middle_frontier_start_spec mid3) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
     (Σ m2, PLift (mid2 = [(a1, false), (b1, true)] ++ m2)) ⊕ Σ m3 m4, PLift (mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ [] = m4) := by
   rcases double_split_helper_three_one_s h hm2 hm3 hbot3 with h1 | ⟨m3, hm3⟩
   · left; exact h1
   right; use m3, []; simp; exact hm3
 
 def double_split_helper_three_two_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)] ++ l)
-    (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
+    (hm2 : middle_frontier_end_spec mid2)
+    (hm3 : middle_frontier_start_spec mid3) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
     (Σ m2, PLift (mid2 = [(a1, false), (b1, true)] ++ m2)) ⊕
     Σ m3 m4,PLift (mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ l = m4) := by
   induction l using List.reverseRecOn generalizing mid3 with
@@ -362,7 +362,7 @@ def double_split_helper_three_two_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b
     | append_singleton headm tailm _ =>
       rw [← List.append_assoc, ← List.append_assoc] at h
       apply List.append_singleton_eq_append_singleton at h
-      specialize @ih headm h.1 (middle_start_append hm3)
+      specialize @ih headm h.1 (middle_frontier_start_spec_of_append hm3)
       rcases ih with ha | ⟨m3, m4, hm34⟩
       · left; exact ha
       right
@@ -371,8 +371,8 @@ def double_split_helper_three_two_s (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b
       exact ⟨by simp⟩
 
 def double_split_helper_three_two (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1, true)] ++ l)
-    (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
+    (hm2 : middle_frontier_end_spec mid2)
+    (hm3 : middle_frontier_start_spec mid3) (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3)) :
     (Σ m1 m2, PLift (mid2 = m1 ++ [(a1, false), (b1, true)] ++ m2 ∧ [] = m1)) ⊕
     Σ m3 m4, PLift (mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ l = m4) := by
   rcases double_split_helper_three_two_s h hm2 hm3 hbot3 with ⟨m2, hm2⟩ | h2
@@ -383,8 +383,8 @@ def double_split_helper_three_two (h : mid2 ++ bot3 ++ mid3 = [(a1, false), (b1,
 
 def double_split_helper_three {mid2 bot3 mid3 k l : List (Option ℕ × Bool)} {a1 b1 : Option ℕ}
     (hbot3 : PLift (is_true bot3) ⊕ PLift (is_false bot3))
-    (hm2 : middle_end mid2)
-    (hm3 : middle_start mid3)
+    (hm2 : middle_frontier_end_spec mid2)
+    (hm3 : middle_frontier_start_spec mid3)
     (h : mid2 ++ bot3 ++ mid3 = k ++ [(a1, false), (b1, true)] ++ l) :
     (Σ m1 m2, PLift ((mid2 = m1 ++ [(a1, false), (b1, true)] ++ m2 ∧ k = m1))) ⊕
     (Σ m3 m4, PLift ((mid3 = m3 ++ [(a1, false), (b1, true)] ++ m4 ∧ l = m4))) := by
@@ -430,7 +430,7 @@ def double_split_helper_four {mid2 bot3 mid3 up3 k l : List (Option ℕ × Bool)
   | nil =>
     rw [List.append_nil] at h
     simp
-    have H2 := double_split_helper_three hbot3 (middle_end_from_spec hm2) (middle_start_from_spec hm3) h
+    have H2 := double_split_helper_three hbot3 (middle_frontier_end_spec_from_spec hm2) (middle_frontier_start_spec_from_spec hm3) h
     simp at H2
     exact H2
   | append_singleton front caboose ih =>

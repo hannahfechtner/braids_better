@@ -1,4 +1,5 @@
 import BraidProject.SignedList
+import Mathlib.Tactic.Use
 
 namespace SignedOptionList
 
@@ -42,6 +43,53 @@ theorem toSignedList_append : toSignedList (L1 ++ L2) = toSignedList L1 ++ toSig
   match head with
   | (none, _) => simp [toSignedList, ih]
   | (some _, _) => simp [toSignedList, ih]
+
+theorem toSignedList_eq_append (h : toSignedList a = b ++ c) :
+    ∃ a₁ a₂, a = a₁ ++ a₂ ∧ toSignedList a₁ = b ∧ toSignedList a₂ = c := by
+  induction a generalizing b c with
+  | nil =>
+    simp only [toSignedList, List.nil_eq, List.append_eq_nil_iff] at h
+    use [], []
+    simp [h.1, h.2]
+  | cons head tail ih =>
+    match head with
+    | (none, b) =>
+      simp only [toSignedList] at h
+      rcases ih h with ⟨a1, a2, a_is, b_is, c_is⟩
+      use (none, b) :: a1, a2
+      simp_all [toSignedList]
+    | (some d, e) =>
+      match b with
+      | [] =>
+        match c with
+        | [] => simp [toSignedList] at h
+        | c1 :: c2 =>
+          simp only [toSignedList, List.nil_append, List.cons.injEq] at h
+          use [], (some d, e) :: tail
+          simp [← h.1, ← h.2, toSignedList]
+      | b1 :: b2 =>
+        simp only [toSignedList, List.cons_append, List.cons.injEq] at h
+        match b2 with
+        | [] =>
+          use [(some d, e)], tail
+          simp_all [toSignedList]
+        | b21 :: b22 =>
+          rcases ih h.2 with ⟨a1, a2, a_is, b_is, c_is⟩
+          use (some d, e) :: a1, a2
+          simp_all [toSignedList]
+
+theorem toSignedList_len(a : List (Option α × Bool)) : (toSignedList a).length ≤ a.length := by
+  induction a with
+  | nil => simp [toSignedList]
+  | cons head tail ih =>
+    match head with
+    | (none, _) =>
+      simp only [toSignedList, List.length_cons, ge_iff_le]
+      omega
+    | (some a, true) =>
+      simp [toSignedList, ih]
+    | (some a, false) =>
+      simp [toSignedList, ih]
 
 @[simp]
 theorem toSignedList_tail_eq_nil_of_eq_nil (h : toSignedList (head :: tail) = []) : toSignedList tail = [] := by

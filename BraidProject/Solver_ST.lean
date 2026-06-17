@@ -26,7 +26,6 @@ theorem find_it_nil : find_it [] = none := by simp [find_it]
 theorem find_it_singleton : find_it [a] = none := by
   unfold find_it; simp
 
-
 theorem find_it_cons_none (h : find_it (a :: b) = none) : find_it b = none := by
   induction b with
   | nil => simp
@@ -1711,8 +1710,8 @@ theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
   rcases H with ⟨bot, mid, up, pg, ⟨b'_is⟩⟩
   rcases PartialGrid.middle_frontier_spec pg with ⟨⟨mid_nil⟩⟩ | ⟨fm, mm, cm, ⟨problem⟩⟩
   · rw [mid_nil] at pg
-    have grid1 := GridData_of_PartialGrid pg
-    unfold GridData_option at grid1
+    have grid1 := GridData.PartialGridStyle.of_PartialGrid pg
+    unfold GridData.PartialGridStyle at grid1
     rw [mid_nil, List.append_nil] at b'_is
     have hbot := helper_for_bottom rm b'_is pg.bottom_frontier_is_true
       pg.right_frontier_is_false
@@ -2053,14 +2052,14 @@ noncomputable def all_options_horizontal_append_one (g1 : PartialGrid a b bot []
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     rcases GridData.splittable_horizontally i1 _ _ rfl with
       ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
-    have H2 := GridData_of_PartialGrid g1
+    have H2 := GridData.PartialGridStyle.of_PartialGrid g1
     have H := GridData.unicity H2 i3 rfl rfl
     rw [H.2.1] at rm1
     rw [rm1.1] at i2
     specialize @H0 (SignedOptionList.toList a.reverse ++ SignedOptionList.toList j.reverse) (SignedOptionList.toList b) c1 d1 j (to_vertical_edge_plain e2)
     rw [rm1.1, to_vertical_edge_plain_mul, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-      g2.left_frontier_is_false, to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList no, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-        g1.left_frontier_is_false, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true] at H0
+      g2.left_side_is_false, to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList no, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
+        g1.left_side_is_false, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true] at H0
     rw [rm1.1] at i1
     specialize H0 rfl rfl rfl n no i1
     rw [List.append_nil] at H0
@@ -2076,10 +2075,10 @@ noncomputable def all_options_horizontal_append_one (g1 : PartialGrid a b bot []
     have helper1 : SignedOptionList.toSignedList (to_vertical_edge e2) ++ SignedOptionList.toSignedList up = to_vertical_edge_plain (SignedOptionList.toList up.reverse ++ FreeMonoid.toList e2) := by
       rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList, List.append_left_inj, remove_up_is_plain]
       rfl
-      exact g2.left_frontier_is_false
+      exact g2.left_side_is_false
     have helper2 : SignedOptionList.toSignedList b2 ++ SignedOptionList.toSignedList k = to_horizontal_edge_plain ((SignedOptionList.toList b2) ++ (SignedOptionList.toList k)) := by
       rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList, List.append_right_inj, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op]
-      exact g2.top_frontier_is_true
+      exact g2.top_side_is_true
     specialize @H0' (SignedOptionList.toList up.reverse ++ FreeMonoid.toList e2)
       (Append.append (SignedOptionList.toList b2) (SignedOptionList.toList k)) g e1 (to_vertical_edge e2) k helper1 helper2
         to_vertical_edge_length_pos is_false_to_vertical_edge o op i2
@@ -2102,17 +2101,17 @@ noncomputable def all_options_horizontal_append_one (g1 : PartialGrid a b bot []
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     rcases GridData.splittable_horizontally i1 _ _ rfl with
       ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
-    have H2 := GridData_of_PartialGrid g1
+    have H2 := GridData.PartialGridStyle.of_PartialGrid g1
     have H := GridData.unicity H2 i3 rfl rfl
     rw [H.1.1] at i3 i4
     rw [H.2.1] at i3 rm1
     specialize @H0 (SignedOptionList.toList a.reverse ++ SignedOptionList.toList j.reverse) (SignedOptionList.toList b) c1 d1 j (to_vertical_edge_plain e2)
     rw [rm1.1, to_vertical_edge_plain_mul, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-      g2.left_frontier_is_false] at H0
+      g2.left_side_is_false] at H0
     specialize H0 rfl
     rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList op, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-      g1.left_frontier_is_false, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
-        g1.top_frontier_is_true] at H0
+      g1.left_side_is_false, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
+        g1.top_side_is_true] at H0
     specialize H0 rfl rfl o op
     rw [rm1.1] at i1
     specialize H0 i1
@@ -2127,11 +2126,11 @@ noncomputable def all_options_horizontal_append_one (g1 : PartialGrid a b bot []
     unfold pg_mid_frontier_reverses_to_grid_extend_left at H0'
     specialize @H0' c1 (SignedOptionList.toList b2) g e1 (to_vertical_edge e2) k l
     rw [rm1.1, to_vertical_edge_plain_mul, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-      g2.left_frontier_is_false, List.append_left_inj, remove_up_is_plain,
+      g2.left_side_is_false, List.append_left_inj, remove_up_is_plain,
       List.append_assoc] at H0'
     have h1 : SignedOptionList.toSignedList b2 = to_horizontal_edge_plain (SignedOptionList.toList b2) := by
       rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList]
-      exact g2.top_frontier_is_true
+      exact g2.top_side_is_true
     rw [rm1.1] at i2
     specialize @H0' rfl h1 to_vertical_edge_length_pos is_false_to_vertical_edge i2
     convert H0'
@@ -2143,8 +2142,8 @@ noncomputable def all_options_horizontal_append_one (g1 : PartialGrid a b bot []
   · intro e f g i j k l m n o op p
     have H0 : pg_mid_frontier_reverses_to_grid_extend_top g2 := g2_ih.2.2.1
     unfold pg_mid_frontier_reverses_to_grid_extend_top at H0
-    have H2 := GridData_of_PartialGrid g1
-    unfold GridData_option at H2
+    have H2 := GridData.PartialGridStyle.of_PartialGrid g1
+    unfold GridData.PartialGridStyle  at H2
     have he : e = SignedOptionList.toList (a.reverse) := by
       exact Eq.symm (remove_rev_eq_SignedOptionList.toSignedList_eq_to_vertical_edge_plain m)
     rw [he] at p
@@ -2163,15 +2162,15 @@ noncomputable def all_options_horizontal_append_one (g1 : PartialGrid a b bot []
     specialize @H0 (SignedOptionList.toList up.reverse) ((Append.append (SignedOptionList.toList b2) (SignedOptionList.toList j))) g e1 j k l
     apply H0 _ _ o op i2
     · rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList]
-      exact g2.left_frontier_is_false
+      exact g2.left_side_is_false
     change _ = to_horizontal_edge_plain (_ ++ _)
     rw [to_horizontal_edge_plain_append, SignedOptionList.toSignedList_append,
-      to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_frontier_is_true]
+      to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_side_is_true]
   · intro e f g i j k l m n o p
     have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g2 := g2_ih.2.2.2
     unfold pg_mid_frontier_reverses_to_grid_extend_neither at H0
-    have H2 := GridData_of_PartialGrid g1
-    unfold GridData_option at H2
+    have H2 := GridData.PartialGridStyle.of_PartialGrid g1
+    unfold GridData.PartialGridStyle  at H2
     have he : e = SignedOptionList.toList (a.reverse) := by
       exact Eq.symm (remove_rev_eq_SignedOptionList.toSignedList_eq_to_vertical_edge_plain n)
     rw [he] at p
@@ -2190,9 +2189,9 @@ noncomputable def all_options_horizontal_append_one (g1 : PartialGrid a b bot []
     specialize @H0 (SignedOptionList.toList up.reverse) (SignedOptionList.toList b2) g e1 j k
     apply H0 l m _ _ i2
     · rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList]
-      exact g2.left_frontier_is_false
+      exact g2.left_side_is_false
     rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList]
-    exact g2.top_frontier_is_true
+    exact g2.top_side_is_true
 
 noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] up)
     (g2 : PartialGrid a1 bot bot2 mid2 up2)
@@ -2225,7 +2224,7 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     rcases GridData.splittable_vertically i1 _ _ rfl with
       ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
-    have H2 := GridData_of_PartialGrid g1
+    have H2 := GridData.PartialGridStyle.of_PartialGrid g1
     have H := GridData.unicity H2 i3 rfl rfl
     rw [H.2.1] at i3 i4
     rw [H.1.1] at i3 rm1
@@ -2233,14 +2232,14 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
     have helper1 : SignedOptionList.toSignedList bot ++ to_horizontal_edge_plain e2 = to_horizontal_edge_plain (SignedOptionList.toList bot ++ FreeMonoid.toList e2) := by
       rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList, List.append_right_inj]
       rfl
-      exact g2.top_frontier_is_true
+      exact g2.top_side_is_true
     have helper2 : SignedOptionList.toSignedList a = to_vertical_edge_plain (SignedOptionList.toList a.reverse) := by
       rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList]
-      exact g1.left_frontier_is_false
+      exact g1.left_side_is_false
     have helper3 : SignedOptionList.toSignedList (b ++ k) = to_horizontal_edge_plain (SignedOptionList.toList b ++ SignedOptionList.toList k) := by
       rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList,
         to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op, SignedOptionList.toSignedList_append]
-      exact g1.top_frontier_is_true
+      exact g1.top_side_is_true
     specialize @H0 (SignedOptionList.toList a.reverse) (SignedOptionList.toList b ++ SignedOptionList.toList k) d1
       (SignedOptionList.toList bot ++ FreeMonoid.toList e2) k (to_horizontal_edge_plain e2) helper1 helper2 helper3 o op i1
     rw [List.nil_append] at H0
@@ -2261,8 +2260,8 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
     apply H0' _ _ n no to_horizontal_edge_length_pos is_true_to_horizontal_edge i2
     · change _ = to_vertical_edge_plain (_ ++ _)
       rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList no,
-        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_frontier_is_false]
-    rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_frontier_is_true,
+        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_side_is_false]
+    rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_side_is_true,
       List.append_right_inj, remove_over_is_plain]
     rfl
   · intro e f g i j k l m n o op p
@@ -2278,7 +2277,7 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
     rw [e_is, f_is, List.append_assoc] at p
     rcases GridData.splittable_horizontally p _ _ rfl
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
-    have H2 := GridData_of_PartialGrid g1
+    have H2 := GridData.PartialGridStyle.of_PartialGrid g1
     have H := GridData.unicity H2 i1 rfl rfl
     rw [H.2.1] at rm
     rw [H.1.1] at i2
@@ -2288,9 +2287,9 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
       exact l
     · change _ = to_vertical_edge_plain (_ ++ _)
       rw [to_vertical_edge_plain_append,
-        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList op, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_frontier_is_false]
+        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList op, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_side_is_false]
     rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList]
-    exact g2.top_frontier_is_true
+    exact g2.top_side_is_true
   · intro e f g i j k l m n o op p
     have H0 : pg_mid_frontier_reverses_to_grid_extend_top g1 := g1_ih.2.2.1
     have e_is : e = SignedOptionList.toList (a.reverse) ++ SignedOptionList.toList (a1.reverse) := by
@@ -2306,7 +2305,7 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     rcases GridData.splittable_vertically i1 _ _ rfl with
       ⟨c2, d2, e2, i3, i4, ⟨rm1⟩⟩
-    have H2 := GridData_of_PartialGrid g1
+    have H2 := GridData.PartialGridStyle.of_PartialGrid g1
     have H := GridData.unicity H2 i3 rfl rfl
     rw [H.2.1] at i3 i4
     rw [H.1.1] at i3 rm1
@@ -2314,14 +2313,14 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
     have helper1 : SignedOptionList.toSignedList bot ++ to_horizontal_edge_plain e2 = to_horizontal_edge_plain (SignedOptionList.toList bot ++ FreeMonoid.toList e2) := by
       rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList, List.append_right_inj]
       rfl
-      exact g2.top_frontier_is_true
+      exact g2.top_side_is_true
     have helper2 : SignedOptionList.toSignedList a = to_vertical_edge_plain (SignedOptionList.toList a.reverse) := by
       rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList]
-      exact g1.left_frontier_is_false
+      exact g1.left_side_is_false
     have helper3 : SignedOptionList.toSignedList (b ++ j) = to_horizontal_edge_plain (SignedOptionList.toList b ++ SignedOptionList.toList j) := by
       rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList,
         to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op, SignedOptionList.toSignedList_append]
-      exact g1.top_frontier_is_true
+      exact g1.top_side_is_true
     specialize @H0 (SignedOptionList.toList a.reverse) (SignedOptionList.toList b ++ SignedOptionList.toList j) d1
       (SignedOptionList.toList bot ++ FreeMonoid.toList e2) j (to_horizontal_edge_plain e2) helper1 helper2 helper3 o op i1
     rw [List.nil_append] at H0
@@ -2338,15 +2337,15 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
       rw [SignedOptionList.toSignedList_append, List.append_right_inj]
       exact remove_over_is_plain
     rw [this] at H0'
-    apply H0' l (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_frontier_is_false).symm _ to_horizontal_edge_length_pos is_true_to_horizontal_edge i2
+    apply H0' l (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_side_is_false).symm _ to_horizontal_edge_length_pos is_true_to_horizontal_edge i2
     rw [SignedOptionList.toSignedList_append, to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
-        g2.top_frontier_is_true, List.append_right_inj, remove_over_is_plain]
+        g2.top_side_is_true, List.append_right_inj, remove_over_is_plain]
     rfl
   · intro e f g i j k l m n o p
     have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g2 := g2_ih.2.2.2
     unfold pg_mid_frontier_reverses_to_grid_extend_neither at H0
-    have H2 := GridData_of_PartialGrid g1
-    unfold GridData_option at H2
+    have H2 := GridData.PartialGridStyle.of_PartialGrid g1
+    unfold GridData.PartialGridStyle  at H2
     have he : f = SignedOptionList.toList (b) := (remove_eq_of_SignedOptionList.toSignedList_eq_to_horizontal_edge_plain o.symm).symm
     rw [he] at p
     have hf : e = SignedOptionList.toList (List.reverse a) ++ SignedOptionList.toList (List.reverse a1)  := by
@@ -2365,9 +2364,9 @@ noncomputable def all_options_vertical_append_one (g1 : PartialGrid a b bot [] u
     specialize @H0 (SignedOptionList.toList a1.reverse) (SignedOptionList.toList bot) e1 i j k
     apply H0 l m _ _ i2
     · rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList]
-      exact g2.left_frontier_is_false
+      exact g2.left_side_is_false
     rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList]
-    exact g2.top_frontier_is_true
+    exact g2.top_side_is_true
 
 noncomputable def all_options_horizontal_append (h : mid.length > 0)
     (g1 : PartialGrid a b bot mid up) (g2 : PartialGrid up b2 bot2 mid2 up2)
@@ -2379,10 +2378,10 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
       pg_mid_frontier_reverses_to_grid_extend_left g2 ×
       pg_mid_frontier_reverses_to_grid_extend_top g2 ×
       pg_mid_frontier_reverses_to_grid_extend_neither g2) :
-    pg_mid_frontier_reverses_to_grid_extend_both (PartialGrid.horizontal_append h g1 g2) ×
-    pg_mid_frontier_reverses_to_grid_extend_left (PartialGrid.horizontal_append h g1 g2) ×
-    pg_mid_frontier_reverses_to_grid_extend_top (PartialGrid.horizontal_append h g1 g2) ×
-    pg_mid_frontier_reverses_to_grid_extend_neither (PartialGrid.horizontal_append h g1 g2) := by
+    pg_mid_frontier_reverses_to_grid_extend_both (PartialGrid.horizontal_append g1 g2 h) ×
+    pg_mid_frontier_reverses_to_grid_extend_left (PartialGrid.horizontal_append g1 g2 h) ×
+    pg_mid_frontier_reverses_to_grid_extend_top (PartialGrid.horizontal_append g1 g2 h) ×
+    pg_mid_frontier_reverses_to_grid_extend_neither (PartialGrid.horizontal_append g1 g2 h) := by
   repeat any_goals constructor
   · intro e f g i j k l m n no o op p
     have e_is : e = SignedOptionList.toList (a.reverse) ++ SignedOptionList.toList (j.reverse) := by
@@ -2400,23 +2399,23 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
     rcases GridData.splittable_vertically p _ _ rfl
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     have H0 : pg_mid_frontier_reverses_to_grid_extend_left g1 := g1_ih.2.1
-    have long := PartialGrid.extend_bottom g1 j no (fun h => by simp [h] at n)
+    have long := PartialGrid.extend_left_side g1 j no (fun h => by simp [h] at n)
     have H := (same_time_c i1 long).2
-      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true).symm
+      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true).symm
       (by rw [SignedOptionList.toSignedList_append, to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList no,
-        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false]; exact
+        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false]; exact
         List.SuffixData.refl)
     have H1 := (same_time_c i1 long).1
       (by rw [SignedOptionList.toSignedList_append, to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList no,
-        List.append_right_inj, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false])
-      (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true]; exact
+        List.append_right_inj, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false])
+      (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true]; exact
         List.PrefixData.refl)
     rcases H with ⟨d2, ⟨hd2⟩⟩
     rcases H1 with ⟨d3, ⟨hd3⟩⟩
     specialize @H0 (SignedOptionList.toList a.reverse ++ SignedOptionList.toList j.reverse) (SignedOptionList.toList b) c1 d1 j d2
       hd2 (by rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList no,
-        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false]) (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
-          g1.top_frontier_is_true).symm n no i1
+        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false]) (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
+          g1.top_side_is_true).symm n no i1
     apply @SemiThue.append_right _ _ _ _ (SignedOptionList.toSignedList (bot2 ++ mid2 ++ up2 ++ k)) at H0
     simp [SignedOptionList.toSignedList_append] at H0
     simp [SignedOptionList.toSignedList_append]
@@ -2438,7 +2437,7 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
     have helper3 : SignedList.is_true (k ++ [(none, true)]) := SignedList.is_true_append op (SignedList.is_true_cons [] SignedList.is_true_nil)
     specialize @H0' c1 (SignedOptionList.toList b2 ++ SignedOptionList.toList k) g e1  (SignedList.to_SignedOptionList d2 ++ [(none, false)]) (k ++ [(none, true)]) helper1
       (by rw [to_horizontal_edge_plain_append, SignedOptionList.toSignedList_append, SignedOptionList.toSignedList, SignedOptionList.toSignedList_nil, List.append_nil,
-        to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_frontier_is_true,
+        to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_side_is_true,
         to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op])
       (by simp) helper2 (by simp) helper3 i2
     have : (SignedOptionList.toSignedList (SignedList.to_SignedOptionList d2 ++ [(none, false)] ++ bot2 ++ mid2 ++ up2 ++ (k ++ [(none, true)]))) =
@@ -2459,23 +2458,23 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
     rcases GridData.splittable_vertically p _ _ rfl
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     have H0 : pg_mid_frontier_reverses_to_grid_extend_left g1 := g1_ih.2.1
-    have long := PartialGrid.extend_bottom g1 j op (fun h => by simp [h] at o)
+    have long := PartialGrid.extend_left_side g1 j op (fun h => by simp [h] at o)
     have H := (same_time_c i1 long).2
-      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true).symm
+      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true).symm
       (by rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList op, SignedOptionList.toSignedList_append,
-      to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false]; exact
+      to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false]; exact
         List.SuffixData.refl)
     have H1 := (same_time_c i1 long).1
-      (by rw [SignedOptionList.toSignedList_append, to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false,
+      (by rw [SignedOptionList.toSignedList_append, to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false,
         to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList op])
-      (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true]; exact
+      (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true]; exact
         List.PrefixData.refl)
     rcases H with ⟨d2, ⟨hd2⟩⟩
     rcases H1 with ⟨d3, ⟨hd3⟩⟩
     specialize @H0 (SignedOptionList.toList a.reverse ++ SignedOptionList.toList j.reverse) (SignedOptionList.toList b) c1 d1 j d2
       hd2 (by rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList op,
-        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false]) (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
-          g1.top_frontier_is_true).symm o op i1
+        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false]) (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
+          g1.top_side_is_true).symm o op i1
     apply @SemiThue.append_right _ _ _ _ (SignedOptionList.toSignedList (bot2 ++ mid2)) at H0
     simp [SignedOptionList.toSignedList_append] at H0
     simp [SignedOptionList.toSignedList_append]
@@ -2494,7 +2493,7 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
         exact H.1
       · exact SignedList.is_false_cons [] SignedList.is_false_nil
     specialize @H0' c1 (SignedOptionList.toList b2) g e1 (SignedList.to_SignedOptionList d2 ++ [(none, false)]) k l helper1
-      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_frontier_is_true).symm (by simp) helper2 i2
+      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_side_is_true).symm (by simp) helper2 i2
     have : (SignedOptionList.toSignedList (SignedList.to_SignedOptionList d2 ++ [(none, false)] ++ bot2 ++ mid2))  = (d2 ++ (SignedOptionList.toSignedList bot2 ++ SignedOptionList.toSignedList mid2)) := by
       simp [SignedOptionList.toSignedList_append, SignedOptionList.toSignedList]
     rw [this] at H0'
@@ -2508,17 +2507,17 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
     rcases GridData.splittable_vertically p _ _ rfl
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     have H := (same_time_c i1 g1).1 (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-      g1.left_frontier_is_false).symm (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true]; exact
+      g1.left_side_is_false).symm (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true]; exact
         List.PrefixData.refl)
     have H2 := (same_time_c i1 g1).2 (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
-      g1.top_frontier_is_true).symm
-        (by rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false]; exact List.SuffixData.refl)
+      g1.top_side_is_true).symm
+        (by rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false]; exact List.SuffixData.refl)
     rcases H with ⟨d2, ⟨hd2⟩⟩
     rcases H2 with ⟨d3, ⟨hd3⟩⟩
     have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g1 := g1_ih.2.2.2
     specialize @H0 (SignedOptionList.toList a.reverse) (SignedOptionList.toList b) c1 d1 d2 d3 hd2 hd3
-      (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false).symm
-      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true).symm i1
+      (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false).symm
+      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true).symm i1
     apply @SemiThue.append_right _ _ _ _ (SignedOptionList.toSignedList (bot2 ++ mid2 ++ up2 ++ j)) at H0
     rw [← SignedOptionList.toSignedList_append, ← List.append_assoc, ← List.append_assoc, ← List.append_assoc] at H0
     apply H0.trans
@@ -2533,7 +2532,7 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
     simp [SignedOptionList.toSignedList_append]
     apply H0' trivial _ trivial _ o op i2
     · change _ = to_horizontal_edge_plain (_ ++ _)
-      rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_frontier_is_true,
+      rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_side_is_true,
         List.append_right_inj, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op]
     apply SignedList.is_false_append
     · apply SignedList.is_false_to_SignedOptionList
@@ -2551,17 +2550,17 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
   rcases GridData.splittable_vertically p _ _ rfl
     with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
   have H := (same_time_c i1 g1).1 (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-    g1.left_frontier_is_false).symm (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true]; exact
+    g1.left_side_is_false).symm (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true]; exact
       List.PrefixData.refl)
   have H2 := (same_time_c i1 g1).2 (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList (by exact
-    g1.top_frontier_is_true)).symm
-    (by rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false]; exact List.SuffixData.refl)
+    g1.top_side_is_true)).symm
+    (by rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false]; exact List.SuffixData.refl)
   rcases H with ⟨d2, ⟨hd2⟩⟩
   rcases H2 with ⟨d3, ⟨hd3⟩⟩
   have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g1 := g1_ih.2.2.2
   specialize @H0 (SignedOptionList.toList a.reverse) (SignedOptionList.toList b) c1 d1 d2 d3 hd2 hd3
-    (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false).symm
-    (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true).symm i1
+    (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false).symm
+    (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true).symm i1
   apply @SemiThue.append_right _ _ _ _ (SignedOptionList.toSignedList (bot2 ++ mid2)) at H0
   rw [← SignedOptionList.toSignedList_append, ← List.append_assoc] at H0
   apply H0.trans
@@ -2571,7 +2570,7 @@ noncomputable def all_options_horizontal_append (h : mid.length > 0)
   have H0' : pg_mid_frontier_reverses_to_grid_extend_left g2 := g2_ih.2.1
   specialize @H0' c1 (SignedOptionList.toList b2) g e1 (SignedList.to_SignedOptionList d3 ++ [(none, false)]) k m
   rw [SignedOptionList.toSignedList_append, SignedOptionList.toSignedList, SignedOptionList.toSignedList_nil, List.append_nil, SignedOptionList.toSignedList_SignedList.to_SignedOptionList,
-    to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_frontier_is_true] at H0'
+    to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g2.top_side_is_true] at H0'
   have d3_false : SignedList.is_false d3 := by
     have H : SignedList.is_false (to_vertical_edge_plain c1) := to_vertical_edge_plain_false
     rw [← hd3] at H
@@ -2614,14 +2613,14 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
     rcases GridData.splittable_horizontally p _ _ rfl
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     have H := (same_time_c i1 g1).1 (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-      g1.left_frontier_is_false).symm (by rw [to_horizontal_edge_plain_append,
-        to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true]; exact
+      g1.left_side_is_false).symm (by rw [to_horizontal_edge_plain_append,
+        to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true]; exact
           List.PrefixData.append_self)
     rcases H with ⟨d2, ⟨hd2⟩⟩
     have H0 : pg_mid_frontier_reverses_to_grid_extend_top g1 := g1_ih.2.2.1
     specialize @H0 (SignedOptionList.toList a.reverse) (SignedOptionList.toList b ++ SignedOptionList.toList k) d1 c1 k d2 hd2
-      (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false).symm
-      (by rw [SignedOptionList.toSignedList_append, to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op]) o op i1
+      (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false).symm
+      (by rw [SignedOptionList.toSignedList_append, to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op]) o op i1
     apply @SemiThue.append_left _ _ _ _ (SignedOptionList.toSignedList (j ++ bot2 ++ mid2 ++ up2)) at H0
     simp [SignedOptionList.toSignedList_append] at H0
     simp [SignedOptionList.toSignedList_append]
@@ -2640,7 +2639,7 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
     have helper1 : SignedOptionList.toSignedList (bot ++ (SignedList.to_SignedOptionList d2 ++ [(none, true)])) = to_horizontal_edge_plain c1 := by
       simp [SignedOptionList.toSignedList, hd2]
     have helper2 : SignedOptionList.toSignedList j ++ SignedOptionList.toSignedList a1 = to_vertical_edge_plain ((SignedOptionList.toList a1.reverse) ++ (SignedOptionList.toList j.reverse)) := by
-      rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_frontier_is_false,
+      rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_side_is_false,
         to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList no]
     have dt : SignedList.is_true (SignedList.to_SignedOptionList d2 ++ [(none, true)]):= by
       apply SignedList.is_true_append
@@ -2652,7 +2651,7 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
       exact SignedList.is_true_cons [] SignedList.is_true_nil
     specialize @H0' ((SignedOptionList.toList a1.reverse) ++ (SignedOptionList.toList j.reverse)) c1 e1 i j
         (SignedList.to_SignedOptionList d2 ++ [(none, true)]) (by rw [to_vertical_edge_plain_append,
-        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_frontier_is_false,
+        to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_side_is_false,
         to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList no]) (by rw [SignedOptionList.toSignedList_append,
         SignedOptionList.toSignedList_SignedList.to_SignedOptionList, SignedOptionList.toSignedList, SignedOptionList.toSignedList_nil, List.append_nil, hd2]) n no
         (by simp [SignedList.to_SignedOptionList_length]) dt i2
@@ -2670,18 +2669,18 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
     rw [e_is, f_is] at p
     rcases GridData.splittable_horizontally p _ _ rfl
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
-    have H := (same_time_c i1 g1).1 (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false).symm
-      (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true]; exact
+    have H := (same_time_c i1 g1).1 (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false).symm
+      (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true]; exact
         List.PrefixData.refl)
     have H2 := (same_time_c i1 g1).2 (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList (by exact
-      g1.top_frontier_is_true)).symm
-      (by rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false]; exact List.SuffixData.refl)
+      g1.top_side_is_true)).symm
+      (by rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false]; exact List.SuffixData.refl)
     rcases H with ⟨d2, ⟨hd2⟩⟩
     rcases H2 with ⟨d3, ⟨hd3⟩⟩
     have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g1 := g1_ih.2.2.2
     specialize @H0 (SignedOptionList.toList a.reverse) (SignedOptionList.toList b) d1 c1 d2 d3 hd2 hd3
-      (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false).symm
-      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true).symm i1
+      (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false).symm
+      (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true).symm i1
     apply @SemiThue.append_left _ _ _ _ (SignedOptionList.toSignedList (j ++ bot2 ++ mid2++up2)) at H0
     rw [← SignedOptionList.toSignedList_append, ← List.append_assoc] at H0
     rw [← List.append_assoc, ← List.append_assoc]
@@ -2699,7 +2698,7 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
       exact SignedList.is_true_to_SignedOptionList (SignedList.is_true_of_append H).2
     have helper2 : SignedOptionList.toSignedList j ++ SignedOptionList.toSignedList a1 = to_vertical_edge_plain (Append.append (SignedOptionList.toList a1.reverse) (SignedOptionList.toList j.reverse)) := by
       change _ = to_vertical_edge_plain (_++_)
-      rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_frontier_is_false,
+      rw [to_vertical_edge_plain_append, to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_side_is_false,
         to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList op]
     specialize H0' helper2 hd2 o op (by simp) helper1 i2
     simp only [List.append_assoc, SignedOptionList.toSignedList_append, SignedOptionList.toSignedList] at H0'
@@ -2719,16 +2718,16 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
     rcases GridData.splittable_horizontally p _ _ rfl
       with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
     have H := (same_time_c i1 g1).1 (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-      g1.left_frontier_is_false).symm
+      g1.left_side_is_false).symm
         (by
-          rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true];
+          rw [to_horizontal_edge_plain_append, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true];
           exact List.PrefixData.append_self)
     rcases H with ⟨d2, ⟨hd2⟩⟩
     have H0 : pg_mid_frontier_reverses_to_grid_extend_top g1 := g1_ih.2.2.1
     specialize @H0 (SignedOptionList.toList a.reverse) (SignedOptionList.toList b ++ SignedOptionList.toList j) d1 c1 j d2 hd2
-      (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false).symm
+      (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false).symm
       (by rw [SignedOptionList.toSignedList_append, to_horizontal_edge_plain_append,
-        to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op]) o op i1
+        to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true, to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList op]) o op i1
     apply @SemiThue.append_left _ _ _ _ (SignedOptionList.toSignedList (mid2 ++ up2)) at H0
     simp [SignedOptionList.toSignedList_append] at H0
     simp [SignedOptionList.toSignedList_append]
@@ -2747,7 +2746,7 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
     have helper1 : SignedOptionList.toSignedList (bot ++ (SignedList.to_SignedOptionList d2 ++ [(none, true)])) = to_horizontal_edge_plain c1 := by
       simp [SignedOptionList.toSignedList, hd2]
     specialize @H0' (SignedOptionList.toList a1.reverse) c1 e1 i (SignedList.to_SignedOptionList d2 ++ [(none, true)]) k l
-        (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_frontier_is_false).symm helper1 (by simp) SignedList.is_true_d2 i2
+        (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_side_is_false).symm helper1 (by simp) SignedList.is_true_d2 i2
     simp [SignedOptionList.toSignedList] at H0'
     rw [List.append_assoc]
     exact H0'
@@ -2762,17 +2761,17 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
   rcases GridData.splittable_horizontally p _ _ rfl
     with ⟨c1, d1, e1, i1, i2, ⟨rm⟩⟩
   have H := (same_time_c i1 g1).1 (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList
-    g1.left_frontier_is_false).symm (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true]; exact
+    g1.left_side_is_false).symm (by rw [to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true]; exact
       List.PrefixData.refl)
   have H2 := (same_time_c i1 g1).2 (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList (by exact
-    g1.top_frontier_is_true)).symm
-    (by rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false]; exact List.SuffixData.refl)
+    g1.top_side_is_true)).symm
+    (by rw [to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false]; exact List.SuffixData.refl)
   rcases H with ⟨d2, ⟨hd2⟩⟩
   rcases H2 with ⟨d3, ⟨hd3⟩⟩
   have H0 : pg_mid_frontier_reverses_to_grid_extend_neither g1 := g1_ih.2.2.2
   specialize @H0 (SignedOptionList.toList a.reverse) (SignedOptionList.toList b) d1 c1 d2 d3 hd2 hd3
-    (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_frontier_is_false).symm
-    (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_frontier_is_true).symm i1
+    (to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g1.left_side_is_false).symm
+    (to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList g1.top_side_is_true).symm i1
   apply @SemiThue.append_left _ _ _ _ (SignedOptionList.toSignedList (mid2++up2)) at H0
   rw [← SignedOptionList.toSignedList_append, ← List.append_assoc] at H0
   apply H0.trans
@@ -2782,7 +2781,7 @@ noncomputable def all_options_vertical_append (g1 : PartialGrid a b bot mid up)
   have H0' : pg_mid_frontier_reverses_to_grid_extend_top g2 := g2_ih.2.2.1
   specialize @H0' (SignedOptionList.toList a1.reverse) c1 e1 i (SignedList.to_SignedOptionList d2 ++ [(none, true)]) j l
   rw [SignedOptionList.toSignedList_append, SignedOptionList.toSignedList_append, SignedOptionList.toSignedList, SignedOptionList.toSignedList_nil, List.append_nil, SignedOptionList.toSignedList_SignedList.to_SignedOptionList,
-    to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_frontier_is_false] at H0'
+    to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList g2.left_side_is_false] at H0'
   have helper1 : SignedList.is_true (SignedList.to_SignedOptionList d2 ++ [(none, true)]) := by
     apply SignedList.is_true_append
     · have H : SignedList.is_true (to_horizontal_edge_plain c1) := to_horizontal_edge_plain_true
@@ -3148,7 +3147,7 @@ noncomputable def all_options_frontier_reverse (h : PartialGrid a1 b1 c1 d1 e1) 
     simp [n, o]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     exact all_options_horizontal_append_one g1 g2 g1_ih g2_ih
-  | horizontal_append h g1 g2 g1_ih g2_ih =>
+  | horizontal_append g1 g2 h g1_ih g2_ih =>
     exact all_options_horizontal_append h g1 g2 g1_ih g2_ih
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     exact all_options_vertical_append_one g1 g2 g1_ih g2_ih

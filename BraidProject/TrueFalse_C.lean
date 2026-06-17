@@ -1,6 +1,6 @@
 import BraidProject.List_C
-import BraidProject.SignedList_C
 import BraidProject.SignedOptionList
+import Mathlib.GroupTheory.FreeGroup.Basic
 
 namespace Braid
 
@@ -73,6 +73,19 @@ theorem to_horizontal_edge_options (c) : (∃ a, to_horizontal_edge c = [(a, tru
   induction c with
   | nil => simp
   | cons head tail ih => cases tail; all_goals simp
+
+
+theorem FreeGroup.invRev_to_horizontal_edge : FreeGroup.invRev (to_horizontal_edge a) = to_vertical_edge a := by
+  cases a with
+  | nil => simp [to_horizontal_edge, to_vertical_edge, FreeGroup.invRev]
+  | cons head tail =>
+    simp [FreeGroup.invRev, to_horizontal_edge,to_vertical_edge]
+
+theorem FreeGroup.invRev_to_vertical_edge : FreeGroup.invRev (to_vertical_edge a) = to_horizontal_edge a := by
+  cases a with
+  | nil => simp [to_horizontal_edge, to_vertical_edge, FreeGroup.invRev]
+  | cons head tail =>
+    simp [FreeGroup.invRev, to_vertical_edge, to_horizontal_edge]
 
 open SignedOptionList
 
