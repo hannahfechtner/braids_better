@@ -73,14 +73,14 @@ theorem same_time (h : GridData i j k l) (h1 : PartialGrid a b c mid d) :
       rcases List.IsPrefix.of_singleton b_is with h3 | h4
       · have H := generator_empty h1 a_is
         aesop
-      have H := partial_grid_rm_adjacent_helper h1 (toList_invRev_eq_singleton_iff.mp a_is) h4 h
+      have H := generator_generator_close h1 (toList_invRev_eq_singleton_iff.mp a_is) h4 h
       change _ <+: [k, i]
       aesop
     intro b_is a_is
     rcases List.IsPrefix.of_singleton a_is with h3 | h4
     · have H := empty_generator h1 h3 b_is
       aesop
-    have H := partial_grid_rm_adjacent_helper h1 (toList_invRev_eq_singleton_iff.mp h4) b_is h
+    have H := generator_generator_close h1 (toList_invRev_eq_singleton_iff.mp h4) b_is h
     have H : toList d = [] ∨ toList d = [i] ∨ toList d = [k, i] := by aesop
     change _ <+: [i, k]
     aesop

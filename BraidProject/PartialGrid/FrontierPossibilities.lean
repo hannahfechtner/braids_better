@@ -635,17 +635,19 @@ theorem generator_generator_same (h : PartialGrid a b c d e)
   (h1 : SignedOptionList.toList (FreeGroup.invRev a) = [i])
   (h2 : SignedOptionList.toList b = [i]) :
   (SignedOptionList.toList c = [] ∧ SignedOptionList.toList d = [] ∧
-    SignedOptionList.toList (FreeGroup.invRev e) = []) ∨
+    SignedOptionList.toList (FreeGroup.invRev e) = [] ∧ h.length = 1) ∨
   (SignedOptionList.toList c = [] ∧
     SignedOptionList.toList d = [i, i] ∧
-    SignedOptionList.toList (FreeGroup.invRev e) = []) := by
+    SignedOptionList.toList (FreeGroup.invRev e) = [] ∧ h.length = 0) := by
   induction h with
   | single_cell h =>
     cases h
-    all_goals simp_all [SignedOptionList.toList]
-  | empty a b ha ha1 hb hb => simp_all
+    all_goals simp_all [SignedOptionList.toList, PartialGrid.length]
+    all_goals grind [Nat.dist]
+  | empty a b ha ha1 hb hb => simp_all [PartialGrid.length]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
+    simp only [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, _⟩ | ⟨k_is, n_is⟩
     · have H := generator_empty g1 h1 (toList_invRev_eq_nil_iff.mpr k_is)
@@ -653,11 +655,12 @@ theorem generator_generator_same (h : PartialGrid a b c d e)
     simp_all only [SignedOptionList.toList_nil, true_and, List.nil_eq, reduceCtorEq,
       false_and, and_false, or_false, forall_const, List.ne_cons_self, IsEmpty.forall_iff,
       List.append_nil, SignedOptionList.toList_append, List.nil_append]
-    have H := empty_empty g2 g1_ih.2 n_is
+    have H := empty_empty g2 g1_ih.2.1 n_is
     simp_all
   | horizontal_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
     rw [SignedOptionList.toList_append] at h2
+    simp only [PartialGrid.length]
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
     · rcases generator_empty g1 h1 (toList_invRev_eq_nil_iff.mpr k_is) with h3 | h4
       · have H2 := empty_generator g2 (toList_invRev_eq_nil_iff.mpr h3.2.2) o_is
@@ -668,6 +671,7 @@ theorem generator_generator_same (h : PartialGrid a b c d e)
     aesop
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
+    simp only [PartialGrid.length]
     rw [FreeGroup.invRev_append, SignedOptionList.toList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨j_is, n_is⟩ | ⟨j_is, n_is⟩
     · have H := empty_generator g1 j_is h2
@@ -678,6 +682,7 @@ theorem generator_generator_same (h : PartialGrid a b c d e)
     aesop
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
+    simp only [PartialGrid.length]
     rw [FreeGroup.invRev_append, SignedOptionList.toList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨j_is, o_is⟩ | ⟨j_is, o_is⟩
     · have H := empty_generator g1 j_is h2
@@ -696,22 +701,24 @@ theorem generator_generator_apart (h : PartialGrid a b c d e)
     (h1 : SignedOptionList.toList a = [i])
     (h2 : SignedOptionList.toList b = [j]) (hij : i.dist j > 1) :
     (SignedOptionList.toList c = [] ∧ SignedOptionList.toList d = [i, j] ∧
-      SignedOptionList.toList e = []) ∨
+      SignedOptionList.toList e = [] ∧ h.length = 0) ∨
     (SignedOptionList.toList c = [] ∧ SignedOptionList.toList d = [j, i] ∧
-      SignedOptionList.toList e = [])  ∨
+      SignedOptionList.toList e = [] ∧ h.length = 1)  ∨
     (SignedOptionList.toList c = [] ∧ SignedOptionList.toList d = [j] ∧
-      SignedOptionList.toList e = [i]) ∨
+      SignedOptionList.toList e = [i] ∧ h.length = 1) ∨
     (SignedOptionList.toList c = [j] ∧ SignedOptionList.toList d = [i] ∧
-      SignedOptionList.toList e = []) ∨
+      SignedOptionList.toList e = [] ∧ h.length = 1) ∨
     (SignedOptionList.toList c = [j] ∧ SignedOptionList.toList d = [] ∧
-      SignedOptionList.toList e = [i]) := by
+      SignedOptionList.toList e = [i] ∧ h.length = 1) := by
   induction h with
   | single_cell h =>
     cases h
-    all_goals simp_all [SignedOptionList.toList]
-  | empty a b ha ha1 hb hb => simp_all
+    all_goals simp_all [SignedOptionList.toList, PartialGrid.length]
+    all_goals grind [Nat.dist]
+  | empty a b ha ha1 hb hb => simp_all [PartialGrid.length]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
+    rw [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
     · have H := generator_empty g1 (toList_invRev_eq_singleton_iff.mpr h1)
@@ -721,11 +728,12 @@ theorem generator_generator_apart (h : PartialGrid a b c d e)
       false_and, and_false, List.ne_cons_self, true_and, false_or, forall_const, IsEmpty.forall_iff,
       List.append_nil, SignedOptionList.toList_append, List.cons_append,
       List.nil_append, List.cons.injEq]
-    have H := generator_empty g2 (toList_invRev_eq_singleton_iff.mpr g1_ih.2)
+    have H := generator_empty g2 (toList_invRev_eq_singleton_iff.mpr g1_ih.2.1)
       (toList_invRev_eq_nil_iff.mpr n_is)
     simp_all
   | horizontal_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
+    rw [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
     · have H := generator_empty g1 (toList_invRev_eq_singleton_iff.mpr h1)
@@ -747,6 +755,7 @@ theorem generator_generator_apart (h : PartialGrid a b c d e)
     aesop
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
+    rw [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
     · specialize g1_ih j_is h2
@@ -761,6 +770,7 @@ theorem generator_generator_apart (h : PartialGrid a b c d e)
     simp_all
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
+    rw [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨o_is, j_is⟩ | ⟨o_is, j_is⟩
     · specialize g1_ih j_is h2
@@ -780,46 +790,48 @@ theorem generator_generator_apart (h : PartialGrid a b c d e)
       (toList_invRev_eq_nil_iff.mpr h4.1)
     aesop
 
-theorem partial_grid_rm_adjacent_helper
+theorem generator_generator_close
   (h : PartialGrid a b c d e) (h1 : SignedOptionList.toList a = [i])
   (h2 : SignedOptionList.toList b = [j]) (hij : i.dist j = 1) :
   (SignedOptionList.toList c = [] ∧
     SignedOptionList.toList d = [i, j] ∧
-    SignedOptionList.toList e = []) ∨
+    SignedOptionList.toList e = [] ∧ h.length = 0) ∨
   (SignedOptionList.toList c = [] ∧
     SignedOptionList.toList d = [j, i, j, i] ∧
-    SignedOptionList.toList e = [])  ∨
+    SignedOptionList.toList e = [] ∧ h.length = 1)  ∨
   (SignedOptionList.toList c = [] ∧
     SignedOptionList.toList d = [j, i, j] ∧
-    SignedOptionList.toList e = [i]) ∨
+    SignedOptionList.toList e = [i] ∧ h.length = 1) ∨
   (SignedOptionList.toList c = [] ∧
     SignedOptionList.toList d = [j, i] ∧
-    SignedOptionList.toList e = [j, i]) ∨
+    SignedOptionList.toList e = [j, i] ∧ h.length = 1) ∨
   (SignedOptionList.toList c = [j] ∧
     SignedOptionList.toList d = [i, j, i] ∧
-    SignedOptionList.toList e = []) ∨
+    SignedOptionList.toList e = [] ∧ h.length = 1) ∨
   (SignedOptionList.toList c = [j] ∧
     SignedOptionList.toList d = [i, j] ∧
-    SignedOptionList.toList e = [i]) ∨
+    SignedOptionList.toList e = [i] ∧ h.length = 1) ∨
   (SignedOptionList.toList c = [j] ∧
     SignedOptionList.toList d = [i] ∧
-    SignedOptionList.toList e = [j, i]) ∨
+    SignedOptionList.toList e = [j, i] ∧ h.length = 1) ∨
   (SignedOptionList.toList c = [j, i] ∧
     SignedOptionList.toList d = [j, i] ∧
-    SignedOptionList.toList e = []) ∨
+    SignedOptionList.toList e = [] ∧ h.length = 1) ∨
   (SignedOptionList.toList c = [j, i] ∧
     SignedOptionList.toList d = [j] ∧
-    SignedOptionList.toList e = [i]) ∨
+    SignedOptionList.toList e = [i] ∧ h.length = 1) ∨
   (SignedOptionList.toList c = [j, i] ∧
     SignedOptionList.toList d = [] ∧
-    SignedOptionList.toList e = [j, i]) := by
+    SignedOptionList.toList e = [j, i] ∧ h.length = 1) := by
   induction h with
   | single_cell h =>
     cases h
-    all_goals simp_all [SignedOptionList.toList]
-  | empty a b ha ha1 hb hb => simp_all
+    all_goals simp_all [SignedOptionList.toList, PartialGrid.length]
+    all_goals grind [Nat.dist]
+  | empty a b ha ha1 hb hb => simp_all [PartialGrid.length]
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
+    rw [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, n_is⟩ | ⟨k_is, n_is⟩
     · have H := generator_empty g1 (toList_invRev_eq_singleton_iff.mpr h1)
@@ -829,13 +841,14 @@ theorem partial_grid_rm_adjacent_helper
       and_false, List.ne_cons_self, true_and, false_or, forall_const, List.cons_ne_self,
       IsEmpty.forall_iff, List.append_nil, SignedOptionList.toList_append, List.cons_append,
       List.nil_append, List.cons.injEq]
-    have H := generator_pair_empty g2 (toList_invRev_eq_pair_iff.mpr g1_ih.2) n_is
+    have H := generator_pair_empty g2 (toList_invRev_eq_pair_iff.mpr g1_ih.2.1) n_is
     rcases H with h1 | h2 | h3
     · aesop
     · simp_all
     aesop
   | horizontal_append g1 g2 h g1_ih g2_ih =>
     rename_i j k l m n o p q r
+    rw [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
     · have H := generator_empty g1 (toList_invRev_eq_singleton_iff.mpr h1)
@@ -860,6 +873,7 @@ theorem partial_grid_rm_adjacent_helper
     aesop
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i j k l m n o p q
+    rw [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨n_is, j_is⟩ | ⟨n_is, j_is⟩
     · specialize g1_ih j_is h2
@@ -873,6 +887,7 @@ theorem partial_grid_rm_adjacent_helper
     simp_all
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i k l m n o p q r s
+    rw [PartialGrid.length]
     rw [SignedOptionList.toList_append] at h1
     rcases List.append_eq_singleton_iff.mp h1 with ⟨p_is, k_is⟩ | ⟨p_is, k_is⟩
     · specialize g1_ih k_is h2
