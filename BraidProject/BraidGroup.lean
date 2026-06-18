@@ -1,4 +1,4 @@
-import Mathlib.Algebra.Group.SubGroup.ZPowers.Basic
+import Mathlib.Algebra.Group.Subgroup.ZPowers.Basic
 import Mathlib.Data.Int.ConditionallyCompleteOrder
 import Mathlib.Data.Nat.Dist
 import Mathlib.GroupTheory.PresentedGroup

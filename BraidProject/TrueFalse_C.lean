@@ -74,6 +74,85 @@ theorem to_horizontal_edge_options (c) : (∃ a, to_horizontal_edge c = [(a, tru
   | nil => simp
   | cons head tail ih => cases tail; all_goals simp
 
+theorem to_vertical_edge_inj (h : to_vertical_edge a = to_vertical_edge b) : a = b := by
+  induction a generalizing b with
+  | nil =>
+    cases b with
+    | nil => rfl
+    | cons head tail =>
+      simp only [to_vertical_edge, List.reverse_cons, List.map_append, List.map_reverse,
+        List.map_cons, List.map_nil] at h
+      have H2 : List.getLast? [(none, false)] =
+          List.getLast? ((List.map (fun x ↦ (some x, false)) tail).reverse ++ [
+          (some head, false)]) := by
+        rw [h]
+      simp at H2
+  | cons head tail ih =>
+    cases b with
+    | nil =>
+      simp only [to_vertical_edge, List.reverse_cons, List.map_append, List.map_reverse,
+        List.map_cons, List.map_nil] at h
+      have H2 : List.getLast? [(none, false)] =
+        List.getLast? ((List.map (fun x ↦ (some x, false)) tail).reverse ++ [(some head, false)]) := by
+        rw [h]
+      simp at H2
+    | cons headb tailb =>
+      simp only [to_vertical_edge, List.reverse_cons, List.map_append, List.map_reverse,
+        List.map_cons, List.map_nil, List.append_singleton_inj, List.reverse_inj, Prod.mk.injEq,
+        Option.some.injEq, and_true] at h
+      have H2 : List.getLast? ((List.map (fun x ↦ (some x, false)) tail).reverse ++ [(some head, false)]) =
+        List.getLast? ((List.map (fun x ↦ (some x, false)) tailb).reverse ++ [(some headb, false)]) := by
+        congr 1
+        simp only [List.append_singleton_inj, List.reverse_inj, Prod.mk.injEq, Option.some.injEq,
+          and_true]
+        exact h
+      simp only [List.getLast?_append, List.getLast?_singleton, List.getLast?_reverse,
+        List.head?_map, Option.some_or, Option.some.injEq, Prod.mk.injEq, and_true] at H2
+      simp only [H2, List.cons.injEq, true_and]
+      apply ih
+      rw [← H2] at h
+      cases tail with
+      | nil =>
+        cases tailb with
+        | nil => rfl
+        | cons t1 t2 => simp at h
+      | cons t1 t2 =>
+        cases tailb with
+        | nil => simp at h
+        | cons t3 t4 =>
+          simp only [to_vertical_edge]
+          simp only [List.map_cons, List.cons.injEq, Prod.mk.injEq, Option.some.injEq,
+            and_true] at h
+          simp [h]
+
+theorem to_horizontal_edge_inj (h : to_horizontal_edge a = to_horizontal_edge b) : a = b := by
+  induction a generalizing b with
+  | nil =>
+    cases b with
+    | nil => rfl
+    | cons head tail => simp [to_horizontal_edge] at h
+  | cons head tail ih =>
+    cases b with
+    | nil => simp [to_horizontal_edge] at h
+    | cons headb tailb =>
+      simp only [to_horizontal_edge, List.map_cons, List.cons.injEq, Prod.mk.injEq,
+        Option.some.injEq, and_true] at h
+      simp only [h, List.cons.injEq, true_and]
+      apply ih
+      cases tail with
+      | nil =>
+        cases tailb with
+        | nil => rfl
+        | cons t1 t2 => simp at h
+      | cons t3 t4 =>
+        cases tailb with
+        | nil => simp at h
+        | cons t1 t2 =>
+          simp only [to_horizontal_edge, List.map_cons, List.cons.injEq, Prod.mk.injEq,
+            Option.some.injEq, and_true]
+          simp only [List.map_cons, List.cons.injEq, Prod.mk.injEq, Option.some.injEq,
+            and_true] at h
+          exact h.2
 
 theorem FreeGroup.invRev_to_horizontal_edge : FreeGroup.invRev (to_horizontal_edge a) = to_vertical_edge a := by
   cases a with

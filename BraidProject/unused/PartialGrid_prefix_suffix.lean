@@ -9,9 +9,28 @@ namespace Braid
 
 open List
 
+--converts a grid edge to a partial grid edge, except empty grid edges remain empty
 def to_vertical_edge_plain (a : List α) : List (α × Bool) := List.map (fun x => (x, false)) a.reverse
 
 def to_horizontal_edge_plain {α : Type} (a : List α) : List (α × Bool) := List.map (fun x => (x, true)) a
+
+theorem to_horizontal_edge_plain_prod (a b : FreeMonoid ℕ) : to_horizontal_edge_plain (a * b) = to_horizontal_edge_plain a ++ to_horizontal_edge_plain b := by
+  have H : to_horizontal_edge_plain a ++ to_horizontal_edge_plain b = to_horizontal_edge_plain (a.toList ++ b.toList) := by
+    simp [to_horizontal_edge_plain]
+    convert
+    rfl
+  rw [H]
+  convert
+  rfl
+
+theorem to_vertical_edge_plain_prod (a b : FreeMonoid ℕ) : to_vertical_edge_plain (a * b) = to_vertical_edge_plain b ++ to_vertical_edge_plain a := by
+  have H : to_vertical_edge_plain b ++ to_vertical_edge_plain a = to_vertical_edge_plain (a.toList ++ b.toList) := by
+    simp [to_vertical_edge_plain]
+    convert
+    rfl
+  rw [H]
+  convert
+  rfl
 
 theorem remove_up_is_plain : SignedOptionList.toSignedList (to_vertical_edge i) = to_vertical_edge_plain i := by
   induction i with
@@ -82,9 +101,9 @@ theorem SignedOptionList.toSignedList_eq_to_horizontal_edge_plain_of_eq_toList (
       simp [SignedOptionList.toSignedList]
       simp [toList] at h
       match j with
-      | [] => simp [to_horizontal_edge_plain] at h
+      | [] => simp at h
       | j1 :: j2 =>
-        simp [to_horizontal_edge_plain] at h
+        simp at h
         unfold to_horizontal_edge_plain at ih
         specialize ih h.2
         rw [ih]
@@ -108,7 +127,8 @@ theorem to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList(h : is_
       have H := (is_true_of_cons h).1 (some a, false) (by simp)
       simp at H
 
-theorem to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList (h : is_false a) : to_vertical_edge_plain (toList a.reverse) = SignedOptionList.toSignedList a := by
+theorem to_vertical_edge_plain_toList_rev_eq_SignedOptionList.toSignedList (h : is_false a) :
+    to_vertical_edge_plain (toList a.reverse) = SignedOptionList.toSignedList a := by
   induction a with
   | nil => rfl
   | cons head tail ih =>
@@ -128,10 +148,6 @@ theorem to_vertical_edge_plain_inj (h : to_vertical_edge_plain a = to_vertical_e
 theorem to_horizontal_edge_plain_inj (h : to_horizontal_edge_plain a = to_horizontal_edge_plain b) : a = b := by
   simp [to_horizontal_edge_plain] at h
   exact (List.map_inj_right (by simp)).mp h
-
-open Braid
-
-
 
 theorem to_vertical_edge_len : (to_vertical_edge a).length > 0 := by
   match a with
@@ -196,6 +212,9 @@ theorem SignedOptionList.toSignedList_eq_to_horizontal_edge_plain_prod {n : List
       have b2_len : b2.length > 0 := by omega
       aesop
 
+
+
+
 theorem List.suffix_of_append {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨ ∃ a1, a1.length > 0 ∧
      a = a1 ++ c ∧ a1 <:+ b := by
   rcases h with ⟨r, hr⟩
@@ -237,6 +256,8 @@ theorem List.prefix_of_append_mine {a b c : List α} (h : a <+: b ++ c) : a <+: 
     constructor
     · exact s1
     simp [s2]
+
+
 
 theorem helper_bajillion {q m2 : List α}
     (ha : SignedOptionList.toSignedList a <:+ to_vertical_edge_plain q ++ to_vertical_edge_plain (m1 :: m2)) :
@@ -470,23 +491,7 @@ theorem unique_g_pg_c_ones_okay
     apply to_horizontal_edge_plain_toList_eq_SignedOptionList.toSignedList
     exact g1.bottom_frontier_is_true
 
-theorem to_horizontal_edge_plain_prod (a b : FreeMonoid ℕ) : to_horizontal_edge_plain (a * b) = to_horizontal_edge_plain a ++ to_horizontal_edge_plain b := by
-  have H : to_horizontal_edge_plain a ++ to_horizontal_edge_plain b = to_horizontal_edge_plain (a.toList ++ b.toList) := by
-    simp [to_horizontal_edge_plain]
-    convert
-    rfl
-  rw [H]
-  convert
-  rfl
 
-theorem to_vertical_edge_plain_prod (a b : FreeMonoid ℕ) : to_vertical_edge_plain (a * b) = to_vertical_edge_plain b ++ to_vertical_edge_plain a := by
-  have H : to_vertical_edge_plain b ++ to_vertical_edge_plain a = to_vertical_edge_plain (a.toList ++ b.toList) := by
-    simp [to_vertical_edge_plain]
-    convert
-    rfl
-  rw [H]
-  convert
-  rfl
 
 open PartialGrid FrontierPossibilitiesEpsilonRemoved
 theorem same_time (h : GridData i j l k) (h1 : PartialGrid a b mid d2 e2)

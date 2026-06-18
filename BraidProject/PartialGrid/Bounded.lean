@@ -1,90 +1,160 @@
-import BraidProject.PartialGrid_prefix_suffix
+import BraidProject.PartialGrid.ToGrid
+import BraidProject.PartialGrid.FrontierPossibilities
 
 namespace Braid
 
-theorem to_vertical_edge_inj (h : to_vertical_edge a = to_vertical_edge b) : a = b := by
-  induction a generalizing b with
-  | nil =>
-    cases b with
-    | nil => rfl
-    | cons head tail =>
-      simp [to_vertical_edge] at h
-      have H2 : List.getLast? [(none, false)] =
-        List.getLast? ((List.map (fun x ↦ (some x, false)) tail).reverse ++ [(some head, false)]) := by
-        rw [h]
-      simp at H2
-  | cons head tail ih =>
-    cases b with
-    | nil =>
-      simp [to_vertical_edge] at h
-      have H2 : List.getLast? [(none, false)] =
-        List.getLast? ((List.map (fun x ↦ (some x, false)) tail).reverse ++ [(some head, false)]) := by
-        rw [h]
-      simp at H2
-    | cons headb tailb =>
-      simp [to_vertical_edge] at h
-      have H2 : List.getLast? ((List.map (fun x ↦ (some x, false)) tail).reverse ++ [(some head, false)]) =
-        List.getLast? ((List.map (fun x ↦ (some x, false)) tailb).reverse ++ [(some headb, false)]) := by
-        congr 1
-        simp only [List.append_singleton_inj, List.reverse_inj, Prod.mk.injEq, Option.some.injEq,
-          and_true]
-        exact h
-      simp at H2
-      simp [H2]
-      apply ih
-      rw [← H2] at h
-      simp at h
-      cases tail with
-      | nil =>
-        cases tailb with
-        | nil => rfl
-        | cons t1 t2 => simp at h
-      | cons t1 t2 =>
-        cases tailb with
-        | nil =>
-          simp at h
-        | cons t3 t4 =>
-          simp only [to_vertical_edge]
-          simp at h
-          simp [h]
+open SignedOptionList
+theorem pg_sm_g_eq1 (h : PartialGrid a b c d e) (h1 : GridData a1 b1 g f)
+    : toList (FreeGroup.invRev a) = a1 → toList b = b1 →
+    h.length ≤ GridData.length h1 := by
+  induction h1 generalizing a b c d e with
+  | empty =>
+    intro ha hb
+    simp [empty_rm_pg_len h ha hb]
+  | top_bottom i =>
+    intro ha hb
+    simp [partial_grid_rm_top_bottom_length h ha hb]
+  | sides i =>
+    intro ha hb
+    simp [partial_grid_rm_side_length h ha hb]
+  | top_left i =>
+    intro ha hb
+    simp [partial_grid_rm_top_left_length h ha hb, GridData.length]
+  | adjacent i k hd =>
+    intro ha hb
+    simp [partial_grid_rm_adjacent_length h ha hb, GridData.length]
+  | separated i j hd =>
+    intro ha hb
+    simp [GridData.length]
+    simp [partial_grid_rm_separated_length h ha hb hd]
+  | vertical h1 h2 h1_ih h2_ih =>
+    rename_i i j k l m n o
+    intro a_is b_is
+    rcases SignedOptionList.toSignedList_eq_to_vertical_edge_plain_prod a_is with one | two | splits
+    · have nonsense : to_vertical_edge_plain i = [] := by
+        have H : to_vertical_edge_plain ([] : List ℕ) = [] :=  rfl
+        convert H
+      rw [to_vertical_edge_plain_prod, nonsense, List.append_nil] at a_is
+      specialize h2_ih h a_is
+      have i_one : i = 1 := by
+        convert one
+      have H := DeterminativeSpine.one_word h1 i_one
+      have H : GridData.length h1 = 0 := by exact DeterminativeSpineLength.one_word h1 one
+      simp [H, GridData.length]
+      apply h2_ih
+      convert b_is
+      aesop
+    · have nonsense : to_vertical_edge_plain m = [] := by
+        have H : to_vertical_edge_plain ([] : List ℕ) = [] :=  rfl
+        convert H
+      rw [to_vertical_edge_plain_prod, nonsense, List.nil_append] at a_is
+      specialize h1_ih h a_is
+      have i_one : m = 1 := by
+        convert two
+      have H := DeterminativeSpine.one_word h2 i_one
+      have H : GridData.length h2 = 0 := by exact DeterminativeSpineLength.one_word h2 two
+      simp [H, GridData.length]
+      apply h1_ih
+      exact b_is
+    rcases splits with ⟨a1, a2, a1_len, a2_len, H, a1m, a2i⟩
+    rcases splittable_horizontally h _ _ H a2_len a1_len
+      with ⟨mid, d1, e1, d2, e2, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+    · rw [hl]
+      have hi1 := h1_ih i1 a2i b_is
+      have hi2 : i2.length ≤ GridData.length h2 := by
+        have H : SignedOptionList.toSignedList mid <+: to_horizontal_edge_plain k :=
+          (same_time h1 i1).1 a2i (by rw [b_is])
+        rcases H with ⟨r, hr⟩
+        have rt : is_true r := by
+          have H : is_true (to_horizontal_edge_plain k) := to_horizontal_edge_plain_true
+          rw [← hr] at H
+          exact (is_true_of_append H).2
+        match r_is : r with
+        | [] =>
+          rw [List.append_nil] at hr
+          exact h2_ih i2 (a1m) hr
+        | r1 :: r2 =>
+          have i3 := PartialGrid.extend_top_side_w_length i2 (List.map (fun x => (some x.1, x.2)) (r1 :: r2))
+            (is_true_map_to_some rt) (by simp)
+          specialize h2_ih i3.1 (a1m)
+          rw [← hr] at h2_ih
+          simp [SignedOptionList.toSignedList] at h2_ih
+          rw [i3.2.1]
+          exact h2_ih SignedOptionList.toSignedList_add_some_is_self
+      simp [GridData.length]
+      omega
+    rcases baaad with ⟨ db, c1, drest, i1, ⟨long⟩, ⟨db_is⟩, ⟨c_nil⟩, ⟨len⟩⟩
+    specialize h1_ih i1 a2i b_is
+    simp [GridData.length]
+    omega
+  | horizontal h1 h2 h1_ih h2_ih =>
+    intro a_is b_is
+    rename_i i j k l m n o
+    rcases SignedOptionList.toSignedList_eq_to_horizontal_edge_plain_prod b_is with one | two | splits
+    · have nonsense : to_horizontal_edge_plain j = [] := by
+        have H : to_horizontal_edge_plain ([] : List ℕ) = [] :=  rfl
+        convert H
+      rw [to_horizontal_edge_plain_prod, nonsense, List.nil_append] at b_is
+      have i_one : j = 1 := by
+        convert one
+      have H := DeterminativeSpine.word_one h1 i_one
+      rw [← H.2] at a_is
+      specialize h2_ih h a_is b_is
+      have H : GridData.length h1 = 0 := DeterminativeSpineLength.word_one h1 one
+      simp [H, GridData.length, h2_ih]
+    · have nonsense : to_horizontal_edge_plain m = [] := by
+        have H : to_horizontal_edge_plain ([] : List ℕ) = [] :=  rfl
+        convert H
+      rw [to_horizontal_edge_plain_prod, nonsense, List.append_nil] at b_is
+      have i_one : m = 1 := by
+        convert two
+      have H := DeterminativeSpine.word_one h2 i_one
+      specialize h1_ih h a_is b_is
+      have H : GridData.length h2 = 0 := DeterminativeSpineLength.word_one h2 two
+      simp [H, GridData.length, h1_ih]
+    rcases splits with ⟨b1, b2, b1_len, b2_len, bb1b2, b1j, b2m⟩
+    rcases splittable_vertically h _ _ bb1b2 b1_len b2_len
+      with ⟨mid, d1, e1, d2, e2, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
+    · rw [hl, GridData.length]
+      have hone := h1_ih i1 a_is b1j
+      have two : i2.length ≤ GridData.length h2 := by
+        have H2 := (same_time h1 i1).2 (by rw [b1j]; rfl) (by rw [a_is])
+        rcases H2 with ⟨r, hr⟩
+        match r with
+        | [] =>
+          rw [List.nil_append] at hr
+          exact h2_ih i2 hr b2m
+        | r1 :: r2 =>
+          have rf : is_false (r1 :: r2) := by
+            have H : is_false (to_vertical_edge_plain l) := to_vertical_edge_plain_false
+            rw [← hr] at H
+            exact (is_false_of_append H).1
+          have H := PartialGrid.extend_left_side_w_length i2
+            (List.map (fun x => (some x.1, x.2)) (r1 :: r2)) (is_false_map_to_some rf) (by simp)
+          rcases H with ⟨h3, ⟨len⟩⟩
+          rw [len]
+          have hk : SignedOptionList.toSignedList (List.map (fun x ↦ (some x.1, x.2)) (r1 :: r2) ++ mid) = to_vertical_edge_plain l := by
+            rw [SignedOptionList.toSignedList_append]
+            rw [← hr]
+            apply (List.append_left_inj (SignedOptionList.toSignedList mid)).mpr
+            simp [SignedOptionList.toSignedList]
+            exact SignedOptionList.toSignedList_add_some_is_self
+          exact h2_ih h3 hk b2m
+      omega
+    rcases baaad with ⟨db, drest, i1, ⟨len⟩, ⟨e_nil⟩, ⟨d_is⟩, ⟨b2_is⟩⟩
+    specialize h1_ih i1 a_is b1j
+    simp [GridData.length]
+    omega
 
-theorem to_horizontal_edge_inj (h : to_horizontal_edge a = to_horizontal_edge b) : a = b := by
-  induction a generalizing b with
-  | nil =>
-    cases b with
-    | nil => rfl
-    | cons head tail =>
-      simp [to_horizontal_edge] at h
-  | cons head tail ih =>
-    cases b with
-    | nil =>
-      simp [to_horizontal_edge] at h
-    | cons headb tailb =>
-      simp [to_horizontal_edge] at h
-      simp [h]
-      apply ih
-      cases tail with
-      | nil =>
-        cases tailb with
-        | nil => rfl
-        | cons t1 t2 => simp at h
-      | cons t3 t4 =>
-        cases tailb with
-        | nil => simp at h
-        | cons t1 t2 =>
-          simp [to_horizontal_edge]
-          simp at h
-          exact h.2
-
-theorem split_it_helper (h : to_horizontal_edge [i] ++ ra = to_horizontal_edge a1) : ∃ rra, a1 = FreeMonoid.of i * rra := by
-  induction a1  with
-  | nil => simp at h
-  | cons head tail ih =>
-    simp only [to_horizontal_edge, List.map_cons, List.map_nil, List.cons_append, List.nil_append,
-      List.cons.injEq, Prod.mk.injEq, Option.some.injEq, and_true] at h
-    use tail
-    rw [h.1]
-    rfl
+-- theorem split_it_helper (h : to_horizontal_edge [i] ++ ra = to_horizontal_edge a1) : ∃ rra, a1 = FreeMonoid.of i * rra := by
+--   induction a1  with
+--   | nil => simp at h
+--   | cons head tail ih =>
+--     simp only [to_horizontal_edge, List.map_cons, List.map_nil, List.cons_append, List.nil_append,
+--       List.cons.injEq, Prod.mk.injEq, Option.some.injEq, and_true] at h
+--     use tail
+--     rw [h.1]
+--     rfl
 
 theorem helper_pg_empty (h : PartialGrid a b c d e) : SignedOptionList.toSignedList a = [] → SignedOptionList.toSignedList b =  [] →
     SignedOptionList.toSignedList c = [] ∧ SignedOptionList.toSignedList e = [] ∧ h.length = 0 := by

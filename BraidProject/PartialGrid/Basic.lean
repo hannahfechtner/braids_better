@@ -441,54 +441,116 @@ def middle_frontier_end_spec_from_spec (h : middle_spec d) : middle_frontier_end
   use [(f, false)] ++ m, c
   exact spec
 
+theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
+    (i1 : PartialGrid a b1 d3 e3 mid1) (i2 : PartialGrid mid1 b2 d4 e4 e2)
+    (hf : mid ++ d2 = d3 ++ (e3 ++ (d4 ++ e4))) :
+    (mid = d3 ++ e3 ++ d4 ∧ e3 = []) ∨ (mid = d3 ∧ d2 = e3 ++ d4 ++ e4) := by
+  have mid_t : is_true mid := h1.bottom_frontier_is_true
+  have d3_t : is_true d3 := i1.bottom_frontier_is_true
+  have d4_t : is_true d4 := i2.bottom_frontier_is_true
+  have mid1_f : is_false mid1 := i2.left_side_is_false
+  rcases PartialGrid.middle_frontier_spec h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
+  · left
+    rw [d2_nil, List.append_nil] at hf
+    rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    · rw [e3_nil, List.nil_append] at hf
+      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      · rw [e4_nil, List.append_nil] at hf
+        aesop
+      rw [spece4] at hf
+      rw [hf] at mid_t
+      specialize mid_t (fronte4, false) (by simp)
+      simp at mid_t
+    rw [spece3] at hf
+    rw [hf] at mid_t
+    specialize mid_t (fronte3, false) (by simp)
+    simp at mid_t
+  rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+  · left
+    rw [e3_nil, List.nil_append] at hf
+    simp [e3_nil]
+    rw [← List.append_assoc] at hf
+    rcases List.append_eq_append_iff.mp hf with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
+    · match tm with
+      | [] => aesop
+      | t1 :: t2 =>
+        rw [specd2] at s2
+        simp at s2
+        have H : is_true (d3 ++ d4) := is_true_append d3_t d4_t
+        rw [s1, ← s2.1] at H
+        specialize H (frontd2, false) (by simp)
+        simp at H
+    match fm with
+    | [] => aesop
+    | f1 :: f2 =>
+      rw [specd2] at s2
+      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      · aesop
+      rw [spece4] at s2
+      simp at s2
+      rw [← s2.1] at s1
+      rw [s1] at mid_t
+      specialize mid_t (fronte4, false) (by simp)
+      simp at mid_t
+  right
+  rcases List.append_eq_append_iff.mp hf with
+    ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
+  · match tm with
+    | [] => aesop
+    | t1 :: t2 =>
+      rw [specd2] at s2
+      simp at s2
+      rw [s1, ← s2.1] at d3_t
+      specialize d3_t (frontd2, false) (by simp)
+      simp at d3_t
+  match fm with
+  | [] => aesop
+  | f1 :: f2 =>
+    rw [specd2] at s2
+    rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    · aesop
+    rw [spece3] at s2
+    simp at s2
+    rw [s1, ← s2.1] at mid_t
+    specialize mid_t (fronte3, false) (by simp)
+    simp at mid_t
+
+theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
+    (i1 : PartialGrid a2 b mid4 e5 d5) (i2 : PartialGrid a1 mid4 mid d4 e4)
+    (hf : d4 ++ e4 ++ e5 ++ d5 = d2 ++ e2) :
+    (d2 = d4 ++ e4 ++ e5 ∧ d5 = e2) ∨ (d2 = d4 ∧ e5 = [] ∧ e2 = e4 ++ d5) := by
+  have H := reflect h1
+  have H1 := reflect i1
+  have H2 := reflect i2
+  have hf' := congr_arg FreeGroup.invRev hf
+  simp only [FreeGroup.invRev_append] at hf'
+  rcases frontier_options_from_horizontal H.1 H1.1 H2.1 hf'.symm with ⟨he2, he5⟩ | ⟨he2, he5⟩
+  · right
+    have e5_nil : e5 = [] := by
+      apply congr_arg FreeGroup.invRev at he5
+      simp only [FreeGroup.invRev_invRev] at he5
+      rw [he5]
+      rfl
+    apply congr_arg FreeGroup.invRev at he2
+    simp only [FreeGroup.invRev_invRev, FreeGroup.invRev_append] at he2
+    rw [e5_nil] at he2 hf
+    constructor
+    · rw [he2] at hf
+      simp only [append_nil, append_assoc, nil_append, append_cancel_right_eq] at hf
+      exact hf.symm
+    constructor
+    · exact e5_nil
+    exact he2
+  left
+  constructor
+  · apply congr_arg FreeGroup.invRev at he5
+    simp only [FreeGroup.invRev_invRev, FreeGroup.invRev_append] at he5
+    rw [he5, List.append_assoc]
+  apply congr_arg FreeGroup.invRev at he2
+  simp only [FreeGroup.invRev_invRev] at he2
+  exact he2.symm
+
+
 end PartialGrid
 
-namespace GridData
-
-/- a version of grids which are read in the north-easterly direction, mirroring the conventions for partial grids -/
-def PartialGridStyle (a b c d : List (Option ℕ × Bool)) : Type :=
-  GridData (toList a.reverse) (toList b) (toList c) (toList d.reverse)
-
-namespace PartialGridStyle
-def append_horizontal
-    (h1 : GridData.PartialGridStyle a b c d) (h2 : GridData.PartialGridStyle d e f g) :
-    GridData.PartialGridStyle a (b ++ e) (c ++ f) g := by
-  simp only [GridData.PartialGridStyle, toList_append]
-  exact GridData.horizontal h1 h2
-
-def append_vertical
-    (h1 : GridData.PartialGridStyle a b c d) (h2 : GridData.PartialGridStyle e c f g) :
-    GridData.PartialGridStyle (e ++ a) b f (g ++ d) := by
-  simp only [GridData.PartialGridStyle, reverse_append, toList_append]
-  exact GridData.vertical h1 h2
-
-noncomputable def of_PartialGrid (h : PartialGrid a b c [] d) :
-    GridData.PartialGridStyle a b c d := by
-  generalize hm : ([] : List (Option ℕ × Bool)) = m at h
-  induction h with
-  | single_cell h =>
-    unfold GridData.PartialGridStyle
-    simp only [toList_to_vertical_edge_rev, toList_to_horizontal_edge]
-    exact of_CellData h
-  | empty a b =>
-    apply congr_arg List.length at hm
-    simp only [List.length_nil, List.length_append] at hm
-    linarith
-  | horizontal_append_one _ _ ih1 ih2 =>
-    exact GridData.PartialGridStyle.append_horizontal (ih1 rfl) (ih2 hm)
-  | horizontal_append _ _ _ g1_ih g2_ih =>
-    simp only [List.append_assoc, List.nil_eq_append_iff, List.append_eq_nil_iff] at hm
-    have H := GridData.PartialGridStyle.append_horizontal (g1_ih hm.1.symm) (g2_ih hm.2.2.symm)
-    rw [hm.2.1, List.append_nil] at H
-    exact H
-  | vertical_append_one _ _ ih1 ih2 =>
-    exact GridData.PartialGridStyle.append_vertical (ih1 rfl) (ih2 hm)
-  | vertical_append _ _ _ g1_ih g2_ih =>
-    simp only [List.append_assoc, List.nil_eq_append_iff, List.append_eq_nil_iff] at hm
-    have H := GridData.PartialGridStyle.append_vertical (g1_ih hm.2.2.symm) (g2_ih hm.1.symm)
-    rw [hm.2.1, List.nil_append] at H
-    exact H
-
-end PartialGridStyle
-end GridData
 end Braid

@@ -13,7 +13,7 @@ theorem List.prefix_of_append {α : Type} {l1 l2 l3: List α} (h : l1 <+: l2) : 
   use rest ++ l3
   rw [← spec, List.append_assoc]
 
-theorem suffix_of_append (h : l₁ <:+ l2) : l₁ <:+ l3 ++ l2 := by
+theorem List.suffix_of_append (h : l₁ <:+ l2) : l₁ <:+ l3 ++ l2 := by
   rcases h with ⟨rest, spec⟩
   use l3 ++ rest
   simp [spec]
