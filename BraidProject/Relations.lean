@@ -8,6 +8,17 @@ inductive reversing : List (ℕ × Bool) → List (ℕ × Bool) → Type
 | close {i j : ℕ} (h : Nat.dist i j = 1) : reversing [(i, false), (j, true)]
     [(j, true), (i, true), (j, false), (i, false)]
 
+def reversing.length (h : reversing a b) := match h with
+| reversing.basic _ => 0
+| reversing.apart _ => 1
+| reversing.close _ => 1
+
+inductive reversing_prop : List (ℕ × Bool) → List (ℕ × Bool) → Prop
+| basic {i : ℕ} : reversing_prop [(i, false), (i, true)] []
+| apart {i j : ℕ} (h : Nat.dist i j > 1) : reversing_prop [(i, false), (j, true)] [(j, true), (i, false)]
+| close {i j : ℕ} (h : Nat.dist i j = 1) : reversing_prop [(i, false), (j, true)]
+    [(j, true), (i, true), (j, false), (i, false)]
+
 inductive grid_style : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Type
 | basic (n : ℕ) : grid_style [(some n, false), (some n, true)] [(none, true), (none, false)]
 | over (n : ℕ) : grid_style [(n, false), (none, true)] [(none, true), (n, false)]
@@ -17,16 +28,52 @@ inductive grid_style : List (Option ℕ × Bool) → List (Option ℕ × Bool) �
 | close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style [(i, false), (j, true)]
     [(j, true), (i, true), (j, false), (i, false)]
 
+def grid_style.length (h : grid_style a b) := match h with
+| grid_style.basic _ => 1
+| grid_style.over _ => 0
+| grid_style.up _ => 0
+| grid_style.empty => 0
+| grid_style.apart _ => 1
+| grid_style.close _ => 1
+
+@[simp] theorem grid_style.length_basic (n : ℕ) :
+    grid_style.length (grid_style.basic n) = 1 := rfl
+
+@[simp] theorem grid_style.length_over (n) :
+    grid_style.length (grid_style.over n) = 0 := rfl
+
+@[simp] theorem grid_style.length_up (n) :
+    grid_style.length (grid_style.up n) = 0 := rfl
+
+@[simp] theorem grid_style.length_empty :
+    grid_style.length grid_style.empty = 0 := rfl
+
+@[simp] theorem grid_style.length_apart {i j : ℕ} (h : Nat.dist i j > 1) :
+    grid_style.length (grid_style.apart h) = 1 := rfl
+
+@[simp] theorem grid_style.length_close {i j : ℕ} (h : Nat.dist i j = 1) :
+    grid_style.length (grid_style.close h) = 1 := rfl
+
 inductive grid_style_nontrivial : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Type
 | basic (n : ℕ) : grid_style_nontrivial [(some n, false), (some n, true)] [(none, true), (none, false)]
 | apart {i j : ℕ} (h : Nat.dist i j > 1) : grid_style_nontrivial [(i, false), (j, true)] [(j, true), (i, false)]
 | close {i j : ℕ} (h : Nat.dist i j = 1) : grid_style_nontrivial [(i, false), (j, true)]
     [(j, true), (i, true), (j, false), (i, false)]
 
+def grid_style_nontrivial.length (h : grid_style_nontrivial a b) := match h with
+| grid_style_nontrivial.basic _ => 1
+| grid_style_nontrivial.apart _ => 1
+| grid_style_nontrivial.close _ => 1
+
 inductive grid_style_trivial : List (Option ℕ × Bool) → List (Option ℕ × Bool) → Type
 | over (n : ℕ) : grid_style_trivial [(n, false), (none, true)] [(none, true), (n, false)]
 | up (n : ℕ) : grid_style_trivial [(none, false), (some n, true)] [(n, true), (none, false)]
 | empty : grid_style_trivial [(none, false), (none, true)] [(none, true), (none, false)]
+
+def grid_style_trivial.length (h : grid_style_trivial a b) := match h with
+| grid_style_trivial.over _ => 0
+| grid_style_trivial.up _ => 0
+| grid_style_trivial.empty => 0
 
 def gs_of_real (h : grid_style_nontrivial a b) : grid_style a b :=
   match h with

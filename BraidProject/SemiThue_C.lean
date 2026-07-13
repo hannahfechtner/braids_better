@@ -4,71 +4,71 @@ import Mathlib.Data.List.Lex
 import Mathlib.Data.List.Induction
 import BraidProject.Additions.FreeMonoid
 
-inductive SemiThue (rels : List α → List α → Type) : List α → List α → Type
-| refl {a : List α} : SemiThue rels a a
-| step {a b c d : List α} (h : rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d)
-| trans {a b c : List α} : SemiThue rels a b → SemiThue rels b c → SemiThue rels a c
+inductive SemiThueData {α : Type} (rels : List α → List α → Type) : List α → List α → Type
+| refl {a : List α} : SemiThueData rels a a
+| step {a b : List α} (c d : List α) (h : rels a b) : SemiThueData rels (c ++ a ++ d) (c ++ b ++ d)
+| trans {a b c : List α} : SemiThueData rels a b → SemiThueData rels b c → SemiThueData rels a c
 
-inductive SemiThueDerivation (rels : List α → List α → Type) : List α → List α → Type
-| refl {a : List α} : SemiThueDerivation rels a a
-| step {a b c d e : List α} (h1 : SemiThueDerivation rels e (c ++ a ++ d)) (h2 : rels a b) :
-    SemiThueDerivation rels e (c ++ b ++ d)
+inductive SemiThueDataDerivation (rels : List α → List α → Type) : List α → List α → Type
+| refl {a : List α} : SemiThueDataDerivation rels a a
+| step {a b c d e : List α} (h1 : SemiThueDataDerivation rels e (c ++ a ++ d)) (h2 : rels a b) :
+    SemiThueDataDerivation rels e (c ++ b ++ d)
 
-private noncomputable def SemiThueDerivation.trans (h1 : SemiThueDerivation rels a b) (h2 : SemiThueDerivation rels b c) :
-    SemiThueDerivation rels a c := by
+private noncomputable def SemiThueDataDerivation.trans (h1 : SemiThueDataDerivation rels a b) (h2 : SemiThueDataDerivation rels b c) :
+    SemiThueDataDerivation rels a c := by
   induction h2 with
   | refl => exact h1
-  | step h1 h2 ih => exact SemiThueDerivation.step (ih h1) h2
+  | step h1 h2 ih => exact SemiThueDataDerivation.step (ih h1) h2
 
-noncomputable def SemiThueDerivation.toSemiThue {a b : List α} (h : SemiThueDerivation rels a b) :
-    SemiThue rels a b := by
+noncomputable def SemiThueDataDerivation.toSemiThueData {a b : List α} (h : SemiThueDataDerivation rels a b) :
+    SemiThueData rels a b := by
   induction h with
-  | refl =>  exact SemiThue.refl
-  | step h1 h2 ih => exact ih.trans (SemiThue.step h2)
+  | refl =>  exact SemiThueData.refl
+  | step h1 h2 ih => exact ih.trans (SemiThueData.step _ _ h2)
 
-noncomputable def SemiThue.toSemiThueDerivation {a b : List α} (h : SemiThue rels a b) :
-    SemiThueDerivation rels a b := by
+noncomputable def SemiThueData.toSemiThueDataDerivation {a b : List α} (h : SemiThueData rels a b) :
+    SemiThueDataDerivation rels a b := by
   induction h with
-  | refl => exact SemiThueDerivation.refl
-  | step h => exact SemiThueDerivation.step SemiThueDerivation.refl h
-  | trans _ _ ih1 ih2 => exact SemiThueDerivation.trans ih1 ih2
+  | refl => exact SemiThueDataDerivation.refl
+  | step _ _ h => exact SemiThueDataDerivation.step SemiThueDataDerivation.refl h
+  | trans _ _ ih1 ih2 => exact SemiThueDataDerivation.trans ih1 ih2
 
-def SemiThue.cons (h : SemiThue rels a b) : SemiThue rels (c :: a) (c :: b) := by
+def SemiThueData.cons (h : SemiThueData rels a b) : SemiThueData rels (c :: a) (c :: b) := by
   match h with
-  | SemiThue.refl => exact SemiThue.refl
-  | SemiThue.step h =>
+  | SemiThueData.refl => exact SemiThueData.refl
+  | SemiThueData.step _ _ h =>
     rw [← List.cons_append, ← List.cons_append, ← List.cons_append, ← List.cons_append]
-    exact SemiThue.step h
-  | SemiThue.trans f g =>
-    apply (SemiThue.cons f).trans (SemiThue.cons g)
+    exact SemiThueData.step _ _ h
+  | SemiThueData.trans f g =>
+    apply (SemiThueData.cons f).trans (SemiThueData.cons g)
 
 
-def SemiThue.append_left (h : SemiThue rels a b) : SemiThue rels (c ++ a) (c ++ b) := by
+def SemiThueData.append_left (h : SemiThueData rels a b) : SemiThueData rels (c ++ a) (c ++ b) := by
   match h with
-  | SemiThue.refl => exact SemiThue.refl
-  | SemiThue.step h =>
+  | SemiThueData.refl => exact SemiThueData.refl
+  | SemiThueData.step _ _ h =>
     rename_i e f g i j
     rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc, ← List.append_assoc]
-    apply SemiThue.step h
-  | SemiThue.trans f g =>
-    apply (SemiThue.append_left f).trans (SemiThue.append_left g)
+    apply SemiThueData.step _ _ h
+  | SemiThueData.trans f g =>
+    apply (SemiThueData.append_left f).trans (SemiThueData.append_left g)
 
-def SemiThue.append_right (h : SemiThue rels a b) : SemiThue rels (a ++ c) (b ++ c) := by
+def SemiThueData.append_right (h : SemiThueData rels a b) : SemiThueData rels (a ++ c) (b ++ c) := by
   match h with
-  | SemiThue.refl => exact SemiThue.refl
-  | SemiThue.step h =>
+  | SemiThueData.refl => exact SemiThueData.refl
+  | SemiThueData.step _ _ h =>
     rename_i e f g i j
     rw [List.append_assoc _ j c, List.append_assoc _ j c]
-    apply SemiThue.step h
-  | SemiThue.trans f g =>
-    apply (SemiThue.append_right f).trans (SemiThue.append_right g)
+    apply SemiThueData.step _ _ h
+  | SemiThueData.trans f g =>
+    apply (SemiThueData.append_right f).trans (SemiThueData.append_right g)
 
-def SemiThue.append_left_right (h : SemiThue rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d) :=
-  SemiThue.append_right (SemiThue.append_left h)
+def SemiThueData.append_left_right (h : SemiThueData rels a b) : SemiThueData rels (c ++ a ++ d) (c ++ b ++ d) :=
+  SemiThueData.append_right (SemiThueData.append_left h)
 
-def SemiThue.of_rel (h : rels a b) : SemiThue rels a b := by
+def SemiThueData.of_rel (h : rels a b) : SemiThueData rels a b := by
   rw [← List.nil_append a, ← List.nil_append b, ← List.append_nil ([] ++ a), ← List.append_nil ([] ++ b)]
-  exact SemiThue.step h
+  exact SemiThueData.step _ _ h
 
-def SemiThue.append (hab : SemiThue rels a b) (hcd : SemiThue rels c d) :
-  SemiThue rels (a ++ c) (b ++ d) := (SemiThue.append_right hab).trans (SemiThue.append_left hcd)
+def SemiThueData.append (hab : SemiThueData rels a b) (hcd : SemiThueData rels c d) :
+  SemiThueData rels (a ++ c) (b ++ d) := (SemiThueData.append_right hab).trans (SemiThueData.append_left hcd)

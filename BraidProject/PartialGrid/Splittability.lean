@@ -1,7 +1,5 @@
-import BraidProject.GridData_length
+import BraidProject.ConstructiveBasics.List
 import BraidProject.PartialGrid.Basic
-import BraidProject.SignedOptionList
-import BraidProject.ConstructiveBasics.FreeMonoid
 
 namespace Braid
 
@@ -9,16 +7,16 @@ namespace PartialGrid
 
 open SignedList
 
-def split_vertically (h : PartialGrid a b c d e)  := ∀ b₁ b₂, b = b₁ ++ b₂ →
+def split_vertically (h : PartialGrid a b c m d)  := ∀ b₁ b₂, b = b₁ ++ b₂ →
   b₁.length > 0 → b₂.length > 0 →
-  (Σ mid c1 d1 c2 d2,
-  (h1 : PartialGrid a b₁ c1 d1 mid) × (h2 : PartialGrid mid b₂ c2 d2 e) ×
-  PLift (c ++ d = c1 ++ d1 ++ c2 ++ d2) ×
+  (Σ center c1 m1 c2 m2,
+  (h1 : PartialGrid a b₁ c1 m1 center) × (h2 : PartialGrid center b₂ c2 m2 d) ×
+  PLift (c ++ m = c1 ++ m1 ++ c2 ++ m2) ×
   PLift (h.length = h1.length + h2.length)) ⊕
-  (Σ d1 d2, (h1 : PartialGrid a b₁ c d1 []) × PLift (h.length = h1.length) ×
-    PLift (e = []) × PLift (d = d1 ++ d2) × PLift (b₂ = d2))
+  (Σ m1, (h1 : PartialGrid a b₁ c m1 []) × PLift (h.length = h1.length) ×
+    PLift (d = []) × PLift (m = m1 ++ b₂))
 
-noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vertically h := by
+noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vertically h := by
   induction h with
   | single_cell h =>
     cases h
@@ -33,8 +31,8 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
     intro b₁ b₂ b_is b₁_len b₂_len
     rw [b_is] at hb1
     right
-    use a ++ b₁, b₂,  PartialGrid.empty a b₁ ha ha1 b₁_len (is_true_of_append hb1).1
-    exact ⟨⟨by simp [PartialGrid.length]⟩, ⟨⟨rfl⟩, ⟨⟨by simp [b_is]⟩, ⟨rfl⟩⟩⟩⟩
+    use a ++ b₁, PartialGrid.empty a b₁ ha ha1 b₁_len (is_true_of_append hb1).1
+    exact ⟨⟨by simp [PartialGrid.length]⟩, ⟨⟨rfl⟩, ⟨by simp [b_is]⟩⟩⟩
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i a1 b1 bot1 up1 b2 bot2 mid2 up2
     intro b₃ b₄ b_is b₃_len b₄_len
@@ -54,9 +52,9 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
         refine ⟨⟨?_⟩, ⟨by simp only [PartialGrid.length, h_len, ← add_assoc]⟩⟩
         rw [List.append_assoc, long, ← List.append_assoc, ← List.append_assoc, ← List.append_assoc]
       right
-      rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
+      rcases bad with ⟨d1, h3, h_len, end_is⟩
       rw [one]
-      use d1, d2, PartialGrid.horizontal_append_one g1 h3
+      use d1, PartialGrid.horizontal_append_one g1 h3
       exact ⟨⟨by rw [PartialGrid.length, h_len.1, PartialGrid.length]⟩, end_is⟩
     rcases List.cases_C to_middle with ⟨⟨silly⟩⟩ | ⟨⟨tm_l⟩⟩
     · left
@@ -83,7 +81,7 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
         simp only [long, h_len, PartialGrid.length, ← add_assoc, List.append_assoc]
         exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
     right
-    rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
+    rcases bad with ⟨d1, h3, h_len, end_is⟩
     have H := PartialGrid.left_side_length_pos g2
     rw [end_is.1.1] at H
     simp at H
@@ -107,11 +105,11 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
         rw [List.append_assoc, long]
         simp only [List.append_assoc]
       right
-      rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
+      rcases bad with ⟨d1, h3, h_len, end_is⟩
       rw [one]
-      use (mid1 ++ bot2 ++ d1), d2, PartialGrid.horizontal_append g1 h3 h
-      refine ⟨⟨by rw [PartialGrid.length, h_len.1, PartialGrid.length]⟩, end_is.1, ⟨?_⟩, end_is.2.2⟩
-      rw [end_is.2.1.1]
+      use (mid1 ++ bot2 ++ d1), PartialGrid.horizontal_append g1 h3 h
+      refine ⟨⟨by rw [PartialGrid.length, h_len.1, PartialGrid.length]⟩, end_is.1, ⟨?_⟩⟩
+      rw [end_is.2.1]
       simp only [List.append_assoc]
     rcases List.cases_C to_middle with ⟨⟨silly⟩⟩ | ⟨⟨tm_l⟩⟩
     · left
@@ -137,7 +135,7 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
         simp only [← List.append_assoc, long, h_len, PartialGrid.length, ← add_assoc]
         exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
     right
-    rcases bad with ⟨d1, d2, h3, h_len, end_is⟩
+    rcases bad with ⟨d1, h3, h_len, end_is⟩
     have H := PartialGrid.left_side_length_pos g2
     rw [end_is.1.1] at H
     simp at H
@@ -167,14 +165,14 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
             refine ⟨long1, ⟨?_⟩⟩
             simp only [PartialGrid.length, len1.1, len]
             omega
-          rcases bad with ⟨d1, d2, h3, len1⟩
+          rcases bad with ⟨d1,h3, len1⟩
           match up2 with
           | [] =>
             use mid, bot2, d1, c2, [], PartialGrid.vertical_append_one h1 h3, h2
             refine ⟨⟨?_⟩, ⟨?_⟩⟩
             · rw [List.append_assoc, List.append_assoc]
               apply (List.append_right_inj bot2).mpr
-              simp [List.append_nil, len1.2.2.1.1, len1.2.2.2.1]
+              simp [List.append_nil, len1.2.2.1]
             simp [PartialGrid.length, len, ← len1.1.1]
             omega
           | d21 :: d22 =>
@@ -200,7 +198,7 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
         rw [spec.1] at H
         specialize H (front, false)
         simp at H
-    rcases bad with ⟨d1, d2, h3, ⟨len⟩, up1_is, ⟨d1h2_empty⟩, ⟨a2h4⟩⟩
+    rcases bad with ⟨d1, h3, ⟨len⟩, up1_is, ⟨d1h2_empty⟩⟩
     rw [up1_is.1] at g1
     right
     exact (middle_right_frontier_not_both_nil g1 rfl rfl).elim
@@ -256,7 +254,7 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
         | c21 :: c22 =>
           left
           rcases g2_ih _ _  bot1_is c1_len (by simp) with
-              ⟨mid3, c3, d3, c4, d4, i1, i2, long1, len1⟩ | ⟨d1, d2', h3, ⟨len1⟩, rest⟩
+              ⟨mid3, c3, d3, c4, d4, i1, i2, long1, len1⟩ | ⟨d1, h3, ⟨len1⟩, rest⟩
           · use mid3 ++ mid, c3, d3, c4
             match d2 with
             | [] =>
@@ -267,7 +265,7 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
               exact ⟨⟨by simp [← List.append_assoc, ← List.append_assoc, long1.1, mid_is]⟩,
                 ⟨by grind [PartialGrid.length, len1.1]⟩⟩
           use mid, bot2, d1, c21::c22, d2, PartialGrid.vertical_append_one h1 h3, h2
-          exact ⟨⟨by simp [rest.2.1.1, mid_is, rest.1.1, rest.2.2.1]⟩, ⟨by grind [PartialGrid.length]⟩⟩
+          exact ⟨⟨by simp [mid_is, rest.1.1, rest.2.1]⟩, ⟨by grind [PartialGrid.length]⟩⟩
       | d11 :: d12 =>
         have H0 : is_true bot1 := g2.top_side_is_true
         have bot1_is : bot1 = c1 := by
@@ -298,24 +296,24 @@ noncomputable def splittable_vertically (h : PartialGrid a b c d e) : split_vert
           use mid, bot2, mid2 ++ up2 ++ (d11 :: d12), c2, d2,
             PartialGrid.vertical_append h1 g2 (by simp), h2
           exact ⟨⟨by simp [long]⟩, ⟨by grind [PartialGrid.length]⟩⟩
-    rcases bad with ⟨d1, d2, h3, ⟨len⟩, ⟨up1_nil⟩, ⟨mid1_is⟩, ⟨a4d2⟩⟩
+    rcases bad with ⟨d1, h3, ⟨len⟩, ⟨up1_nil⟩, ⟨mid1_is⟩⟩
     right
     have H : d1.length > 0 := by
       match d1 with
       | [] =>
         exact (middle_right_frontier_not_both_nil h3 rfl rfl).elim
       | d11 :: d12 => simp
-    use mid2 ++ up2 ++ d1, d2, PartialGrid.vertical_append h3 g2 H
-    exact ⟨⟨by simp [PartialGrid.length, len]⟩, ⟨up1_nil⟩, ⟨by simp [mid1_is]⟩, ⟨a4d2⟩⟩
+    use mid2 ++ up2 ++ d1, PartialGrid.vertical_append h3 g2 H
+    exact ⟨⟨by simp [PartialGrid.length, len]⟩, ⟨up1_nil⟩, ⟨by simp [mid1_is]⟩⟩
 
-noncomputable def split_horizontally (h : PartialGrid a b c d e) := ∀ a1 a2,
-  a = a2 ++ a1 → a1.length > 0 → a2.length > 0 → (Σ mid d1 e1 d2 e2,
-  (h1 : PartialGrid a1 b mid d2 e2) × (h2 : PartialGrid a2 mid c d1 e1) ×
-  PLift (d1 ++ e1 ++ d2 ++e2 = d ++ e) × PLift (h.length = h1.length + h2.length)) ⊕
-  (Σ db c1 drest, (h1 : PartialGrid a1 b c1 drest e) × PLift (d = db ++ c1 ++ drest) ×
-  PLift (a2 = db) × PLift (c = []) × PLift (h.length = h1.length))
+noncomputable def split_horizontally (h : PartialGrid a b c m d) := ∀ a1 a2,
+  a = a2 ++ a1 → a1.length > 0 → a2.length > 0 → (Σ center m1 d1 m2 d2,
+  (h1 : PartialGrid a1 b center m2 d2) × (h2 : PartialGrid a2 center c m1 d1) ×
+  PLift (m1 ++ d1 ++ m2 ++ d2 = m ++ d) × PLift (h.length = h1.length + h2.length)) ⊕
+  (Σ c1 drest, (h1 : PartialGrid a1 b c1 drest d) × PLift (m = a2 ++ c1 ++ drest) ×
+  PLift (c = []) × PLift (h.length = h1.length))
 
-noncomputable def reflect_one_two (h : PartialGrid a1 b1 c d e) : a1 = FreeGroup.invRev a → b1 = FreeGroup.invRev b →
+private noncomputable def reflect_one_two (h : PartialGrid a1 b1 c d e) : a1 = FreeGroup.invRev a → b1 = FreeGroup.invRev b →
   (h1 : PartialGrid b a (FreeGroup.invRev e) (FreeGroup.invRev d) (FreeGroup.invRev c)) × PLift (h.length = h1.length) := by
   intro a_eq b_eq
   apply congr_arg FreeGroup.invRev at a_eq
@@ -326,7 +324,7 @@ noncomputable def reflect_one_two (h : PartialGrid a1 b1 c d e) : a1 = FreeGroup
   rw [← b_eq]
   apply reflect h
 
-noncomputable def reflect_two_five (h : PartialGrid a b1 c d e1) : b1 = FreeGroup.invRev b → e1 = FreeGroup.invRev e →
+private noncomputable def reflect_two_five (h : PartialGrid a b1 c d e1) : b1 = FreeGroup.invRev b → e1 = FreeGroup.invRev e →
   (h1 : PartialGrid b (FreeGroup.invRev a) e (FreeGroup.invRev d) (FreeGroup.invRev c)) × PLift (h.length = h1.length) := by
   intro b_eq e_eq
   apply congr_arg FreeGroup.invRev at b_eq
@@ -337,7 +335,7 @@ noncomputable def reflect_two_five (h : PartialGrid a b1 c d e1) : b1 = FreeGrou
   rw [← e_eq]
   apply reflect h
 
-noncomputable def reflect_one_two_three (c e) (h : PartialGrid a1 b1 c1 d e) :
+private noncomputable def reflect_one_two_three (c e) (h : PartialGrid a1 b1 c1 d e) :
     a1 = FreeGroup.invRev a → b1 = FreeGroup.invRev b → c1 = FreeGroup.invRev c →
     (h1 : PartialGrid b a (FreeGroup.invRev e) (FreeGroup.invRev d) c) × PLift (h.length = h1.length) := by
   intro a_eq b_eq c_eq
@@ -351,8 +349,6 @@ noncomputable def reflect_one_two_three (c e) (h : PartialGrid a1 b1 c1 d e) :
   rw [FreeGroup.invRev_invRev] at c_eq
   rw [← c_eq]
   apply reflect h
-
-
 
 noncomputable def splittable_horizontally (h : PartialGrid a b c d e) :
     split_horizontally h := by
@@ -374,9 +370,9 @@ noncomputable def splittable_horizontally (h : PartialGrid a b c d e) :
       exact long.symm
     constructor
     simp [H.2.1, h_len, (reflect_one_two h1 rfl rfl).2.1, (reflect_two_five h2 rfl rfl).2.1]
-  rcases bad with ⟨d1, d2, h3, len, c_is, d_is, a2_is⟩
+  rcases bad with ⟨d1, h3, len, c_is, d_is⟩
   right
-  use FreeGroup.invRev d2, [], FreeGroup.invRev d1
+  use [], FreeGroup.invRev d1
   have c_nil : c = [] := FreeGroup.invRev_eq_nil_iff.mp c_is.1
   subst c_nil
   have H0 := reflect_one_two_three e ([] : List (Option ℕ × Bool)) h3 rfl rfl rfl
@@ -386,10 +382,6 @@ noncomputable def splittable_horizontally (h : PartialGrid a b c d e) :
     have H := congr_arg FreeGroup.invRev d_is.1
     rw [FreeGroup.invRev_invRev] at H
     simp [H]
-  constructor
-  · have H := congr_arg FreeGroup.invRev a2_is.1
-    rw [FreeGroup.invRev_invRev] at H
-    exact ⟨H⟩
   constructor
   · exact ⟨rfl⟩
   constructor

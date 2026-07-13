@@ -23,6 +23,11 @@ def PosNegData (a : List (α × Bool)) := Σ a1 a2, PLift (is_true a1 ∧ is_fal
 
 def PosNegData.nil {α} : PosNegData ([] : List (α × Bool)) := by use [], []; simp; exact ⟨trivial⟩
 
+def PosNegData.singleton : PosNegData ([a]) := by
+  match a with
+  | (a1, false) => use [], [(a1,false)]; simp [is_false]; constructor; trivial
+  | (a1, true) => use [(a1, true)], []; simp [is_true]; constructor; trivial
+
 def PosNegData.of_true (h : is_true L) : PosNegData L := by
   use L, []
   exact ⟨⟨h, ⟨is_false_nil,(List.append_nil L).symm⟩⟩⟩
@@ -89,6 +94,11 @@ def NegPosData.nil {α} : NegPosData ([] : List (α × Bool)) := by
   use [], []
   exact ⟨⟨is_false_nil, is_true_nil, rfl⟩⟩
 
+def NegPosData.singleton : NegPosData ([a]) := by
+  match a with
+  | (a1, false) => use [(a1,false)], []; simp [is_false]; constructor; trivial
+  | (a1, true) => use [], [(a1, true)]; simp [is_true]; constructor; trivial
+  
 def NegPosData.of_false (h : is_false L) : NegPosData L := by
   use L, []
   exact ⟨⟨h, is_true_nil, by simp⟩⟩

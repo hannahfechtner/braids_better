@@ -1,6 +1,6 @@
 import BraidProject.TrueFalse_C
 import BraidProject.NewListFacts
-import BraidProject.PartialGrid
+import BraidProject.PartialGrid.Basic
 
 open SignedList
 

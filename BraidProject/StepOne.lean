@@ -1,5 +1,5 @@
 import BraidProject.MoveOnes
-
+import BraidProject.SignedList_C
 namespace Braid
 
 open List SignedList SignedOptionList
@@ -232,10 +232,10 @@ def giant_list_split {w : List (Option ℕ × Bool)}
   simp [spec.1, speckle.1]
 
 noncomputable def rg_of_rev_rel' (d1)
-    (gr : SemiThue grid_style (SignedList.to_SignedOptionList a) b')
+    (gr : SemiThueData grid_style (SignedList.to_SignedOptionList a) b')
     (b'_is : toSignedList b' = e ++ [(c1, false), (c2, true)] ++ f) (pt_b : irreducible b')
     (rel_holds : grid_style [(some c1, false), (some c2, true)] d1) :
-    Σ b', SemiThue grid_style (SignedList.to_SignedOptionList a) b' ×
+    Σ b', SemiThueData grid_style (SignedList.to_SignedOptionList a) b' ×
     PLift (toSignedList b' = e ++ (toSignedList d1) ++ f) × irreducible b' := by
   have H1 : [(c1, false), (c2, true)].InfixData (toSignedList b') := by
     rw [b'_is]
@@ -249,9 +249,9 @@ noncomputable def rg_of_rev_rel' (d1)
   rcases distinct_pair_infix_eq (by simp) b'_is with h1 | h2 | h3
   · use move_ones (w ++ d1 ++ t)
     constructor
-    · apply SemiThue.trans gr
+    · apply SemiThueData.trans gr
       rw [← hwt.1]
-      exact SemiThue.trans (SemiThue.step rel_holds) equiv_move_ones
+      exact SemiThueData.trans (SemiThueData.step _ _ rel_holds) equiv_move_ones
     constructor
     constructor
     · rw [toSignedList_move_ones, toSignedList_append, toSignedList_append, h1.1.1, h1.1.2]
@@ -260,14 +260,14 @@ noncomputable def rg_of_rev_rel' (d1)
     rcases split_of_toSignedList_pair_infix spec.1.1.symm ptw with ⟨w1, w2, speckle⟩
     use move_ones (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t)
     constructor
-    · apply SemiThue.trans gr
+    · apply SemiThueData.trans gr
       rw [← hwt.1]
-      have H : SemiThue grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
+      have H : SemiThueData grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
         (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t) := by
-        apply SemiThue.append_right
+        apply SemiThueData.append_right
         rw [speckle.1.1]
-        exact SemiThue.append_right (SemiThue.append_right (SemiThue.append_left
-          (SemiThue.of_rel rel_holds)))
+        exact SemiThueData.append_right (SemiThueData.append_right (SemiThueData.append_left
+          (SemiThueData.of_rel rel_holds)))
       apply H.trans equiv_move_ones
     constructor
     · have e_eq : e = toSignedList w1 := spec.1.2.1.trans speckle.1.2.1
@@ -281,17 +281,17 @@ noncomputable def rg_of_rev_rel' (d1)
   rcases split_of_toSignedList_pair_infix spec.1.1.symm ptt with ⟨t1, t2, speckle⟩
   use move_ones (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2)
   constructor
-  · apply SemiThue.trans gr
+  · apply SemiThueData.trans gr
     rw [← hwt.1]
-    have H : SemiThue grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
+    have H : SemiThueData grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
         (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2) := by
       rw [List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
-      apply SemiThue.append_left
+      apply SemiThueData.append_left
       have t_eq : t = t1 ++ [(some c1, false), (some c2, true)] ++ t2 := speckle.1.1
       rw [List.append_assoc] at t_eq
       rw [t_eq]
-      exact SemiThue.append_left
-          (SemiThue.append_left (SemiThue.append_right (SemiThue.of_rel rel_holds)))
+      exact SemiThueData.append_left
+          (SemiThueData.append_left (SemiThueData.append_right (SemiThueData.of_rel rel_holds)))
     exact H.trans equiv_move_ones
   constructor
   · have e_eq : e = toSignedList w ++ [(c1, false), (c2, true)] ++ toSignedList t1 := by
@@ -302,10 +302,10 @@ noncomputable def rg_of_rev_rel' (d1)
   exact move_ones_irreducible
 
 noncomputable def rg_of_rev_rel (d1)
-    (gr : SemiThue grid_style (SignedList.to_SignedOptionList a) b')
+    (gr : SemiThueData grid_style (SignedList.to_SignedOptionList a) b')
     (b'_is : toSignedList b' = e ++ [(c1, false), (c2, true)] ++ f) (pt_b : irreducible b')
     (rel_holds : grid_style [(some c1, false), (some c2, true)] d1) :
-    Σ b', SemiThue grid_style (SignedList.to_SignedOptionList a) b' ×
+    Σ b', SemiThueData grid_style (SignedList.to_SignedOptionList a) b' ×
     PLift (toSignedList b' = e ++ (toSignedList d1) ++ f) × irreducible b' := by
   have H1 : [(c1, false), (c2, true)].InfixData (toSignedList b') := by
     rw [b'_is]
@@ -324,9 +324,9 @@ noncomputable def rg_of_rev_rel (d1)
   rcases this with h2 | ⟨w1, w2, hw⟩ | ⟨t1, t2, ht⟩
   · use move_ones (w ++ d1 ++ t)
     constructor
-    · apply SemiThue.trans gr
+    · apply SemiThueData.trans gr
       rw [← hwt.1]
-      exact SemiThue.trans (SemiThue.step rel_holds) equiv_move_ones
+      exact SemiThueData.trans (SemiThueData.step _ _ rel_holds) equiv_move_ones
     constructor
     constructor
     · rw [toSignedList_move_ones, toSignedList_append, toSignedList_append, h2.1.1,
@@ -334,14 +334,14 @@ noncomputable def rg_of_rev_rel (d1)
     exact move_ones_irreducible
   · use move_ones (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t)
     constructor
-    · apply SemiThue.trans gr
+    · apply SemiThueData.trans gr
       rw [← hwt.1]
-      have H : SemiThue grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
+      have H : SemiThueData grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
         (w1 ++ d1 ++ w2 ++ [(some c1, false), (some c2, true)] ++ t) := by
-        apply SemiThue.append_right
+        apply SemiThueData.append_right
         rw [hw.1.1]
-        exact SemiThue.append_right (SemiThue.append_right (SemiThue.append_left
-          (SemiThue.of_rel rel_holds)))
+        exact SemiThueData.append_right (SemiThueData.append_right (SemiThueData.append_left
+          (SemiThueData.of_rel rel_holds)))
       apply H.trans equiv_move_ones
     constructor
     · rw [toSignedList_move_ones, toSignedList_append, toSignedList_append, hw.1.2.1, hw.1.2.2]
@@ -350,33 +350,33 @@ noncomputable def rg_of_rev_rel (d1)
     exact move_ones_irreducible
   use move_ones (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2)
   constructor
-  · apply SemiThue.trans gr
+  · apply SemiThueData.trans gr
     rw [← hwt.1]
-    have H : SemiThue grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
+    have H : SemiThueData grid_style (w ++ [(some c1, false), (some c2, true)] ++ t)
         (w ++ [(some c1, false), (some c2, true)] ++ t1 ++ d1 ++ t2) := by
       rw [List.append_assoc, List.append_assoc, List.append_assoc, List.append_assoc]
-      apply SemiThue.append_left
+      apply SemiThueData.append_left
       rw [List.append_assoc, List.append_assoc] at ht
       rw [ht.1.1]
-      exact SemiThue.append_left
-          (SemiThue.append_left (SemiThue.append_right (SemiThue.of_rel rel_holds)))
+      exact SemiThueData.append_left
+          (SemiThueData.append_left (SemiThueData.append_right (SemiThueData.of_rel rel_holds)))
     exact H.trans equiv_move_ones
   constructor
   · rw [toSignedList_move_ones, toSignedList_append, toSignedList_append, ht.1.2.1, ht.1.2.2]
     exact {down := by simp [toSignedList, toSignedList_append]}
   exact move_ones_irreducible
 
-noncomputable def grid_style_of_reversing (h : SemiThue reversing a b) :
-    Σ b', SemiThue grid_style (SignedList.to_SignedOptionList a) b' × PLift
+noncomputable def grid_style_of_reversing (h : SemiThueData reversing a b) :
+    Σ b', SemiThueData grid_style (SignedList.to_SignedOptionList a) b' × PLift
     (toSignedList b' = b) × irreducible b' := by
-  have H := SemiThue.toSemiThueDerivation h
+  have H := SemiThueData.toSemiThueDataDerivation h
   induction H with
   | refl =>
-    exact ⟨SignedList.to_SignedOptionList _, (SemiThue.refl,
+    exact ⟨SignedList.to_SignedOptionList _, (SemiThueData.refl,
       {down := toSignedList_toSignedOptionList}, SignedList.toSignedOptionList_irreducible)⟩
   | step h1 h2 ih =>
     rename_i c d e f g
-    rcases ih (SemiThueDerivation.toSemiThue h1) with ⟨b', gr, b'_is, pt_b⟩
+    rcases ih (SemiThueDataDerivation.toSemiThueData h1) with ⟨b', gr, b'_is, pt_b⟩
     cases h2 with
     | basic h_dist =>
       apply Nat.eq_of_dist_eq_zero at h_dist
@@ -515,8 +515,8 @@ def in_order_of_rm_irr (h : SignedList.PosNegData (toSignedList L)) (h2 : irredu
           true_and] at ha34
         exact ha34.1.elim
 
-noncomputable def stepOne_mid (h : SemiThue reversing a b) (ha : SignedList.NegPosData a) :
-    Σ b', SemiThue grid_style (SignedList.to_SignedOptionList a) b' ×
+noncomputable def stepOne_mid (h : SemiThueData reversing a b) (ha : SignedList.NegPosData a) :
+    Σ b', SemiThueData grid_style (SignedList.to_SignedOptionList a) b' ×
     SignedList.NegPosData (SignedList.to_SignedOptionList a) ×  PLift (toSignedList b' = b) := by
   rcases grid_style_of_reversing h with ⟨b', gr, b'_is, pt_b⟩
   use b'
@@ -526,9 +526,9 @@ noncomputable def stepOne_mid (h : SemiThue reversing a b) (ha : SignedList.NegP
   · exact SignedList.toSignedOptionList_NegPosData ha
   exact b'_is
 
-noncomputable def stepOne (h : SemiThue reversing a b) (ha : SignedList.NegPosData a)
+noncomputable def stepOne (h : SemiThueData reversing a b) (ha : SignedList.NegPosData a)
     (hb : SignedList.PosNegData b) :
-    Σ b', SemiThue grid_style (SignedList.to_SignedOptionList a) b' ×
+    Σ b', SemiThueData grid_style (SignedList.to_SignedOptionList a) b' ×
     SignedList.NegPosData (SignedList.to_SignedOptionList a) × SignedList.PosNegData b' ×
     PLift (toSignedList b' = b) := by
   rcases grid_style_of_reversing h with ⟨b', gr, b'_is, pt_b⟩

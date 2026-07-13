@@ -138,7 +138,7 @@ theorem empty_generator_pair (h : PartialGrid a b c d e)
           List.length_append, Nat.reduceEqDiff] at hl
         have hc2 : c2.length = 0 := by omega
         aesop
-  rcases H with ⟨db, c1, i1, ⟨d_is⟩, ⟨db_is⟩, ⟨d_is'⟩, ⟨a_is⟩⟩
+  rcases H with ⟨c1, i1, ⟨d_is⟩, ⟨db_is⟩, ⟨d_is'⟩, ⟨a_is⟩⟩
   have := empty_generator i1 h1 ha.2.1
   aesop
 
@@ -281,8 +281,7 @@ theorem generator_generator_apart (h : PartialGrid a b c d e)
     rename_i j k l m n o p q r
     rw [SignedOptionList.toSignedList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
-    · have H := generator_empty g1 k_is h1
-      rcases H with h3 | h4
+    · rcases generator_empty g1 k_is h1 with h3 | h4
       · have H2 := empty_generator g2 h3.2.2 o_is
         aesop
       aesop
@@ -330,7 +329,7 @@ theorem generator_generator_apart (h : PartialGrid a b c d e)
     have H := generator_empty g2 h4.1 o_is
     aesop
 
-theorem partial_grid_rm_adjacent_helper
+theorem generator_generator_close
   (h : PartialGrid a b c d e) (h1 : SignedOptionList.toSignedList a = [(i, false)])
   (h2 : SignedOptionList.toSignedList b = [(j, true)]) (hij : i.dist j = 1) :
   (SignedOptionList.toSignedList c = [] ∧
@@ -387,8 +386,7 @@ theorem partial_grid_rm_adjacent_helper
     rename_i j k l m n o p q r
     rw [SignedOptionList.toSignedList_append] at h2
     rcases List.append_eq_singleton_iff.mp h2 with ⟨k_is, o_is⟩ | ⟨k_is, o_is⟩
-    · have H := generator_empty g1 k_is h1
-      rcases H with h3 | h4
+    · rcases generator_empty g1 k_is h1 with h3 | h4
       · have H2 := empty_generator g2 h3.2.2 o_is
         aesop
       aesop
@@ -533,7 +531,6 @@ theorem empty_generator (h : PartialGrid a b c d e)
     have H := empty_empty g2 ha.2 h2.1
     simp_all [PartialGrid.length]
 
-
 theorem empty_generator_pair (h : PartialGrid a b c d e)
     (h1 : SignedOptionList.toList (FreeGroup.invRev a) = [])
     (h2 : SignedOptionList.toList b = [i, j]) :
@@ -595,7 +592,7 @@ theorem empty_generator_pair (h : PartialGrid a b c d e)
           have hc2 : c2.length = 0 := by omega
           aesop
         simp_all
-  rcases H with ⟨db, c1, i1, ⟨d_is⟩, ⟨db_is⟩, ⟨d_is'⟩, ⟨a_is⟩⟩
+  rcases H with ⟨c1, i1, ⟨d_is⟩, ⟨db_is⟩, ⟨d_is'⟩, ⟨a_is⟩⟩
   have := empty_generator i1 h1 ha.2.1
   aesop
 

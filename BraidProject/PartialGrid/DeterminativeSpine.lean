@@ -326,7 +326,7 @@ theorem some_some_apart (h : PartialGrid a b c d e) : a = [(some i, false)] → 
 
 end DeterminativeFrameLength
 
-namespace DeterminativeSpineEmptyMiddleFrontier
+namespace DeterminativeFrameEmptyMiddleFrontier
 
 theorem none_none {a b c d e} (h : PartialGrid a b c d e)
   (ha : a = [(none, false)]) (hb : b = [(none, true)]) (hd : d = []) :
@@ -367,8 +367,8 @@ theorem none_none {a b c d e} (h : PartialGrid a b c d e)
     simp at H
 
 theorem none_some {a b c d e} (h : PartialGrid a b c d e)
-  (ha : a = [(none, false)]) (hb : b = [(some i, true)]) (hd : d = []) :
-  c = [(some i, true)] ∧ e = [(none, false)] := by
+    (ha : a = [(none, false)]) (hb : b = [(some i, true)]) (hd : d = []) :
+    c = [(some i, true)] ∧ e = [(none, false)] := by
   induction h with
   | single_cell h =>
     cases h with
@@ -481,8 +481,8 @@ theorem some_some_same {a b c d e} (h : PartialGrid a b c d e)
     simp at H
 
 theorem some_some_close {a b c d e} (h : PartialGrid a b c d e)
-  (ha : a = [(some i, false)]) (hb : b = [(some j, true)]) (hd : d = []) (hij : i.dist j = 1):
-  c = [(some j, true), (some i, true)] ∧ e = [(some j, false), (some i, false)] := by
+    (ha : a = [(some i, false)]) (hb : b = [(some j, true)]) (hd : d = []) (hij : i.dist j = 1) :
+    c = [(some j, true), (some i, true)] ∧ e = [(some j, false), (some i, false)] := by
   induction h with
   | single_cell h =>
     cases h with
@@ -556,7 +556,7 @@ theorem some_some_apart {a b c d e} (h : PartialGrid a b c d e)
     have H := PartialGrid.left_side_length_pos g1
     simp at H
 
-end DeterminativeSpineEmptyMiddleFrontier
+end DeterminativeFrameEmptyMiddleFrontier
 
 end PartialGrid
 

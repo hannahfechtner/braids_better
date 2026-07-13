@@ -1,8 +1,6 @@
-import BraidProject.SemiThue_C
 import BraidProject.Cancellability_C
-import BraidProject.GridsTwo_C
 import BraidProject.ConstructiveBasics.FreeMonoid
-
+import BraidProject.GridsTwo_C
 namespace Braid
 
 noncomputable def ab_len (a b : List ℕ) : ℕ :=

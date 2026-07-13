@@ -132,6 +132,7 @@ def toSignedList {α : Type} (L : List (Option α × Bool)) : List (α × Bool) 
 @[simp]
 theorem toSignedList_nil : toSignedList ([] : List (Option α × Bool)) = [] := rfl
 
+
 @[simp]
 theorem toSignedList_append : toSignedList (L1 ++ L2) = toSignedList L1 ++ toSignedList L2 := by
   induction L1
@@ -141,6 +142,49 @@ theorem toSignedList_append : toSignedList (L1 ++ L2) = toSignedList L1 ++ toSig
   | (none, _) => simp [toSignedList, ih]
   | (some _, _) => simp [toSignedList, ih]
 
+
+theorem toSignedList_cons : toSignedList (a :: b) = toSignedList [a] ++ toSignedList b := by
+  rw [← toSignedList_append]
+  rfl
+
+@[simp]
+theorem toSignedList_cons_some : toSignedList ((some a, bo) :: b) = (a, bo) :: toSignedList b := rfl
+
+@[simp]
+theorem toSignedList_cons_none : toSignedList ((none, bo) :: b) = toSignedList b := rfl
+
+theorem toSignedList_is_true (h : SignedList.is_true a) : SignedList.is_true (toSignedList a) := by
+  induction a with
+  | nil => simp [toSignedList]
+  | cons head tail ih =>
+    specialize ih (SignedList.is_true_tail h)
+    intro c hc
+    rw [toSignedList_cons, List.mem_append] at hc
+    rcases hc with hh | ht
+    have : head.2 = true := h head List.mem_cons_self
+    · match head with
+      | (none, b) => simp [toSignedList] at hh
+      | (some d, e) =>
+        simp only [toSignedList, List.mem_cons, List.not_mem_nil, or_false] at hh
+        aesop
+    exact ih c ht
+
+theorem toSignedList_is_false (h : SignedList.is_false a) : SignedList.is_false (toSignedList a) := by
+  induction a with
+  | nil => simp [toSignedList]
+  | cons head tail ih =>
+    specialize ih (SignedList.is_false_tail h)
+    intro c hc
+    rw [toSignedList_cons, List.mem_append] at hc
+    rcases hc with hh | ht
+    have : head.2 = false := h head List.mem_cons_self
+    · match head with
+      | (none, b) => simp [toSignedList] at hh
+      | (some d, e) =>
+        simp only [toSignedList, List.mem_cons, List.not_mem_nil, or_false] at hh
+        aesop
+    exact ih c ht
+    
 theorem toSignedList_eq_append (h : toSignedList a = b ++ c) :
     ∃ a₁ a₂, a = a₁ ++ a₂ ∧ toSignedList a₁ = b ∧ toSignedList a₂ = c := by
   induction a generalizing b c with

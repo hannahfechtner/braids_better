@@ -10,7 +10,7 @@ open FreeMonoid
 namespace Braid
 
 inductive braid_monoid_rels_inf : FreeMonoid ℕ → FreeMonoid ℕ → Prop
-  | adjacent (i : ℕ): braid_monoid_rels_inf (of i * of (i+1) * of i) (of (i+1) * of i * of (i+1))
+  | adjacent (i : ℕ): braid_monoid_rels_inf (FreeMonoid.of i * of (i+1) * of i) (of (i+1) * of i * of (i+1))
   | separated (i j : ℕ) (h : i + 2 ≤ j) : braid_monoid_rels_inf (of i * of j) (of j * of i)
 
 theorem braid_monoid_rels_inf.length_pos {f g : FreeMonoid ℕ} (h : braid_monoid_rels_inf f g) :

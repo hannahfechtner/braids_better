@@ -77,6 +77,9 @@ theorem delta_braid_zero : delta_braid 0 = 1 := rfl
 @[simp]
 theorem delta_braid_one : delta_braid 1 = of 0 := by simp [delta_braid, sigma_braid]
 
+@[simp]
+theorem delta_braid_two : delta_braid 2 = of 0 * of 1 * of 0 := by simp [delta_braid, sigma_braid]
+
 theorem delta_braid_bounded (n : ℕ) : ∀ k ∈ delta_braid n, k < n := by
   intro k h
   induction n with
@@ -302,3 +305,12 @@ theorem equiv_multiple_delta_braid (u : FreeMonoid ℕ) (l n : ℕ) (h : FreeMon
     · exact additional_braid_bounded caboose n (by omega) _ in_additional_braid
     rcases FreeMonoid.mem_map.mp in_phi with ⟨w, hw⟩
     omega
+
+def left_divides (a b : BraidMonoidInf) : Prop := ∃ (x : BraidMonoidInf), a * x = b
+
+example : left_divides (BraidMonoidInf.of (0))
+  (BraidMonoidInf.mk (delta_braid 2)) := by
+  unfold left_divides
+  use BraidMonoidInf.mk (of 1 * of 0)
+  simp only [map_mul, delta_braid_two]
+  rfl

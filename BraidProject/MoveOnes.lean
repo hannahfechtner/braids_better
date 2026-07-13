@@ -113,96 +113,96 @@ theorem concatenate_reduction_length (h : L.length = n) : (concatenate_reduction
     | (some c, true) => simp [concatenate_reduction, h]
     | (some c, false) => simp [concatenate_reduction, h]
 
-noncomputable def concatenate_reduction_equiv_grid_style : SemiThue grid_style (a :: L) (concatenate_reduction a L) := by
-  have H : ∀ t L a, L.length ≤ t → SemiThue grid_style (a :: L) (concatenate_reduction a L) := by
+noncomputable def concatenate_reduction_equiv_grid_style : SemiThueData grid_style (a :: L) (concatenate_reduction a L) := by
+  have H : ∀ t L a, L.length ≤ t → SemiThueData grid_style (a :: L) (concatenate_reduction a L) := by
     intro t
     induction t
     · intro L a len
       simp only [nonpos_iff_eq_zero, List.length_eq_zero_iff] at len
       rw [len]
-      exact SemiThue.refl
+      exact SemiThueData.refl
     rename_i n ih
     intro L a len
     match a with
     | (none, true) =>
       simp only [concatenate_reduction_none_true]
-      exact SemiThue.refl
+      exact SemiThueData.refl
     | (none, false) =>
       match L with
-      | [] => exact SemiThue.refl
+      | [] => exact SemiThueData.refl
       | (none, true) :: tail =>
         simp only [List.length_cons, add_le_add_iff_right] at len
-        exact SemiThue.trans (SemiThue.append_right (SemiThue.of_rel grid_style.empty)) (SemiThue.cons (ih tail _ len))
-      | (none, false) :: tail => exact SemiThue.refl
+        exact SemiThueData.trans (SemiThueData.append_right (SemiThueData.of_rel grid_style.empty)) (SemiThueData.cons (ih tail _ len))
+      | (none, false) :: tail => exact SemiThueData.refl
       | (some c, true) :: tail1 =>
         simp only [List.length_cons, add_le_add_iff_right] at len
         specialize ih tail1 (none, false) len
-        exact SemiThue.trans (SemiThue.append_right (SemiThue.of_rel (grid_style.up c))) (SemiThue.cons ih)
+        exact SemiThueData.trans (SemiThueData.append_right (SemiThueData.of_rel (grid_style.up c))) (SemiThueData.cons ih)
       | (some c, false) :: tail1 =>
-        exact SemiThue.refl
+        exact SemiThueData.refl
     | (some b, true) =>
       match L with
-      | [] => exact SemiThue.refl
-      | (none, true) :: tail => exact SemiThue.refl
-      | (none, false) :: tail => exact SemiThue.refl
-      | (some c, true) :: tail1 => exact SemiThue.refl
-      | (some c, false) :: tail1 => exact SemiThue.refl
+      | [] => exact SemiThueData.refl
+      | (none, true) :: tail => exact SemiThueData.refl
+      | (none, false) :: tail => exact SemiThueData.refl
+      | (some c, true) :: tail1 => exact SemiThueData.refl
+      | (some c, false) :: tail1 => exact SemiThueData.refl
     | (some b, false) =>
       match L with
-      | [] => exact SemiThue.refl
+      | [] => exact SemiThueData.refl
       | (none, true) :: tail =>
         simp only [List.length_cons, add_le_add_iff_right] at len
         specialize ih tail (some b, false) len
-        exact SemiThue.trans (SemiThue.append_right (SemiThue.of_rel (grid_style.over b))) (SemiThue.cons ih)
-      | (none, false) :: tail => exact SemiThue.refl
-      | (some c, true) :: tail1 => exact SemiThue.refl
-      | (some c, false) :: tail1 => exact SemiThue.refl
+        exact SemiThueData.trans (SemiThueData.append_right (SemiThueData.of_rel (grid_style.over b))) (SemiThueData.cons ih)
+      | (none, false) :: tail => exact SemiThueData.refl
+      | (some c, true) :: tail1 => exact SemiThueData.refl
+      | (some c, false) :: tail1 => exact SemiThueData.refl
   exact H L.length _ _ (by simp)
 
-noncomputable def concatenate_reduction_equiv_grid_style_trivial : SemiThue grid_style_trivial (a :: L) (concatenate_reduction a L) := by
-  have H : ∀ t L a, L.length ≤ t → SemiThue grid_style_trivial (a :: L) (concatenate_reduction a L) := by
+noncomputable def concatenate_reduction_equiv_grid_style_trivial : SemiThueData grid_style_trivial (a :: L) (concatenate_reduction a L) := by
+  have H : ∀ t L a, L.length ≤ t → SemiThueData grid_style_trivial (a :: L) (concatenate_reduction a L) := by
     intro t
     induction t
     · intro L a len
       simp only [nonpos_iff_eq_zero, List.length_eq_zero_iff] at len
       rw [len]
-      exact SemiThue.refl
+      exact SemiThueData.refl
     rename_i n ih
     intro L a len
     match a with
     | (none, true) =>
       simp only [concatenate_reduction_none_true]
-      exact SemiThue.refl
+      exact SemiThueData.refl
     | (none, false) =>
       match L with
-      | [] => exact SemiThue.refl
+      | [] => exact SemiThueData.refl
       | (none, true) :: tail =>
         simp only [List.length_cons, add_le_add_iff_right] at len
-        exact SemiThue.trans (SemiThue.append_right (SemiThue.of_rel grid_style_trivial.empty)) (SemiThue.cons (ih tail _ len))
-      | (none, false) :: tail => exact SemiThue.refl
+        exact SemiThueData.trans (SemiThueData.append_right (SemiThueData.of_rel grid_style_trivial.empty)) (SemiThueData.cons (ih tail _ len))
+      | (none, false) :: tail => exact SemiThueData.refl
       | (some c, true) :: tail1 =>
         simp only [List.length_cons, add_le_add_iff_right] at len
         specialize ih tail1 (none, false) len
-        exact SemiThue.trans (SemiThue.append_right (SemiThue.of_rel (grid_style_trivial.up c))) (SemiThue.cons ih)
+        exact SemiThueData.trans (SemiThueData.append_right (SemiThueData.of_rel (grid_style_trivial.up c))) (SemiThueData.cons ih)
       | (some c, false) :: tail1 =>
-        exact SemiThue.refl
+        exact SemiThueData.refl
     | (some b, true) =>
       match L with
-      | [] => exact SemiThue.refl
-      | (none, true) :: tail => exact SemiThue.refl
-      | (none, false) :: tail => exact SemiThue.refl
-      | (some c, true) :: tail1 => exact SemiThue.refl
-      | (some c, false) :: tail1 => exact SemiThue.refl
+      | [] => exact SemiThueData.refl
+      | (none, true) :: tail => exact SemiThueData.refl
+      | (none, false) :: tail => exact SemiThueData.refl
+      | (some c, true) :: tail1 => exact SemiThueData.refl
+      | (some c, false) :: tail1 => exact SemiThueData.refl
     | (some b, false) =>
       match L with
-      | [] => exact SemiThue.refl
+      | [] => exact SemiThueData.refl
       | (none, true) :: tail =>
         simp only [List.length_cons, add_le_add_iff_right] at len
         specialize ih tail (some b, false) len
-        exact SemiThue.trans (SemiThue.append_right (SemiThue.of_rel (grid_style_trivial.over b))) (SemiThue.cons ih)
-      | (none, false) :: tail => exact SemiThue.refl
-      | (some c, true) :: tail1 => exact SemiThue.refl
-      | (some c, false) :: tail1 => exact SemiThue.refl
+        exact SemiThueData.trans (SemiThueData.append_right (SemiThueData.of_rel (grid_style_trivial.over b))) (SemiThueData.cons ih)
+      | (none, false) :: tail => exact SemiThueData.refl
+      | (some c, true) :: tail1 => exact SemiThueData.refl
+      | (some c, false) :: tail1 => exact SemiThueData.refl
   exact H L.length _ _ (by simp)
 
 open SignedOptionList
@@ -279,17 +279,17 @@ theorem move_ones_none_false_end : move_ones (a ++ [(none, false)]) = move_ones 
   rename_i ih
   rw [ih, concatenate_reduction_none_false_end]
 
-noncomputable def equiv_move_ones : SemiThue grid_style L (move_ones L) := by
+noncomputable def equiv_move_ones : SemiThueData grid_style L (move_ones L) := by
   induction L
-  · exact SemiThue.refl
+  · exact SemiThueData.refl
   rename_i head tail ih
-  exact SemiThue.trans (SemiThue.cons ih) (concatenate_reduction_equiv_grid_style)
+  exact SemiThueData.trans (SemiThueData.cons ih) (concatenate_reduction_equiv_grid_style)
 
-noncomputable def equiv_move_ones_grid_style_trivial : SemiThue grid_style_trivial L (move_ones L) := by
+noncomputable def equiv_move_ones_grid_style_trivial : SemiThueData grid_style_trivial L (move_ones L) := by
   induction L
-  · exact SemiThue.refl
+  · exact SemiThueData.refl
   rename_i head tail ih
-  exact SemiThue.trans (SemiThue.cons ih) (concatenate_reduction_equiv_grid_style_trivial)
+  exact SemiThueData.trans (SemiThueData.cons ih) (concatenate_reduction_equiv_grid_style_trivial)
 
 theorem toSignedList_move_ones : toSignedList (move_ones L) = toSignedList L := by
   induction L

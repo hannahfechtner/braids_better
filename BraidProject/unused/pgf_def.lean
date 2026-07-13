@@ -1,7 +1,7 @@
 import BraidProject.Grids_C
 import BraidProject.SemiThue_C
 import BraidProject.TrueFalse_C
-import BraidProject.PartialGrid_bounded
+import BraidProject.PartialGrid.Bounded
 import BraidProject.Relations
 
 namespace Braid
@@ -75,8 +75,8 @@ noncomputable def add_cell_w_len_pgf (h : pgf a b c)
     constructor
     simp [pgf.length]
 
-
-theorem true_false_not_in_spine (h : c1 ++ [(c2, true), (c3, false)] ++ c4 = a ++ b)
+--true_false_not_infix_false_true
+theorem true_false_not_infix_false_true (h : c1 ++ [(c2, true), (c3, false)] ++ c4 = a ++ b)
     (ha : is_false a) (hb : is_true b) : False := by
   have : c1 ++ [(c2, true), (c3, false)] ++ c4 =
     c1 ++ [(c2, true)] ++ ([(c3, false)] ++ c4) := by simp
@@ -158,7 +158,7 @@ noncomputable def one_step_trans
   rename_i d e f g h i j k
   specialize k h1
   rcases k with ⟨h4, len4⟩
-  cases j with
+  match j with
   | basic n =>
     use h4.step (grid_style.basic n)
     rw [rw_length_one_step, rw_length_one_step, len4, add_assoc]
@@ -207,24 +207,6 @@ noncomputable def reg_of_one_step_w_len :
   cases h1
   all_goals rw [rw_length_one_step, rw_length]
 
-noncomputable def pgf_of_st (h : SemiThue grid_style ab c) (hab : ab = a ++ b)
-  (ha : is_false a) (hal : a.length > 0) (hb : is_true b) (hbl : b.length > 0) :
-  pgf a b c := by
-  apply SemiThue.toSemiThueDerivation at h
-  induction h with
-  | refl =>
-    rw [hab]
-    exact pgf.skeleton a b hal ha hbl hb
-  | step h1 h2 ih =>
-    rename_i d e f g l
-    specialize ih hab
-    rcases h2
-    · use pgf.top_left _ ih rfl
-    · use pgf.sides _ ih rfl
-    · use pgf.top_bottom _ ih rfl
-    · use pgf.empty ih rfl
-    · use pgf.separated _ _ (by assumption) ih rfl
-    use pgf.adjacent _ _ (by assumption) ih rfl
 
 noncomputable def SemiThue_empty_w_len : {h : SemiThue grid_style [(none, false), (none, true)] [(none, true), (none, false)] // rw_length h = 0}:= by
   rw [← List.nil_append [(none, false), (none, true)], ← List.nil_append [(none, true), (none, false)],

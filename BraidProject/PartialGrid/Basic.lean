@@ -1,10 +1,7 @@
-import BraidProject.Grids_C
-import BraidProject.SemiThue_C
-import BraidProject.TrueFalse_C
-import BraidProject.NewListFacts
-import BraidProject.Relations
 import BraidProject.Additions.InvRev
+import BraidProject.Grids_C
 import BraidProject.SignedList_C
+import BraidProject.TrueFalse_C
 
 namespace Braid
 
@@ -16,8 +13,8 @@ inductive PartialGrid : List (Option ℕ × Bool) → List (Option ℕ × Bool) 
   | single_cell {a b c d} (h : CellData a b c d) :
       PartialGrid (to_vertical_edge a) (to_horizontal_edge b)
         (to_horizontal_edge c) [] (to_vertical_edge d)
-  | empty (a b : List (Option ℕ × Bool)) (ha : a.length > 0) (ha1 : is_false a)
-        (hb : b.length > 0) (hb : is_true b) :
+  | empty (a b : List (Option ℕ × Bool)) (ha : a.length > 0) (ha1 : SignedList.is_false a)
+        (hb : b.length > 0) (hb : SignedList.is_true b) :
       PartialGrid a b [] (a ++ b) []
   | horizontal_append_one {a b bot up b2 bot2 mid2 up2} (g1 : PartialGrid a b bot [] up)
         (g2 : PartialGrid up b2 bot2 mid2 up2) :
@@ -37,8 +34,9 @@ namespace PartialGrid
 
 def length (h : PartialGrid a b c d e) :=
   match h with
-  | single_cell h =>
-    by cases h with
+  | single_cell h1 =>
+    
+    by cases h1 with
     | empty => exact 0
     | top_bottom i => exact 0
     | sides i => exact 0
@@ -131,32 +129,32 @@ private def reflect_of_invRev_images (a b c d e) (h : PartialGrid a1 b1 c1 d1 e1
   rw [← a_eq, ← b_eq, ← c_eq, ← d_eq, ← e_eq]
   apply reflect h
 
-def right_frontier_is_false (h : PartialGrid a b c d e) : is_false e :=
+def right_frontier_is_false (h : PartialGrid a b c d e) : SignedList.is_false e :=
   match h with
   | single_cell  _ => is_false_to_vertical_edge
-  | empty _ _ _ _ _ _ => is_false_nil
+  | empty _ _ _ _ _ _ => SignedList.is_false_nil
   | horizontal_append_one g1 g2 => right_frontier_is_false g2
   | horizontal_append g1 g2 _ => right_frontier_is_false g2
-  | vertical_append_one g1 g2 => is_false_append (right_frontier_is_false g2) (right_frontier_is_false g1)
+  | vertical_append_one g1 g2 => SignedList.is_false_append (right_frontier_is_false g2) (right_frontier_is_false g1)
   | vertical_append g1 g2 _ => right_frontier_is_false g1
 
-def top_side_is_true (h : PartialGrid a b c d e) : is_true b :=
+def top_side_is_true (h : PartialGrid a b c d e) : SignedList.is_true b :=
   match h with
   | single_cell _ => is_true_to_horizontal_edge
   | empty _ _ _ _ _ hb => hb
-  | horizontal_append_one g1 g2 => is_true_append (top_side_is_true g1) (top_side_is_true g2)
-  | horizontal_append g1 g2 _ => is_true_append (top_side_is_true g1) (top_side_is_true g2)
+  | horizontal_append_one g1 g2 => SignedList.is_true_append (top_side_is_true g1) (top_side_is_true g2)
+  | horizontal_append g1 g2 _ => SignedList.is_true_append (top_side_is_true g1) (top_side_is_true g2)
   | vertical_append_one g1 _ => top_side_is_true g1
   | vertical_append g1 _ _ => top_side_is_true g1
 
-def left_side_is_false (h : PartialGrid a b c d e) : is_false a :=
+def left_side_is_false (h : PartialGrid a b c d e) : SignedList.is_false a :=
   match h with
   | single_cell _ => is_false_to_vertical_edge
   | empty _ _ _ ha1 _ _ => ha1
   | horizontal_append_one g1 _ => left_side_is_false g1
   | horizontal_append g1 _ _ => left_side_is_false g1
-  | vertical_append_one g1 g2 => is_false_append (left_side_is_false g2) (left_side_is_false g1)
-  | vertical_append g1 g2 _ => is_false_append (left_side_is_false g2) (left_side_is_false g1)
+  | vertical_append_one g1 g2 => SignedList.is_false_append (left_side_is_false g2) (left_side_is_false g1)
+  | vertical_append g1 g2 _ => SignedList.is_false_append (left_side_is_false g2) (left_side_is_false g1)
 
 def bottom_frontier_is_true (h : PartialGrid a b c d e) : is_true c :=
   match h with
@@ -441,115 +439,110 @@ def middle_frontier_end_spec_from_spec (h : middle_spec d) : middle_frontier_end
   use [(f, false)] ++ m, c
   exact spec
 
-theorem frontier_options_from_horizontal (h1 : PartialGrid a b mid d2 e2)
-    (i1 : PartialGrid a b1 d3 e3 mid1) (i2 : PartialGrid mid1 b2 d4 e4 e2)
-    (hf : mid ++ d2 = d3 ++ (e3 ++ (d4 ++ e4))) :
-    (mid = d3 ++ e3 ++ d4 ∧ e3 = []) ∨ (mid = d3 ∧ d2 = e3 ++ d4 ++ e4) := by
-  have mid_t : is_true mid := h1.bottom_frontier_is_true
-  have d3_t : is_true d3 := i1.bottom_frontier_is_true
-  have d4_t : is_true d4 := i2.bottom_frontier_is_true
-  have mid1_f : is_false mid1 := i2.left_side_is_false
-  rcases PartialGrid.middle_frontier_spec h1 with ⟨⟨d2_nil⟩⟩ | ⟨frontd2, middled2, caboosed2, ⟨specd2⟩⟩
+theorem frontier_options_from_horizontal
+    (h : PartialGrid a b c m e)
+    (i1 : PartialGrid a b1 c1 m1 d1) (i2 : PartialGrid d1 b2 c2 m2 e)
+    (hf : c ++ m = c1 ++ (m1 ++ (c2 ++ m2))) :
+    (c = c1 ++ m1 ++ c2 ∧ m1 = []) ∨ (c = c1 ∧ m = m1 ++ c2 ++ m2) := by
+  have c_true : is_true c := h.bottom_frontier_is_true
+  have c1_true : is_true c1 := i1.bottom_frontier_is_true
+  rcases PartialGrid.middle_frontier_spec h with ⟨⟨m_nil⟩⟩ | ⟨frontm, middlem, caboosem, ⟨specm⟩⟩
   · left
-    rw [d2_nil, List.append_nil] at hf
-    rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
-    · rw [e3_nil, List.nil_append] at hf
-      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
-      · rw [e4_nil, List.append_nil] at hf
+    rw [m_nil, List.append_nil] at hf
+    rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨m1_nil⟩⟩ | ⟨frontm1, middlem1, caboosem1, ⟨specm1⟩⟩
+    · rw [m1_nil, List.nil_append] at hf
+      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨m2_nil⟩⟩ | ⟨frontm2, middlem2, caboosem2, ⟨specm2⟩⟩
+      · rw [m2_nil, List.append_nil] at hf
         aesop
-      rw [spece4] at hf
-      rw [hf] at mid_t
-      specialize mid_t (fronte4, false) (by simp)
-      simp at mid_t
-    rw [spece3] at hf
-    rw [hf] at mid_t
-    specialize mid_t (fronte3, false) (by simp)
-    simp at mid_t
-  rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+      rw [specm2] at hf
+      rw [hf] at c_true
+      specialize c_true (frontm2, false) (by simp)
+      simp at c_true
+    rw [specm1] at hf
+    rw [hf] at c_true
+    specialize c_true (frontm1, false) (by simp)
+    simp at c_true
+  rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨m1_nil⟩⟩ | ⟨frontm1, middlem1, caboosem1, ⟨specm1⟩⟩
   · left
-    rw [e3_nil, List.nil_append] at hf
-    simp [e3_nil]
+    rw [m1_nil, List.nil_append] at hf
+    simp only [m1_nil, append_nil, and_true]
     rw [← List.append_assoc] at hf
     rcases List.append_eq_append_iff.mp hf with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
     · match tm with
       | [] => aesop
       | t1 :: t2 =>
-        rw [specd2] at s2
-        simp at s2
-        have H : is_true (d3 ++ d4) := is_true_append d3_t d4_t
+        rw [specm] at s2
+        simp only [cons_append, nil_append, cons.injEq] at s2
+        have H := is_true_append c1_true i2.bottom_frontier_is_true
         rw [s1, ← s2.1] at H
-        specialize H (frontd2, false) (by simp)
+        specialize H (frontm, false) (by simp)
         simp at H
     match fm with
     | [] => aesop
     | f1 :: f2 =>
-      rw [specd2] at s2
-      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨e4_nil⟩⟩ | ⟨fronte4, middlee4, caboosee4, ⟨spece4⟩⟩
+      rw [specm] at s2
+      rcases PartialGrid.middle_frontier_spec i2 with ⟨⟨m2_nil⟩⟩ | ⟨frontm2, middlem2, caboosem2, ⟨specm2⟩⟩
       · aesop
-      rw [spece4] at s2
-      simp at s2
+      rw [specm2] at s2
+      simp only [cons_append, nil_append, cons.injEq] at s2
       rw [← s2.1] at s1
-      rw [s1] at mid_t
-      specialize mid_t (fronte4, false) (by simp)
-      simp at mid_t
+      rw [s1] at c_true
+      specialize c_true (frontm2, false) (by simp)
+      simp at c_true
   right
-  rcases List.append_eq_append_iff.mp hf with
-    ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
+  rcases List.append_eq_append_iff.mp hf with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
   · match tm with
     | [] => aesop
     | t1 :: t2 =>
-      rw [specd2] at s2
-      simp at s2
-      rw [s1, ← s2.1] at d3_t
-      specialize d3_t (frontd2, false) (by simp)
-      simp at d3_t
+      rw [specm] at s2
+      simp only [cons_append, nil_append, cons.injEq] at s2
+      rw [s1, ← s2.1] at c1_true
+      specialize c1_true (frontm, false) (by simp)
+      simp at c1_true
   match fm with
   | [] => aesop
   | f1 :: f2 =>
-    rw [specd2] at s2
-    rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨e3_nil⟩⟩ | ⟨fronte3, middlee3, caboosee3, ⟨spece3⟩⟩
+    rw [specm] at s2
+    rcases PartialGrid.middle_frontier_spec i1 with ⟨⟨m1_nil⟩⟩ | ⟨frontm1, middlem1, caboosem1, ⟨specm1⟩⟩
     · aesop
-    rw [spece3] at s2
-    simp at s2
-    rw [s1, ← s2.1] at mid_t
-    specialize mid_t (fronte3, false) (by simp)
-    simp at mid_t
+    rw [specm1] at s2
+    simp only [cons_append, nil_append, append_assoc, cons.injEq] at s2
+    rw [s1, ← s2.1] at c_true
+    specialize c_true (frontm1, false) (by simp)
+    simp at c_true
 
-theorem frontier_options_from_vertical (h1 : PartialGrid a b mid d2 e2)
-    (i1 : PartialGrid a2 b mid4 e5 d5) (i2 : PartialGrid a1 mid4 mid d4 e4)
-    (hf : d4 ++ e4 ++ e5 ++ d5 = d2 ++ e2) :
-    (d2 = d4 ++ e4 ++ e5 ∧ d5 = e2) ∨ (d2 = d4 ∧ e5 = [] ∧ e2 = e4 ++ d5) := by
-  have H := reflect h1
+theorem frontier_options_from_vertical (h : PartialGrid a b c m e)
+    (i1 : PartialGrid a2 b mic2 e5 d5) (i2 : PartialGrid a1 mic2 c c2 m2)
+    (hf : c2 ++ m2 ++ e5 ++ d5 = m ++ e) :
+    (m = c2 ++ m2 ++ e5 ∧ d5 = e) ∨ (m = c2 ∧ e5 = [] ∧ e = m2 ++ d5) := by
+  have H := reflect h
   have H1 := reflect i1
   have H2 := reflect i2
   have hf' := congr_arg FreeGroup.invRev hf
   simp only [FreeGroup.invRev_append] at hf'
-  rcases frontier_options_from_horizontal H.1 H1.1 H2.1 hf'.symm with ⟨he2, he5⟩ | ⟨he2, he5⟩
+  rcases frontier_options_from_horizontal H.1 H1.1 H2.1 hf'.symm with ⟨he, he5⟩ | ⟨he, he5⟩
   · right
     have e5_nil : e5 = [] := by
       apply congr_arg FreeGroup.invRev at he5
       simp only [FreeGroup.invRev_invRev] at he5
       rw [he5]
       rfl
-    apply congr_arg FreeGroup.invRev at he2
-    simp only [FreeGroup.invRev_invRev, FreeGroup.invRev_append] at he2
-    rw [e5_nil] at he2 hf
+    apply congr_arg FreeGroup.invRev at he
+    simp only [FreeGroup.invRev_invRev, FreeGroup.invRev_append] at he
+    rw [e5_nil] at he hf
     constructor
-    · rw [he2] at hf
+    · rw [he] at hf
       simp only [append_nil, append_assoc, nil_append, append_cancel_right_eq] at hf
       exact hf.symm
-    constructor
-    · exact e5_nil
-    exact he2
+    exact ⟨e5_nil, he⟩
   left
   constructor
   · apply congr_arg FreeGroup.invRev at he5
     simp only [FreeGroup.invRev_invRev, FreeGroup.invRev_append] at he5
     rw [he5, List.append_assoc]
-  apply congr_arg FreeGroup.invRev at he2
-  simp only [FreeGroup.invRev_invRev] at he2
-  exact he2.symm
-
+  apply congr_arg FreeGroup.invRev at he
+  simp only [FreeGroup.invRev_invRev] at he
+  exact he.symm
 
 end PartialGrid
 

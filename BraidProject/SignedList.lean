@@ -1,6 +1,24 @@
 
 namespace SignedList
 
+def toList (L : List (ℕ × Bool)) : List ℕ := (List.map (fun x ↦ x.1) L)
+
+@[simp]
+theorem toList_nil : toList ([] : List (ℕ × Bool)) = [] := by
+  simp [toList]
+
+@[simp]
+theorem toList_cons : toList ((a, b) :: tail) = a :: toList tail := by
+  simp [toList]
+
+@[simp]
+theorem toList_append : toList (a ++ b) = toList a ++ toList b := by
+  simp [toList]
+
+@[simp]
+theorem toList_map (f : ℕ → ℕ) : toList (List.map (fun x ↦ (f x.1, x.2)) L) = List.map f (toList L) := by
+  simp [toList]
+
 def is_false (a : List (α × Bool)) : Prop := ∀ x , x ∈ a → x.2 = false
 
 @[simp]
@@ -66,6 +84,15 @@ theorem is_true_tail (h : is_true (x :: xs)) : is_true xs := by
   change is_true ([x] ++ xs) at h
   exact (is_true_of_append h).2
 
+theorem nil_of_is_true_and_is_false (h1 : SignedList.is_true m) (h2 : SignedList.is_false m) : m = [] := by
+  induction m with
+  | nil => rfl
+  | cons m1 m2 ih =>
+    have H1 := ((SignedList.is_true_of_cons h1).1 m1 (by simp))
+    have H2 := ((SignedList.is_false_of_cons h2).1 m1 (by simp))
+    rw [H1] at H2
+    simp at H2
+
 theorem eq_of_is_true_append_false_append_eq (ha : is_true a) (hb : is_true b)
     (h : a ++ [(c, false)] ++ d = b ++ [(e, false)] ++ f) : a = b ∧ c = e ∧ d = f := by
   have hab : a = b := by
@@ -118,11 +145,20 @@ theorem eq_of_is_false_append_true_append_eq (ha : is_false a) (hb : is_false b)
 
 def to_SignedOptionList (L : List (ℕ × Bool)) : List (Option ℕ × Bool) := (List.map (fun x ↦ (some x.1, x.2)) L)
 
+@[simp]
+theorem to_SignedOptionList_nil : to_SignedOptionList ([] : List (ℕ × Bool)) = [] := rfl
+
+@[simp]
+theorem to_SignedOptionList_cons : to_SignedOptionList ((a, b) :: tail) = (some a, b) :: to_SignedOptionList tail := rfl
+
+@[simp]
+theorem to_SignedOptionList_append : to_SignedOptionList (a ++ b) = to_SignedOptionList a ++ to_SignedOptionList b := by
+  simp [to_SignedOptionList]
+
 theorem is_false_to_SignedOptionList (ha : is_false a) : is_false (to_SignedOptionList a) := by
-  unfold to_SignedOptionList
-  unfold is_false
+  unfold to_SignedOptionList is_false
   intro x hx
-  simp at hx
+  simp only [List.mem_map, Prod.exists, Bool.exists_bool] at hx
   rcases hx with ⟨a1, h1 | h2⟩
   · rw [← h1.2]
   specialize ha (a1, true) h2.1
