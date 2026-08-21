@@ -7,18 +7,14 @@ theorem toList_to_SignedOptionList_to_vertical_edge_no_epsilon_reverse (a : List
   induction a with
   | nil => simp [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]
   | cons a1 a2 ih =>
-    simp [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]
-    simp [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon] at ih
-    exact ih
+    simp_all [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]
 
 theorem toList_to_SignedOptionList_to_horizontal_edge_no_epsilon (b : List ℕ) :
     SignedOptionList.toList (SignedList.to_SignedOptionList (to_horizontal_edge_no_epsilon b)) = b := by
   induction b with
   | nil => simp [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]
   | cons b1 b2 ih =>
-    simp [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]
-    simp [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon] at ih
-    exact ih
+    simp_all [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]
 
 theorem recover_of_toSignedList_to_horizontal_edge_no_epsilon
     (h : to_horizontal_edge_no_epsilon c = SignedOptionList.toSignedList bot) :
@@ -34,9 +30,7 @@ theorem recover_of_toSignedList_to_horizontal_edge_no_epsilon
       rcases to_horizontal_edge_no_epsilon_eq_append h with ⟨a₁, a₂, ha, ha₁, ha₂⟩
       simp only [SignedOptionList.toList_cons_some]
       rw [ih ha₂, ha]
-      unfold to_horizontal_edge_no_epsilon at ha₁
-      simp at ha₁
-      simp [ha₁.1]
+      simp_all [to_horizontal_edge_no_epsilon]
 
 theorem recover_of_toSignedList_to_vertical_edge_no_epsilon
     (h : SignedOptionList.toSignedList up = to_vertical_edge_no_epsilon d) :

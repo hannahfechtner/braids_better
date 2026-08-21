@@ -4,15 +4,21 @@ import Mathlib.Data.List.Lex
 import Mathlib.Data.List.Induction
 import BraidProject.Additions.FreeMonoid
 
+
 inductive SemiThue {α : Type} (rels : List α → List α → Prop) : List α → List α → Prop
 | refl {a : List α} : SemiThue rels a a
 | step {a b : List α} (c d : List α) (h : rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d)
 | trans {a b c : List α} : SemiThue rels a b → SemiThue rels b c → SemiThue rels a c
 
+attribute [refl] SemiThue.refl
+
+
 inductive SemiThueDerivation (rels : List α → List α → Prop) : List α → List α → Prop
 | refl {a : List α} : SemiThueDerivation rels a a
 | step {a b c d e : List α} (h1 : SemiThueDerivation rels e (c ++ a ++ d)) (h2 : rels a b) :
     SemiThueDerivation rels e (c ++ b ++ d)
+
+attribute [refl] SemiThueDerivation.refl
 
 private noncomputable def SemiThueDerivation.trans (h1 : SemiThueDerivation rels a b) (h2 : SemiThueDerivation rels b c) :
     SemiThueDerivation rels a c := by
@@ -33,6 +39,8 @@ noncomputable def SemiThue.toSemiThueDerivation {a b : List α} (h : SemiThue re
   | step _ _ h => exact SemiThueDerivation.step SemiThueDerivation.refl h
   | trans _ _ ih1 ih2 => exact SemiThueDerivation.trans ih1 ih2
 
+
+@[gcongr]
 def SemiThue.cons (h : SemiThue rels a b) : SemiThue rels (c :: a) (c :: b) := by
   match h with
   | SemiThue.refl => exact SemiThue.refl
@@ -40,18 +48,16 @@ def SemiThue.cons (h : SemiThue rels a b) : SemiThue rels (c :: a) (c :: b) := b
     rw [← List.cons_append, ← List.cons_append, ← List.cons_append, ← List.cons_append]
     exact SemiThue.step _ _ h
   | SemiThue.trans f g =>
-    apply (SemiThue.cons f).trans (SemiThue.cons g)
-
+    exact (SemiThue.cons f).trans (SemiThue.cons g)
 
 def SemiThue.append_left (h : SemiThue rels a b) : SemiThue rels (c ++ a) (c ++ b) := by
   match h with
   | SemiThue.refl => exact SemiThue.refl
   | SemiThue.step _ _ h =>
-    rename_i e f g i j
     rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc, ← List.append_assoc]
-    apply SemiThue.step _ _ h
+    exact SemiThue.step _ _ h
   | SemiThue.trans f g =>
-    apply (SemiThue.append_left f).trans (SemiThue.append_left g)
+    exact (SemiThue.append_left f).trans (SemiThue.append_left g)
 
 def SemiThue.append_right (h : SemiThue rels a b) : SemiThue rels (a ++ c) (b ++ c) := by
   match h with

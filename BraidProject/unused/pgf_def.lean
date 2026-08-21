@@ -10,7 +10,7 @@ open SignedList
 
 inductive pgf : List (Option ℕ × Bool) → List (Option ℕ × Bool) →
   List (Option ℕ × Bool) → Type
-  | skeleton (a b) (ha : a.length > 0) (ha1 : is_false a) (hb : b.length > 0) (hb : is_true b ):
+  | skeleton (a b) (ha : a.length > 0) (ha1 : is_false a) (hb : b.length > 0) (hb1 : is_true b ):
       pgf a b (a ++ b)
   | empty (h : pgf a b c) (hc : c = c1 ++ [(none, false), (none, true)] ++ c2) :
       pgf a b (c1 ++ [(none, true), (none, false)] ++ c2)
@@ -42,6 +42,63 @@ noncomputable def pgf_left_false (h : pgf a b c) : is_false a := by
 
 noncomputable def pgf_top_true (h : pgf a b c) : is_true b := by
   induction h; all_goals assumption
+
+noncomputable def pgf_remove (h : grid_style x y) (hf : pgf a b (c ++ y++ d)) :
+  pgf a b (c ++ x ++ d) := by
+  generalize hz : c ++ y ++ d = z at hf
+  induction hf generalizing c d with
+  | skeleton ha ha1 hb hb1 => sorry
+  | empty h_inner hc_inner ih =>
+    rename_i c1 c2
+    subst hc_inner
+    sorry
+  | top_bottom i h_inner hc_inner ih =>
+    rename_i c1 c2
+    subst hc_inner
+    sorry
+  | sides i h_inner hc_inner ih =>
+    rename_i c1 c2
+    subst hc_inner
+    sorry
+  | top_left i h_inner hc_inner ih =>
+    rename_i c1 c2
+    subst hc_inner
+    sorry
+  | adjacent i j hd h_inner hc_inner ih =>
+    rename_i c1 c2
+    subst hc_inner
+    sorry
+  | separated i k hd h_inner hc_inner ih =>
+    rename_i c1 c2
+    subst hc_inner
+    sorry
+
+def pgf_remove' (h : grid_style x y) (hf : pgf a b (c ++ y++ d)) :
+  pgf a b (c ++ x ++ d) := by
+  generalize hz : c ++ y ++ d = z
+  rw [hz] at hf
+  cases hf with
+  | skeleton ha ha1 hb hb1 => sorry
+  | empty h2 hc =>
+    rename_i e f g
+    have : (PLift (f = c ∧ d = g)) ⊕
+      Σ f₁ f₂, PLift (c = f₁ ∧ d = f₂ ++ [(none, true), (none, false)] ++ g) := by sorry
+    rcases this with ⟨hf, hd⟩ | ⟨f₁, f₂, hc, hd⟩
+    · have : y = [(none, true), (none, false)] := by
+        rw [← hf, hd] at hz
+        apply List.append_cancel_right at hz
+        exact List.append_cancel_left hz
+      rw [hc, hf, ← hd] at h2
+      convert h2
+      sorry
+    
+
+    sorry
+  | top_bottom i h hc => sorry
+  | sides i h hc => sorry
+  | top_left i h hc => sorry
+  | adjacent i j hd h hc => sorry
+  | separated i k hd h hc => sorry
 
 noncomputable def add_cell_w_len_pgf (h : pgf a b c)
     (hg : grid_style_nontrivial i j) (fe : c = k ++ i ++ l) :
@@ -76,18 +133,18 @@ noncomputable def add_cell_w_len_pgf (h : pgf a b c)
     simp [pgf.length]
 
 --true_false_not_infix_false_true
-theorem true_false_not_infix_false_true (h : c1 ++ [(c2, true), (c3, false)] ++ c4 = a ++ b)
-    (ha : is_false a) (hb : is_true b) : False := by
-  have : c1 ++ [(c2, true), (c3, false)] ++ c4 =
-    c1 ++ [(c2, true)] ++ ([(c3, false)] ++ c4) := by simp
-  rw [this] at h
-  rcases List.append_eq_append_iff.mp h with ⟨m, hm1, hm2⟩ | ⟨m, hm1, hm2⟩
-  · rw [hm1] at ha
-    specialize ha (c2, true) (by simp)
-    simp only [Bool.true_eq_false] at ha
-  rw [hm2] at hb
-  specialize hb (c3, false) (by simp)
-  simp only [Bool.false_eq_true] at hb
+-- theorem true_false_not_infix_false_true (h : c1 ++ [(c2, true), (c3, false)] ++ c4 = a ++ b)
+--     (ha : is_false a) (hb : is_true b) : False := by
+--   have : c1 ++ [(c2, true), (c3, false)] ++ c4 =
+--     c1 ++ [(c2, true)] ++ ([(c3, false)] ++ c4) := by simp
+--   rw [this] at h
+--   rcases List.append_eq_append_iff.mp h with ⟨m, hm1, hm2⟩ | ⟨m, hm1, hm2⟩
+--   · rw [hm1] at ha
+--     specialize ha (c2, true) (by simp)
+--     simp only [Bool.true_eq_false] at ha
+--   rw [hm2] at hb
+--   specialize hb (c3, false) (by simp)
+--   simp only [Bool.false_eq_true] at hb
 
 theorem pgf_length_skeleton (h : pgf a b c) (hc : c = a ++ b) : h.length = 0 := by
   induction h with

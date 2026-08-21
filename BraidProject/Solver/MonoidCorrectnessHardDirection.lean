@@ -103,6 +103,8 @@ noncomputable def step_three (h : SemiThue reversing_prop (to_vertical_edge_no_e
       · exact to_horizontal_edge_length_pos
       exact is_true_to_horizontal_edge
     constructor
+    simp [← ha1]
+    
     sorry
     --simp_all [SignedOptionList.toSignedList, ← ha1]
     --exact remove_up_is_no_epsilon

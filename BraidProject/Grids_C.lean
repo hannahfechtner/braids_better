@@ -36,7 +36,6 @@ def CellData.symm (h : CellData a b c d) : CellData b a d c :=
   | .adjacent i k h => CellData.adjacent k i (by rw [Nat.dist_comm] at h; exact h)
   | .separated i j h => CellData.separated j i (by rw [Nat.dist_comm] at h; exact h)
 
-
 namespace GridData
 
 theorem to_grid (h : GridData a b c d) : grid a b c d := by

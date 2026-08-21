@@ -25,22 +25,17 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
     simp_all
     exact SemiThue.refl
   | top_bottom i =>
-    change _ = [] at hd
     change _ = [(i, true)] at hc
     have := PartialGrid.FrontierPossibilitiesEpsilonRemoved.empty_generator h ha hb
     convert SemiThue.refl
     aesop
   | sides i =>
-    change _ = [] at hc
     change _ = [(i, false)] at hd
     have := PartialGrid.FrontierPossibilitiesEpsilonRemoved.generator_empty h hb ha
     convert SemiThue.refl
     aesop
   | top_left i =>
-    change _ = [] at hc
-    change _ = [] at hd
-    rw [List.append_eq_nil_iff] at hc hd
-    rw [hc.2, hd.1, List.append_nil]
+    rw [(FreeMonoid.prod_eq_one hc).2, (FreeMonoid.prod_eq_one hd).1]
     have := PartialGrid.FrontierPossibilitiesEpsilonRemoved.generator_generator_same h ha hb
     have : SignedOptionList.toSignedList m1 = [] ∨ SignedOptionList.toSignedList m1 = [(i, false), (i, true)] := by aesop
     rcases this with h1 | h2
@@ -58,7 +53,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
       rw [hm1]
       rw [hc1] at hc
       rw [hd1] at hd
-      simp only [List.cons_append, List.nil_append, List.cons.injEq, true_and] at hc
+      simp at hc
     any_goals simp at hd
     any_goals change _ = [(k, false)] ++ [(i , false)] at hd; rw [List.append_left_inj] at hd
     any_goals
@@ -68,7 +63,22 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
       exact reversing_prop.close (by assumption)
     any_goals
       apply SemiThue.refl
-  | separated i j h => sorry
+  | separated i j h =>
+    have := PartialGrid.FrontierPossibilitiesEpsilonRemoved.generator_generator_apart h ha hb (by assumption)
+    change _ = [(j, true)] at hc
+    change _ = [(i, false)] at hd
+    rcases this with ⟨hc1, hm1, hd1⟩ | ⟨hc1, hm1, hd1⟩ | ⟨hc1, hm1, hd1⟩ | ⟨hc1, hm1, hd1⟩| ⟨hc1, hm1, hd1⟩
+    any_goals
+      rw [hm1]
+      rw [hc1] at hc
+      rw [hd1] at hd
+      simp at hc hd
+      rw [hc, hd]
+    any_goals
+      apply SemiThue.of_rel
+      apply reversing_prop.apart (by assumption)
+    all_goals
+      apply SemiThue.refl
   | vertical h1 h2 h1_ih h2_ih =>
     sorry
   | horizontal h1 h2 h1_ih h2_ih =>
@@ -81,40 +91,42 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
     | x :: xs =>
       match b₄ with
       | [] => sorry
-      | y :: ys => sorry
-      -- rcases PartialGrid.splittable_vertically h _ _ hb (by simp) (by simp) with ⟨center, r, s, t, u, v, w, ⟨⟨z⟩, ⟨_⟩⟩⟩ | ⟨⟩
-      -- · specialize h1_ih v ha hb₃
-      --   have hl : SignedOptionList.toList (x :: xs) = l := by
-      --     apply to_horizontal_edge_no_epsilon_injective
-      --     change _ = to_horizontal_edge_no_epsilon l at hb₃
-      --     rw [← hb₃]
-      --     refine to_horizontal_edge_no_epsilon_toList_eq_toSignedList ?_
-      --     exact top_side_is_true v
-      --   have hk : SignedOptionList.toList (FreeGroup.invRev a1) <+: k := by
-      --     have : SignedOptionList.toList (FreeGroup.invRev a1) = k := by
-      --       apply to_vertical_edge_no_epsilon_inj
-      --       change _ = to_vertical_edge_no_epsilon k at ha
-      --       rw [← ha]
-      --       exact to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList (left_side_is_false v)
-      --     rw [this]
-      --   have := (PartialGrid.frontier_prefix h1 v).2 hl hk
-      --   rcases this with ⟨m₁, hm⟩
-      --   have := PartialGrid.extend_left_side w (to_vertical_edge m₁)
-      --     is_false_to_vertical_edge (List.ne_nil_of_length_pos
-      --       to_vertical_edge_length_pos)
-      --   specialize h2_ih this
-      --   rw [← hm] at h2_ih
-      --   have hmc : SignedOptionList.toSignedList (to_vertical_edge m₁ ++ center) =
-      --     to_vertical_edge_no_epsilon (SignedOptionList.toList (FreeGroup.invRev center) ++ m₁) := by
-      --     simp only [SignedOptionList.toSignedList_append, SignedOptionList.toList_invRev,
-      --       to_vertical_edge_no_epsilon_append]
-      --     congr
-      --     · refine toSignedList_to_vertical_edge ?_
-      --       sorry
-      --     rw [← SignedOptionList.toList_reverse, to_vertical_edge_no_epsilon_toList_rev_eq_toSignedList]
-      --     exact right_frontier_is_false v
-      --   specialize h2_ih hmc (List.reverse_inj.mp (congrArg List.reverse hb₄))
-      --   refine SemiThue.trans ?_ (h2_ih ?_ ?_)
+      | y :: ys =>
+      rcases PartialGrid.splittable_vertically h _ _ hb (by simp) (by simp) with ⟨center, r, s, t, u, v, w, ⟨⟨z⟩, ⟨_⟩⟩⟩ | ⟨⟩
+      · have hl : SignedOptionList.toList (x :: xs) = l := by
+          apply to_horizontal_edge_no_epsilon_injective
+          change _ = to_horizontal_edge_no_epsilon l at hb₃
+          rw [← hb₃]
+          refine to_horizontal_edge_no_epsilon_toList_eq_toSignedList ?_
+          exact top_side_is_true v
+        have hk : SignedOptionList.toList (FreeGroup.invRev a1) <+: k := by
+          have : SignedOptionList.toList (FreeGroup.invRev a1) = k := by
+            apply to_vertical_edge_no_epsilon_inj
+            change _ = to_vertical_edge_no_epsilon k at ha
+            rw [← ha]
+            exact to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList (left_side_is_false v)
+          rw [this]
+        have := (PartialGrid.frontier_prefix' h1 v).2 hl hk
+        rcases this with ⟨rest, hrest⟩
+        specialize h1_ih v ha hb₃ _ hrest
+
+
+        have := PartialGrid.extend_left_side w (to_vertical_edge m₁)
+          is_false_to_vertical_edge (List.ne_nil_of_length_pos
+            to_vertical_edge_length_pos)
+        specialize h2_ih this
+        rw [← hm] at h2_ih
+        have hmc : SignedOptionList.toSignedList (to_vertical_edge m₁ ++ center) =
+          to_vertical_edge_no_epsilon (SignedOptionList.toList (FreeGroup.invRev center) ++ m₁) := by
+          simp only [SignedOptionList.toSignedList_append, SignedOptionList.toList_invRev,
+            to_vertical_edge_no_epsilon_append]
+          congr
+          · refine toSignedList_to_vertical_edge ?_
+            sorry
+          rw [← SignedOptionList.toList_reverse, to_vertical_edge_no_epsilon_toList_rev_eq_toSignedList]
+          exact right_frontier_is_false v
+        specialize h2_ih hmc (List.reverse_inj.mp (congrArg List.reverse hb₄))
+        refine SemiThue.trans ?_ (h2_ih ?_ ?_)
 
 
 def frontier_reverses_to_grid (h : PartialGrid a1 b1 c1 d1 e1) :=
@@ -127,7 +139,7 @@ def frontier_reverses_to_grid (h : PartialGrid a1 b1 c1 d1 e1) :=
 
 noncomputable def frontier_reverses_to_grid_holds (h : PartialGrid a b c d e) : frontier_reverses_to_grid h := by
   intros a1 b1 f g ha hb h2
-  have ⟨H2, H3⟩ := PartialGrid.frontier_prefix h2 h
+  have ⟨H2, H3⟩ := PartialGrid.frontier_prefix' h2 h
   have ha' : SignedOptionList.toList (FreeGroup.invRev a) = a1 := by
     refine to_vertical_edge_no_epsilon_inj ?_
     rw [← ha]

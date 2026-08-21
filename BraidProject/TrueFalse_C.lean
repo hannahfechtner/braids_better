@@ -25,7 +25,14 @@ def to_horizontal_edge (a : List ℕ) : List (Option ℕ × Bool) :=
 theorem to_vertical_edge_no_epsilon_nil : to_vertical_edge_no_epsilon [] = [] := rfl
 
 @[simp]
+theorem to_vertical_edge_no_epsilon_one : to_vertical_edge_no_epsilon (1 : FreeMonoid ℕ) = [] := rfl
+
+@[simp]
 theorem to_vertical_edge_no_epsilon_singleton (a : ℕ) : to_vertical_edge_no_epsilon [a] = [(a, false)] := rfl
+
+@[simp]
+theorem to_vertical_edge_no_epsilon_cons (a : ℕ) (b : List ℕ) : to_vertical_edge_no_epsilon (a :: b) = to_vertical_edge_no_epsilon b ++ [(a, false)] := by
+  simp [to_vertical_edge_no_epsilon]
 
 @[simp]
 theorem to_vertical_edge_no_epsilon_pair (a : ℕ) : to_vertical_edge_no_epsilon [a, b] = [(b, false), (a, false)] := rfl
@@ -44,6 +51,11 @@ theorem to_vertical_edge_no_epsilon_reverse : to_vertical_edge_no_epsilon a.reve
       simp [to_vertical_edge_no_epsilon, List.nil_append]
     | cons head1 tail1 =>
       simp_all [to_vertical_edge_no_epsilon, List.append_assoc, List.reverse_cons, List.reverse_append]
+
+theorem to_vertical_edge_no_epsilon_eq_nil (h : to_vertical_edge_no_epsilon a = []) : a = [] := by
+  cases a
+  · rfl
+  simp at h
 
 theorem to_vertical_edge_no_epsilon_eq_append (h : to_vertical_edge_no_epsilon a = b ++ c) :
     ∃ a₁ a₂, a = a₁ ++ a₂ ∧ to_vertical_edge_no_epsilon a₁ = c ∧ to_vertical_edge_no_epsilon a₂ = b := by
@@ -81,6 +93,9 @@ theorem to_vertical_edge_no_epsilon_length : (to_vertical_edge_no_epsilon a).len
 theorem to_vertical_edge_nil : to_vertical_edge [] = [(none, false)] := rfl
 
 @[simp]
+theorem to_vertical_edge_one : to_vertical_edge (1 : FreeMonoid ℕ) = [(none, false)] := rfl
+
+@[simp]
 theorem to_vertical_edge_singleton (a : ℕ) : to_vertical_edge [a] = [(some a, false)] := rfl
 
 @[simp]
@@ -90,15 +105,18 @@ theorem to_vertical_edge_pair (a : ℕ) : to_vertical_edge [a, b] = [(some b, fa
 theorem to_vertical_edge_cons_cons : to_vertical_edge (a :: b :: c) = to_vertical_edge (b :: c) ++ [(some a, false)] := by
   simp [to_vertical_edge]
 
+@[simp]
 theorem to_vertical_edge_append (ha : a.length > 0) (hb : b.length > 0) :
     to_vertical_edge (a ++ b) = to_vertical_edge b ++ to_vertical_edge a := by
   unfold to_vertical_edge
   aesop
 
+@[simp]
 theorem to_vertical_edge_no_epsilon_append {a b : List ℕ} :
   to_vertical_edge_no_epsilon (a ++ b) = to_vertical_edge_no_epsilon b ++ to_vertical_edge_no_epsilon a := by
   simp [to_vertical_edge_no_epsilon]
 
+@[simp]
 theorem to_vertical_edge_no_epsilon_mul {a b : FreeMonoid ℕ} :
   to_vertical_edge_no_epsilon (a * b) = to_vertical_edge_no_epsilon b ++ to_vertical_edge_no_epsilon a := by
   rw [← to_vertical_edge_no_epsilon_append]
@@ -123,6 +141,9 @@ theorem to_vertical_edge_length_pos : (to_vertical_edge a).length > 0 := by
 theorem to_horizontal_edge_no_epsilon_nil : to_horizontal_edge_no_epsilon [] = [] := rfl
 
 @[simp]
+theorem to_horizontal_edge_no_epsilon_one : to_horizontal_edge_no_epsilon (1 : FreeMonoid ℕ) = [] := rfl
+
+@[simp]
 theorem to_horizontal_edge_no_epsilon_singleton (a : ℕ) : to_horizontal_edge_no_epsilon [a] = [(a, true)] := rfl
 
 @[simp]
@@ -136,15 +157,21 @@ theorem to_horizontal_edge_no_epsilon_cons (a : ℕ) (b : List ℕ) : to_horizon
 theorem to_horizontal_edge_no_epsilon_cons_cons : to_horizontal_edge_no_epsilon (a :: b :: c) = (a, true) :: to_horizontal_edge_no_epsilon (b :: c) := by
   simp [to_horizontal_edge_no_epsilon]
 
-
+@[simp]
 theorem to_horizontal_edge_no_epsilon_append {a b : List ℕ} :
   to_horizontal_edge_no_epsilon (a ++ b) = to_horizontal_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b := by
   simp [to_horizontal_edge_no_epsilon]
 
+@[simp]
 theorem to_horizontal_edge_no_epsilon_mul {a b : FreeMonoid ℕ} :
   to_horizontal_edge_no_epsilon (a * b) = to_horizontal_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b := by
   rw [← to_horizontal_edge_no_epsilon_append]
   rfl
+
+theorem to_horizontal_edge_no_epsilon_eq_nil (h : to_horizontal_edge_no_epsilon a = []) : a = [] := by
+  cases a
+  · rfl
+  simp at h
 
 theorem to_horizontal_edge_no_epsilon_eq_append (h : to_horizontal_edge_no_epsilon a = b ++ c) :
   ∃ a₁ a₂, a = a₁ ++ a₂ ∧ to_horizontal_edge_no_epsilon a₁ = b ∧ to_horizontal_edge_no_epsilon a₂ = c := by
@@ -174,6 +201,9 @@ theorem to_horizontal_edge_no_epsilon_length : (to_horizontal_edge_no_epsilon a)
 
 @[simp]
 theorem to_horizontal_edge_nil : to_horizontal_edge [] = [(none, true)] := rfl
+
+@[simp]
+theorem to_horizontal_edge_one : to_horizontal_edge (1 : FreeMonoid ℕ) = [(none, true)] := rfl
 
 @[simp]
 theorem to_horizontal_edge_singleton (a : ℕ) : to_horizontal_edge [a] = [(some a, true)] := rfl
@@ -407,6 +437,7 @@ theorem toSignedList_to_horizontal_edge (ha : a.length > 0 ) :
     | nil => simp
     | cons head1 tail1 => simp_all
 
+
 def is_false_to_vertical_edge_no_epsilon : SignedList.is_false (to_vertical_edge_no_epsilon a) := by
   cases a ; all_goals simp [to_vertical_edge_no_epsilon, SignedList.is_false]
 
@@ -475,6 +506,26 @@ theorem to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList
       simp [to_vertical_edge_no_epsilon, SignedOptionList.toSignedList,
         ← ih (SignedList.is_false_of_cons h).2,
         SignedOptionList.toList]
+
+theorem toSignedList_eq_to_vertical_edge_no_epsilon_iff
+    {a : List (Option ℕ × Bool)} {m : List ℕ} (ha : SignedList.is_false a) :
+    toSignedList a = to_vertical_edge_no_epsilon m ↔ m = toList (FreeGroup.invRev a) := by
+  constructor
+  · intro h
+    apply to_vertical_edge_no_epsilon_inj
+    rw [to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList ha, ← h]
+  intro h
+  rw [h, to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList ha]
+
+theorem toSignedList_eq_to_horizontal_edge_no_epsilon_iff
+    {a : List (Option ℕ × Bool)} {m : List ℕ} (ha : SignedList.is_true a) :
+    toSignedList a = to_horizontal_edge_no_epsilon m ↔ m = toList a := by
+  constructor
+  · intro h
+    apply to_horizontal_edge_no_epsilon_injective
+    rw [to_horizontal_edge_no_epsilon_toList_eq_toSignedList ha, ← h]
+  intro h
+  rw [h, to_horizontal_edge_no_epsilon_toList_eq_toSignedList ha]
 
 def NegPosData.of_to_vertical_edge_no_epsilon_to_horizontal_edge_no_epsilon :
     SignedList.NegPosData (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) := by
@@ -635,9 +686,8 @@ theorem eq_singletons_of_false_true_eq_unfinished_cell
   have := eq_left_singleton_of_is_false_append_eq_unfinished_cell (Nat.zero_lt_of_ne_zero H1) ha h.symm
   grind
 
-
-def true_prefix_of_unfinished_frontier
-    (h1 : SignedList.is_true bot3) (h : k₂ ++ [(a1, false), (b1, true)] ++ l = bot3 ++ mid3 ++ up3) :
+def true_prefix_of_unfinished_frontier_generalized
+    (h1 : SignedList.is_true bot3) (h : k₂ ++ [(a1, false)] ++ l = bot3 ++ mid3 ++ up3) :
     List.PrefixData bot3 k₂ := by
   induction k₂ generalizing bot3 with
   | nil =>
@@ -653,6 +703,54 @@ def true_prefix_of_unfinished_frontier
       specialize @ih tail1 (SignedList.is_true_of_cons h1).2 h.2
       rw [h.1]
       exact (List.PrefixData.cons head1) ih
+
+def true_prefix_of_unfinished_frontier
+    (h1 : SignedList.is_true bot3) (h : k₂ ++ [(a1, false), (b1, true)] ++ l = bot3 ++ mid3 ++ up3) :
+    List.PrefixData bot3 k₂ := by
+  have : k₂ ++ [(a1, false), (b1, true)] ++ l =  k₂ ++ [(a1, false)] ++ ([(b1, true)] ++ l) := by simp
+  rw [this] at h
+  exact true_prefix_of_unfinished_frontier_generalized h1 h
+
+theorem true_prefix_of_unfinished_frontier_generalized_overall {α : Type} {a1 a2 : α} {k₂ l up3 bot3 : List (α × Bool)}
+    (h1 : SignedList.is_true bot3) (h2 : is_true k₂) (h : k₂ ++ [(a1, false)] ++ l = bot3 ++ [(a2, false)] ++ up3) :
+    k₂ = bot3 := by
+  have h3 := List.PrefixData.to_IsPrefix <| true_prefix_of_unfinished_frontier_generalized h1 h
+  have h4 := List.PrefixData.to_IsPrefix <| true_prefix_of_unfinished_frontier_generalized h2 h.symm
+  exact h4.eq_of_length (h4.length_le.antisymm h3.length_le)
+
+def false_prefix_of_unfinished_frontier_generalized
+    (h1 : SignedList.is_false t3) (h : k₂ ++ [(a1, true)] ++ l = t3 ++ mid3 ++ up3) :
+    List.PrefixData t3 k₂ := by
+  induction k₂ generalizing t3 with
+  | nil =>
+    cases t3 with
+    | nil => exact List.PrefixData.nil
+    | cons head tail =>
+      grind [SignedList.is_false]
+  | cons head tail ih =>
+    cases t3 with
+    | nil => exact List.PrefixData.nil
+    | cons head1 tail1 =>
+      simp only [List.cons_append, List.cons.injEq] at h
+      specialize @ih tail1 (SignedList.is_false_of_cons h1).2 h.2
+      rw [h.1]
+      exact (List.PrefixData.cons head1) ih
+
+theorem false_prefix_of_unfinished_frontier_generalized_overall {α : Type} {a1 a2 : α} {k₂ l up3 t3 : List (α × Bool)}
+    (h1 : SignedList.is_false t3) (h2 : is_false k₂) (h : k₂ ++ [(a1, true)] ++ l = t3 ++ [(a2, true)] ++ up3) :
+    k₂ = t3 := by
+  have h3 := List.PrefixData.to_IsPrefix <| false_prefix_of_unfinished_frontier_generalized h1 h
+  have h4 := List.PrefixData.to_IsPrefix <| false_prefix_of_unfinished_frontier_generalized h2 h.symm
+  exact h4.eq_of_length (h4.length_le.antisymm h3.length_le)
+
+theorem false_suffix_of_unfinished_frontier_generalized_overall {α : Type} {a1 a2 : α} {k₂ l up3 t3 : List (α × Bool)}
+    (h1 : SignedList.is_false t3) (h2 : is_false k₂) (h : l ++ [(a1, true)] ++ k₂ = up3 ++ [(a2, true)] ++ t3) :
+    k₂ = t3 := by
+  have hr := congr_arg List.reverse h
+  simp only [List.reverse_append, List.reverse_singleton, ← List.append_assoc] at hr
+  have h1' : SignedList.is_false t3.reverse := fun x hx => h1 x (List.mem_reverse.mp hx)
+  have h2' : SignedList.is_false k₂.reverse := fun x hx => h2 x (List.mem_reverse.mp hx)
+  exact List.reverse_injective (false_prefix_of_unfinished_frontier_generalized_overall h1' h2' hr)
 
 def false_prefix_of_unfinished_frontier (h1 : SignedList.is_false t3) (h : tk ++ [(a1, false), (b1, true)] ++ l =
     t3 ++ (f, false) :: (m ++ [(c, true)]) ++ up3) : List.PrefixData t3 tk := by

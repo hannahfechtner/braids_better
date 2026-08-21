@@ -387,3 +387,95 @@ noncomputable def splittable_horizontally (h : PartialGrid a b c d e) :
   constructor
   rw [H.2.1, len.1]
   exact H0.2.1
+
+theorem bottom_frontier_spec_from_split_vertically (h : PartialGrid a b c m d)
+  (h1 : PartialGrid a b₁ c₁ m₁ d₁) (h2 : PartialGrid d₁ b₂ c₂ m₂ d₂)
+  (hb : b = b₁ ++ b₂) (hf : c ++ m = c₁ ++ m₁ ++ c₂ ++ m₂) :
+  (m₁ = [] ∧ c = c₁ ++ c₂) ∨ (m₁ ≠ [] ∧ c = c₁) := by
+  rcases middle_frontier_spec h1 with ⟨⟨rfl⟩⟩ | ⟨front1, mid1, caboose1, ⟨rfl⟩⟩
+  · rcases middle_frontier_spec h2 with ⟨⟨rfl⟩⟩ | ⟨front2, mid2, caboose2, ⟨rfl⟩⟩
+    · rcases middle_frontier_spec h with ⟨⟨rfl⟩⟩ | ⟨front, mid, caboose, ⟨rfl⟩⟩
+      · aesop
+      simp only [List.cons_append, List.nil_append, List.append_nil] at hf
+      have : is_true (c₁ ++ c₂) := is_true_append (bottom_frontier_is_true h1) (
+        bottom_frontier_is_true h2)
+      rw [← hf] at this
+      specialize this (front, false)
+      simp at this
+    rcases middle_frontier_spec h with ⟨⟨rfl⟩⟩ | ⟨front, mid, caboose, ⟨rfl⟩⟩
+    · simp only [List.append_nil, List.append_assoc] at hf
+      have : is_true c := bottom_frontier_is_true h
+      rw [hf] at this
+      specialize this (front2, false)
+      simp at this
+    left
+    constructor
+    · rfl
+    rw [List.append_nil] at hf
+    have : c ++ ([(front, false)] ++ mid ++ [(caboose, true)]) =
+      c ++ [(front, false)] ++ (mid ++ [(caboose, true)]) := by simp
+    rw [this] at hf
+    have : c₁ ++ c₂ ++ ([(front2, false)] ++ mid2 ++ [(caboose2, true)]) =
+      (c₁ ++ c₂) ++ [(front2, false)] ++ (mid2 ++ [(caboose2, true)]) := by simp
+    rw [this] at hf
+    exact true_prefix_of_unfinished_frontier_generalized_overall (is_true_append
+      (bottom_frontier_is_true h1) (bottom_frontier_is_true h2)) (bottom_frontier_is_true h) hf
+  right
+  constructor
+  · simp
+  rcases middle_frontier_spec h with ⟨⟨rfl⟩⟩ | ⟨front, mid, caboose, ⟨rfl⟩⟩
+  · rw [List.append_nil] at hf
+    have : is_true c := bottom_frontier_is_true h
+    rw [hf] at this
+    specialize this (front1, false)
+    simp at this
+  have : c ++ ([(front, false)] ++ mid ++ [(caboose, true)]) =
+    c ++ [(front, false)] ++ (mid ++ [(caboose, true)]) := by simp
+  rw [this] at hf
+  have : c₁ ++ ([(front1, false)] ++ mid1 ++ [(caboose1, true)]) ++ c₂ ++ m₂ =
+    c₁ ++ [(front1, false)] ++ (mid1 ++ [(caboose1, true)] ++ c₂ ++ m₂) := by simp
+  rw [this] at hf
+  exact true_prefix_of_unfinished_frontier_generalized_overall
+    (bottom_frontier_is_true h1) (bottom_frontier_is_true h) hf
+
+theorem right_frontier_spec_from_split_horizontally
+  (h : PartialGrid a b c m d)
+  (h1 : PartialGrid a₁ b center m₁ d₁) (h2 : PartialGrid a₂ center c m₂ d₂)
+  (ha : a = a₂ ++ a₁) (hf : m₂ ++ d₂ ++ m₁ ++ d₁ = m ++ d) :
+  (m₁ = [] ∧ d = d₂ ++ d₁) ∨ (m₁ ≠ [] ∧ d = d₁) := by
+  rcases middle_frontier_spec h1 with ⟨⟨rfl⟩⟩ | ⟨front1, mid1, caboose1, ⟨rfl⟩⟩
+  · rcases middle_frontier_spec h2 with ⟨⟨rfl⟩⟩ | ⟨front2, mid2, caboose2, ⟨rfl⟩⟩
+    · rcases middle_frontier_spec h with ⟨⟨rfl⟩⟩ | ⟨front, mid, caboose, ⟨rfl⟩⟩
+      · aesop
+      simp only [List.append_nil, List.nil_append] at hf
+      have : is_false (d₂ ++ d₁) := is_false_append
+        (right_frontier_is_false h2) (right_frontier_is_false h1)
+      rw [hf] at this
+      specialize this (caboose, true)
+      simp at this
+    rcases middle_frontier_spec h with ⟨⟨rfl⟩⟩ | ⟨front, mid, caboose, ⟨rfl⟩⟩
+    · simp only [List.nil_append] at hf
+      have : is_false d := right_frontier_is_false h
+      rw [← hf] at this
+      specialize this (caboose2, true)
+      simp at this
+    left
+    constructor
+    · rfl
+    rw [List.append_nil] at hf
+    have : [(front2, false)] ++ mid2 ++ [(caboose2, true)] ++ d₂ ++ d₁ =
+      ([(front2, false)] ++ mid2) ++ [(caboose2, true)] ++ (d₂ ++ d₁) := by simp
+    rw [this] at hf
+    exact false_suffix_of_unfinished_frontier_generalized_overall (is_false_append
+      (right_frontier_is_false h2) (right_frontier_is_false h1)) (right_frontier_is_false h) hf.symm
+  rcases middle_frontier_spec h with ⟨⟨rfl⟩⟩ | ⟨front, mid, caboose, ⟨rfl⟩⟩
+  · rw [List.nil_append] at hf
+    have : is_false d := right_frontier_is_false h
+    rw [← hf] at this
+    specialize this (caboose1, true)
+    simp at this
+  right
+  refine ⟨by simp, ?_⟩
+  simp only [← List.append_assoc] at hf
+  exact false_suffix_of_unfinished_frontier_generalized_overall
+    (right_frontier_is_false h1) (right_frontier_is_false h) hf.symm

@@ -137,40 +137,12 @@ def solver_helper {a1 a2} (ha1 : a1.length > 0) (ha2 : a2.length > 0) (a : trian
           exact SemiThueData.step _ _ (reversing.apart (by omega))⟩
     termination_by length a
     decreasing_by
-    · rcases a with ⟨a3, a4⟩
-      simp only
+    all_goals
+      apply (tsub_lt_tsub_iff_left_of_le_of_le (st_smaller_than_g _ ha1 ha2)
+        (st_smaller_than_g _ ha1 ha2)).mpr
+      rcases a with ⟨a3, a4⟩
       rcases FindOpenPair.spec hb' with ⟨b1, b2, b3⟩
-      rcases d with ⟨x, y⟩
-      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-      · simp [SemiThueData.reversing.length]
-      · apply st_smaller_than_g
-        assumption
-        assumption
-      apply st_smaller_than_g
-      assumption
-      assumption
-    · rcases a with ⟨a3, a4⟩
-      rcases FindOpenPair.spec hb' with ⟨b1, b2, b3⟩
-      rcases d with ⟨x, y⟩
-      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-      · simp [SemiThueData.reversing.length]
-      · apply st_smaller_than_g
-        assumption
-        assumption
-      apply st_smaller_than_g
-      assumption
-      assumption
-    rcases a with ⟨a3, a4⟩
-    rcases FindOpenPair.spec hb' with ⟨b1, b2, b3⟩
-    rcases d with ⟨x, y⟩
-    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · simp [SemiThueData.reversing.length]
-    · apply st_smaller_than_g
-      assumption
-      assumption
-    apply st_smaller_than_g
-    assumption
-    assumption
+      simp [SemiThueData.reversing.length]
 
 theorem solver_helper_FindOpenPair_none {a1 a2} {ha1 : a1.length > 0} {ha2 : a2.length > 0}
     (a : triangle a1 a2)  : FindOpenPair (solver_helper ha1 ha2 a).1= none := by
@@ -180,66 +152,39 @@ theorem solver_helper_FindOpenPair_none {a1 a2} {ha1 : a1.length > 0} {ha2 : a2.
   · assumption
   split
   · rename_i ih l m o p hd
-    apply @ih
-      (length ⟨l ++ [] ++ o,
-          by
+    apply @ih (length ⟨l ++ [] ++ o, by
           apply a.2.trans
           rw [FindOpenPair.spec p]
           exact SemiThueData.step _ _ (reversing.basic hd)⟩)
     rw [← ha]
     rcases a with ⟨a3, a4⟩
     rcases FindOpenPair.spec p with ⟨b1, b2, b3⟩
-    have H : m.1 = m.2 := by exact Nat.eq_of_dist_eq_zero hd
     rcases m with ⟨x, y⟩
-    simp only at H
-    subst H
-    unfold length
-    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · simp [SemiThueData.reversing.length]
-    · apply st_smaller_than_g
-      assumption
-      assumption
-    apply st_smaller_than_g
-    assumption
-    assumption
+    obtain rfl : x = y := Nat.eq_of_dist_eq_zero hd
+    apply (tsub_lt_tsub_iff_left_of_le_of_le (st_smaller_than_g _ ha1 ha2) (st_smaller_than_g _ ha1 ha2)).mpr
+    simp [SemiThueData.reversing.length]
     rfl
   · rename_i ih m n o p hd
-    apply @ih (length ⟨(m ++ [(n.2, true), (n.1, true), (n.2, false), (n.1, false)] ++ o),
-        by
+    apply @ih (length ⟨(m ++ [(n.2, true), (n.1, true), (n.2, false), (n.1, false)] ++ o), by
           apply a.2.trans
           rw [FindOpenPair.spec p]
           exact SemiThueData.step _ _ (reversing.close hd)⟩)
     rcases a with ⟨a3, a4⟩
     rcases FindOpenPair.spec p with ⟨b1, b2, b3⟩
-    rcases n with ⟨x, y⟩
     rw [← ha]
-    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · simp [SemiThueData.reversing.length]
-    · apply st_smaller_than_g
-      assumption
-      assumption
-    apply st_smaller_than_g
-    assumption
-    assumption
+    apply (tsub_lt_tsub_iff_left_of_le_of_le (st_smaller_than_g _ ha1 ha2) (st_smaller_than_g _ ha1 ha2)).mpr
+    simp [SemiThueData.reversing.length]
     rfl
   rename_i ih l m n o p hd
-  apply @ih (length ⟨(l ++ [(m.2, true), (m.1, false)] ++ n),
-        by
+  apply @ih (length ⟨(l ++ [(m.2, true), (m.1, false)] ++ n), by
           apply a.2.trans
           rw [FindOpenPair.spec o]
           exact SemiThueData.step _ _ (reversing.apart (by omega))⟩)
+  rw [← ha]
+  apply (tsub_lt_tsub_iff_left_of_le_of_le (st_smaller_than_g _ ha1 ha2) (st_smaller_than_g _ ha1 ha2)).mpr
   rcases a with ⟨a3, a4⟩
   rcases FindOpenPair.spec o with ⟨b1, b2, b3⟩
-  rcases m with ⟨x, y⟩
-  rw [← ha]
-  apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-  · simp [SemiThueData.reversing.length]
-  · apply st_smaller_than_g
-    assumption
-    assumption
-  apply st_smaller_than_g
-  assumption
-  assumption
+  simp [SemiThueData.reversing.length]
   rfl
 
 open SignedList
@@ -248,48 +193,34 @@ def SignedList.PosNegData_of_FindOpenPair_none (h : FindOpenPair a = none) : Sig
   induction a with
   | nil =>
     use [], []
-    constructor
-    exact ⟨SignedList.is_true_nil, ⟨SignedList.is_false_nil, rfl⟩⟩
+    exact ⟨⟨SignedList.is_true_nil, SignedList.is_false_nil, rfl⟩⟩
   | cons head tail ih =>
-    have h2 := FindOpenPair.cons_eq_none h
-    specialize ih h2
-    rcases ih with ⟨c, d, h1, h2, ⟨h3⟩⟩
+    rcases ih (FindOpenPair.cons_eq_none h) with ⟨c, d, h1, h2, ⟨h3⟩⟩
     match head with
     | (a, true) =>
-      use (a, true)::c, d
-      constructor
-      constructor
-      · exact SignedList.is_true_cons c h1
-      constructor
-      · assumption
-      rfl
+      use (a, true) :: c, d
+      exact ⟨⟨SignedList.is_true_cons c h1, h2, rfl⟩⟩
     | (a, false) =>
       match c with
       | [] =>
-        use [], (a, false)::d
-        constructor
-        constructor
-        · exact h1
-        constructor
-        · exact SignedList.is_false_cons d (by assumption)
-        rfl
+        use [], (a, false) :: d
+        exact ⟨⟨h1, SignedList.is_false_cons d (h2), rfl⟩⟩
       | (c1, true) :: c2 =>
         simp [FindOpenPair] at h
       | (c1, false) :: c2 =>
-        specialize h1 (c1, false) (by simp)
-        simp at h1
+        specialize h1 (c1, false)
+        simp_all
 
-def solver_helper_SignedList.PosNegData {ha1 : a1.length > 0} {ha2 : a2.length > 0} (a : triangle a1 a2) : SignedList.PosNegData (solver_helper ha1 ha2 a).1 := by
-  have H := @solver_helper_FindOpenPair_none _ _ ha1 ha2 a
-  exact SignedList.PosNegData_of_FindOpenPair_none H
+def solver_helper_SignedList.PosNegData {ha1 : a1.length > 0} {ha2 : a2.length > 0} (a : triangle a1 a2) : SignedList.PosNegData (solver_helper ha1 ha2 a).1 :=
+  SignedList.PosNegData_of_FindOpenPair_none (solver_helper_FindOpenPair_none a)
 
 def solver_long (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
   solver_helper ha hb ⟨to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b, SemiThueData.refl ⟩
 
 def solver_long_PosNegData (a b) (ha : List.length a > 0) (hb : List.length b > 0) :
-  SignedList.PosNegData (solver_long a b ha hb).1 := by
-  have H := @solver_helper_FindOpenPair_none _ _ ha hb ⟨to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b, SemiThueData.refl ⟩
-  exact SignedList.PosNegData_of_FindOpenPair_none H
+    SignedList.PosNegData (solver_long a b ha hb).1 :=
+  SignedList.PosNegData_of_FindOpenPair_none
+    (solver_helper_FindOpenPair_none ⟨to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b, SemiThueData.refl ⟩)
 
 def solver_equiv (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThueData reversing
     (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) (solver_long a b ha hb).1 := (solver_long a b ha hb).2

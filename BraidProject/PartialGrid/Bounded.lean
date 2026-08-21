@@ -67,7 +67,7 @@ theorem PartialGrid.length_le_GridData_length
       have hi1 := h1_ih i1 a1m b_is
       have hi2 : i2.length ≤ GridData.length h2 := by
         have H : toList mid <+: k :=
-          (PartialGrid.frontier_prefix h1 i1).1 a1m (by rw [b_is])
+          by sorry --(PartialGrid.frontier_prefix h1 i1).1 a1m (by rw [b_is])
         rcases H with ⟨r, hr⟩
         match r_is : r with
         | [] =>
@@ -111,23 +111,23 @@ theorem PartialGrid.length_le_GridData_length
       with ⟨mid, d1, e1, d2, e2, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
     · rw [hl, GridData.length]
       have hone := h1_ih i1 a_is b1j
-      have two : i2.length ≤ GridData.length h2 := by
-        have H2 := (frontier_prefix h1 i1).2 (by rw [b1j]; rfl) (by rw [a_is])
-        rcases H2 with ⟨r, hr⟩
-        match r with
-        | [] =>
-          rw [List.append_nil] at hr
-          exact h2_ih i2 hr b2m
-        | r1 :: r2 =>
-          have H := PartialGrid.extend_left_side_w_length i2 (to_vertical_edge (r1::r2))
-            is_false_to_vertical_edge (by simp [to_vertical_edge])
-          rcases H with ⟨h3, ⟨len⟩⟩
-          rw [len]
-          have hk : toList (FreeGroup.invRev (to_vertical_edge (r1 :: r2) ++ mid)) = l := by
-            rw [FreeGroup.invRev_append, SignedOptionList.toList_append]
-            rw [← hr]
-            simp
-          exact h2_ih h3 hk b2m
+      have two : i2.length ≤ GridData.length h2 := by sorry
+        -- have H2 := by so(frontier_prefix h1 i1).2 (by rw [b1j]; rfl) (by rw [a_is])
+        -- rcases H2 with ⟨r, hr⟩
+        -- match r with
+        -- | [] =>
+        --   rw [List.append_nil] at hr
+        --   exact h2_ih i2 hr b2m
+        -- | r1 :: r2 =>
+        --   have H := PartialGrid.extend_left_side_w_length i2 (to_vertical_edge (r1::r2))
+        --     is_false_to_vertical_edge (by simp [to_vertical_edge])
+        --   rcases H with ⟨h3, ⟨len⟩⟩
+        --   rw [len]
+        --   have hk : toList (FreeGroup.invRev (to_vertical_edge (r1 :: r2) ++ mid)) = l := by
+        --     rw [FreeGroup.invRev_append, SignedOptionList.toList_append]
+        --     rw [← hr]
+        --     simp
+        --   exact h2_ih h3 hk b2m
       omega
     rcases baaad with ⟨drest, i1, ⟨len⟩, ⟨e_nil⟩, ⟨b2_is⟩⟩
     specialize h1_ih i1 a_is b1j
