@@ -517,6 +517,36 @@ theorem toSignedList_eq_to_vertical_edge_no_epsilon_iff
   intro h
   rw [h, to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList ha]
 
+theorem toSignedList_prefix_to_vertical_edge_no_epsilon_iff
+    {a : List (Option ℕ × Bool)} {m : List ℕ} (ha : SignedList.is_false a) :
+    toSignedList a <+: to_vertical_edge_no_epsilon m ↔ toList (FreeGroup.invRev a) <:+ m := by
+  constructor
+  · intro h
+    rcases h with ⟨r, hr⟩
+    rcases to_vertical_edge_no_epsilon_eq_append hr.symm with ⟨b, c, rfl, hb, hc⟩
+    use b
+    congr
+    exact ((toSignedList_eq_to_vertical_edge_no_epsilon_iff ha).mp hc.symm).symm
+  intro h
+  rcases h with ⟨r, rfl⟩
+  rw [to_vertical_edge_no_epsilon_append, to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList ha]
+  simp
+
+theorem toSignedList_suffix_to_vertical_edge_no_epsilon_iff
+    {a : List (Option ℕ × Bool)} {m : List ℕ} (ha : SignedList.is_false a) :
+    toSignedList a <:+ to_vertical_edge_no_epsilon m ↔ toList (FreeGroup.invRev a) <+: m := by
+  constructor
+  · intro h
+    rcases h with ⟨r, hr⟩
+    rcases to_vertical_edge_no_epsilon_eq_append hr.symm with ⟨b, c, rfl, hb, hc⟩
+    use c
+    congr
+    exact ((toSignedList_eq_to_vertical_edge_no_epsilon_iff ha).mp hb.symm).symm
+  intro h
+  rcases h with ⟨r, rfl⟩
+  rw [to_vertical_edge_no_epsilon_append, to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList ha]
+  simp
+
 theorem toSignedList_eq_to_horizontal_edge_no_epsilon_iff
     {a : List (Option ℕ × Bool)} {m : List ℕ} (ha : SignedList.is_true a) :
     toSignedList a = to_horizontal_edge_no_epsilon m ↔ m = toList a := by
@@ -526,6 +556,21 @@ theorem toSignedList_eq_to_horizontal_edge_no_epsilon_iff
     rw [to_horizontal_edge_no_epsilon_toList_eq_toSignedList ha, ← h]
   intro h
   rw [h, to_horizontal_edge_no_epsilon_toList_eq_toSignedList ha]
+
+theorem toSignedList_prefix_to_horizontal_edge_no_epsilon_iff
+    {a : List (Option ℕ × Bool)} {m : List ℕ} (ha : SignedList.is_true a) :
+    toSignedList a <+: to_horizontal_edge_no_epsilon m ↔ toList a <+: m := by
+  constructor
+  · intro h
+    rcases h with ⟨r, hr⟩
+    rcases to_horizontal_edge_no_epsilon_eq_append hr.symm with ⟨b, c, rfl, hb, hc⟩
+    use c
+    congr
+    exact ((toSignedList_eq_to_horizontal_edge_no_epsilon_iff ha).mp hb.symm).symm
+  intro h
+  rcases h with ⟨r, rfl⟩
+  rw [to_horizontal_edge_no_epsilon_append, to_horizontal_edge_no_epsilon_toList_eq_toSignedList ha]
+  simp
 
 def NegPosData.of_to_vertical_edge_no_epsilon_to_horizontal_edge_no_epsilon :
     SignedList.NegPosData (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) := by

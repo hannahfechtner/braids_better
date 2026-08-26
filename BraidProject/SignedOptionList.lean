@@ -184,7 +184,7 @@ theorem toSignedList_is_false (h : SignedList.is_false a) : SignedList.is_false 
         simp only [toSignedList, List.mem_cons, List.not_mem_nil, or_false] at hh
         aesop
     exact ih c ht
-    
+
 theorem toSignedList_eq_append (h : toSignedList a = b ++ c) :
     ∃ a₁ a₂, a = a₁ ++ a₂ ∧ toSignedList a₁ = b ∧ toSignedList a₂ = c := by
   induction a generalizing b c with
