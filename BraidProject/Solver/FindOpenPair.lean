@@ -4,8 +4,9 @@ import Mathlib.Tactic
 
 namespace Braid
 
+/-- searches for a sublist of the form [(a, false), (b, true)]-/
 def FindOpenPair (L : List (ℕ × Bool)) :
-    Option (List (ℕ × Bool) × ((ℕ) × (ℕ)) × List (ℕ × Bool)) :=
+    Option (List (ℕ × Bool) × (ℕ × ℕ) × List (ℕ × Bool)) :=
   match L with
   | [] => none
   | _ :: [] => none
@@ -20,29 +21,27 @@ def FindOpenPair (L : List (ℕ × Bool)) :
 namespace FindOpenPair
 
 @[simp]
-theorem nil : FindOpenPair [] = none := by simp [FindOpenPair]
+theorem nil : FindOpenPair [] = none := by rfl
 
 @[simp]
-theorem singleton : FindOpenPair [a] = none := by
-  unfold FindOpenPair; simp
+theorem singleton : FindOpenPair [a] = none := by rfl
 
-theorem cons_eq_none (h : FindOpenPair (a :: b) = none) : FindOpenPair b = none := by
+theorem cons_eq_none (h : FindOpenPair (a :: b) = none) :
+    FindOpenPair b = none := by
   induction b with
-  | nil => simp
+  | nil => rfl
   | cons head tail ih =>
     unfold FindOpenPair at h
-    rcases a with ⟨a1, a2⟩
-    rcases head with ⟨h3, h4⟩
-    cases a2 with
-    | false =>
-      cases h4 with
-      | true => simp at h
-      | false =>
-        cases ha : FindOpenPair ((h3, false) :: tail) with
+    match a with
+    | ⟨_, false⟩ =>
+      match head with
+      | ⟨hh, true⟩ => simp only [reduceCtorEq] at h
+      | ⟨hh, false⟩  =>
+        cases ha : FindOpenPair ((hh, false) :: tail) with
         | none => rfl
         | some a => simp [ha] at h
-    | true =>
-      cases ha : FindOpenPair ((h3, h4) :: tail) with
+    | ⟨_, true⟩  =>
+      cases ha : FindOpenPair (head :: tail) with
       | none => rfl
       | some a => simp [ha] at h
 
