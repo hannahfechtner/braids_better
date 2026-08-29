@@ -35,7 +35,6 @@ namespace PartialGrid
 def length (h : PartialGrid a b c d e) :=
   match h with
   | single_cell h1 =>
-
     by cases h1 with
     | empty => exact 0
     | top_bottom i => exact 0
@@ -319,10 +318,10 @@ theorem bottom_middle_frontier_not_both_nil : PartialGrid a b c d e → c = [] �
 def middle_spec (d : List (α × Bool)) := PLift (d = []) ⊕ Σ front mid caboose,
   PLift (d = [(front, false)] ++ mid ++ [(caboose, true)])
 
-noncomputable def middle_frontier_spec (h : PartialGrid a b c d e) :
+def middle_frontier_spec (h : PartialGrid a b c d e) :
     PLift (d = []) ⊕ Σ front mid caboose,
     PLift (d = [(front, false)] ++ mid ++ [(caboose, true)]) := by
-  induction h with
+  match h with
   | single_cell h =>
     left; exact {down := rfl}
   | empty a b ha ha1 hb hb1 =>
@@ -349,13 +348,13 @@ noncomputable def middle_frontier_spec (h : PartialGrid a b c d e) :
         constructor
         apply congr_arg List.reverse at hbr
         grind
-  | horizontal_append_one g1 g2 g1_ih g2_ih => assumption
-  | horizontal_append g1 g2 h1 g1_ih g2_ih =>
-    rename_i bot2 _ _
-    rcases g1_ih with ⟨ha⟩ | hb
+  | horizontal_append_one g1 g2 => apply middle_frontier_spec g2
+  | horizontal_append g1 g2 h1 =>
+    rename_i bot2 _
+    rcases middle_frontier_spec g1 with ⟨ha⟩ | hb
     · rw [ha.1] at h1
       simp at h1
-    rcases g2_ih with hc | hd
+    rcases middle_frontier_spec g2 with hc | hd
     · right; rw [hc.1, List.append_nil];
       rcases hc with ⟨f1, c1, h1⟩
       induction bot2 using List.reverseRecOn with
@@ -375,13 +374,13 @@ noncomputable def middle_frontier_spec (h : PartialGrid a b c d e) :
     rw [h1.1, h2.1]
     use front1, m1 ++ [(caboose1, true)] ++ bot2 ++ [(front2, false)] ++ m2, caboose2
     exact {down := by simp}
-  | vertical_append_one g1 g2 g1_ih g2_ih => assumption
-  | vertical_append g1 g2 h g1_ih g2_ih =>
+  | vertical_append_one g1 g2 => exact middle_frontier_spec g2
+  | vertical_append g1 g2 h =>
     right
-    rcases g1_ih with h1 | h2
+    rcases middle_frontier_spec g1 with h1 | h2
     · rw [h1.1] at h
       simp at h
-    rcases g2_ih with h3 | h4
+    rcases middle_frontier_spec g2 with h3 | h4
     · rw [h3.1, List.nil_append]
       rcases h2 with ⟨f1, m1, c1, spec⟩
       rename_i up2

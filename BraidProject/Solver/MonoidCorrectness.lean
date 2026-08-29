@@ -302,7 +302,7 @@ theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
   rw [silly] at st
   have H2 : SemiThueData grid_style b' (move_ones b') := equiv_move_ones
   have H3 := SemiThueData.trans st H2
-  have H := step_two (SignedList.is_false_to_SignedOptionList is_false_to_vertical_edge_no_epsilon)
+  have H := step_two_with_length (SignedList.is_false_to_SignedOptionList is_false_to_vertical_edge_no_epsilon)
     (by simp [ha, SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]) (SignedList.is_true_to_SignedOptionList is_true_to_horizontal_edge_no_epsilon)
     (by simp [hb, SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]) H3
   rcases H with ⟨bot, mid, up, pg, ⟨b'_is⟩⟩

@@ -32,7 +32,7 @@ theorem over_up_splits_at_i' (h1 : is_false a) (h2 : is_true b) (h3 : a.length >
     specialize h1 _ this
     simp at h1
 
-noncomputable def over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a.length > 0)
+def over_up_splits_at_i (h1 : is_false a) (h2 : is_true b) (h3 : a.length > 0)
       (h5 : a ++ b = k ++ ([(a3, false), (b3, true)] ++ l)) : Σ a1 a2 b1 b2, PLift (a = a1 ++ a2 ∧ b = b1 ++ b2 ∧
       [(a3, false), (b3, true)] = a2 ++ b1 ∧ a1 = k ∧ b2 = l) := by
   induction k generalizing a with

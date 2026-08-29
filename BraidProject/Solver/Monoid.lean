@@ -3,7 +3,7 @@ import BraidProject.SignedOptionList
 import BraidProject.TrueFalse_C
 import BraidProject.PartialGrid.Basic
 import BraidProject.StepOne
-import BraidProject.StepTwo_C_basic_eq
+--import BraidProject.StepTwo_C_basic_eq
 import BraidProject.GridData_length
 import BraidProject.PartialGrid.Bounded
 import BraidProject.Solver.StepOne_length_general
@@ -35,10 +35,10 @@ noncomputable def PartialGrid.of_SemiThueData_reversing (h : SemiThueData revers
   have H := SemiThueData.reversing.to_grid_style_w_length_horizontal_vertical_edge h ha hb
   rcases H with ⟨c, h3, h4⟩
   rw [h4.1]
-  have H := step_two (is_false_to_vertical_edge) (to_vertical_edge_length_pos) is_true_to_horizontal_edge to_horizontal_edge_length_pos h3
+  have H := step_two_with_length (is_false_to_vertical_edge) (to_vertical_edge_length_pos) is_true_to_horizontal_edge to_horizontal_edge_length_pos h3
   rcases H with ⟨d, e, f, h1, h2⟩
   use d, e, f, h1
-  exact ⟨h2.2.1.symm⟩
+  exact ⟨h2.2.1⟩
 
 theorem st_smaller_than_g (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
   (ha : a.length > 0) (hb : b.length > 0):

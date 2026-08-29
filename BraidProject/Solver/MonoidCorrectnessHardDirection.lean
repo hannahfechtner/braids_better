@@ -1,6 +1,9 @@
 import BraidProject.Solver.MonoidCorrectness
 import BraidProject.PartialGrid.NestedFrame
-import BraidProject.PartialGrid.FrontierToSink
+import BraidProject.SemiThue
+import BraidProject.Relations
+import BraidProject.PartialGrid.FrontierPossibilities
+--import BraidProject.PartialGrid.FrontierToSink
 
 namespace Braid
 
@@ -92,7 +95,8 @@ noncomputable def step_three (h : SemiThue reversing_prop (to_vertical_edge_no_e
   match b with
   | [] =>
     have ha1 : to_vertical_edge_no_epsilon (a1 :: a2) = cde := by
-      simp [to_horizontal_edge_no_epsilon] at h
+      simp only [to_horizontal_edge_no_epsilon, List.map_nil,
+        List.append_nil] at h
       apply eq_of_SemiThue_false h
       exact is_false_to_vertical_edge_no_epsilon
     use [], to_vertical_edge (a1 :: a2) ++ [(none, true)], []
@@ -104,7 +108,7 @@ noncomputable def step_three (h : SemiThue reversing_prop (to_vertical_edge_no_e
       exact is_true_to_horizontal_edge
     constructor
     simp [← ha1]
-    
+
     sorry
     --simp_all [SignedOptionList.toSignedList, ← ha1]
     --exact remove_up_is_no_epsilon

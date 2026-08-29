@@ -56,7 +56,7 @@ theorem grid_style.length_refl : grid_style.length (@SemiThueDataDerivation.refl
   rfl
 
 @[simp]
-theorem grid_style.length_step (h1 : SemiThueDataDerivation grid_style a (c ++ b ++ d)) (h2 : grid_style b c) :
+theorem grid_style.length_step (h1 : SemiThueDataDerivation grid_style a (c ++ b ++ d)) (h2 : grid_style b e) :
   grid_style.length (SemiThueDataDerivation.step h1 h2) = grid_style.length h1 + Braid.grid_style.length h2 := by
   rfl
 
@@ -155,8 +155,6 @@ noncomputable def SemiThueDataDerivation.grid_style.toSemiThueData_with_length :
   use h2.1.trans (SemiThueData.step _ _ h1)
   constructor
   simp [h2.2.1]
-  rfl
-
 
 noncomputable def SemiThueData.grid_style.empty_w_length : {h : SemiThueData grid_style [(none, false), (none, true)] [(none, true), (none, false)] // SemiThueData.grid_style.length h = 0}:= by
   rw [← List.nil_append [(none, false), (none, true)], ← List.nil_append [(none, true), (none, false)],

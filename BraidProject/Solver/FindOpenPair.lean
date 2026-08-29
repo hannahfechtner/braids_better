@@ -28,30 +28,31 @@ theorem singleton : FindOpenPair [a] = none := by rfl
 
 theorem cons_eq_none (h : FindOpenPair (a :: b) = none) :
     FindOpenPair b = none := by
-  induction b with
-  | nil => rfl
-  | cons head tail ih =>
-    unfold FindOpenPair at h
+  match b with
+  | [] => rfl
+  | head :: tail =>
     match a with
-    | ⟨_, false⟩ =>
+    | ⟨_, false⟩  =>
       match head with
-      | ⟨hh, true⟩ => simp only [reduceCtorEq] at h
+      | ⟨hh, true⟩ => simp only [reduceCtorEq, FindOpenPair] at h
       | ⟨hh, false⟩  =>
-        cases ha : FindOpenPair ((hh, false) :: tail) with
+        match ha : FindOpenPair ((hh, false) :: tail) with
         | none => rfl
-        | some a => simp [ha] at h
-    | ⟨_, true⟩  =>
+        | some a => simp [ha, FindOpenPair] at h
+    | ⟨_, true⟩ =>
       cases ha : FindOpenPair (head :: tail) with
       | none => rfl
-      | some a => simp [ha] at h
+      | some a => simp [ha, FindOpenPair] at h
 
-theorem cons_true_eq_none_iff : FindOpenPair ((a, true) :: tail) = none ↔ FindOpenPair tail = none := by
+theorem cons_true_eq_none_iff : FindOpenPair ((a, true) :: tail) = none ↔
+    FindOpenPair tail = none := by
   constructor
   · exact cons_eq_none
   intro h
   cases tail with
-    | nil => simp [FindOpenPair]
-    | cons head tail => simp [h, FindOpenPair]
+    | nil => rfl
+    | cons head tail =>
+      simp [FindOpenPair, h]
 
 @[simp]
 theorem eq_some_cons_true (h : FindOpenPair tail = some ⟨a, b, c⟩) :
@@ -62,31 +63,28 @@ theorem eq_some_cons_true (h : FindOpenPair tail = some ⟨a, b, c⟩) :
   | cons headt tailt => simp [h]
 
 theorem first_elem_eq_nil (h : FindOpenPair a = some ([], d, e)) : ∃ a1 a2, a = (a1, false) :: a2 := by
-  induction a with
+  cases a with
   | nil => simp [FindOpenPair] at h
-  | cons head tail ih =>
-    rcases head with ⟨h1, t1⟩
-    cases t1 with
-    | false => use h1, tail
-    | true =>
+  | cons head tail =>
+    match head with
+    | ⟨h1, false⟩ => use h1, tail
+    | ⟨h1, true⟩ =>
       cases tail with
       | nil => simp [FindOpenPair] at h
       | cons head1 tail1 =>
-        rcases head1 with ⟨h2, t2⟩
-        cases hf : FindOpenPair ((h2, t2) :: tail1) with
+        cases hf : FindOpenPair (head1 :: tail1) with
         | none => simp [FindOpenPair, hf] at h
         | some _ =>
           simp [FindOpenPair, hf] at h
 
 theorem true_cons_eq_some (h : FindOpenPair ((a, true)::b) = some (c1 :: c, d, e)) :
     FindOpenPair b = (c, d, e) ∧ c1 = (a, true) := by
-  induction b with
+  cases b with
   | nil =>
     simp [FindOpenPair] at h
-  | cons hb tb ih =>
-    rcases hb with ⟨fb, sb⟩
-    cases sb with
-    | false =>
+  | cons hb tb =>
+    match hb with
+    | ⟨fb, false⟩ =>
       cases h1 : FindOpenPair ((fb, false) :: tb) with
       | none => simp [h1, FindOpenPair] at h
       | some val =>
@@ -95,7 +93,7 @@ theorem true_cons_eq_some (h : FindOpenPair ((a, true)::b) = some (c1 :: c, d, e
         constructor
         · rw [← h.2, ← h.1.2]
         exact h.1.1.symm
-    | true =>
+    | ⟨fb, true⟩ =>
       simp only [FindOpenPair] at h
       cases h1 : FindOpenPair ((fb, true) :: tb) with
       | none => simp [h1] at h
@@ -113,28 +111,22 @@ theorem spec {L : List ((ℕ × Bool))} (h : FindOpenPair L = some (c, d, e)) :
   cases tail with
   | nil => simp [FindOpenPair] at h
   | cons head1 tail1 =>
-    rcases head with ⟨fst1, snd1⟩
-    cases snd1 with
-    | false =>
-      rcases head1 with ⟨fst2, snd2⟩
-      cases snd2 with
-      | false =>
-        unfold FindOpenPair at h
-        cases hcases : FindOpenPair ((fst2, false) :: tail1) with
-        | none => simp [hcases] at h
-        | some thing =>
-          rcases thing with ⟨v1, v2, v3⟩
-          simp only [hcases, Option.some.injEq, Prod.mk.injEq] at h
+    match head with
+    | ⟨fst1, false⟩ =>
+      match head1 with
+      | ⟨fst2, false⟩ =>
+        match hcases : FindOpenPair ((fst2, false) :: tail1) with
+        | none => simp [FindOpenPair, hcases] at h
+        | some ⟨v1, v2, v3⟩ =>
+          simp only [FindOpenPair, hcases, Option.some.injEq, Prod.mk.injEq] at h
           rw [h.2.1, h.2.2] at hcases
           rw [← h.1, ih hcases]
           simp
-      | true =>
+      | ⟨fst2, true⟩ =>
         simp only [FindOpenPair, Option.some.injEq, Prod.mk.injEq, List.nil_eq] at h
-        rw [h.1, h.2.2]
         have H := Prod.mk.inj h.2.1
-        rw [← H.1, ← H.2]
-        simp
-    | true =>
+        aesop
+    | ⟨fst1, true⟩ =>
       cases c with
       | nil =>
         rcases first_elem_eq_nil h with ⟨a1, a2, ha⟩
