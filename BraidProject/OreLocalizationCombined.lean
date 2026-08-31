@@ -1,14 +1,8 @@
-import Mathlib.RingTheory.OreLocalization.Basic
-import BraidProject.PresentedMonoid_mine
-import Mathlib.Algebra.Group.Units.Equiv
-import BraidProject.Additions.OreLocalization
-import BraidProject.Additions.Mixins
-import Mathlib.GroupTheory.FreeGroup.Basic
-import Mathlib.GroupTheory.PresentedGroup
-import BraidProject.Additions.PresentedGroup
-import BraidProject.Additions.FreeMonoid
-import BraidProject.Additions.List
 import BraidProject.Additions.Hom
+import BraidProject.Additions.List
+import BraidProject.Additions.Mixins
+import BraidProject.Additions.OreLocalization
+import BraidProject.Additions.PresentedGroup
 
 namespace OreLocalization
 namespace Self
@@ -70,6 +64,8 @@ theorem universalMonoidHom_unique {G₁ : Type} [Group G₁] (f : M →* G₁)
     (h : ∀ (r : M), (φ ∘ OreLocalization.numeratorHom) r = f r) : φ = universalMonoidHom f :=
   OreLocalization.universalMulHom_unique f _ _ _ h
 
+end Self
+end OreLocalization
 
 namespace OreLocalization
 variable {α : Type} (rels : FreeMonoid α → FreeMonoid α → Prop)
@@ -77,6 +73,8 @@ variable {α : Type} (rels : FreeMonoid α → FreeMonoid α → Prop)
 
 abbrev PresentedMonoidFullLocalization :=
   OreLocalization (⊤ : Submonoid (PresentedMonoid rels)) (PresentedMonoid rels)
+
+
 
 namespace Presented
 
@@ -228,6 +226,7 @@ theorem PresentedMonoidFullLocalization_to_presented_group_surjective :
   Function.RightInverse.surjective <| congrFun (MonoidHom.comp_toFun
   (pmfl_to_presentedGroup_comp_presentedGroup_to_pmfl rels))
 
+-- specialize me to braids!!
 theorem presentedMonoid_mk_eq_of_presentedGroup_mk_eq_of_positive [IsLeftCancelMul (PresentedMonoid rels)]
     (h : PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk e) =
     PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk d))

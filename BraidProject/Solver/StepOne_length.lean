@@ -260,8 +260,9 @@ noncomputable def SemiThueData.reversing.to_grid_style_w_length_horizontal_verti
     (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
     (ha : a.length > 0) (hb : b.length > 0) :
     Σ c1, Σ (h1 : SemiThueData grid_style ((to_vertical_edge a) ++ (to_horizontal_edge b)) c1),
-    PLift (SemiThueData.reversing.length h = SemiThueData.grid_style.length h1) := by
-  rcases SemiThueData.reversing.to_grid_style_w_length_no_irr_fact h with ⟨c1, h1, hl⟩
+    PLift (SemiThueData.reversing.length h = SemiThueData.grid_style.length h1) ×
+    PLift (SignedOptionList.toSignedList c1 = c) := by
+  rcases SemiThueData.reversing.to_grid_style_w_length h with ⟨c1, h1, hl⟩
   rw [← (toSignedOptionList_to_vertical_edge_no_epsilon ha), ← (toSignedOptionList_to_horizontal_edge_no_epsilon hb), ← SignedList.to_SignedOptionList_append]
   use c1, h1
-  exact hl
+  exact ⟨hl.2.2, hl.1⟩

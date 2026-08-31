@@ -107,6 +107,14 @@ def rel (rels : FreeMonoid α → FreeMonoid α → Prop) := ConGen.Rel rels
 
 variable {rels : FreeMonoid α → FreeMonoid α → Prop}
 
+theorem freeMonoid_lift_presentedMonoid_of : (FreeMonoid.lift (PresentedMonoid.of rels)) a =
+    PresentedMonoid.mk rels a := by
+  induction a using FreeMonoid.inductionOn' with
+  | one => rfl
+  | mul_of b a ih =>
+    simp [ih]
+    rfl
+
 theorem freeMonoid_lift_eq_of_rel {G₁ : Type} [Group G₁] (f : α → G₁)
     (h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂))
     (a b : FreeMonoid α) (hr : PresentedMonoid.rel rels a b) :

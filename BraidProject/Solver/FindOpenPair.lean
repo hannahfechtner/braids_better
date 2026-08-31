@@ -1,6 +1,7 @@
 import Mathlib.Algebra.Group.Nat.Defs
 import Mathlib.Data.Prod.Basic
 import Mathlib.Tactic
+import BraidProject.TrueFalse_C
 
 namespace Braid
 
@@ -148,3 +149,27 @@ theorem pair_eq_some {a b : ℕ × Bool} (h : FindOpenPair [a,b] = some (c, d, e
   have he : e = [] := List.length_eq_zero_iff.mp (by omega)
   rw [hc, he, List.nil_append, List.cons.injEq, List.cons.injEq] at H
   simp [H]
+
+end FindOpenPair
+
+def SignedList.PosNegData_of_FindOpenPair_none (h : FindOpenPair a = none) : SignedList.PosNegData a := by
+  induction a with
+  | nil =>
+    use [], []
+    exact ⟨⟨SignedList.is_true_nil, SignedList.is_false_nil, rfl⟩⟩
+  | cons head tail ih =>
+    rcases ih (FindOpenPair.cons_eq_none h) with ⟨c, d, h1, h2, ⟨h3⟩⟩
+    match head with
+    | (a, true) =>
+      use (a, true) :: c, d
+      exact ⟨⟨SignedList.is_true_cons c h1, h2, rfl⟩⟩
+    | (a, false) =>
+      match c with
+      | [] =>
+        use [], (a, false) :: d
+        exact ⟨⟨h1, SignedList.is_false_cons d (h2), rfl⟩⟩
+      | (c1, true) :: c2 =>
+        simp [FindOpenPair] at h
+      | (c1, false) :: c2 =>
+        specialize h1 (c1, false)
+        simp_all

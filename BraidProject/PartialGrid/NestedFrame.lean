@@ -255,7 +255,7 @@ theorem frontier_prefix_generalized (h : GridData i j k l) (h1 : PartialGrid a b
       have := frontier_prefix h p1.1
         ((toSignedList_eq_to_vertical_edge_no_epsilon_iff (left_side_is_false h1)).mpr ha.symm)
         (by rw [← hrest, to_horizontal_edge_no_epsilon_append, to_horizontal_edge_no_epsilon_toList_eq_toSignedList (
-          top_side_is_true h1), toSignedList_append, toSignedList_to_horizontal_edge (by simp)])
+          top_side_is_true h1), toSignedList_append, toSignedList_to_horizontal_edge])
       constructor
       · exact (toSignedList_prefix_to_horizontal_edge_no_epsilon_iff (bottom_frontier_is_true h1)).mp this.1
       rw [p1.2.1]
@@ -276,7 +276,7 @@ theorem frontier_prefix_generalized (h : GridData i j k l) (h1 : PartialGrid a b
     have := frontier_prefix h p1.1
       (by rw [← hrest, to_vertical_edge_no_epsilon_append,
         to_vertical_edge_no_epsilon_toList_invRev_eq_toSignedList (left_side_is_false h1),
-        toSignedList_append, toSignedList_to_vertical_edge (by simp)]) (
+        toSignedList_append, toSignedList_to_vertical_edge]) (
         (toSignedList_eq_to_horizontal_edge_no_epsilon_iff (top_side_is_true h1)).mpr hb.symm)
     constructor
     · exact (toSignedList_suffix_to_vertical_edge_no_epsilon_iff (right_frontier_is_false h1)).mp this.2.1

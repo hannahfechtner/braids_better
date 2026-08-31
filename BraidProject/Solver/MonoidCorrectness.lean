@@ -2,55 +2,6 @@ import BraidProject.Solver.Monoid
 
 namespace Braid
 
-theorem toList_to_SignedOptionList_to_vertical_edge_no_epsilon_reverse (a : List ℕ) :
-    SignedOptionList.toList (SignedList.to_SignedOptionList (to_vertical_edge_no_epsilon a)).reverse = a := by
-  induction a with
-  | nil => simp [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]
-  | cons a1 a2 ih =>
-    simp_all [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]
-
-theorem toList_to_SignedOptionList_to_horizontal_edge_no_epsilon (b : List ℕ) :
-    SignedOptionList.toList (SignedList.to_SignedOptionList (to_horizontal_edge_no_epsilon b)) = b := by
-  induction b with
-  | nil => simp [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]
-  | cons b1 b2 ih =>
-    simp_all [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]
-
-theorem recover_of_toSignedList_to_horizontal_edge_no_epsilon
-    (h : to_horizontal_edge_no_epsilon c = SignedOptionList.toSignedList bot) :
-    SignedOptionList.toList bot = c := by
-  induction bot generalizing c with
-  | nil => unfold to_horizontal_edge_no_epsilon at h; simp_all
-  | cons head tail ih =>
-    match head with
-    | (none, bo) => simp [ih h]
-    | (some hh, bo) =>
-      simp only [SignedOptionList.toSignedList_cons_some] at h
-      change _ = [(hh, bo)] ++ _ at h
-      rcases to_horizontal_edge_no_epsilon_eq_append h with ⟨a₁, a₂, ha, ha₁, ha₂⟩
-      simp only [SignedOptionList.toList_cons_some]
-      rw [ih ha₂, ha]
-      simp_all [to_horizontal_edge_no_epsilon]
-
-theorem recover_of_toSignedList_to_vertical_edge_no_epsilon
-    (h : SignedOptionList.toSignedList up = to_vertical_edge_no_epsilon d) :
-    SignedOptionList.toList up.reverse = d := by
-  induction up generalizing d with
-  | nil => exact to_vertical_edge_no_epsilon_inj h
-  | cons head tail ih =>
-    rw [List.reverse_cons, SignedOptionList.toList_append]
-    rw [SignedOptionList.toSignedList_cons] at h
-    match head with
-    | (none, bo) => simp [ih h]
-    | (some hh, bo) =>
-      simp only [SignedOptionList.toSignedList_cons_some, SignedOptionList.toSignedList_nil] at h
-      rcases to_vertical_edge_no_epsilon_eq_append h.symm with ⟨a₁, a₂, ha, ha₁, ha₂⟩
-      rw [ih ha₁.symm, ha, List.append_right_inj]
-      unfold to_vertical_edge_no_epsilon at ha₂
-      simp only [List.map_reverse, List.reverse_eq_cons_iff, List.reverse_nil, List.nil_append,
-        List.map_eq_singleton_iff, Prod.mk.injEq, Bool.false_eq, ↓existsAndEq, true_and] at ha₂
-      simp [ha₂.1]
-
 theorem helper_for_bottom
     (h : SignedOptionList.toSignedList b' = to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)
     (h1 : bot ++ up = move_ones b') (hbot : SignedList.is_true bot) (hup : SignedList.is_false up) :
@@ -289,9 +240,58 @@ noncomputable def PosNegData_move_ones_of_PosNegData_toSignedList (h : SignedLis
       simp [SignedOptionList.toSignedList] at h
       exact h
 
+-- is this duplicated anywhere
+theorem braid_group_equiv_of_reversing (h : SemiThueData reversing a b) :
+  BraidGroupInf.mk (FreeGroup.mk a) = BraidGroupInf.mk (FreeGroup.mk b) := by
+  induction h with
+  | refl => rfl
+  | step e f h =>
+    rename_i c d
+    simp [← FreeGroup.mul_mk]
+    cases h with
+    | basic h =>
+      rename_i i j
+      have : i = j := Nat.eq_of_dist_eq_zero h
+      subst this
+      change BraidGroupInf.mk (FreeGroup.mk ([(i, false)] ++ [(i, true)]) ) = 1
+      rw [← FreeGroup.mul_mk]
+      change BraidGroupInf.mk ((FreeGroup.of i)⁻¹ * FreeGroup.of i) = 1
+      simp
+    | apart h =>
+      rename_i i j
+      change BraidGroupInf.mk (FreeGroup.mk ([(i, false)] ++ [(j, true)]) ) =
+        BraidGroupInf.mk (FreeGroup.mk ([(j, true)] ++ [(i, false)]) )
+      rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, map_mul, map_mul]
+      change (σ i)⁻¹ * σ j = σ j * (σ i)⁻¹
+      apply inv_mul_eq_of_eq_mul
+      rw [← mul_assoc]
+      exact eq_mul_inv_of_mul_eq (BraidGroupInf.comm h).symm
+    | close h =>
+      rename_i i j
+      change BraidGroupInf.mk (FreeGroup.mk ([(i, false)] ++ [(j, true)])) =
+        BraidGroupInf.mk (FreeGroup.mk ([(j, true)] ++ [(i, true)] ++ [(j, false)] ++ [(i, false)]))
+      simp only [← FreeGroup.mul_mk]
+      change (σ i)⁻¹ * σ j = σ j * σ i * (σ j)⁻¹ * (σ i)⁻¹
+      apply inv_mul_eq_of_eq_mul
+      rw [← mul_assoc, ← mul_assoc, ← mul_assoc]
+      exact eq_mul_inv_of_mul_eq (mul_inv_eq_of_eq_mul (BraidGroupInf.braid h)).symm
+  | trans _ _ _ _ => aesop
+
+-- theorem bm_equiv_of_reversing' (ha : List.length a > 0) (hb : List.length b > 0)
+--     (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b)
+--       (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)) :
+--     BraidMonoidInf.mk (a ++ c) = BraidMonoidInf.mk (b ++ d) := by
+--   have := braid_group_equiv_of_reversing h
+--   rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk] at this
+--   unfold to_vertical_edge_no_epsilon at this
+--   have : BraidGroupInf.mk (a ++ c) = BraidGroupInf.mk (b ++ d) := by sorry
+
+--   sorry
+
 theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
-  (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)) :
-  BraidMonoidInf.mk (a ++ c) = BraidMonoidInf.mk (b ++ d) := by
+    (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b)
+      (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)) :
+    BraidMonoidInf.mk (a ++ c) = BraidMonoidInf.mk (b ++ d) := by
   have H0 := stepOne h NegPosData.of_to_vertical_edge_no_epsilon_to_horizontal_edge_no_epsilon
     PosNegData.of_to_horizontal_edge_no_epsilon_to_vertical_edge_no_epsilon
   rcases H0 with ⟨b', st, so, io, ⟨rm⟩⟩
@@ -302,7 +302,7 @@ theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
   rw [silly] at st
   have H2 : SemiThueData grid_style b' (move_ones b') := equiv_move_ones
   have H3 := SemiThueData.trans st H2
-  have H := step_two_with_length (SignedList.is_false_to_SignedOptionList is_false_to_vertical_edge_no_epsilon)
+  have H := Braid.PartialGrid.step_two_with_length (SignedList.is_false_to_SignedOptionList is_false_to_vertical_edge_no_epsilon)
     (by simp [ha, SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]) (SignedList.is_true_to_SignedOptionList is_true_to_horizontal_edge_no_epsilon)
     (by simp [hb, SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]) H3
   rcases H with ⟨bot, mid, up, pg, ⟨b'_is⟩⟩
@@ -314,8 +314,6 @@ theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
     have hbot := helper_for_bottom rm b'_is.1 pg.bottom_frontier_is_true
       pg.right_frontier_is_false
     rw [← hbot.1, ← hbot.2]
-    --rw [recover_of_toSignedList_to_horizontal_edge_no_epsilon ?_]
-    -- remove_SignedList.to_SignedOptionList_to_vertical_edge_no_epsilon, hbot.1, hbot.2] at grid1
     have H := Braid.GridData.braid_eq grid1
     convert H
     · rw [← toList_to_SignedOptionList_to_vertical_edge_no_epsilon_reverse a]
@@ -342,26 +340,26 @@ theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
   specialize a2_false (cm, true) (by simp)
   simp at a2_false
 
-theorem correct_one_dir (h : final_solver a b) : BraidMonoidInf.mk a =
+theorem correct_one_dir (h : monoid_solver a b) : BraidMonoidInf.mk a =
   BraidMonoidInf.mk b := by
   match a with
   | [] =>
     match b with
     | [] => rfl
     | b1 :: b2 =>
-      simp [final_solver] at h
+      simp only [monoid_solver, Bool.false_eq_true] at h
   | a1 :: a2 =>
     match b with
-    | [] => simp [final_solver] at h
+    | [] => simp only [monoid_solver, Bool.false_eq_true] at h
     | b1 :: b2 =>
-      simp [final_solver] at h
+      simp only [monoid_solver, decide_eq_true_eq] at h
       rw [← List.append_nil (a1 :: a2), ← List.append_nil (b1 :: b2)]
       apply bm_equiv_of_reversing (by simp) (by simp)
       conv =>
         enter [3]
         rw [to_horizontal_edge_no_epsilon, to_vertical_edge_no_epsilon]
-        simp
-      have H := @solver_equiv (a1 :: a2) (b1 :: b2) (by simp) (by simp)
+        simp only [List.map_nil, List.reverse_nil, List.append_nil]
+      have H := @reverse_pair_spec (a1 :: a2) (b1 :: b2) (by simp) (by simp)
       rw [h] at H
       exact H
 

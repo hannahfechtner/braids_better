@@ -1,4 +1,3 @@
-
 namespace SignedList
 
 def toList (L : List (ℕ × Bool)) : List ℕ := (List.map (fun x ↦ x.1) L)

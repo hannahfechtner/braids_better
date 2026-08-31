@@ -1,167 +1,139 @@
-import Mathlib.Data.Nat.Dist
-import Mathlib.Algebra.FreeMonoid.Basic
---import BraidProject.BraidGroup
-import BraidProject.Cancellability
-import BraidProject.BraidGroup
-import BraidProject.TrueFalse
+import BraidProject.Relations
 import BraidProject.SemiThue
+import BraidProject.SemiThue_C
+import BraidProject.TrueFalse_C
+import BraidProject.PartialGrid.Build
+import BraidProject.PartialGrid.FrontierToSink
 
---this is really useless - this is an early version of reversing when I though the rev-to-grid would be easy!
+namespace Braid
 
-def in_order' (a : List (α × Bool)) := ∀ (i : Fin (a.length -1)),
-  (List.get a ⟨i.val, Nat.lt_of_lt_pred i.2⟩).2 = true ∨
-  (List.get a ⟨i.val + 1, Nat.add_lt_of_lt_sub i.2⟩).2 = false
-
-def part_split (a : FreeMonoid (α × Bool)) : FreeMonoid (α × Bool) × (Option ((α × Bool) × (α × Bool))) × FreeMonoid (α × Bool) :=
-  match a with
-  | [] => (1, none, 1)
-  | (b, true) :: c => (FreeMonoid.of (b, true) * (part_split c).1, (part_split c).2.1, (part_split c).2.2)
-  | (b, false) :: c =>
-    match c with
-    | [] => (FreeMonoid.of (b, false), none, 1)
-    | (d, true) :: e => (1, some ((b, false), (d, true)), e)
-    | (_, false) :: _ => (FreeMonoid.of (b, false) * (part_split c).1, (part_split c).2.1, (part_split c).2.2)
-
-#eval part_split ([(3, false), (2, false), (2, false), (4, true),(5, true)] : List (ℕ × Bool))
-#eval part_split [(3, false), (2, false), (1, true)]
-#eval part_split [(2, true), (4, true), (5, false)]
-
-inductive reversing_rels : List (α × Bool) → List (α × Bool) → Prop
-  | inverse (a : ℕ) : reversing_rels [(a, false), (a, true)] []
-  | adjacent (i j : ℕ) (h : i.dist j = 1) : reversing_rels [(i, false), (j, true)]
-      [(j, true), (i, true), (j, false), (i, false)]
-  | separated (i j : ℕ) (h : i.dist j >= 2): reversing_rels [(i, false), (j, true)]
-      [(j, true), (i, false)]
-
--- def reverse : List (α × Bool) → List (α × Bool) :=
---   fun a => match (part_split a) with
---   | (first, none, last) => first * last
---   | (first, some (c, d), last) => reverse (first * last)
-
-inductive reversing_rels' : FreeMonoid (α × Bool) → FreeMonoid (α × Bool) → Prop
-  | inverse (a : ℕ) : reversing_rels' (FreeMonoid.of (a, false) * FreeMonoid.of (a, true)) 1
-  | adjacent (i j : ℕ) (h : i.dist j = 1) : reversing_rels' [(i, false), (j, true)]
-      [(j, true), (i, true), (j, false), (i, false)]
-  | separated (i j : ℕ) (h : i.dist j >= 2): reversing_rels' [(i, false), (j, true)]
-      [(j, true), (i, false)]
-
-inductive first_rw_closure (rels : List (α × Bool) → List (α × Bool) → Prop) :
-    List (α × Bool) → List (α × Bool) → Prop
-  | refl (a : List (α × Bool)) : in_order a → first_rw_closure rels a a
-  | reg (a : List (α × Bool)) : rels b c → in_order a →
-      first_rw_closure rels (a ++ b ++ d) (a ++ c ++ d)
-  | trans : first_rw_closure rels a b → first_rw_closure rels b c → first_rw_closure rels a c
-
-inductive second_rw_closure (rels : FreeMonoid (α × Bool) → FreeMonoid (α × Bool) → Prop) :
-    FreeMonoid (α × Bool) → FreeMonoid (α × Bool) → Prop
-  | refl (a : FreeMonoid (α × Bool)) : second_rw_closure rels a a
-  | reg : rels b c → second_rw_closure rels b c
-  | left : second_rw_closure rels a b → second_rw_closure rels (c * a) (c * b)
-  | right : second_rw_closure rels a b → second_rw_closure rels (a * d) (b * d)
-  | trans : second_rw_closure rels a b → second_rw_closure rels b c → second_rw_closure rels a c
-
-
--- theorem uniqueness (a : List (α × Bool)) (h1 : first_rw_closure reversing_rels a b)
---     (h2 : first_rw_closure reversing_rels a c) (hc : in_order c) (hb : in_order b) : b = c := by
---   induction h1 with
---   | refl c hc =>
---     induction h2 with
---     | refl d hd => rfl
---     | reg a _ _ => sorry
---     | trans _ _ _ _ => sorry
---   | reg a _ _ => sorry
---   | trans _ _ _ _ => sorry
---open Braid
--- need some kind of PresentedGroup.mk
--- theorem braid_rel_holds (h1 : first_rw_closure reversing_rels a b) :
---     (QuotientGroup.mk (FreeGroup.mk a) : PresentedGroup braid_rels_coexeter) =
---     QuotientGroup.mk (FreeGroup.mk b) := by
---   induction h1 with
---   | refl a _ => rfl
---   | reg a h1 h2 =>
---     rcases h1
---     · rename_i e
---       rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk]
---       rw [QuotientGroup.mk_mul, QuotientGroup.mk_mul, QuotientGroup.mk_mul, QuotientGroup.mk_mul]
---       rw [mul_left_inj, mul_right_inj]
---       apply QuotientGroup.eq'.mpr
---       have H1 : (FreeGroup.mk [(e, false), (e, true)])⁻¹ * FreeGroup.mk [] = 1 := by
---         show ((FreeGroup.of e)⁻¹ * FreeGroup.of e)⁻¹ * _ = _
---         group; rfl
---       rw [H1]
---       exact Subgroup.one_mem _
---     · rename_i c d j
---       rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk,
---         QuotientGroup.mk_mul, QuotientGroup.mk_mul, QuotientGroup.mk_mul, QuotientGroup.mk_mul,
---         mul_left_inj, mul_right_inj]
---       apply QuotientGroup.eq'.mpr
---       apply Subgroup.conjugatesOfSet_subset_normalClosure ; apply Group.mem_conjugatesOfSet_iff.mpr
---       use (FreeGroup.of c) * (FreeGroup.of d) * (FreeGroup.of c) * (FreeGroup.of d)⁻¹ *
---         (FreeGroup.of c)⁻¹ * (FreeGroup.of d)⁻¹
---       constructor
---       · sorry
---       symm
---       apply isConj_iff.mpr
---       use FreeGroup.of d
---       show FreeGroup.of d * ((FreeGroup.of d)⁻¹ * FreeGroup.of c * FreeGroup.of d * FreeGroup.of c *
---         (FreeGroup.of d)⁻¹ * (FreeGroup.of c)⁻¹) * _ = _
---       group
---     rename_i e g j
---     rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk,
---       QuotientGroup.mk_mul, QuotientGroup.mk_mul, QuotientGroup.mk_mul, QuotientGroup.mk_mul,
---       mul_left_inj, mul_right_inj]
---     rcases or_dist_iff.mp j
---     · apply QuotientGroup.eq'.mpr
---       show ((FreeGroup.of g)⁻¹ * FreeGroup.of e) * (FreeGroup.of g * (FreeGroup.of e)⁻¹) ∈ _
---       apply Subgroup.conjugatesOfSet_subset_normalClosure ; apply Group.mem_conjugatesOfSet_iff.mpr
---       use FreeGroup.of e * FreeGroup.of g * (FreeGroup.of e)⁻¹ * (FreeGroup.of g)⁻¹
---       constructor
---       · apply separated
---         assumption
---       apply isConj_iff.mpr; use (FreeGroup.of g)⁻¹; group
---     symm
---     apply QuotientGroup.eq'.mpr
---     apply Subgroup.conjugatesOfSet_subset_normalClosure ; apply Group.mem_conjugatesOfSet_iff.mpr
---     use FreeGroup.of g * FreeGroup.of e * (FreeGroup.of g)⁻¹ * (FreeGroup.of e)⁻¹
---     constructor
---     · apply separated
---       assumption
---     apply isConj_iff.mpr; use (FreeGroup.of g)⁻¹; group
---     rfl
---   | trans _ _ h1 h2 => exact h1.trans h2
-
-theorem grid_to_rev' (h : grid a b c d) : second_rw_closure reversing_rels'
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse a) *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) b)
-    (FreeMonoid.lift (fun x => FreeMonoid.of (x, true)) d *
-    FreeMonoid.lift (fun x => FreeMonoid.of (x, false)) (FreeMonoid.reverse c)) := by
+theorem SemiThueData.toSemiThue_reversing (h : SemiThueData reversing a b) : SemiThue reversing_prop a b := by
   induction h with
-  | empty => exact second_rw_closure.refl _
-  | top_bottom i => exact second_rw_closure.refl _
-  | sides i => exact second_rw_closure.refl _
-  | top_left i => exact second_rw_closure.reg (reversing_rels'.inverse _)
-  | adjacent i k h => exact second_rw_closure.reg (reversing_rels'.adjacent _ _ h)
-  | separated i j h =>
-    exact second_rw_closure.reg (reversing_rels'.separated i j h)
-  | vertical h1 h2 h1_ih h2_ih =>
-    rw [FreeMonoid.reverse_mul, FreeMonoid.reverse_mul, map_mul, map_mul, mul_assoc]
-    apply (second_rw_closure.left h1_ih).trans
-    rw [← mul_assoc, ← mul_assoc]
-    exact second_rw_closure.right h2_ih
-  | horizontal h1 h2 h1_ih h2_ih =>
-    rename_i e f g h i j k
-    rw [map_mul, map_mul, ← mul_assoc,]
-    apply (second_rw_closure.right h1_ih).trans
-    rw [mul_assoc, mul_assoc]
-    exact second_rw_closure.left h2_ih
+  | refl => rfl
+  | step c d h1 =>
+    cases h1 with
+    | basic h =>
+      rename_i i j
+      rw [Nat.eq_of_dist_eq_zero h]
+      exact SemiThue.step c d reversing_prop.basic
+    | apart h => exact SemiThue.step c d (reversing_prop.apart h)
+    | close h => exact SemiThue.step c d (reversing_prop.close h)
+  | trans _ _ ih1 ih2 => exact ih1.trans ih2
+
+theorem SemiThueData.ofSemiThue_reversing (h : SemiThue reversing_prop a b) : Nonempty (SemiThueData reversing a b) := by
+  induction h with
+  | refl => apply Nonempty.intro (SemiThueData.refl)
+  | step c d h1 =>
+    cases h1 with
+    | basic =>
+      exact Nonempty.intro (SemiThueData.step c d (reversing.basic (by simp)))
+    | apart h => exact Nonempty.intro (SemiThueData.step c d (reversing.apart h))
+    | close h => exact Nonempty.intro (SemiThueData.step c d (reversing.close h))
+  | trans _ _ ih1 ih2 => exact Nonempty.intro (SemiThueData.trans (Classical.choice ih1) (Classical.choice ih2))
 
 
+theorem eq_of_SemiThue_false (h : SemiThue reversing_prop a b) (ha : SignedList.is_false a) : a = b := by
+  induction h with
+  | refl => rfl
+  | step _ _ h =>
+    rcases h
+    · rename_i j
+      specialize ha (j, true) (by simp)
+      simp at ha
+    · rename_i i j hij
+      specialize ha (j, true) (by simp)
+      simp at ha
+    rename_i i j hij
+    specialize ha (j, true) (by simp)
+    simp at ha
+  | trans _ _ ih1 ih2 =>
+    specialize ih1 ha
+    rw [ih1] at ha
+    specialize ih2 ha
+    aesop
 
-theorem rev'_to_grid {a b c d : List ℕ} (h : SemiThue reversing_rels'
-    (to_up a ++ to_over b) (to_over d ++ to_up c)) : grid a b c d := by sorry
+theorem eq_of_SemiThue_true (h : SemiThue reversing_prop a b) (ha : SignedList.is_true a) : a = b := by
+  induction h with
+  | refl => rfl
+  | step _ _  h =>
+    rcases h
+    · rename_i i
+      specialize ha (i, false) (by simp)
+      simp at ha
+    · rename_i i j hij
+      specialize ha (i, false) (by simp)
+      simp at ha
+    rename_i i j hij
+    specialize ha (i, false) (by simp)
+    simp at ha
+  | trans _ _ ih1 ih2 =>
+    specialize ih1 ha
+    rw [ih1] at ha
+    specialize ih2 ha
+    aesop
 
-theorem uniqueness {u v u₁ v₁ : FreeMonoid ℕ} {a b: FreeMonoid ℕ}
-    (h1 : SemiThue reversing_rels' (to_up a ++ to_over b) (to_over v ++ to_up u))
-    (h2 : SemiThue reversing_rels' (to_up a ++ to_over b) (to_over v₁ ++ to_up u₁))
-    : u = u₁ ∧ v = v₁ :=
-  (unicity (rev'_to_grid h2) _ _ (rev'_to_grid h1))
+theorem eq_of_SemiThue_SignedList.PosNegData (h : SemiThue reversing_prop a b) (ha : SignedList.PosNegData a) : a = b := by
+  induction h with
+  | refl => rfl
+  | step _ _ h =>
+    rcases ha with ⟨one, two, one_true, two_false, spec⟩
+    rcases h
+    · rename_i c d j
+      have spec_rw : c ++ [(j, false), (j, true)] ++ d =
+        (c ++ [(j, false)]) ++ ((j, true):: d) := by simp
+      rw [spec_rw] at spec
+      rcases List.append_eq_append_iff.mp spec with
+        ⟨mid, spec1, spec2⟩ | ⟨mid, spec1, spec2⟩
+      · rw [spec1] at one_true
+        specialize one_true (j, false) (by simp)
+        simp at one_true
+      rw [spec2] at two_false
+      specialize two_false (j, true) (by simp)
+      simp at two_false
+    · rename_i c d i j hij
+      have spec_rw : c ++ [(i, false), (j, true)] ++ d =
+        (c ++ [(i, false)]) ++ ((j, true):: d) := by simp
+      rw [spec_rw] at spec
+      rcases List.append_eq_append_iff.mp spec with
+        ⟨mid, spec1, spec2⟩ | ⟨mid, spec1, spec2⟩
+      · rw [spec1] at one_true
+        specialize one_true (i, false) (by simp)
+        simp at one_true
+      rw [spec2] at two_false
+      specialize two_false (j, true) (by simp)
+      simp at two_false
+    rename_i c d i j hij
+    have spec_rw : c ++ [(i, false), (j, true)] ++ d =
+      (c ++ [(i, false)]) ++ ((j, true):: d) := by simp
+    rw [spec_rw] at spec
+    rcases List.append_eq_append_iff.mp spec with
+      ⟨mid, spec1, spec2⟩ | ⟨mid, spec1, spec2⟩
+    · rw [spec1] at one_true
+      specialize one_true (i, false) (by simp)
+      simp at one_true
+    rw [spec2] at two_false
+    specialize two_false (j, true) (by simp)
+    simp at two_false
+  | trans _ _ ih1 ih2 =>
+    specialize ih1 ha
+    rw [ih1] at ha
+    specialize ih2 ha
+    aesop
+
+noncomputable def restricted_confluence (h1 : SemiThue reversing_prop
+    (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
+    (h2 : SemiThue reversing_prop (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) d)
+    (ha : a.length > 0) (hb : b.length > 0) :
+    ∃ e, SemiThue reversing_prop c e ∧ SemiThue reversing_prop d e := by
+  have H1 := PartialGrid.of_SemiThueData_reversing (Classical.choice (SemiThueData.ofSemiThue_reversing h1)) ha hb
+  have H2 := PartialGrid.of_SemiThueData_reversing (Classical.choice (SemiThueData.ofSemiThue_reversing h2)) ha hb
+  rcases H1 with ⟨c1, d1, e1, pg, ⟨rm1⟩, ⟨rfl⟩⟩
+  rcases H2 with ⟨c2, d2, e2, pg2, ⟨rm2⟩, ⟨rfl⟩⟩
+  have H2 : Σ c3 d3, GridData a b c3 d3 := GridData.existence a b
+  rcases H2 with ⟨c3, d3, gt⟩
+  use (to_horizontal_edge_no_epsilon c3 ++ to_vertical_edge_no_epsilon d3)
+  constructor
+  · exact PartialGrid.frontier_reverses_to_grid pg toSignedList_to_vertical_edge
+      toSignedList_to_horizontal_edge gt
+  exact PartialGrid.frontier_reverses_to_grid pg2 toSignedList_to_vertical_edge
+      toSignedList_to_horizontal_edge gt

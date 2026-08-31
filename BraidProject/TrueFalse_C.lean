@@ -335,6 +335,38 @@ theorem to_horizontal_edge_inj (h : to_horizontal_edge a = to_horizontal_edge b)
             and_true] at h
           exact h.2
 
+theorem to_vertical_edge_no_epsilon_no_bool {L : List (ℕ × Bool)} (h : SignedList.is_false L) :
+  to_vertical_edge_no_epsilon (List.map (fun x ↦ x.1) L.reverse) = L := by
+  induction L using List.reverseRecOn with
+  | nil => simp [to_vertical_edge_no_epsilon]
+  | append_singleton l a ih =>
+    have hl : SignedList.is_false l :=(SignedList.is_false_of_append h).1
+    simp [to_vertical_edge_no_epsilon]
+    constructor
+    · unfold to_vertical_edge_no_epsilon at ih
+      specialize ih hl
+      rw [← ih]
+      simp
+    have ha : SignedList.is_false [a] := (SignedList.is_false_of_append h).2
+    specialize ha a (by simp)
+    simp [← ha]
+
+theorem to_horizontal_edge_no_epsilon_no_bool {L : List (ℕ × Bool)} (h : SignedList.is_true L) :
+  to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) L) = L := by
+  induction L with
+  | nil => simp [to_horizontal_edge_no_epsilon]
+  | cons head tail ih =>
+    have tt : SignedList.is_true tail := (SignedList.is_true_of_cons h).2
+    specialize ih tt
+    simp only [to_horizontal_edge_no_epsilon, List.map_cons, List.map_map, List.cons.injEq]
+    constructor
+    · have ht : SignedList.is_true [head] := (SignedList.is_true_of_cons h).1
+      specialize ht head (by simp)
+      simp [← ht]
+    rw [← ih]
+    unfold to_horizontal_edge_no_epsilon
+    simp
+
 theorem FreeGroup.invRev_to_horizontal_edge : FreeGroup.invRev (to_horizontal_edge a) = to_vertical_edge a := by
   cases a with
   | nil => simp [to_horizontal_edge, to_vertical_edge, FreeGroup.invRev]
@@ -419,7 +451,7 @@ theorem toSignedOptionList_to_horizontal_edge_no_epsilon (ha : a.length > 0) :
   · simp at ha
   simp [to_horizontal_edge_no_epsilon, SignedList.to_SignedOptionList]
 
-theorem toSignedList_to_vertical_edge (ha : a.length > 0 ) :
+theorem toSignedList_to_vertical_edge :
     SignedOptionList.toSignedList (to_vertical_edge a) = to_vertical_edge_no_epsilon a := by
   induction a with
   | nil => simp
@@ -428,7 +460,7 @@ theorem toSignedList_to_vertical_edge (ha : a.length > 0 ) :
     | nil => simp
     | cons head1 tail1 => simp_all
 
-theorem toSignedList_to_horizontal_edge (ha : a.length > 0 ) :
+theorem toSignedList_to_horizontal_edge :
     SignedOptionList.toSignedList (to_horizontal_edge a) = to_horizontal_edge_no_epsilon a := by
   induction a with
   | nil => simp
@@ -449,6 +481,7 @@ def is_true_to_horizontal_edge_no_epsilon : SignedList.is_true (to_horizontal_ed
 
 def is_true_to_horizontal_edge : SignedList.is_true (to_horizontal_edge a) := by
   cases a ; all_goals simp [to_horizontal_edge, SignedList.is_true]
+
 
 theorem to_horizontal_edge_no_epsilon_toList_eq_toSignedList
     {b : List (Option ℕ × Bool)} (h : SignedList.is_true b) :
@@ -571,6 +604,55 @@ theorem toSignedList_prefix_to_horizontal_edge_no_epsilon_iff
   rcases h with ⟨r, rfl⟩
   rw [to_horizontal_edge_no_epsilon_append, to_horizontal_edge_no_epsilon_toList_eq_toSignedList ha]
   simp
+
+theorem toList_to_SignedOptionList_to_vertical_edge_no_epsilon_reverse (a : List ℕ) :
+    SignedOptionList.toList (SignedList.to_SignedOptionList (to_vertical_edge_no_epsilon a)).reverse = a := by
+  induction a with
+  | nil => simp [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]
+  | cons a1 a2 ih =>
+    simp_all [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]
+
+theorem toList_to_SignedOptionList_to_horizontal_edge_no_epsilon (b : List ℕ) :
+    SignedOptionList.toList (SignedList.to_SignedOptionList (to_horizontal_edge_no_epsilon b)) = b := by
+  induction b with
+  | nil => simp [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]
+  | cons b1 b2 ih =>
+    simp_all [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]
+
+theorem recover_of_toSignedList_to_horizontal_edge_no_epsilon
+    (h : to_horizontal_edge_no_epsilon c = SignedOptionList.toSignedList bot) :
+    SignedOptionList.toList bot = c := by
+  induction bot generalizing c with
+  | nil => unfold to_horizontal_edge_no_epsilon at h; simp_all
+  | cons head tail ih =>
+    match head with
+    | (none, bo) => simp [ih h]
+    | (some hh, bo) =>
+      simp only [SignedOptionList.toSignedList_cons_some] at h
+      change _ = [(hh, bo)] ++ _ at h
+      rcases to_horizontal_edge_no_epsilon_eq_append h with ⟨a₁, a₂, ha, ha₁, ha₂⟩
+      simp only [SignedOptionList.toList_cons_some]
+      rw [ih ha₂, ha]
+      simp_all [to_horizontal_edge_no_epsilon]
+
+theorem recover_of_toSignedList_to_vertical_edge_no_epsilon
+    (h : SignedOptionList.toSignedList up = to_vertical_edge_no_epsilon d) :
+    SignedOptionList.toList up.reverse = d := by
+  induction up generalizing d with
+  | nil => exact to_vertical_edge_no_epsilon_inj h
+  | cons head tail ih =>
+    rw [List.reverse_cons, SignedOptionList.toList_append]
+    rw [SignedOptionList.toSignedList_cons] at h
+    match head with
+    | (none, bo) => simp [ih h]
+    | (some hh, bo) =>
+      simp only [SignedOptionList.toSignedList_cons_some, SignedOptionList.toSignedList_nil] at h
+      rcases to_vertical_edge_no_epsilon_eq_append h.symm with ⟨a₁, a₂, ha, ha₁, ha₂⟩
+      rw [ih ha₁.symm, ha, List.append_right_inj]
+      unfold to_vertical_edge_no_epsilon at ha₂
+      simp only [List.map_reverse, List.reverse_eq_cons_iff, List.reverse_nil, List.nil_append,
+        List.map_eq_singleton_iff, Prod.mk.injEq, Bool.false_eq, ↓existsAndEq, true_and] at ha₂
+      simp [ha₂.1]
 
 def NegPosData.of_to_vertical_edge_no_epsilon_to_horizontal_edge_no_epsilon :
     SignedList.NegPosData (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) := by
