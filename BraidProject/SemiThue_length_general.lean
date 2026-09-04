@@ -317,6 +317,34 @@ noncomputable def SemiThueDataDerivation.reversing.length_trans
     constructor
     rw [SemiThueDataDerivation.reversing.length, SemiThueDataDerivation.reversing.length, len4.1, add_assoc]
 
+def  SemiThueDataDerivation.toSemiThueData_with_length {r : List α → List α → Type} {hr : {a : List α} → {b : List α} → r a b → ℕ}
+    (h1 : SemiThueDataDerivation r a b ) : (Σ h2 : SemiThueData r a b,
+    PLift (SemiThueDataDerivation.length hr h1 = SemiThueData.length hr h2) ):= by
+  match h1 with
+  | SemiThueDataDerivation.refl =>
+    use SemiThueData.refl
+    exact ⟨rfl⟩
+  | SemiThueDataDerivation.step h1 h2 =>
+    have ih := @SemiThueDataDerivation.toSemiThueData_with_length _ _ _ r hr h1
+    use SemiThueData.trans ih.1 (SemiThueData.step _ _ h2)
+    constructor
+    rw [SemiThueData.length, SemiThueData.length,
+      SemiThueDataDerivation.length, ← ih.2.1]
+
+def  SemiThueDataDerivation.reversing.toSemiThueData_with_length {a b}
+    (h1 : SemiThueDataDerivation reversing a b ) : (Σ h2 : SemiThueData reversing a b,
+    PLift (SemiThueDataDerivation.reversing.length h1 = SemiThueData.reversing.length h2) ):= by
+  match h1 with
+  | SemiThueDataDerivation.refl =>
+    use SemiThueData.refl
+    exact ⟨rfl⟩
+  | SemiThueDataDerivation.step h1 h2 =>
+    have ih := (SemiThueDataDerivation.reversing.toSemiThueData_with_length h1)
+    use SemiThueData.trans ih.1 (SemiThueData.step _ _ h2)
+    constructor
+    rw [SemiThueData.reversing.length, SemiThueData.reversing.length,
+      SemiThueDataDerivation.reversing.length, ← ih.2.1]
+
 noncomputable def  SemiThueData.reversing.toSemiThueDataDerivation_with_length {a b}
     (h1 : SemiThueData reversing a b ) : (Σ h2 : SemiThueDataDerivation reversing a b,
     PLift (SemiThueData.reversing.length h1 = SemiThueDataDerivation.reversing.length h2) ):= by

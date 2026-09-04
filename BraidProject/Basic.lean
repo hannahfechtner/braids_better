@@ -1,1 +1,1 @@
-import BraidProject.Solver_G
+import BraidProject.Solver.Examples

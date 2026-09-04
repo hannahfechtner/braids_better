@@ -1,10 +1,8 @@
-import BraidProject.Solver.GroupCorrectness
 import BraidProject.BraidLocalization
+import BraidProject.Solver.GroupCorrectness
 import BraidProject.Solver.MonoidCorrectnessHardDirection
 
 namespace Braid
-
---need GroupCorrectness for SemiThue_reversing_to_braid_group_equiv
 
 set_option maxHeartbeats 2000000
 theorem solver_g_correct_other_direction :
@@ -19,7 +17,7 @@ theorem solver_g_correct_other_direction :
   have e_is : (reverse_word (a ++ FreeGroup.invRev b)).ordered.2.1 = e := by
     rw [dede]
   rw [d_is, e_is]
-  have H2 := SemiThue_reversing_to_braid_group_equiv ((reverse_word (a ++ (FreeGroup.invRev b))).steps)
+  have H2 := SemiThueData_reversing_to_braid_group_equiv ((reverse_word (a ++ (FreeGroup.invRev b))).steps)
   rw [hde.1.2.2, ← FreeGroup.mul_mk, map_mul, h, ← FreeGroup.inv_mk,
     map_inv, mul_inv_cancel, ← FreeGroup.mul_mk, map_mul] at H2
   apply (mul_left_inj (BraidGroupInf.mk

@@ -1,4 +1,6 @@
 import BraidProject.Solver.Monoid
+import BraidProject.Solver.Reversing
+import BraidProject.BraidLocalization
 
 namespace Braid
 
@@ -277,17 +279,6 @@ theorem braid_group_equiv_of_reversing (h : SemiThueData reversing a b) :
       exact eq_mul_inv_of_mul_eq (mul_inv_eq_of_eq_mul (BraidGroupInf.braid h)).symm
   | trans _ _ _ _ => aesop
 
--- theorem bm_equiv_of_reversing' (ha : List.length a > 0) (hb : List.length b > 0)
---     (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b)
---       (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)) :
---     BraidMonoidInf.mk (a ++ c) = BraidMonoidInf.mk (b ++ d) := by
---   have := braid_group_equiv_of_reversing h
---   rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk] at this
---   unfold to_vertical_edge_no_epsilon at this
---   have : BraidGroupInf.mk (a ++ c) = BraidGroupInf.mk (b ++ d) := by sorry
-
---   sorry
-
 theorem bm_equiv_of_reversing (ha : List.length a > 0) (hb : List.length b > 0)
     (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b)
       (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)) :
@@ -361,7 +352,128 @@ theorem correct_one_dir (h : monoid_solver a b) : BraidMonoidInf.mk a =
         simp only [List.map_nil, List.reverse_nil, List.append_nil]
       have H := @reverse_pair_spec (a1 :: a2) (b1 :: b2) (by simp) (by simp)
       rw [h] at H
-      exact H
+      exact (SemiThueDataDerivation.reversing.toSemiThueData_with_length H).1
 
+theorem to_vertical_edge_no_epsilon_invRev_to_horizontal_edge_no_epsilon :
+  to_vertical_edge_no_epsilon a = FreeGroup.invRev (to_horizontal_edge_no_epsilon a) := by
+  induction a with
+  | nil => simp
+  | cons head tail ih =>
+    rw [to_vertical_edge_no_epsilon_cons, ih, to_horizontal_edge_no_epsilon_cons, FreeGroup.invRev_cons]
+    rfl
+
+theorem BraidGroupInf.mk_to_vertical_edge :
+  BraidGroupInf.mk (FreeGroup.mk (to_vertical_edge_no_epsilon a)) =
+  (BraidGroupInf.mk (FreeGroup.mk (to_horizontal_edge_no_epsilon a)))⁻¹ := by
+  rw [to_vertical_edge_no_epsilon_invRev_to_horizontal_edge_no_epsilon]
+  rfl
+
+theorem project_first_element_to_horizontal_edge_no_epsilon {a : List α} : List.map (fun x => x.1) (to_horizontal_edge_no_epsilon a) = a := by
+  induction a with
+  | nil => rfl
+  | cons head tail ih => simp [ih]
+
+theorem grid_of_rev
+    (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b)
+      (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)) :
+    grid a b c d := by
+  have H0 := stepOne h NegPosData.of_to_vertical_edge_no_epsilon_to_horizontal_edge_no_epsilon
+    PosNegData.of_to_horizontal_edge_no_epsilon_to_vertical_edge_no_epsilon
+  rcases H0 with ⟨b', st, so, io, ⟨rm⟩⟩
+  have silly : SignedList.to_SignedOptionList (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) =
+    SignedList.to_SignedOptionList (to_vertical_edge_no_epsilon a) ++ SignedList.to_SignedOptionList (to_horizontal_edge_no_epsilon b) := by
+    unfold SignedList.to_SignedOptionList
+    simp
+  rw [silly] at st
+  have H2 : SemiThueData grid_style b' (move_ones b') := equiv_move_ones
+  have H3 := SemiThueData.trans st H2
+  match a with
+  | [] =>
+    rw [to_vertical_edge_no_epsilon_nil, List.nil_append] at h
+    have h_rw := SemiThueData.toSemiThue_reversing h
+    have := eq_of_SemiThue_true h_rw is_true_to_horizontal_edge_no_epsilon
+    match d with
+    | [] =>
+      simp only [to_vertical_edge_no_epsilon_nil, List.append_nil] at this
+      rw [to_horizontal_edge_no_epsilon_injective this]
+      exact Grid.top_bottom_word c
+    | d1 :: d2 =>
+      simp at this
+      have ht : SignedList.is_true (to_horizontal_edge_no_epsilon b) := is_true_to_horizontal_edge_no_epsilon
+      rw [this] at ht
+      specialize ht (d1, false) (by simp)
+      simp at ht
+  | a1 :: a2 =>
+  match b with
+  | [] =>
+    rw [to_horizontal_edge_no_epsilon_nil, List.append_nil] at h
+    have h_rw := SemiThueData.toSemiThue_reversing h
+    have := eq_of_SemiThue_false h_rw is_false_to_vertical_edge_no_epsilon
+    match c with
+    | [] =>
+      simp only [to_horizontal_edge_no_epsilon_nil, List.nil_append] at this
+      rw [to_vertical_edge_no_epsilon_injective this]
+      exact Grid.sides_word d
+    | c1 :: c2 =>
+      simp only [to_horizontal_edge_no_epsilon_cons, List.cons_append] at this
+      have ht : SignedList.is_false (to_vertical_edge_no_epsilon (a1 :: a2)) := is_false_to_vertical_edge_no_epsilon
+      rw [this] at ht
+      specialize ht (c1, true) (by simp)
+      simp at ht
+  | b1 :: b2 =>
+  have H := Braid.PartialGrid.step_two_with_length (SignedList.is_false_to_SignedOptionList is_false_to_vertical_edge_no_epsilon)
+    (by simp [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon]) (SignedList.is_true_to_SignedOptionList is_true_to_horizontal_edge_no_epsilon)
+    (by simp [SignedList.to_SignedOptionList, to_horizontal_edge_no_epsilon]) H3
+  rcases H with ⟨bot, mid, up, pg, ⟨b'_is⟩⟩
+  rcases PartialGrid.middle_frontier_spec pg with ⟨⟨mid_nil⟩⟩ | ⟨fm, mm, cm, ⟨problem⟩⟩
+  · rw [mid_nil] at pg
+    have grid1 := GridData.PartialGridStyle.of_PartialGrid pg
+    unfold GridData.PartialGridStyle at grid1
+    rw [toList_to_SignedOptionList_to_vertical_edge_no_epsilon_reverse (a1 :: a2),
+        toList_to_SignedOptionList_to_horizontal_edge_no_epsilon (b1 :: b2)] at grid1
+    rw [mid_nil, List.append_nil] at b'_is
+    have hbot := helper_for_bottom rm b'_is.1 pg.bottom_frontier_is_true
+      pg.right_frontier_is_false
+    rw [← hbot.1, ← hbot.2]
+    exact GridData.to_grid grid1
+  rw [problem] at b'_is
+  exfalso
+  have H : SignedList.PosNegData (SignedOptionList.toSignedList b') := by
+    rw [rm]
+    exact PosNegData.of_to_horizontal_edge_no_epsilon_to_vertical_edge_no_epsilon
+  have H1 : SignedList.PosNegData (move_ones b') := PosNegData_move_ones_of_PosNegData_toSignedList H
+  rcases H1 with ⟨a1, a2, a1_true, a2_false, ha12⟩
+  rw [ha12] at b'_is
+  rw [← List.append_assoc, List.append_assoc (bot ++ ([(fm, false)] ++ mm))] at b'_is
+  rcases List.append_eq_append_iff.mp b'_is.1 with
+    ⟨middle, spec1, spec2⟩ | ⟨middle, spec1, spec2⟩
+  · rw [spec1] at a1_true
+    specialize a1_true (fm, false) (by simp)
+    simp at a1_true
+  rw [spec2] at a2_false
+  specialize a2_false (cm, true) (by simp)
+  simp at a2_false
+
+theorem correct_one_dir' (h : monoid_solver a b) : BraidMonoidInf.mk a =
+  BraidMonoidInf.mk b := by
+  match a with
+  | [] =>
+    match b with
+    | [] => rfl
+    | b1 :: b2 =>
+      simp only [monoid_solver, Bool.false_eq_true] at h
+  | a1 :: a2 =>
+    match b with
+    | [] => simp only [monoid_solver, Bool.false_eq_true] at h
+    | b1 :: b2 =>
+      simp only [monoid_solver, decide_eq_true_eq] at h
+      have := (reverse_pair (a1 :: a2) (b1 :: b2) (by simp) (by simp)).2
+      rw [h] at this
+      apply SemiThueDataDerivation.toSemiThueData at this
+      have empty_to_sink : ([] : List (ℕ × Bool)) = (to_horizontal_edge_no_epsilon [] ++ to_vertical_edge_no_epsilon []) := rfl
+      rw [empty_to_sink] at this
+      have := Grid.braid_eq_of_grid (grid_of_rev this)
+      simp only [map_mul, mul_left_inj] at this
+      exact this
 
 end Braid

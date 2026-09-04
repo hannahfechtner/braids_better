@@ -106,8 +106,9 @@ def reverse_word_helper_from_reverse_pair_nonempty_false_suffix_nonempty_true_pr
         simp
         simp only [hs, List.cons_append, List.append_assoc] at sfpc
         rw [← sfpc, List.append_assoc d i j, ← hij.1.2.2]
-        have H5 := @SemiThueData.append_left_right _ _ _ _ d g (@reverse_pair_spec (List.map (fun x => x.1) (e1 :: e2).reverse)
-            (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp))
+        have H5 := @SemiThueData.append_left_right _ _ _ _ d g
+            (SemiThueDataDerivation.reversing.toSemiThueData_with_length (@reverse_pair_spec (List.map (fun x => x.1) (e1 :: e2).reverse)
+            (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp))).1
         apply SemiThueData.trans _ H5
         have H6 : (to_vertical_edge_no_epsilon (List.map (fun x ↦ x.1) (e1 :: e2).reverse) ++
             to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) (f1 :: f2))) = e1 :: e2 ++ f1 :: f2 := by
@@ -201,7 +202,7 @@ def reverse_word_helper_from_reverse_pair (l1 : ℕ × Bool) (l2 : List (ℕ × 
           rw [hs] at bt
           rw [to_vertical_edge_no_epsilon_no_bool af, to_horizontal_edge_no_epsilon_no_bool bt]
         rw [← H3]
-        exact H''
+        exact (SemiThueDataDerivation.reversing.toSemiThueData_with_length H'').1
       apply H2.steps
      | e1 :: e2 =>
       have H3' := @reverse_pair_spec (List.map (fun x => x.1) (a1 :: a2).reverse)
@@ -210,7 +211,8 @@ def reverse_word_helper_from_reverse_pair (l1 : ℕ × Bool) (l2 : List (ℕ × 
             add_pos_iff, zero_lt_one, or_true]) (by simp only [List.map_cons, List.length_cons, List.length_map, gt_iff_lt, lt_add_iff_pos_left, add_pos_iff,
             zero_lt_one, or_true])
       exact reverse_word_helper_from_reverse_pair_nonempty_false_suffix l1 l2 sfpc a1 a2 b1 b2 c
-        hs d H2 f g hfg e1 e2 htrue hfalse hout H3'
+        hs d H2 f g hfg e1 e2 htrue hfalse hout
+        (SemiThueDataDerivation.reversing.toSemiThueData_with_length H3').1
 
 def reverse_word_pair_case
     (l1 : ℕ × Bool) (l2 : List (ℕ × Bool))

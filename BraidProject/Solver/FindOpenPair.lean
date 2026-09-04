@@ -1,7 +1,6 @@
+import BraidProject.SignedList_C
 import Mathlib.Algebra.Group.Nat.Defs
 import Mathlib.Data.Prod.Basic
-import Mathlib.Tactic
-import BraidProject.TrueFalse_C
 
 namespace Braid
 

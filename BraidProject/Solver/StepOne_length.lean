@@ -8,7 +8,7 @@ noncomputable def equiv_insert_w_len : {h1 : SemiThueData grid_style (a :: L) (c
     intro t
     induction t
     · intro L a len
-      simp at len
+      simp only [nonpos_iff_eq_zero, List.length_eq_zero_iff] at len
       rw [len]
       use SemiThueData.refl
       rfl
@@ -82,8 +82,7 @@ theorem move_ones_length_zero {b} : SemiThueData.grid_style.length (@equiv_move_
   | cons head tail ih =>
     unfold equiv_move_ones_for_len
     simp only [SemiThueData.grid_style.length_trans, Nat.add_eq_zero_iff]
-    refine ⟨?_, equiv_insert_length_zero⟩
-    exact SemiThueData.grid_style.cons.trans ih
+    exact ⟨SemiThueData.grid_style.cons.trans ih, equiv_insert_length_zero⟩
 
 noncomputable def SemiThueData.grid_style.reversing_step_w_length (d1)
       (gr : SemiThueData grid_style (SignedList.to_SignedOptionList a) b')

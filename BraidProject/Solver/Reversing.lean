@@ -3,7 +3,6 @@ import BraidProject.SemiThue
 import BraidProject.SemiThue_C
 import BraidProject.TrueFalse_C
 import BraidProject.PartialGrid.Build
-import BraidProject.PartialGrid.FrontierToSink
 
 namespace Braid
 
@@ -31,6 +30,11 @@ theorem SemiThueData.ofSemiThue_reversing (h : SemiThue reversing_prop a b) : No
     | close h => exact Nonempty.intro (SemiThueData.step c d (reversing.close h))
   | trans _ _ ih1 ih2 => exact Nonempty.intro (SemiThueData.trans (Classical.choice ih1) (Classical.choice ih2))
 
+theorem SemiThue_reversing_nil (h : SemiThue reversing_prop a b) (ha : a = []) : b = [] := by
+  induction h with
+  | refl => exact ha
+  | step c d h => cases h ; all_goals simp at ha
+  | trans _ _ _ _ => aesop
 
 theorem eq_of_SemiThue_false (h : SemiThue reversing_prop a b) (ha : SignedList.is_false a) : a = b := by
   induction h with
@@ -120,20 +124,66 @@ theorem eq_of_SemiThue_SignedList.PosNegData (h : SemiThue reversing_prop a b) (
     specialize ih2 ha
     aesop
 
-noncomputable def restricted_confluence (h1 : SemiThue reversing_prop
-    (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
-    (h2 : SemiThue reversing_prop (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) d)
-    (ha : a.length > 0) (hb : b.length > 0) :
-    ∃ e, SemiThue reversing_prop c e ∧ SemiThue reversing_prop d e := by
-  have H1 := PartialGrid.of_SemiThueData_reversing (Classical.choice (SemiThueData.ofSemiThue_reversing h1)) ha hb
-  have H2 := PartialGrid.of_SemiThueData_reversing (Classical.choice (SemiThueData.ofSemiThue_reversing h2)) ha hb
-  rcases H1 with ⟨c1, d1, e1, pg, ⟨rm1⟩, ⟨rfl⟩⟩
-  rcases H2 with ⟨c2, d2, e2, pg2, ⟨rm2⟩, ⟨rfl⟩⟩
-  have H2 : Σ c3 d3, GridData a b c3 d3 := GridData.existence a b
-  rcases H2 with ⟨c3, d3, gt⟩
-  use (to_horizontal_edge_no_epsilon c3 ++ to_vertical_edge_no_epsilon d3)
-  constructor
-  · exact PartialGrid.frontier_reverses_to_grid pg toSignedList_to_vertical_edge
-      toSignedList_to_horizontal_edge gt
-  exact PartialGrid.frontier_reverses_to_grid pg2 toSignedList_to_vertical_edge
-      toSignedList_to_horizontal_edge gt
+theorem SemiThueData_reversing_to_braid_group_equiv (h : SemiThueData reversing a b) :
+  Braid.BraidGroupInf.mk (FreeGroup.mk a) =
+  Braid.BraidGroupInf.mk (FreeGroup.mk b) := by
+  induction h with
+  | refl => rfl
+  | step h =>
+    rename_i e f g i
+    unfold Braid.BraidGroupInf.mk
+    rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk,
+      map_mul, map_mul, map_mul, map_mul,
+      mul_left_inj, mul_right_inj]
+    cases i with
+    | basic =>
+      rename_i i j hij
+      apply Nat.eq_of_dist_eq_zero at hij
+      rw [← hij]
+      change (PresentedGroup.mk ((ArtinTits.Group.relation_set Braid.BraidMatrixInf)))
+        (FreeGroup.mk ([(i, false)] ++ [(i, true)])) = _
+      rw [← FreeGroup.mul_mk]
+      unfold FreeGroup.mk
+      congr
+      exact eq_div_iff_mul_eq'.mp rfl
+    | apart h =>
+      rename_i i j
+      change (Braid.σ i)⁻¹ * Braid.σ j = Braid.σ j * (Braid.σ i)⁻¹
+      apply (mul_right_inj (Braid.σ i)).mp
+      apply (mul_left_inj (Braid.σ i)).mp
+      group
+      symm
+      exact Braid.BraidGroupInf.comm h
+    | close h =>
+      rename_i i j
+      change (Braid.σ i)⁻¹ * Braid.σ j = Braid.σ j *  Braid.σ i * (Braid.σ j)⁻¹ * (Braid.σ i)⁻¹
+      apply (mul_right_inj (Braid.σ i)).mp
+      apply (mul_left_inj (Braid.σ i)).mp
+      apply (mul_left_inj (Braid.σ j)).mp
+      group
+      symm
+      exact Braid.BraidGroupInf.braid h
+  | trans _ _ ih1 ih2 =>
+    exact ih1.trans ih2
+
+noncomputable def grid_to_rev (h : GridData a b c d) : SemiThue reversing_prop
+  (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d) := by
+  induction h with
+  | empty => exact SemiThue.refl
+  | top_bottom i => exact SemiThue.refl
+  | sides i => exact SemiThue.refl
+  | top_left i => exact SemiThue.of_rel (reversing_prop.basic)
+  | adjacent i k h => exact SemiThue.of_rel (reversing_prop.close h)
+  | separated i j h => exact SemiThue.of_rel (reversing_prop.apart h)
+  | vertical h1 h2 h1_ih h2_ih =>
+    rename_i e f g h i j k
+    rw [to_vertical_edge_no_epsilon_mul, to_vertical_edge_no_epsilon_mul, List.append_assoc]
+    apply (SemiThue.append_left h1_ih).trans
+    rw [← List.append_assoc, ← List.append_assoc]
+    exact SemiThue.append_right h2_ih
+  | horizontal h1 h2 h1_ih h2_ih =>
+    rename_i e f g h i j k
+    rw [to_horizontal_edge_no_epsilon_mul, to_horizontal_edge_no_epsilon_mul, ← List.append_assoc]
+    apply (SemiThue.append_right h1_ih).trans
+    rw [List.append_assoc, List.append_assoc]
+    exact SemiThue.append_left h2_ih

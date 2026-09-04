@@ -1,7 +1,6 @@
+import BraidProject.NewListFacts
 import BraidProject.PartialGrid.FrontierPossibilities
 import BraidProject.PartialGrid.ToGrid
-import BraidProject.GridData_length
-import BraidProject.NewListFacts
 
 namespace Braid
 

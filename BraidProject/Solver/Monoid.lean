@@ -1,29 +1,26 @@
-import BraidProject.Solver.FindOpenPair
-import BraidProject.SignedOptionList
-import BraidProject.TrueFalse_C
-import BraidProject.StepOne
-import BraidProject.GridData_length
 import BraidProject.PartialGrid.Bounded
-import BraidProject.Solver.StepOne_length
 import BraidProject.PartialGrid.Build
+import BraidProject.Solver.FindOpenPair
+import BraidProject.GridData_length
 
 namespace Braid
 
-theorem st_smaller_than_g (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
+theorem st_smaller_than_g (h : SemiThueDataDerivation reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
   (ha : a.length > 0) (hb : b.length > 0):
-    ab_len a b ≥ SemiThueData.reversing.length h := by
-  rcases PartialGrid.of_SemiThueData_reversing h ha hb with ⟨c, d, e, h1, hl⟩
-  rw [hl.1.1]
+    ab_len a b ≥ SemiThueDataDerivation.reversing.length h := by
+  have := SemiThueDataDerivation.reversing.toSemiThueData_with_length h
+  rcases PartialGrid.of_SemiThueData_reversing this.1 ha hb with ⟨c, d, e, h1, hl⟩
+  rw [this.2.1, hl.1.1]
   exact straight_pg_sm_g _ _ rfl rfl
 
-abbrev triangle (a b : List ℕ) : Type := Σ c : List (ℕ × Bool),
-  (SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
+abbrev triangle (a b : List ℕ) : Type := (c : List (ℕ × Bool)) ×
+  (SemiThueDataDerivation reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
 
 open Braid
 
 namespace Triangle
 
-noncomputable def length (a : triangle a1 a2) : ℕ := ab_len a1 a2 - (SemiThueData.reversing.length a.2)
+noncomputable def length (a : triangle a1 a2) : ℕ := ab_len a1 a2 - (SemiThueDataDerivation.reversing.length a.2)
 
 end Triangle
 
@@ -37,19 +34,19 @@ def reverse_triangle {a1 a2} (ha1 : a1.length > 0) (ha2 : a2.length > 0) (a : tr
     match hd : d.1.dist d.2 with
     | 0 => reverse_triangle ha1 ha2 ⟨c ++ [] ++ e,
         by
-          apply a.2.trans
-          rw [FindOpenPair.spec hb']
-          exact SemiThueData.step _ _ (reversing.basic hd)⟩
+          have := a.2
+          rw [FindOpenPair.spec hb'] at this
+          apply SemiThueDataDerivation.step this (reversing.basic hd)⟩
     | 1 => reverse_triangle ha1 ha2 ⟨(c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e),
         by
-          apply a.2.trans
-          rw [FindOpenPair.spec hb']
-          exact SemiThueData.step _ _ (reversing.close hd)⟩
+          have := a.2
+          rw [FindOpenPair.spec hb'] at this
+          apply SemiThueDataDerivation.step this (reversing.close hd)⟩
     | Nat.succ (Nat.succ n) => reverse_triangle ha1 ha2 ⟨(c ++ [(d.2, true), (d.1, false)] ++ e),
         by
-          apply a.2.trans
-          rw [FindOpenPair.spec hb']
-          exact SemiThueData.step _ _ (reversing.apart (by omega))⟩
+          have := a.2
+          rw [FindOpenPair.spec hb'] at this
+          apply SemiThueDataDerivation.step this (reversing.apart (by omega))⟩
     termination_by length a
     decreasing_by
     all_goals
@@ -57,7 +54,7 @@ def reverse_triangle {a1 a2} (ha1 : a1.length > 0) (ha2 : a2.length > 0) (a : tr
         (st_smaller_than_g _ ha1 ha2)).mpr
       rcases a with ⟨a3, a4⟩
       rcases FindOpenPair.spec hb' with ⟨b1, b2, b3⟩
-      simp [SemiThueData.reversing.length]
+      simp [SemiThueDataDerivation.reversing.length]
 
 theorem reverse_triangle_FindOpenPair_none {a1 a2} {ha1 : a1.length > 0} {ha2 : a2.length > 0}
     (a : triangle a1 a2) : FindOpenPair (reverse_triangle ha1 ha2 a).1= none := by
@@ -68,55 +65,49 @@ theorem reverse_triangle_FindOpenPair_none {a1 a2} {ha1 : a1.length > 0} {ha2 : 
   split
   · rename_i ih l m o p hd
     apply @ih (length ⟨l ++ [] ++ o, by
-          apply a.2.trans
-          rw [FindOpenPair.spec p]
-          exact SemiThueData.step _ _ (reversing.basic hd)⟩)
+          have := a.2
+          rw [FindOpenPair.spec p] at this
+          apply SemiThueDataDerivation.step this (reversing.basic hd)⟩)
     rw [← ha]
     rcases a with ⟨a3, a4⟩
     rcases FindOpenPair.spec p with ⟨b1, b2, b3⟩
-    rcases m with ⟨x, y⟩
-    obtain rfl : x = y := Nat.eq_of_dist_eq_zero hd
     apply (tsub_lt_tsub_iff_left_of_le_of_le (st_smaller_than_g _ ha1 ha2) (st_smaller_than_g _ ha1 ha2)).mpr
-    simp [SemiThueData.reversing.length]
+    · simp [SemiThueDataDerivation.reversing.length]
     rfl
   · rename_i ih m n o p hd
     apply @ih (length ⟨(m ++ [(n.2, true), (n.1, true), (n.2, false), (n.1, false)] ++ o), by
-          apply a.2.trans
-          rw [FindOpenPair.spec p]
-          exact SemiThueData.step _ _ (reversing.close hd)⟩)
+          have := a.2
+          rw [FindOpenPair.spec p] at this
+          apply SemiThueDataDerivation.step this (reversing.close hd)⟩)
     rcases a with ⟨a3, a4⟩
     rcases FindOpenPair.spec p with ⟨b1, b2, b3⟩
     rw [← ha]
     apply (tsub_lt_tsub_iff_left_of_le_of_le (st_smaller_than_g _ ha1 ha2) (st_smaller_than_g _ ha1 ha2)).mpr
-    simp [SemiThueData.reversing.length]
+    simp [SemiThueDataDerivation.reversing.length]
     rfl
   rename_i ih l m n o p hd
   apply @ih (length ⟨(l ++ [(m.2, true), (m.1, false)] ++ n), by
-          apply a.2.trans
-          rw [FindOpenPair.spec o]
-          exact SemiThueData.step _ _ (reversing.apart (by omega))⟩)
+          have := a.2
+          rw [FindOpenPair.spec o] at this
+          apply SemiThueDataDerivation.step this (reversing.apart (by omega))⟩)
   rw [← ha]
   apply (tsub_lt_tsub_iff_left_of_le_of_le (st_smaller_than_g _ ha1 ha2) (st_smaller_than_g _ ha1 ha2)).mpr
   rcases a with ⟨a3, a4⟩
   rcases FindOpenPair.spec o with ⟨b1, b2, b3⟩
-  simp [SemiThueData.reversing.length]
+  simp [SemiThueDataDerivation.reversing.length]
   rfl
 
 open SignedList
 
-def reverse_triangle_SignedList.PosNegData {ha1 : a1.length > 0} {ha2 : a2.length > 0}
-    (a : triangle a1 a2) : SignedList.PosNegData (reverse_triangle ha1 ha2 a).1 :=
-  SignedList.PosNegData_of_FindOpenPair_none (reverse_triangle_FindOpenPair_none a)
-
 def reverse_pair (a b) (ha : List.length a > 0) (hb : List.length b > 0) :=
-  reverse_triangle ha hb ⟨to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b, SemiThueData.refl ⟩
+  reverse_triangle ha hb ⟨to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b, SemiThueDataDerivation.refl ⟩
 
 def reverse_pair_PosNegData (a b) (ha : List.length a > 0) (hb : List.length b > 0) :
     SignedList.PosNegData (reverse_pair a b ha hb).1 :=
   SignedList.PosNegData_of_FindOpenPair_none
-    (reverse_triangle_FindOpenPair_none ⟨to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b, SemiThueData.refl ⟩)
+    (reverse_triangle_FindOpenPair_none ⟨to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b, SemiThueDataDerivation.refl ⟩)
 
-def reverse_pair_spec (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThueData reversing
+def reverse_pair_spec (ha : List.length a > 0) (hb : List.length b > 0)  : SemiThueDataDerivation reversing
     (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) (reverse_pair a b ha hb).1 := (reverse_pair a b ha hb).2
 
 def monoid_solver (a b : List ℕ) : Bool :=

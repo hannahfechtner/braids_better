@@ -2,7 +2,6 @@ import BraidProject.PartialGrid.AddCell
 import BraidProject.Solver.StepOne_length
 
 namespace Braid
-
 namespace PartialGrid
 
 -- again, we continue to use PLift as it is more visible in the infoview
@@ -48,60 +47,5 @@ noncomputable def of_SemiThueData_reversing
   · exact ⟨h2.2.1⟩
   exact ⟨by rw [h2.1.1, h4.2.1]⟩
 
--- noncomputable def step_three
---     (h : SemiThue reversing_prop (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) cde) :
---     Σ c1 d1 e1, PartialGrid (to_vertical_edge a) (to_horizontal_edge b) c1 d1 e1 ×
---     PLift (SignedOptionList.toSignedList (c1 ++ d1 ++ e1) = cde) := by
---   match a with
---   | [] =>
---     have hb1 : to_horizontal_edge_no_epsilon b = cde := by
---       simp [to_vertical_edge_no_epsilon] at h
---       apply eq_of_SemiThue_true h
---       exact is_true_to_horizontal_edge_no_epsilon
---     use [], (none, false):: to_horizontal_edge b, []
---     constructor
---     · simp [to_vertical_edge]
---       apply PartialGrid.empty
---       . simp
---       · intro a ha
---         simp at ha
---         rw [ha]
---       · exact to_horizontal_edge_length_pos
---       exact is_true_to_horizontal_edge
---     constructor
---     rw [← hb1]
---     simp [toSignedList_to_horizontal_edge]
---   | a1 :: a2 =>
---   match b with
---   | [] =>
---     have ha1 : to_vertical_edge_no_epsilon (a1 :: a2) = cde := by
---       simp only [to_horizontal_edge_no_epsilon, List.map_nil,
---         List.append_nil] at h
---       apply eq_of_SemiThue_false h
---       exact is_false_to_vertical_edge_no_epsilon
---     use [], to_vertical_edge (a1 :: a2) ++ [(none, true)], []
---     constructor
---     · apply PartialGrid.empty
---       . exact to_vertical_edge_length_pos
---       · exact is_false_to_vertical_edge
---       · exact to_horizontal_edge_length_pos
---       exact is_true_to_horizontal_edge
---     constructor
---     simp [← ha1, to_vertical_edge, SignedOptionList.toSignedList]
---     sorry
---     --simp_all [SignedOptionList.toSignedList, ← ha1]
---     --exact remove_up_is_no_epsilon
---   | b1 :: b2 =>
---     sorry
---   -- have H1 := stepOne_mid h NegPosData.of_to_vertical_edge_no_epsilon_to_horizontal_edge_no_epsilon
---   -- rcases H1 with ⟨b', st, so, ⟨rm⟩⟩
---   -- rw [SignedList.to_SignedOptionList_append] at st
---   -- have H2 := step_two (SignedList.is_false_to_SignedOptionList is_false_to_vertical_edge_no_epsilon) (by simp [SignedList.to_SignedOptionList, to_vertical_edge_no_epsilon])
---   --   (SignedList.is_true_to_SignedOptionList is_true_to_horizontal_edge_no_epsilon) (by simp [SignedList.to_SignedOptionList_length, to_horizontal_edge_no_epsilon]) st
---   -- rw [← rm]
---   -- --rw [← (SignedList.to_SignedOptionList_up_no_epsilon_eq_up (by simp)), ← SignedList.to_SignedOptionList_over_no_epsilon_eq_over (by simp)]
---   -- rcases H2 with ⟨bot, mid, up, pg, ⟨b'_is⟩⟩
---   -- use bot, mid, up
---   -- use pg
---   -- constructor
---   -- rw [b'_is]
+end PartialGrid
+end Braid

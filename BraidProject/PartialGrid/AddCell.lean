@@ -1,10 +1,5 @@
-import BraidProject.PartialGrid.Bounded
-import BraidProject.PartialGrid.DeterminativeSpine
-import BraidProject.SpecificConstructiveThings
-import BraidProject.SignedList_C
-import BraidProject.SignedOptionList
 import BraidProject.Relations
-import BraidProject.SemiThue_length_general
+import BraidProject.SpecificConstructiveThings
 
 namespace Braid
 open PartialGrid SignedList SignedOptionList GridData
@@ -973,4 +968,3 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --     · rw [l_is, l1_is, ← List.append_assoc, ← List.append_assoc, fe'.1, ← List.append_assoc, ← List.append_assoc]
 --     · simp only [PartialGrid.length, ← botp.2.1]
 --       omega
-

@@ -1,51 +1,10 @@
 import BraidProject.Solver.Group
 import BraidProject.Solver.MonoidCorrectness
+import BraidProject.Solver.Reversing
 
 namespace Braid
 
-
-theorem SemiThue_reversing_to_braid_group_equiv (h : SemiThueData reversing a b) :
-  Braid.BraidGroupInf.mk (FreeGroup.mk a) =
-  Braid.BraidGroupInf.mk (FreeGroup.mk b) := by
-  induction h with
-  | refl => rfl
-  | step h =>
-    rename_i e f g i
-    unfold Braid.BraidGroupInf.mk
-    rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk,
-      map_mul, map_mul, map_mul, map_mul,
-      mul_left_inj, mul_right_inj]
-    cases i with
-    | basic =>
-      rename_i i j hij
-      apply Nat.eq_of_dist_eq_zero at hij
-      rw [← hij]
-      change (PresentedGroup.mk ((ArtinTits.Group.relation_set Braid.BraidMatrixInf)))
-        (FreeGroup.mk ([(i, false)] ++ [(i, true)])) = _
-      rw [← FreeGroup.mul_mk]
-      unfold FreeGroup.mk
-      congr
-      exact eq_div_iff_mul_eq'.mp rfl
-    | apart h =>
-      rename_i i j
-      change (Braid.σ i)⁻¹ * Braid.σ j = Braid.σ j * (Braid.σ i)⁻¹
-      apply (mul_right_inj (Braid.σ i)).mp
-      apply (mul_left_inj (Braid.σ i)).mp
-      group
-      symm
-      exact Braid.BraidGroupInf.comm h
-    | close h =>
-      rename_i i j
-      change (Braid.σ i)⁻¹ * Braid.σ j = Braid.σ j *  Braid.σ i * (Braid.σ j)⁻¹ * (Braid.σ i)⁻¹
-      apply (mul_right_inj (Braid.σ i)).mp
-      apply (mul_left_inj (Braid.σ i)).mp
-      apply (mul_left_inj (Braid.σ j)).mp
-      group
-      symm
-      exact Braid.BraidGroupInf.braid h
-  | trans _ _ ih1 ih2 =>
-    exact ih1.trans ih2
-
+-- this is more basic, move me!
 theorem bm_to_bg (h : BraidMonoidInf.mk a =
   BraidMonoidInf.mk b) :
   BraidGroupInf.mk (FreeGroup.mk (to_horizontal_edge_no_epsilon a)) =
@@ -105,6 +64,7 @@ theorem recover_from_is_true (h : SignedList.is_true d) : to_horizontal_edge_no_
     unfold to_horizontal_edge_no_epsilon
     simp
 
+--okay this is fine
 theorem solver_g_correct_one_direction : group_solver a b = true →
     BraidGroupInf.mk (FreeGroup.mk a) =
     BraidGroupInf.mk (FreeGroup.mk b) := by
@@ -112,7 +72,7 @@ theorem solver_g_correct_one_direction : group_solver a b = true →
   unfold group_solver at h
   rcases dede : (reverse_word (a ++ (FreeGroup.invRev b))).ordered with ⟨d, e, hde⟩
   have H := correct_one_dir h
-  have H2 := SemiThue_reversing_to_braid_group_equiv ((reverse_word (a ++ (FreeGroup.invRev b))).steps)
+  have H2 := SemiThueData_reversing_to_braid_group_equiv ((reverse_word (a ++ (FreeGroup.invRev b))).steps)
   rw [hde.1.2.2] at H2
   rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, map_mul, map_mul] at H2
   have d_is : (reverse_word (a ++ FreeGroup.invRev b)).ordered.fst = d := by aesop

@@ -1,38 +1,9 @@
 import BraidProject.PartialGrid.NestedFrame
-import BraidProject.SemiThue
-import BraidProject.Relations
 import BraidProject.PartialGrid.FrontierPossibilities
+import BraidProject.Solver.Reversing
 
 namespace Braid
 namespace PartialGrid
-
-theorem SemiThue_reversing_nil (h : SemiThue reversing_prop a b) (ha : a = []) : b = [] := by
-  induction h with
-  | refl => exact ha
-  | step c d h => cases h ; all_goals simp at ha
-  | trans _ _ _ _ => aesop
-
-noncomputable def grid_to_rev (h : GridData a b c d) : SemiThue reversing_prop
-  (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d) := by
-  induction h with
-  | empty => exact SemiThue.refl
-  | top_bottom i => exact SemiThue.refl
-  | sides i => exact SemiThue.refl
-  | top_left i => exact SemiThue.of_rel (reversing_prop.basic)
-  | adjacent i k h => exact SemiThue.of_rel (reversing_prop.close h)
-  | separated i j h => exact SemiThue.of_rel (reversing_prop.apart h)
-  | vertical h1 h2 h1_ih h2_ih =>
-    rename_i e f g h i j k
-    rw [to_vertical_edge_no_epsilon_mul, to_vertical_edge_no_epsilon_mul, List.append_assoc]
-    apply (SemiThue.append_left h1_ih).trans
-    rw [← List.append_assoc, ← List.append_assoc]
-    exact SemiThue.append_right h2_ih
-  | horizontal h1 h2 h1_ih h2_ih =>
-    rename_i e f g h i j k
-    rw [to_horizontal_edge_no_epsilon_mul, to_horizontal_edge_no_epsilon_mul, ← List.append_assoc]
-    apply (SemiThue.append_right h1_ih).trans
-    rw [List.append_assoc, List.append_assoc]
-    exact SemiThue.append_left h2_ih
 
 noncomputable def pg_mid_frontier_reverses_to_grid_helper
     (h : PartialGrid a1 b1 c1 m1 d1)
@@ -277,3 +248,22 @@ noncomputable def frontier_reverses_to_grid (h : PartialGrid a b c d e) : fronti
   apply SemiThue.append_left
   simp only [← List.append_assoc]
   exact SemiThue.append_right (pg_mid_frontier_reverses_to_grid_helper h ha hb hc1 he1 h2)
+
+
+noncomputable def restricted_confluence (h1 : SemiThue reversing_prop
+    (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
+    (h2 : SemiThue reversing_prop (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) d)
+    (ha : a.length > 0) (hb : b.length > 0) :
+    ∃ e, SemiThue reversing_prop c e ∧ SemiThue reversing_prop d e := by
+  have H1 := PartialGrid.of_SemiThueData_reversing (Classical.choice (SemiThueData.ofSemiThue_reversing h1)) ha hb
+  have H2 := PartialGrid.of_SemiThueData_reversing (Classical.choice (SemiThueData.ofSemiThue_reversing h2)) ha hb
+  rcases H1 with ⟨c1, d1, e1, pg, ⟨rm1⟩, ⟨rfl⟩⟩
+  rcases H2 with ⟨c2, d2, e2, pg2, ⟨rm2⟩, ⟨rfl⟩⟩
+  have H2 : Σ c3 d3, GridData a b c3 d3 := GridData.existence a b
+  rcases H2 with ⟨c3, d3, gt⟩
+  use (to_horizontal_edge_no_epsilon c3 ++ to_vertical_edge_no_epsilon d3)
+  constructor
+  · exact PartialGrid.frontier_reverses_to_grid pg toSignedList_to_vertical_edge
+      toSignedList_to_horizontal_edge gt
+  exact PartialGrid.frontier_reverses_to_grid pg2 toSignedList_to_vertical_edge
+      toSignedList_to_horizontal_edge gt

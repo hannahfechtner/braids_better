@@ -1,6 +1,5 @@
 import BraidProject.Additions.InvRev
 import BraidProject.Grids_C
-import BraidProject.SignedList_C
 import BraidProject.TrueFalse_C
 
 namespace Braid

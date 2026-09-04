@@ -1,5 +1,3 @@
-import BraidProject.PartialGrid.ToGrid
-import BraidProject.PartialGrid.FrontierPossibilities
 import BraidProject.PartialGrid.NestedFrame
 
 namespace Braid
