@@ -294,7 +294,7 @@ noncomputable def PartialGrid.add_cell_w_length (h : PartialGrid a b bot mid up)
     Σ nb nm nu, (h1 : PartialGrid a b nb nm nu) × PLift (nb ++ nm ++ nu = k ++ j ++ l) ×
     List.SuffixData up nu × List.PrefixData bot nb ×
     PLift (h.length + 1 = h1.length) := by
-  rcases Braid.grid_style_nontrivial_spec hg with ⟨a1, b1, ⟨i_is⟩⟩
+  rcases Braid.grid_style_nontrivial.spec hg with ⟨a1, b1, ⟨i_is⟩⟩
   rw [i_is] at fe
   induction h generalizing k l with
   | single_cell h =>
@@ -645,7 +645,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
     Σ nb nm nu, (h1 : PartialGrid a b nb nm nu) × PLift (nb ++ nm ++ nu = k ++ j ++ l) ×
     List.SuffixData up nu × List.PrefixData bot nb ×
     PLift (h.length = h1.length) := by
-  rcases grid_style_trivial_spec hg with ⟨a1, b1, ⟨i_is⟩⟩
+  rcases grid_style_trivial.spec hg with ⟨a1, b1, ⟨i_is⟩⟩
   rw [i_is] at fe
   induction h generalizing k l with
   | single_cell h =>

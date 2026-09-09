@@ -1,5 +1,5 @@
 import BraidProject.Additions.InvRev
-import BraidProject.Grid.Data
+import BraidProject.GridData.Basic
 import BraidProject.TrueFalse_C
 
 namespace Braid

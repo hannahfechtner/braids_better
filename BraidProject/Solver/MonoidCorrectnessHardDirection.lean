@@ -8,7 +8,8 @@ import BraidProject.Solver.Reversing
 
 namespace Braid
 
-open PartialGrid
+open PartialGrid Relations
+
 theorem correct_other_dir (h : BraidMonoidInf.mk a =
     BraidMonoidInf.mk b) : monoid_solver a b := by
   have H : grid (a*1) (b*1) 1 1 := by

@@ -4,6 +4,8 @@ import BraidProject.BraidLocalization
 
 namespace Braid
 
+open Relations
+
 theorem helper_for_bottom
     (h : SignedOptionList.toSignedList b' = to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)
     (h1 : bot ++ up = move_ones b') (hbot : SignedList.is_true bot) (hup : SignedList.is_false up) :

@@ -131,7 +131,7 @@ open PartialGrid
 
 noncomputable def add_cell (h : PartialGrid a b bot mid up) (hg : grid_style i j) (fe : bot ++ mid ++ up = k ++ i ++ l) :
     Σ nb nm nu, PartialGrid a b nb nm nu × PLift (nb ++ nm ++ nu = k ++ j ++ l) × List.SuffixData up nu × List.PrefixData bot nb := by
-  rcases grid_style_spec hg with ⟨a1, b1, ⟨i_is⟩⟩
+  rcases grid_style.spec hg with ⟨a1, b1, ⟨i_is⟩⟩
   rw [i_is] at fe
   induction h generalizing k l with
   | single_cell h =>

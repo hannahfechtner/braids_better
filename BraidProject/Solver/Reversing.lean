@@ -6,6 +6,8 @@ import BraidProject.PartialGrid.Build
 
 namespace Braid
 
+open Relations
+
 theorem SemiThueData.toSemiThue_reversing (h : SemiThueData reversing a b) : SemiThue reversing_prop a b := by
   induction h with
   | refl => rfl

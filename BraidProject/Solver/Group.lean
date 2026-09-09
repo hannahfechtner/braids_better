@@ -3,6 +3,8 @@ import BraidProject.Solver.SeparatePair
 
 namespace Braid
 
+open Relations
+
 structure ReverseResult (L : List (ℕ × Bool)) where
   out : List (ℕ × Bool)
   ordered : SignedList.PosNegData out

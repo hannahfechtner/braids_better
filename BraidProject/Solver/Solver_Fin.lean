@@ -3,6 +3,8 @@ import BraidProject.ConvertToFin
 
 namespace Braid
 
+open Relations
+
 def is_bounded_by [LT α] (k : α) (u : List (α × Bool)) := ∀ x ∈ u, x.1 < k
 
 def bb_to_fin (L : List (ℕ × Bool)) (n : ℕ) (hL : is_bounded_by n L) : List (Fin n × Bool) :=

@@ -2,9 +2,9 @@ import BraidProject.Relations
 import BraidProject.SpecificConstructiveThings
 
 namespace Braid
-open PartialGrid SignedList SignedOptionList GridData
+open PartialGrid SignedList SignedOptionList GridData Relations
 
-def grid_style.toCellData (h : grid_style i j) : Σ a b c d,
+def Relations.grid_style.toCellData (h : grid_style i j) : Σ a b c d,
     (h1 : CellData (option_to_list a) (option_to_list b) c d) ×
     PLift (i = [(a, false), (b, true)] ∧ j = to_horizontal_edge c ++ to_vertical_edge d) ×
     PLift ((PartialGrid.single_cell h1).length = h.length):= by
@@ -30,7 +30,7 @@ def grid_style.toCellData (h : grid_style i j) : Σ a b c d,
     use none, some i, [i], []
     exact ⟨CellData.top_bottom i, ⟨⟨rfl, rfl⟩, ⟨by simp [PartialGrid.length]⟩⟩⟩
 
- def grid_style.toPartialGrid (h : grid_style i j) (ha : a.length > 0) (hb : b.length > 0)
+ def Relations.grid_style.toPartialGrid (h : grid_style i j) (ha : a.length > 0) (hb : b.length > 0)
     (i_is : i = [(a3, false), (b3, true)]) (ab : [(a3, false), (b3, true)] = a ++ b) :
     Σ bot mid up, (h1 : PartialGrid a b bot mid up) × PLift (bot ++ mid ++ up = j) × PLift (h1.length = h.length) := by
   rcases grid_style.toCellData h with ⟨a1, b1, c1, d1, h_cell, ⟨i_is', j_is⟩, len⟩
@@ -45,7 +45,7 @@ def grid_style.toCellData (h : grid_style i j) : Σ a b c d,
   rw [List.append_nil]
   exact ⟨⟨j_is.symm⟩, len⟩
 
-def grid_style.toPartialGrid_extend_top_side (h2 : grid_style i j)
+def Relations.grid_style.toPartialGrid_extend_top_side (h2 : grid_style i j)
     (fe : a ++ b = ([(a3, false), (b3, true)] ++ head :: tail))
     (b_is : b = b1 ++ head :: tail) (ha : is_false a) (ha1 : a.length > 0) (hb : is_true b)
     (ab_is : [(a3, false), (b3, true)] = a ++ b1) (i_is : i = [(a3, false), (b3, true)]):
@@ -82,7 +82,7 @@ def grid_style.toPartialGrid_extend_top_side (h2 : grid_style i j)
   rw [PartialGrid.length]
   rfl
 
-def grid_style.toPartialGrid_extend_left_side (h2 : grid_style i j)
+def Relations.grid_style.toPartialGrid_extend_left_side (h2 : grid_style i j)
     (a_is : a = head :: tail ++ a2)
     (ha : is_false a) (hb : is_true b) (ab_is : [(a3, false), (b3, true)] = a2 ++ b1)
     (i_is : i = [(a3, false), (b3, true)]) (b_is : b = b1) (hb1 : b.length > 0) :
@@ -154,7 +154,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
     Σ nb nm nu, (h1 : PartialGrid a b nb nm nu) × PLift (nb ++ nm ++ nu = k ++ j ++ l) ×
     List.SuffixData up nu × List.PrefixData bot nb ×
     PLift (h.length + hg.length = h1.length) := by
-  rcases Braid.grid_style_spec hg with ⟨a1, b1, ⟨i_is⟩⟩
+  rcases grid_style.spec hg with ⟨a1, b1, ⟨i_is⟩⟩
   rw [i_is] at fe
   induction h generalizing k l with
   | single_cell h =>
@@ -437,7 +437,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --     Σ nb nm nu, (h1 : PartialGrid a b nb nm nu) × PLift (nb ++ nm ++ nu = k ++ j ++ l) ×
 --     List.SuffixData up nu × List.PrefixData bot nb ×
 --     PLift (h.length + hg.length = h1.length) := by
---   rcases Braid.grid_style_spec hg with ⟨a1, b1, ⟨i_is⟩⟩
+--   rcases Braid.grid_style.spec hg with ⟨a1, b1, ⟨i_is⟩⟩
 --   subst i_is
 --   match h with
 --   | single_cell h =>
@@ -718,7 +718,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --     (hg : grid_style i j) (fe : bot ++ mid ++ up = k ++ i ++ l) :
 --     Σ nb nm nu, {h1 : PartialGrid a b nb nm nu // nb ++ nm ++ nu = k ++ j ++ l ∧ h.length + hg.length = h1.length} ×
 --     List.SuffixData up nu × List.PrefixData bot nb := by
---   rcases Braid.grid_style_spec hg with ⟨a1, b1, ⟨i_is⟩⟩
+--   rcases Braid.grid_style.spec hg with ⟨a1, b1, ⟨i_is⟩⟩
 --   subst i_is
 --   match h with
 --   | single_cell h =>

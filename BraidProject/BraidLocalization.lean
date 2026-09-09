@@ -2,7 +2,7 @@ import BraidProject.BraidGroup
 import BraidProject.TrueFalse_C
 import BraidProject.Additions.NatDist
 import BraidProject.BraidMonoidInf
-import BraidProject.Cancellability
+import BraidProject.Grid.Properties
 import BraidProject.Additions.Mixins
 import BraidProject.OreLocalizationCombined
 

@@ -5,6 +5,8 @@ import BraidProject.Solver.Reversing
 namespace Braid
 namespace PartialGrid
 
+open Relations
+
 noncomputable def pg_mid_frontier_reverses_to_grid_helper
     (h : PartialGrid a1 b1 c1 m1 d1)
     (ha : SignedOptionList.toSignedList a1 = to_vertical_edge_no_epsilon a)

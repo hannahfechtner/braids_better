@@ -4,6 +4,8 @@ import BraidProject.Solver.StepOne_length
 namespace Braid
 namespace PartialGrid
 
+open Relations
+
 -- again, we continue to use PLift as it is more visible in the infoview
 noncomputable def step_two_with_length (ha : SignedList.is_false a) (ha1 : a.length > 0)
     (hb : SignedList.is_true b) (hb1 : b.length > 0) :

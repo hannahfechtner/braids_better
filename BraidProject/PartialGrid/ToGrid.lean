@@ -1,4 +1,4 @@
-import BraidProject.GridData_length
+import BraidProject.GridData.Length
 import BraidProject.PartialGrid.Basic
 
 open SignedOptionList

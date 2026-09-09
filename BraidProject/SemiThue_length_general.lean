@@ -2,6 +2,7 @@ import BraidProject.DataCarrying.SemiThue
 import BraidProject.Relations
 
 namespace Braid
+open Relations
 
 namespace SemiThueData
 
@@ -23,7 +24,7 @@ def length_step {c d : List α} :
   length rels_length (SemiThueData.step c d h) = rels_length h := rfl
 
 def grid_style.length (h : SemiThueData grid_style a b) : ℕ :=
-  SemiThueData.length Braid.grid_style.length h
+  SemiThueData.length Braid.Relations.grid_style.length h
 
 @[simp]
 theorem grid_style.length_refl : grid_style.length (@SemiThueData.refl _ _ a) = 0 := by
@@ -34,7 +35,8 @@ theorem grid_style.length_trans (h1 : SemiThueData grid_style a b) (h2 : SemiThu
   grid_style.length (SemiThueData.trans h1 h2) = grid_style.length h1 + grid_style.length h2 := by rfl
 
 @[simp]
-theorem grid_style.length_step (h : grid_style a b) {c d : List (Option ℕ × Bool)}: grid_style.length (SemiThueData.step c d h) = Braid.grid_style.length h := by
+theorem grid_style.length_step (h : grid_style a b) {c d : List (Option ℕ × Bool)} :
+    grid_style.length (SemiThueData.step c d h) = Braid.Relations.grid_style.length h := by
   rfl
 
 end SemiThueData
@@ -47,7 +49,7 @@ def length {rels : List α → List α → Type} (rels_length : {a : List α} �
 
 
 def grid_style.length (h : SemiThueDataDerivation grid_style a b) : ℕ :=
-  SemiThueDataDerivation.length Braid.grid_style.length h
+  SemiThueDataDerivation.length Braid.Relations.grid_style.length h
 
 @[simp]
 theorem grid_style.length_refl : grid_style.length (@SemiThueDataDerivation.refl _ _ a) = 0 := by
@@ -55,7 +57,7 @@ theorem grid_style.length_refl : grid_style.length (@SemiThueDataDerivation.refl
 
 @[simp]
 theorem grid_style.length_step (h1 : SemiThueDataDerivation grid_style a (c ++ b ++ d)) (h2 : grid_style b e) :
-  grid_style.length (SemiThueDataDerivation.step h1 h2) = grid_style.length h1 + Braid.grid_style.length h2 := by
+  grid_style.length (SemiThueDataDerivation.step h1 h2) = grid_style.length h1 + Braid.Relations.grid_style.length h2 := by
   rfl
 
 noncomputable def grid_style.length_trans

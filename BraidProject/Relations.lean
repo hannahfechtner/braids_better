@@ -2,6 +2,8 @@ import Mathlib.Data.Nat.Dist
 
 namespace Braid
 
+namespace Relations
+
 inductive reversing : List (ℕ × Bool) → List (ℕ × Bool) → Type
 | basic {i j : ℕ} (h : Nat.dist i j = 0) : reversing [(i, false), (j, true)] []
 | apart {i j : ℕ} (h : Nat.dist i j > 1) : reversing [(i, false), (j, true)] [(j, true), (i, false)]
@@ -75,13 +77,13 @@ def grid_style_trivial.length (h : grid_style_trivial a b) := match h with
 | grid_style_trivial.up _ => 0
 | grid_style_trivial.empty => 0
 
-def gs_of_real (h : grid_style_nontrivial a b) : grid_style a b :=
+def grid_style.of_grid_style_nontrivial (h : grid_style_nontrivial a b) : grid_style a b :=
   match h with
   | grid_style_nontrivial.basic n => grid_style.basic n
   | grid_style_nontrivial.apart hdist => grid_style.apart hdist
   | grid_style_nontrivial.close hdist => grid_style.close hdist
 
-def grid_style_spec (h : grid_style i j) : Σ a b, PLift (i = [(a, false), (b, true)]) := by
+def grid_style.spec (h : grid_style i j) : Σ a b, PLift (i = [(a, false), (b, true)]) := by
   match h with
   | grid_style.basic n=>
     use n, n
@@ -104,7 +106,7 @@ def grid_style_spec (h : grid_style i j) : Σ a b, PLift (i = [(a, false), (b, t
     use i, j
     exact {down := rfl}
 
-def grid_style_nontrivial_spec (h : grid_style_nontrivial i j) :
+def grid_style_nontrivial.spec (h : grid_style_nontrivial i j) :
     Σ a b, PLift (i = [(some a, false), (some b, true)]) := by
   match h with
   | grid_style_nontrivial.basic n =>
@@ -119,7 +121,7 @@ def grid_style_nontrivial_spec (h : grid_style_nontrivial i j) :
     use i, j
     exact {down := rfl}
 
-def grid_style_trivial_spec (h : grid_style_trivial i j) :
+def grid_style_trivial.spec (h : grid_style_trivial i j) :
     Σ a b, PLift (i = [(a, false), (b, true)]) := by
   match h with
   | grid_style_trivial.empty =>
@@ -131,3 +133,7 @@ def grid_style_trivial_spec (h : grid_style_trivial i j) :
   | grid_style_trivial.up i =>
     use none, some i
     exact {down := rfl}
+
+end Relations
+
+end Braid

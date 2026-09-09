@@ -2,7 +2,7 @@ import BraidProject.MoveOnes
 import BraidProject.SignedList_C
 namespace Braid
 
-open List SignedList SignedOptionList
+open List SignedList SignedOptionList Relations
 
 def distinctPairInfixCases (b_ne : b1 ≠ b2) (h : a ++ [b1, b2] ++ c = d ++ [b1, b2] ++ e) :
   PLift (a = d ∧ c = e) ⊕ (Σ a1 a2, PLift (a = a1 ++ [b1, b2] ++ a2 ∧ d = a1 ∧ e = a2 ++ [b1, b2] ++ c)) ⊕

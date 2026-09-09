@@ -3,6 +3,8 @@ import BraidProject.SemiThue_length_general
 
 namespace Braid
 
+open Relations
+
 noncomputable def equiv_insert_w_len : {h1 : SemiThueData grid_style (a :: L) (concatenate_reduction a L) // SemiThueData.grid_style.length h1 = 0} := by
   have H : ∀ t L a, L.length ≤ t → {h1 : SemiThueData grid_style (a :: L) (concatenate_reduction a L) // SemiThueData.grid_style.length h1 = 0} := by
     intro t

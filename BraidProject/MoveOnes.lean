@@ -5,6 +5,8 @@ import BraidProject.Irreducibility
 
 namespace Braid
 
+open Relations
+
 def concatenate_reduction (a : Option ℕ × Bool) (L : List (Option ℕ × Bool)) : List (Option ℕ × Bool) :=
   match L with
   | (none, true) :: tail =>
@@ -132,7 +134,7 @@ noncomputable def concatenate_reduction_equiv_grid_style : SemiThueData grid_sty
       | [] => exact SemiThueData.refl
       | (none, true) :: tail =>
         simp only [List.length_cons, add_le_add_iff_right] at len
-        exact SemiThueData.trans (SemiThueData.append_right (SemiThueData.of_rel grid_style.empty)) (SemiThueData.cons (ih tail _ len))
+        exact SemiThueData.trans (SemiThueData.append_right (SemiThueData.of_rel Braid.Relations.grid_style.empty)) (SemiThueData.cons (ih tail _ len))
       | (none, false) :: tail => exact SemiThueData.refl
       | (some c, true) :: tail1 =>
         simp only [List.length_cons, add_le_add_iff_right] at len
