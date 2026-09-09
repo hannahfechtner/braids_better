@@ -1,43 +1,7 @@
-/-
-Copyright (c) 2024. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Hannah Fechtner
--/
-
---import BraidProject.FreeMonoid_mine
-import Mathlib.Algebra.Group.Submonoid.Operations
-import Mathlib.Algebra.FreeMonoid.Basic
+import Mathlib.Algebra.PresentedMonoid.Basic
+import BraidProject.Additions.FreeMonoid
 import Mathlib.GroupTheory.Congruence.Basic
 import BraidProject.Additions.Congruence
-import BraidProject.Additions.FreeMonoid
-
-/-!
-# Defining a monoid given by generators and relations
-
-Given a subset `rels` of relations of the free monoid on a type `α`, this file constructs the monoid
-given by generators `x : α` and relations `r ∈ rels`.
-
-## Main definitions
-
-* `PresentedMonoid rels`: the quot group of the free group on a type `α` by the steps-to closure
-  of a subset `rels` of relations of the free monoid on `α`.
-* `of`: The canonical map from `α` to a presented monoid with generators `α`.
-* `toMonoid f`: the canonical monoid homomorphism `PresentedMonoid rels → M`, given a function
-  `f : α → G` from a type `α` to a monoid `M` which satisfies the relations `rels`.
-
-## Tags
-
-generators, relations, monoid presentations
--/
-
-variable {α : Type*}
-
-/-- Given a set of relations, `rels`, over a type `α`, `PresentedMonoid` constructs the monoid with
-generators `x : α` and relations `rels` as a quotient of a congruence structure over rels. -/
-@[to_additive /--Given a set of relations, `rels`, over a type `α`, `PresentedAddMonoid` constructs
-the monoid with generators `x : α` and relations `rels` as a quotient of an Addcon structure over
-rels-/]
-def PresentedMonoid (rels : FreeMonoid α → FreeMonoid α → Prop) := (conGen rels).Quotient
 
 namespace PresentedMonoid
 
@@ -46,15 +10,6 @@ section Basic
 variable (rels : FreeMonoid α → FreeMonoid α → Prop)
 
 open Set Submonoid
-
-@[to_additive]
-instance : Monoid (PresentedMonoid rels) := Con.monoid (conGen rels)
-
-/-- The quotient map from the free monoid on `α` to the presented monoid with the same generators
-and the given relations `rels`. -/
-@[to_additive /--The quotient map from the free additive monoid on `α` to the presented additive
-monoid with the same generators and the given relations `rels`-/]
-def mk : FreeMonoid α →ₙ* PresentedMonoid rels := ⟨Quotient.mk (conGen rels).toSetoid, fun _ _ => rfl⟩
 
 @[to_additive (attr := simp)]
 theorem mk_mul (a b : FreeMonoid α) : mk rels (a * b) = mk rels a * (mk rels b) := rfl
@@ -67,39 +22,9 @@ instance : MonoidHom (FreeMonoid α) (PresentedMonoid rels) where
   map_mul' := fun _ _ => rfl
   map_one' := rfl
 
-/-- `of` is the canonical map from `α` to a presented monoid with generators `x : α`. The term `x`
-is mapped to the equivalence class of the image of `x` in `FreeMonoid α`. -/
-@[to_additive /--`of` is the canonical map from `α` to a presented additive monoid with generators
-`x : α`. The term `x` is mapped to the equivalence class of the image of `x` in `FreeAddMonoid α` -/]
-def of (x : α) : PresentedMonoid rels := Quotient.mk (conGen rels).toSetoid (FreeMonoid.of x)
-
 end Basic
 
 section inductionOn
-
-variable {α₁ α₂ α₃ : Type* } {rels₁ : FreeMonoid α₁ → FreeMonoid α₁ → Prop}
-  {rels₂ : FreeMonoid α₂ → FreeMonoid α₂ → Prop} {rels₃ : FreeMonoid α₃ → FreeMonoid α₃ → Prop}
-
-local notation "P₁" => PresentedMonoid rels₁
-local notation "P₂" => PresentedMonoid rels₂
-local notation "P₃" => PresentedMonoid rels₃
-
-@[to_additive (attr := elab_as_elim), induction_eliminator]
-protected theorem inductionOn {δ : P₁ → Prop} (q : P₁) (h : ∀ a, δ (mk rels₁ a)) : δ q :=
-  Quotient.ind h q
-
-@[to_additive (attr := elab_as_elim)]
-protected theorem inductionOn₂ {δ : P₁ → P₂ → Prop} (q₁ : P₁) (q₂ : P₂)
-    (h : ∀ a b, δ (mk rels₁ a) (mk rels₂ b)) : δ q₁ q₂ :=
-  Quotient.inductionOn₂ q₁ q₂ h
-
-@[to_additive (attr := elab_as_elim)]
-protected theorem inductionOn₃ {δ : P₁ → P₂ → P₃ → Prop} (q₁ : P₁)
-    (q₂ : P₂) (q₃ : P₃) (h : ∀ a b c, δ (mk rels₁ a) (mk rels₂ b) (mk rels₃ c)) :
-    δ q₁ q₂ q₃ :=
-  Quotient.inductionOn₃ q₁ q₂ q₃ h
-
-end inductionOn
 
 variable {α : Type*}
 
@@ -296,66 +221,6 @@ theorem lift_of_mul_mk {β : Type} (x : FreeMonoid α) (f : FreeMonoid α → β
     (hm : ∀ {a b c d}, f a = f c → f b = f d → f (a * b) = f (c * d))
     (h : ∀ (a b : FreeMonoid α), rels a b → f a = f b) :
     lift_of_mul f hm h (PresentedMonoid.mk rels x) = f x := rfl
-
-def lift {β : Type} [Monoid β] (f :  α → β) (h : ∀ (a b : FreeMonoid α),
-    (conGen rels) a b → (FreeMonoid.lift f) a = (FreeMonoid.lift f) b ) :
-    (conGen rels).Quotient →* β := Con.lift (conGen rels) (FreeMonoid.lift f) h
-
-theorem lift_mk {β : Type} [Monoid β] (x : α) (f : α → β)
-    (h : ∀ (a b : FreeMonoid α),
-    (conGen rels) a b → (FreeMonoid.lift f) a = (FreeMonoid.lift f) b ) :
-    PresentedMonoid.lift f h (PresentedMonoid.of rels x) = f x :=
-    Con.lift_mk' h (FreeMonoid.of x)
-
-/-- The generators of a presented monoid generate the presented monoid. That is, the submonoid
-closure of the set of generators equals `⊤`. -/
-@[to_additive (attr := simp) /--The generators of a presented additive monoid generate the
-presented additive monoid. That is, the submonoid closure of the set of generators equals `⊤`-/]
-theorem closure_range_of (rels : FreeMonoid α → FreeMonoid α → Prop) :
-    Submonoid.closure (Set.range (PresentedMonoid.of rels)) = ⊤ := by
-  rw [Submonoid.eq_top_iff']
-  intro x
-  induction x with
-  | h a =>
-  induction a with
-  | one => exact Submonoid.one_mem _
-  | of x => exact Submonoid.mem_closure_of_mem (Exists.intro x rfl)
-  | mul x y hx hy => exact Submonoid.mul_mem _ hx hy
-
-section ToMonoid
-variable {α M : Type*} [Monoid M] (f : α → M)
-variable {rels : FreeMonoid α → FreeMonoid α → Prop}
-variable (h : ∀ a b : FreeMonoid α, rels a b → FreeMonoid.lift f a = FreeMonoid.lift f b)
-
-/-- The extension of a map `f : α → M` that satisfies the given relations to a monoid homomorphism
-from `PresentedMonoid rels → M`. -/
-@[to_additive /--The extension of a map `f : α → M` that satisfies the given relations to an
-additive-monoid homomorphism from `PresentedAddMonoid rels → M`-/]
-def toMonoid : MonoidHom (PresentedMonoid rels) M :=
-  Con.lift _ (FreeMonoid.lift f) (Con.conGen_le h)
-
-@[to_additive]
-theorem toMonoid.unique (g : MonoidHom (conGen rels).Quotient M)
-    (hg : ∀ a : α, g (of rels a) = f a) : g = toMonoid f h :=
-  Con.lift_unique (Con.conGen_le h) g (FreeMonoid.hom_eq fun x ↦ hg x)
-
-@[to_additive (attr := simp)]
-theorem toMonoid.of {x : α} : (PresentedMonoid.toMonoid f h) (PresentedMonoid.of rels x) =
-    f x := rfl
-
-end ToMonoid
-
-@[to_additive (attr := ext)]
-theorem ext {M : Type*} [Monoid M] (rels : FreeMonoid α → FreeMonoid α → Prop)
-    {φ ψ : PresentedMonoid rels →* M} (hx : ∀ (x : α), φ (.of rels x) = ψ (.of rels x)) :
-    φ = ψ := by
-  ext a
-  induction a with
-  | h b =>
-  induction b with
-  | one => rw [one_def, map_one, map_one]
-  | of x => exact hx x
-  | mul x y hx hy => rw [mk_mul, map_mul, map_mul, hx, hy]
 
 section Isomorphism
 variable {β : Type*} (e : α ≃ β) (rels : FreeMonoid α → FreeMonoid α → Prop)

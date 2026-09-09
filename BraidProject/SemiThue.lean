@@ -4,14 +4,12 @@ import Mathlib.Data.List.Lex
 import Mathlib.Data.List.Induction
 import BraidProject.Additions.FreeMonoid
 
-
 inductive SemiThue {α : Type} (rels : List α → List α → Prop) : List α → List α → Prop
 | refl {a : List α} : SemiThue rels a a
 | step {a b : List α} (c d : List α) (h : rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d)
 | trans {a b c : List α} : SemiThue rels a b → SemiThue rels b c → SemiThue rels a c
 
 attribute [refl] SemiThue.refl
-
 
 inductive SemiThueDerivation (rels : List α → List α → Prop) : List α → List α → Prop
 | refl {a : List α} : SemiThueDerivation rels a a

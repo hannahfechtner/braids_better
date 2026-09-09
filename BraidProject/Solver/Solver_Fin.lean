@@ -1,7 +1,9 @@
 import BraidProject.Solver.GroupCorrectnessHardDirection
 import BraidProject.ConvertToFin
 
-def is_bounded_by (k : ℕ) (u : List (ℕ × Bool)) := ∀ x ∈ u, x.1 < k
+namespace Braid
+
+def is_bounded_by [LT α] (k : α) (u : List (α × Bool)) := ∀ x ∈ u, x.1 < k
 
 def bb_to_fin (L : List (ℕ × Bool)) (n : ℕ) (hL : is_bounded_by n L) : List (Fin n × Bool) :=
   (List.pmap (λ ⟨i, b⟩ h => (Fin.mk i h, b) ) L) hL
@@ -37,8 +39,8 @@ theorem monoid_correctness_easy_direction {n : ℕ} (ha : ∀ x ∈ a, x < n.pre
       exact SemiThueDataDerivation.toSemiThueData H
 
 theorem monoid_correctness_easy_direction' {n : ℕ} (ha : ∀ x ∈ a, x < n.pred) (hb : ∀ x ∈ b, x < n.pred)
-  (h : monoid_solver a b) : PresentedMonoid.mk (braid_monoid_rels_fin' n) (make_fin n.pred a ha) =
-  PresentedMonoid.mk (braid_monoid_rels_fin' n) (make_fin n.pred b hb) := by
+  (h : monoid_solver a b) : PresentedMonoid.mk (braid_monoid_rels_fin n) (make_fin n.pred a ha) =
+  PresentedMonoid.mk (braid_monoid_rels_fin n) (make_fin n.pred b hb) := by
   match a with
   | [] =>
     match b with
@@ -50,14 +52,14 @@ theorem monoid_correctness_easy_direction' {n : ℕ} (ha : ∀ x ∈ a, x < n.pr
     | [] => simp [monoid_solver] at h
     | b1 :: b2 =>
       simp [monoid_solver] at h
-      apply BraidMonoidFin'.eq_of_BraidMonoidInf_eq
+      apply BraidMonoidFin.eq_of_BraidMonoidInf_eq
       rw [← List.append_nil (a1 :: a2), ← List.append_nil (b1 :: b2)]
       apply bm_equiv_of_reversing (by simp) (by simp)
       have H := @reverse_pair_spec (a1 :: a2) (b1 :: b2) (by simp) (by simp)
       rw [h] at H
       exact SemiThueDataDerivation.toSemiThueData H
 
-theorem is_bounded_by_append : is_bounded_by n (a ++ b) ↔ is_bounded_by n a ∧ is_bounded_by n b := by
+theorem is_bounded_by_append [LT α] {a b : List (α × Bool)}: is_bounded_by n (a ++ b) ↔ is_bounded_by n a ∧ is_bounded_by n b := by
   constructor
   · intro h
     constructor
@@ -73,12 +75,12 @@ theorem is_bounded_by_append : is_bounded_by n (a ++ b) ↔ is_bounded_by n a �
   | inl h1 => apply h.1 _ h1
   | inr h2 => apply h.2 _ h2
 
-theorem is_bounded_by_tail (h : is_bounded_by n (a1 :: a2)) : is_bounded_by n a2 := by
+theorem is_bounded_by_tail  [LT α] {a2 : List (α × Bool)} (h : is_bounded_by n (a1 :: a2)) : is_bounded_by n a2 := by
   intro x hx
   apply h
   exact List.mem_cons_of_mem _ hx
 
-theorem is_bounded_by_invRev (h : is_bounded_by n a) : is_bounded_by n (FreeGroup.invRev a) := by
+theorem is_bounded_by_invRev  [LT α] {a : List (α × Bool)} (h : is_bounded_by n a) : is_bounded_by n (FreeGroup.invRev a) := by
   intro x hx
   unfold FreeGroup.invRev at hx
   simp only [List.mem_map, List.mem_reverse] at hx
@@ -163,9 +165,9 @@ theorem SemiThueData_reversing_bounded (h : is_bounded_by n L) (h2 : SemiThueDat
 theorem reverse_word_bounded (ha : is_bounded_by n a) : is_bounded_by n (reverse_word a).1 := by
   exact SemiThueData_reversing_bounded ha (reverse_word a).steps
 
-theorem FreeGroup.invRev_bounded_by (ha : is_bounded_by n a) : is_bounded_by n (FreeGroup.invRev a) := by
+theorem FreeGroup.invRev_bounded_by  [LT α] {a : List (α × Bool)} (ha : is_bounded_by n a) : is_bounded_by n (FreeGroup.invRev a) := by
   intro x hx
-  unfold invRev at hx
+  unfold FreeGroup.invRev at hx
   simp only [List.mem_map, List.mem_reverse] at hx
   rcases hx with ⟨a1, ha1⟩
   rw [← ha1.2]
@@ -179,7 +181,7 @@ theorem List.pmap_inj {α β : Type*} {P : α → Prop} (f : ∀ a, P a → β)
   induction l1 generalizing l2 with
   | nil =>
     intro hx
-    simp only [pmap_nil, nil_eq, pmap_eq_nil_iff] at hx
+    simp only [List.pmap_nil, List.nil_eq, List.pmap_eq_nil_iff] at hx
     exact hx.symm
   | cons head tail ih =>
     intro hx
@@ -188,7 +190,7 @@ theorem List.pmap_inj {α β : Type*} {P : α → Prop} (f : ∀ a, P a → β)
     | nil => simp at hx
     | cons head1 tail1 =>
       simp at hx
-      refine cons_eq_cons.mpr ?_
+      refine List.cons_eq_cons.mpr ?_
       constructor
       · apply hf _ _ _ _ hx.1
       apply ih
@@ -207,14 +209,14 @@ theorem make_fin_inj {n : ℕ} {a b : FreeMonoid ℕ}
 
 theorem to_horizontal_edge_no_epsilon_FreeMonoid_of : to_horizontal_edge_no_epsilon (FreeMonoid.of x) = [(x, true)] := rfl
 
-theorem bm_to_bg_fin'' {n : ℕ} {a1 b1 : FreeMonoid (Fin n.pred)} (h : PresentedMonoid.mk (braid_monoid_rels_fin' n) a1 =
-  PresentedMonoid.mk (braid_monoid_rels_fin' n) b1):
+theorem bm_to_bg_fin'' {n : ℕ} {a1 b1 : FreeMonoid (Fin n.pred)} (h : PresentedMonoid.mk (braid_monoid_rels_fin n) a1 =
+  PresentedMonoid.mk (braid_monoid_rels_fin n) b1):
   (PresentedGroup.mk (Braid.braidRelationFin n)) (FreeGroup.mk (to_horizontal_edge_no_epsilon a1)) =
   (PresentedGroup.mk (Braid.braidRelationFin n)) (FreeGroup.mk (to_horizontal_edge_no_epsilon b1)) := by
   apply PresentedMonoid.exact at h
   induction h with
   | of x y h =>
-    unfold braid_monoid_rels_fin' at h
+    unfold braid_monoid_rels_fin at h
     match n with
     | 0 => simp at h
     | n + 1 =>
@@ -475,7 +477,7 @@ theorem bb_to_fin_map_val {n : ℕ} (L : List (ℕ × Bool)) (hL : is_bounded_by
     simp only [List.pmap, List.map_cons, List.cons.injEq]
     exact ⟨trivial, ih _⟩
 
-theorem BraidGroupInf.eq_of_BraidMonoidInf_eq
+theorem BraidGroupInf.eq_of_BraidGroupFin_eq'
     {a b : List (ℕ × Bool)} {n : ℕ} (ha : is_bounded_by n.pred a) (hb : is_bounded_by n.pred b)
     (h1 : (PresentedGroup.mk (braidRelationFin n)) (FreeGroup.mk (bb_to_fin a n.pred ha)) =
       (PresentedGroup.mk (braidRelationFin n)) (FreeGroup.mk (bb_to_fin b n.pred hb))) :
@@ -508,4 +510,35 @@ theorem solver_g_correct_fin {n : ℕ} (ha : is_bounded_by n.pred a) (hb : is_bo
     exact solver_g_correct_one_direction_fin ha hb sgt
   intro h1
   apply solver_g_correct_other_direction
-  apply BraidGroupInf.eq_of_BraidMonoidInf_eq ha hb h1
+  apply BraidGroupInf.eq_of_BraidGroupFin_eq' ha hb h1
+
+def solver_fin {n : ℕ} (a b : List (Fin n.pred × Bool)) : Bool :=
+  group_solver (List.map (fun p => (p.1.val, p.2)) a) (List.map (fun p => (p.1.val, p.2)) b)
+
+
+theorem bb_to_fin_map_val_inv {n : ℕ} (L : List (Fin n × Bool))
+    (hL : is_bounded_by n (List.map (fun p : Fin n × Bool => (p.1.val, p.2)) L)) :
+    bb_to_fin (List.map (fun p : Fin n × Bool => (p.1.val, p.2)) L) n hL = L := by
+  unfold bb_to_fin
+  induction L with
+  | nil => rfl
+  | cons head tail ih =>
+    simp only [List.map_cons, List.pmap, List.cons.injEq]
+    exact ⟨trivial, ih _⟩
+
+theorem solver_fin_correct {a b : List (Fin n.pred × Bool)} : solver_fin a b ↔ BraidGroupFin.mk n (FreeGroup.mk a) =
+    BraidGroupFin.mk n (FreeGroup.mk b) := by
+  unfold solver_fin
+  let a' := (List.map (fun p ↦ (p.1.val, p.2)) a)
+  let b' := (List.map (fun p ↦ (p.1.val, p.2)) b)
+  have ha : is_bounded_by n.pred a' := by
+    intro x hx
+    grind
+  have hb : is_bounded_by n.pred b' := by
+    intro x hx
+    grind
+  rw [solver_g_correct_fin ha hb]
+  have ha' : bb_to_fin a' n.pred ha = a := bb_to_fin_map_val_inv a ha
+  have hb' : bb_to_fin b' n.pred hb = b := bb_to_fin_map_val_inv b hb
+  rw [ha', hb']
+  rfl

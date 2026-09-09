@@ -1,4 +1,4 @@
-import BraidProject.PresentedMonoid_mine
+import BraidProject.Additions.PresentedMonoid
 import Mathlib.Data.Nat.Dist
 import BraidProject.Additions.NatDist
 import BraidProject.Additions.FreeMonoid
@@ -29,7 +29,7 @@ def rel := PresentedMonoid.rel braid_monoid_rels_inf
 instance : Monoid BraidMonoidInf := by unfold BraidMonoidInf; infer_instance
 
 protected def of : ℕ → BraidMonoidInf := PresentedMonoid.of (braid_monoid_rels_inf)
-protected def mk : FreeMonoid ℕ →ₙ* BraidMonoidInf := PresentedMonoid.mk (braid_monoid_rels_inf)
+protected def mk : FreeMonoid ℕ →* BraidMonoidInf := PresentedMonoid.mk (braid_monoid_rels_inf)
 
 theorem mk_mul : BraidMonoidInf.mk (a * b) = BraidMonoidInf.mk a * BraidMonoidInf.mk b := rfl
 
@@ -203,24 +203,24 @@ theorem alternating_length_three_eq {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * 
           simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at h'
           omega
         rw [length_eq_zero.mp cd_length.1, length_eq_zero.mp cd_length.2, one_mul, mul_one] at h'
-        rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq h').2).1, (FreeMonoid.parts_eq h').1]
+        rw [(FreeMonoid.first_generator_eq (FreeMonoid.first_generator_eq h').2).1, (FreeMonoid.first_generator_eq h').1]
         aesop
       rename_i h1
       exfalso
       have : (j = i₁ ∧ k = j₁) ∨ (j = j₁ ∧ k = i₁) := by
         by_cases c_is : c = 1
         · rw [c_is, one_mul] at h'
-          rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq h').2).1, (FreeMonoid.parts_eq h').1]
+          rw [(FreeMonoid.first_generator_eq (FreeMonoid.first_generator_eq h').2).1, (FreeMonoid.first_generator_eq h').1]
           aesop
         rcases FreeMonoid.neq_one c_is with ⟨a, b, rfl⟩
         repeat rw [mul_assoc] at h'
-        have := congr_arg FreeMonoid.length (FreeMonoid.parts_eq h').2
+        have := congr_arg FreeMonoid.length (FreeMonoid.first_generator_eq h').2
         simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at this
         have b_is : b = 1 := length_eq_zero.mp (by linarith [this])
         have d_is : d = 1 := length_eq_zero.mp (by linarith [this])
         rw [b_is, d_is, one_mul, mul_one] at h'
-        rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq h').2).1,
-          FreeMonoid.of_injective (FreeMonoid.parts_eq (FreeMonoid.parts_eq h').2).2]
+        rw [(FreeMonoid.first_generator_eq (FreeMonoid.first_generator_eq h').2).1,
+          FreeMonoid.of_injective (FreeMonoid.first_generator_eq (FreeMonoid.first_generator_eq h').2).2]
         aesop
       grind [Nat.dist]
     · intro a b c d br_ab t_is
@@ -232,24 +232,24 @@ theorem alternating_length_three_eq {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * 
           simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at h'
           omega
         rw [length_eq_zero.mp cd_length.1, length_eq_zero.mp cd_length.2, one_mul, mul_one] at h'
-        rw [(FreeMonoid.parts_eq h').1, (FreeMonoid.parts_eq (FreeMonoid.parts_eq h').2).1]
+        rw [(FreeMonoid.first_generator_eq h').1, (FreeMonoid.first_generator_eq (FreeMonoid.first_generator_eq h').2).1]
         aesop
       rename_i h1
       exfalso
       have : (j = i₁ ∧ k = j₁) ∨ (j = j₁ ∧ k = i₁) := by
         by_cases c_is : c = 1
         · rw [c_is, one_mul] at h'
-          rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq h').2).1, (FreeMonoid.parts_eq h').1]
+          rw [(FreeMonoid.first_generator_eq (FreeMonoid.first_generator_eq h').2).1, (FreeMonoid.first_generator_eq h').1]
           aesop
         rcases FreeMonoid.neq_one c_is with ⟨a, b, rfl⟩
         repeat rw [mul_assoc] at h'
-        have := congr_arg FreeMonoid.length (FreeMonoid.parts_eq h').2
+        have := congr_arg FreeMonoid.length (FreeMonoid.first_generator_eq h').2
         simp only [FreeMonoid.length_mul, FreeMonoid.length_of, Nat.reduceAdd] at this
         have b_is : b = 1 := length_eq_zero.mp (by linarith [this])
         have d_is : d = 1 := length_eq_zero.mp (by linarith [this])
         rw [b_is, d_is, one_mul, mul_one] at h'
-        rw [(FreeMonoid.parts_eq (FreeMonoid.parts_eq h').2).1,
-          FreeMonoid.of_injective (FreeMonoid.parts_eq (FreeMonoid.parts_eq h').2).2]
+        rw [(FreeMonoid.first_generator_eq (FreeMonoid.first_generator_eq h').2).1,
+          FreeMonoid.of_injective (FreeMonoid.first_generator_eq (FreeMonoid.first_generator_eq h').2).2]
         aesop
       grind [Nat.dist]
     exact fun _ _ _ n d_is => n.2 (n.1 d_is)
@@ -349,7 +349,7 @@ theorem toBraidGroup_helper (a b : FreeMonoid ℕ) (h : braid_monoid_rels_inf a 
   omega
 
 def toBraidGroup : BraidMonoidInf →* BraidGroupInf :=
-  PresentedMonoid.toMonoid (fun a => σ a) toBraidGroup_helper
+  PresentedMonoid.lift (fun a => σ a) toBraidGroup_helper
 
 end BraidMonoidInf
 

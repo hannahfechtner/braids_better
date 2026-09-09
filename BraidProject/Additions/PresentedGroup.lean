@@ -2,7 +2,7 @@ import Mathlib.GroupTheory.FreeGroup.Basic
 import Mathlib.Algebra.FreeMonoid.Basic
 import Mathlib.GroupTheory.PresentedGroup
 import BraidProject.Additions.FreeMonoid
-import BraidProject.PresentedMonoid_mine
+import BraidProject.Additions.PresentedMonoid
 
 namespace PresentedGroup
 

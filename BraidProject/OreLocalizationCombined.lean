@@ -82,8 +82,9 @@ open PresentedMonoid in
 def universalMonoidHom {G₁ : Type} [Group G₁] (f : α → G₁)
     (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂)) :
     PresentedMonoidFullLocalization rels →* G₁ := by
-  apply Self.universalMonoidHom
-  apply PresentedMonoid.lift f (PresentedMonoid.freeMonoid_lift_eq_of_rel f universal_h)
+  apply Self.universalMonoidHom <| PresentedMonoid.lift f (fun _ _ rab =>
+    PresentedMonoid.freeMonoid_lift_eq_of_rel f universal_h  _ _ (rels_alone rab))
+
 
 open PresentedMonoid in
 theorem universalMonoidHom_unique {G₁ : Type} [Group G₁] (f : α → G₁)
@@ -99,12 +100,11 @@ theorem universalMonoidHom_unique {G₁ : Type} [Group G₁] (f : α → G₁)
   | one => grind [PresentedMonoid.one_def]
   | mul_of head tail ih =>
     simp only [PresentedMonoid.mk_mul]
-    erw [(PresentedMonoid.lift f (freeMonoid_lift_eq_of_rel f universal_h)).map_mul, ← ih]
-    rw [Function.comp_apply, ← OreLocalization.mul_div_one, φ.map_mul, Function.comp_apply,
+    rw [(PresentedMonoid.lift f (fun _ _ rab =>
+      PresentedMonoid.freeMonoid_lift_eq_of_rel f universal_h  _ _ (rels_alone rab))).map_mul, ← ih,
+      Function.comp_apply, ← OreLocalization.mul_div_one, φ.map_mul, Function.comp_apply,
       mul_left_inj]
-    conv => rhs; erw [PresentedMonoid.lift_mk]
-    rw [← hr head]
-    rfl
+    exact ((fun a ↦ hr head) ∘ rels tail) tail
 
 open PresentedGroup
 

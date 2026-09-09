@@ -55,8 +55,4 @@ theorem lift_group_alternate [Group H] {f : G â†’ H} {x y : FreeGroup G} {n : â„
   | succ n ih =>
       grind [Monoid.alternate_succ]
 
-
 end Monoid
-
-#min_imports
-

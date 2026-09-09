@@ -8,7 +8,7 @@ def FreeMonoid.prod_eq_of_sum {α} (a b : FreeMonoid α) {i : α} (h : a * b = .
   | ih x rest =>
     rw [mul_assoc] at h
     have h' : .of x * (rest * b) = .of i * 1 := by rw [mul_one]; exact h
-    have hp := FreeMonoid.parts_eq h'
+    have hp := FreeMonoid.first_generator_eq h'
     have hrb := FreeMonoid.prod_eq_one hp.2
     exact .inr ⟨by rw [hp.1, hrb.1, mul_one], hrb.2⟩
 

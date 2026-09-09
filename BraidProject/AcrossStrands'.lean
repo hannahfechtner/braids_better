@@ -47,7 +47,7 @@ theorem count_up_empty_iff : count_up i j = 1 ↔ j ≤ i := by
 
 theorem count_down_empty_iff : count_down i j = 1 ↔ i ≤ j := by
   unfold count_down
-  have := @reverse_eq_one _ (count_up j i)
+  have := @reverse_eq_one_iff _ (count_up j i)
   have := @count_up_empty_iff j i
   aesop
 

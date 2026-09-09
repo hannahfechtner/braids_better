@@ -123,21 +123,25 @@ theorem one_symm_is_really_the_same : mk braid_monoid_rels_inf a = mk braid_mono
   | trans _ _ ih1 ih2 => exact PresentedMonoid.trans ih1 ih2
   | mul _ _ ih1 ih2 => exact mul ih1 ih2
 
+/-- If equality in `PresentedMonoid rels₁` implies equality in `PresentedMonoid rels₂`, the
+identity on generators descends to a monoid homomorphism between the two presentations. -/
+noncomputable def PresentedMonoid.homOfMkImp {α : Type*}
+    {rels₁ rels₂ : FreeMonoid α → FreeMonoid α → Prop}
+    (h : ∀ a b, PresentedMonoid.mk rels₁ a = PresentedMonoid.mk rels₁ b →
+                PresentedMonoid.mk rels₂ a = PresentedMonoid.mk rels₂ b) :
+    PresentedMonoid rels₁ →* PresentedMonoid rels₂ :=
+  PresentedMonoid.lift (PresentedMonoid.of rels₂) fun a b hab => by
+    rw [PresentedMonoid.mkfreeMonoid_lift_presentedMonoid_of,
+        PresentedMonoid.mkfreeMonoid_lift_presentedMonoid_of]
+    exact h a b (PresentedMonoid.sound (PresentedMonoid.rels_alone hab))
+
 noncomputable def map_to_one_symm : (PresentedMonoid braid_monoid_rels_inf) →*
-    PresentedMonoid braid_rels_m_inf_one_symm := by
-  apply PresentedMonoid.lift (PresentedMonoid.of braid_rels_m_inf_one_symm)
-  intro a b cg
-  rw [PresentedMonoid.freeMonoid_lift_presentedMonoid_of,
-    PresentedMonoid.freeMonoid_lift_presentedMonoid_of]
-  exact one_symm_is_really_the_same.mp (PresentedMonoid.sound cg)
+    PresentedMonoid braid_rels_m_inf_one_symm :=
+  PresentedMonoid.homOfMkImp fun _ _ => one_symm_is_really_the_same.mp
 
 noncomputable def map_from_one_symm : (PresentedMonoid braid_rels_m_inf_one_symm) →*
-  PresentedMonoid braid_monoid_rels_inf := by
-  apply PresentedMonoid.lift (PresentedMonoid.of braid_monoid_rels_inf)
-  intro a b cg
-  rw [PresentedMonoid.freeMonoid_lift_presentedMonoid_of,
-    PresentedMonoid.freeMonoid_lift_presentedMonoid_of]
-  apply one_symm_is_really_the_same.mpr (PresentedMonoid.sound cg)
+    PresentedMonoid braid_monoid_rels_inf :=
+  PresentedMonoid.homOfMkImp fun _ _ => one_symm_is_really_the_same.mpr
 
 noncomputable def one_symm_type_iso_me : (PresentedMonoid braid_rels_m_inf_one_symm) ≃*
     PresentedMonoid braid_monoid_rels_inf :=

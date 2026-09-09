@@ -3,7 +3,7 @@ import Mathlib.Data.Nat.Dist
 import Mathlib.GroupTheory.PresentedGroup
 import Mathlib.LinearAlgebra.Matrix.Symmetric
 import BraidProject.Additions.Monoid
-import BraidProject.PresentedMonoid_mine
+import BraidProject.Additions.PresentedMonoid
 
 namespace ArtinTits
 
@@ -95,10 +95,10 @@ private theorem Monoid.relations_liftable {G : Type*} [Monoid G] {f : α → G} 
 /-- The extension of a map `f : α → G` that satisfies the given relations to a group homomorphism
 from `ArtinTitsGroup rels → G`. -/
 def toMonoid  {G : Type*} [Monoid G] {f : α → G} (M : ArtinTitsMatrix α) (hf : Monoid.IsLiftable M f) :
-  ArtinTitsMonoid M →* G := (PresentedMonoid.toMonoid _ (Monoid.relations_liftable M hf))
+  ArtinTitsMonoid M →* G := (PresentedMonoid.lift _ (Monoid.relations_liftable M hf))
 
 theorem toMonoid_of {G : Type*} [Monoid G] {f : α → G} (M : ArtinTitsMatrix α)
-    (hf : Monoid.IsLiftable M f)  : toMonoid M hf (PresentedMonoid.of _ i) = f i := PresentedMonoid.toMonoid.of _ _
+    (hf : Monoid.IsLiftable M f)  : toMonoid M hf (PresentedMonoid.of _ i) = f i := PresentedMonoid.lift_of _ _
 
 theorem toMonoid_unique {G : Type*} [Monoid G] {f : α → G} (M : ArtinTitsMatrix α)
     (g : ArtinTitsMonoid M →* G) (hg : ∀ (x : α), g (PresentedMonoid.of _ x) = f x)

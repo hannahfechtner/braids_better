@@ -1,5 +1,6 @@
 digraph "import_graph" {
   "NewListFacts" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "Additions.Nat" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidGroup" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "ArtinTits" -> "BraidGroup";
   "Additions.List" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
@@ -55,6 +56,8 @@ digraph "import_graph" {
   "GridsTwo_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Grids_C" -> "GridsTwo_C";
   "GridsTwo'" -> "GridsTwo_C";
+  "BraidMonoidFin" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidMonoidInf" -> "BraidMonoidFin";
   "PartialGrid.NestedFrame" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "NewListFacts" -> "PartialGrid.NestedFrame";
   "PartialGrid.FrontierPossibilities" -> "PartialGrid.NestedFrame";
@@ -83,7 +86,7 @@ digraph "import_graph" {
   "Solver.Monoid" -> "Solver.MonoidCorrectness";
   "Solver.Reversing" -> "Solver.MonoidCorrectness";
   "BraidLocalization" -> "Solver.MonoidCorrectness";
-  "Basic" [shape=house];
+  "Basic" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Solver.Examples" -> "Basic";
   "PartialGrid.ToGrid" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "GridData_length" -> "PartialGrid.ToGrid";
@@ -95,6 +98,8 @@ digraph "import_graph" {
   "Irreducibility" -> "MoveOnes";
   "Additions.NatDist" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Additions.Classical" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject" [shape=house];
+  "Basic" -> "BraidProject";
   "SemiThue_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Additions.FreeMonoid" -> "SemiThue_C";
   "PresentedMonoid_mine" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
@@ -140,7 +145,7 @@ digraph "import_graph" {
   "Additions.Monoid" -> "ArtinTits";
   "PresentedMonoid_mine" -> "ArtinTits";
   "Solver.Examples" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "Solver.GroupCorrectnessHardDirection" -> "Solver.Examples";
+  "Solver.Solver_Fin" -> "Solver.Examples";
   "PartialGrid.FrontierToSink" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "PartialGrid.NestedFrame" -> "PartialGrid.FrontierToSink";
   "Solver.Reversing" -> "PartialGrid.FrontierToSink";
@@ -150,6 +155,9 @@ digraph "import_graph" {
   "SignedList" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "PartialGrid.FrontierPossibilities" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "PartialGrid.Splittability" -> "PartialGrid.FrontierPossibilities";
+  "Solver.Solver_Fin" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "Solver.GroupCorrectnessHardDirection" -> "Solver.Solver_Fin";
+  "ConvertToFin" -> "Solver.Solver_Fin";
   "Solver.GroupCorrectness" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Solver.Group" -> "Solver.GroupCorrectness";
   "Solver.MonoidCorrectness" -> "Solver.GroupCorrectness";
@@ -159,6 +167,9 @@ digraph "import_graph" {
   "Grids_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Grids'" -> "Grids_C";
   "Additions.Classical" -> "Grids_C";
+  "ConvertToFin" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidMonoidFin" -> "ConvertToFin";
+  "Additions.Nat" -> "ConvertToFin";
   "Additions.OreLocalization" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "ConstructiveBasics.FreeMonoid" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "Additions.FreeMonoid" -> "ConstructiveBasics.FreeMonoid";

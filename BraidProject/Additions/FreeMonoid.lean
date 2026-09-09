@@ -4,7 +4,11 @@ import Mathlib.GroupTheory.FreeGroup.Basic
 
 namespace FreeMonoid
 
-def pmap {p : α → Prop} (f : (a : α) → p a → β ) (l : FreeMonoid (α)):= List.pmap f (toList l)
+/--
+Maps a partially defined function (defined on those terms of `α` that satisfy a predicate `P`) over
+a free monoid element `l : FreeMonoid α`, given a proof that every element of `l` in fact satisfies `P`.
+-/
+def pmap {p : α → Prop} (f : (a : α) → p a → β ) (l : FreeMonoid (α)) := List.pmap f (toList l)
 
 theorem prod_eq_one {a b : FreeMonoid α} (h : a * b = 1) : a = 1 ∧ b = 1 := by
   have H : length (a * b) = 0 := by
@@ -49,7 +53,7 @@ theorem prod_eq_prod {a b c d : FreeMonoid α} (h : a * b = c * d) :
 theorem reverse_one : reverse (1 : FreeMonoid α) = 1 := by
   apply List.reverse_nil
 
-theorem reverse_eq_one : reverse a = 1 ↔ a = 1 := by
+theorem reverse_eq_one_iff : reverse a = 1 ↔ a = 1 := by
   constructor
   · intro h
     rw [← reverse_one, ← h]
@@ -61,7 +65,6 @@ theorem mem_one_iff : a ∈ (1 : FreeMonoid α) ↔ False := List.mem_nil_iff _
 
 theorem mem_reverse : a ∈ reverse b ↔ a ∈ b := List.mem_reverse
 
--- though this one is quickly done!
 theorem bounded (u : FreeMonoid ℕ) : ∃ k, ∀ x ∈ u, x < k := by
   induction u using FreeMonoid.inductionOn'
   · use 1
@@ -90,7 +93,6 @@ theorem reconstruct_from_projection {L : FreeMonoid (α × β)} {b : β} (h : �
   | of x => aesop
   | mul x y _ _ => aesop
 
--- and where do these go
 theorem lift_eq_FreeGroup_lift_comp_of {G₁ : Type} [Group G₁] (f : α → G₁) :
     lift f = (FreeGroup.lift f).comp (lift FreeGroup.of) := by
   rw [← (lift_comp FreeGroup.of (FreeGroup.lift f))]
@@ -148,7 +150,7 @@ theorem exists_last_elem_of_length_eq_succ (length : length b = Nat.succ n) :
     exact (Nat.succ_ne_zero n length.symm).elim
   assumption
 
-theorem parts_eq (h : of a * b = of c * d) : a = c ∧ b = d := by
+theorem first_generator_eq (h : of a * b = of c * d) : a = c ∧ b = d := by
   apply List.append_inj at h
   simp only [toList_of, List.length_singleton, List.cons.injEq, and_true,
     EmbeddingLike.apply_eq_iff_eq, true_implies] at h
