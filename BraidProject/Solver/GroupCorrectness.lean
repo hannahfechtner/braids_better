@@ -4,6 +4,8 @@ import BraidProject.Solver.Reversing
 
 namespace Braid
 
+open Nat
+
 -- this is more basic, move me!
 theorem bm_to_bg (h : BraidMonoidInf.mk a =
   BraidMonoidInf.mk b) :
@@ -13,10 +15,10 @@ theorem bm_to_bg (h : BraidMonoidInf.mk a =
   induction h with
   | of x y h =>
     cases h with
-    | adjacent i => exact Braid.BraidGroupInf.braid dist_succ
+    | adjacent i => exact Braid.BraidGroupInf.braid dist_self_add_one
     | separated i j h =>
       apply Braid.BraidGroupInf.comm
-      apply or_dist_iff.mpr
+      apply le_dist_iff.mpr
       left; exact h
   | refl x => rfl
   | symm _ ih => exact ih.symm

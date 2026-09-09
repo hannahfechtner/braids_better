@@ -12,7 +12,7 @@ open PartialGrid
 theorem correct_other_dir (h : BraidMonoidInf.mk a =
     BraidMonoidInf.mk b) : monoid_solver a b := by
   have H : grid (a*1) (b*1) 1 1 := by
-    apply Grid.of_mk_eq_mk
+    apply Grid.of_BraidMonoidInf_eq
     rw [mul_one, mul_one]
     exact h
   rw [mul_one, mul_one] at H
@@ -61,7 +61,7 @@ theorem SignedOptionList.to_List_eq_nil_toSignedList_eq_nil (h : SignedOptionLis
 theorem correct_other_dir' (h : BraidMonoidInf.mk a =
     BraidMonoidInf.mk b) : monoid_solver a b := by
   have H : grid (a*1) (b*1) 1 1 := by
-    apply Grid.of_mk_eq_mk
+    apply Grid.of_BraidMonoidInf_eq
     rw [mul_one, mul_one]
     exact h
   rw [mul_one, mul_one] at H

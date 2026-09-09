@@ -81,7 +81,7 @@ theorem to_over_len : (to_over b).length > 0 := by
 theorem to_up_plain_append : to_up_plain (a ++ b) = to_up_plain b ++ to_up_plain a := by simp [to_up_plain]
 theorem to_over_plain_append : to_over_plain (a ++ b) = to_over_plain a ++ to_over_plain b := by simp [to_over_plain]
 
-theorem List.suffix_of_append {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨ ∃ a1, a1.length > 0 ∧
+theorem List.suffix_append_of_suffix {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨ ∃ a1, a1.length > 0 ∧
      a = a1 ++ c ∧ a1 <:+ b := by
   rcases h with ⟨r, hr⟩
   rcases List.append_eq_append_iff.mp hr with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
@@ -102,7 +102,7 @@ theorem List.suffix_of_append {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨
     rw [s2]
     exact suffix_append ([f1] ++ f2) a
 
-theorem List.prefix_of_append_mine {a b c : List α} (h : a <+: b ++ c) : a <+: b ∨ ∃ a2, a2.length > 0 ∧
+theorem List.prefix_append_of_prefix_mine {a b c : List α} (h : a <+: b ++ c) : a <+: b ∨ ∃ a2, a2.length > 0 ∧
   a = b ++ a2 ∧ a2 <+: c := by
   rcases h with ⟨r, hr⟩
   rcases List.append_eq_append_iff.mp hr with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
@@ -128,7 +128,7 @@ theorem helper_bajillion {q m2 : List α}
      a <:+ to_up_plain (m1 :: m2) ∨
     ∃ (a1 a2 : List (α × Bool)), a1.length > 0 ∧ a = a1 ++ a2 ∧
     a2 = to_up_plain (m1 :: m2) ∧  a1 <:+ to_up_plain q := by
-  rcases List.suffix_of_append ha with one | two
+  rcases List.suffix_append_of_suffix ha with one | two
   · left
     exact one
   rcases two with ⟨a1, a1_len, a_is, a1_suff⟩
@@ -141,7 +141,7 @@ theorem helper_bajillion {q m2 : List α}
 theorem helper_kajillion {α : Type} {n q : List α} {b : List (α × Bool)} (h :  b <+: to_over_plain n ++ to_over_plain q) (hn : n.length > 0):
   b <+: to_over_plain n ∨ ∃ (b₁ b₂ : List (α × Bool)), b₁.length > 0 ∧ b₂.length > 0 ∧ b = b₁ ++ b₂ ∧
     b₁ = to_over_plain n ∧  b₂ <+: to_over_plain q := by
-  rcases List.prefix_of_append_mine h with one | two
+  rcases List.prefix_append_of_prefix_mine h with one | two
   · left
     exact one
   rcases two with ⟨b1, b1_len, b_is, b1_pref⟩
@@ -502,7 +502,7 @@ theorem partial_grid_rm_side_helper_w (h : PartialGrid a b c d e)
       match he : e with
       | [] => aesop
       | e1 :: e2 =>
-        rcases List.append_eq_len_two (by simp [hd]) (by simp [he]) H.symm
+        rcases List.append_non_nil_eq_len_two (by simp [hd]) (by simp [he]) H.symm
         · rename_i d_is e_is
           rw [d_is, e_is]
           simp
@@ -581,7 +581,7 @@ theorem partial_grid_rm_adjacent_helper (h : PartialGrid a b c d e) (h1 : a = [(
     cases h
     all_goals simp_all [to_up_plain, to_over_plain]
     rename_i h
-    apply or_dist_iff.mpr at h
+    apply le_dist_iff.mpr at h
     aesop
   | empty a b ha ha1 hb hb => simp_all
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
@@ -960,7 +960,7 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
         · specialize h1_ih h1
           have new_ih := h1_ih.1 a_is one
           rw [to_over_plain_prod]
-          exact List.prefix_of_append new_ih
+          exact List.prefix_append_of_prefix new_ih
         rcases two with ⟨b1, b2, b1_len, b2_len, b_is, b1_n, b2_q⟩
         rcases splittable_vertically_of_pg' h1 _ _ b_is b1_len b2_len
           with ⟨mid1, d3, e3, d4, e4, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
@@ -976,12 +976,12 @@ theorem same_time (h : gridt i j k l) (h1 : PartialGrid a b mid d2 e2)
             exact (List.prefix_append_right_inj d3).mpr ((h2_ih).1 H.1.symm)
           have helper := h1_ih.1
           rw [h_two.1, to_over_plain_prod]
-          exact List.prefix_of_append helper
+          exact List.prefix_append_of_prefix helper
         rcases baaad with ⟨db, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
         specialize h1_ih h3
         have H2 := h1_ih.1 a_is (by rw [b1_n])
         rw [to_over_plain_prod]
-        exact List.prefix_of_append H2
+        exact List.prefix_append_of_prefix H2
     intro b_is a_is
     rw [to_over_plain_prod] at b_is
     match n with

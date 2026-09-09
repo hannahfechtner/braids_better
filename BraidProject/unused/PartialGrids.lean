@@ -17,7 +17,7 @@ theorem grid_from_cell (h : cell a b c d) : grid a b c d := by
   | sides i => exact grid.sides _
   | top_left i => exact grid.top_left _
   | adjacent i k h => exact grid.adjacent _ _ h
-  | separated i j h => exact grid.separated _ _ (or_dist_iff.mpr h)
+  | separated i j h => exact grid.separated _ _ (le_dist_iff.mpr h)
 
 @[simp]
 theorem List.map_rev_rev : (List.map f (L.reverse)).reverse = List.map f L := by

@@ -33,7 +33,7 @@ theorem i_top_bottom {i : ℕ} (h : grid 1 (of i) c d) : c = 1 ∧ d = of i := b
     rw [h4.2, h1_ih.1.trans ha.symm] at h2
     have H := all_ones_better h2
     grind
-    
+
 theorem i_side_side (h : grid (of i) 1 c d) : c = of i ∧ d = 1 := by
   generalize one : of i = a at h
   generalize two : (1 : FreeMonoid ℕ) = b at h
@@ -375,7 +375,7 @@ theorem helpier_ij {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_st a b c d
     · rename_i ih
       rw [← of_injective one] at ih
       rw [← of_injective two] at ih
-      rcases or_dist_iff_eq.mp i
+      rcases eq_dist_iff.mp i
       · rename_i k_is
         rw [← k_is] at ih
         linarith [ih]
@@ -385,7 +385,7 @@ theorem helpier_ij {a b c d : FreeMonoid ℕ} (h : grid a b c d) : ij_st a b c d
     rename_i ih
     rw [← of_injective one] at ih
     rw [← of_injective two] at ih
-    rcases or_dist_iff_eq.mp i
+    rcases eq_dist_iff.mp i
     · rename_i k_is
       rw [← k_is] at ih
       linarith [ih]
@@ -443,4 +443,4 @@ theorem i_both_one : grid a b 1 1 → PresentedMonoid.rel braid_rels_m_inf a b :
   intro h
   apply PresentedMonoid.exact
   rw [← mul_one a, ← mul_one b]
-  exact braid_eq_of_grid h
+  exact braid_monoid_eq_of_grid h

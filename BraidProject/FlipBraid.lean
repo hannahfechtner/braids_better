@@ -1,12 +1,12 @@
 import BraidProject.BraidMonoidInf
-import BraidProject.AcrossStrands'
+import BraidProject.AcrossStrands
 import BraidProject.Additions.Induction
 import BraidProject.Additions.NatDist
 import BraidProject.Additions.FreeMonoid
 
-open FreeMonoid Braid
+open FreeMonoid Braid Nat
 
---lemma 3.9 property
+--lemma 3.9 property from Dehornoy
 theorem generator_sigma_braid_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < k ∧ k < j) :
     BraidMonoidInf.mk (of k * sigma_braid i j) = BraidMonoidInf.mk (sigma_braid i j * of (k-1)) := by
   induction dist : j - i - 2 generalizing i j k
@@ -14,7 +14,7 @@ theorem generator_sigma_braid_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < 
     have hj : j = i + 2 := by omega
     rw [hj, hk]
     simp only [sigma_braid_succ_succ_ascending, add_tsub_cancel_right]
-    exact (BraidMonoidInf.braid_mk dist_succ).symm
+    exact (BraidMonoidInf.braid_mk dist_self_add_one).symm
   rename_i n ih
   have hk : k ≥ i+1 := by omega
   apply induction_bounded k hk h2.2
@@ -28,12 +28,12 @@ theorem generator_sigma_braid_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i < 
   rw [sigma_braid_ascending_first, ← mul_assoc, map_mul, BraidMonoidInf.comm_mk,
     ← map_mul, mul_assoc, map_mul, ih]; rfl
   any_goals omega
-  unfold Nat.dist ; omega
+  unfold Nat.dist; omega
 
---lemma 3.10 property
+--lemma 3.10 property from Dehornoy
 theorem sigma_braid_generator_through (i j k : ℕ) (h1: i + 2 ≤ j) (h2 : i<k∧k<j) :
-      BraidMonoidInf.mk (of (k-1) * (sigma_braid j i)) =
-      BraidMonoidInf.mk ((sigma_braid j i) * of k) := by
+    BraidMonoidInf.mk (of (k-1) * (sigma_braid j i)) =
+    BraidMonoidInf.mk ((sigma_braid j i) * of k) := by
   unfold sigma_braid count_down
   have : ¬ j ≤ i := by omega
   simp only [this, ↓reduceIte]
@@ -54,18 +54,14 @@ theorem word_sigma_braid_through (L) (hb : ∀ x, x ∈ L → x ≥ j ∧ x < n)
   | one =>
     simp only [one_mul, map_one, mul_one]
   | of y =>
-    simp only [map_of]
-    have : y ∈ of y := by simp
-    specialize hb y this
-    apply sigma_braid_generator_through _ _ (y + 1)
-    · linarith
-    omega
+    specialize hb y (by simp)
+    exact sigma_braid_generator_through _ _ (y + 1) (by linarith) (by omega)
   | mul x y hx hy =>
     rw [mul_assoc, BraidMonoidInf.append_left_mk
         (hy fun x1 in_y ↦ hb x1 (mem_mul.mpr (Or.inr in_y))), ← mul_assoc]
     nth_rewrite 3 [map_mul]
     rw [← mul_assoc]
-    apply BraidMonoidInf.append_right_mk (hx fun x nx ↦ hb x (mem_mul.mpr (Or.inl nx)))
+    exact BraidMonoidInf.append_right_mk (hx fun x nx ↦ hb x (mem_mul.mpr (Or.inl nx)))
 
 def delta_braid : ℕ → FreeMonoid ℕ
   | 0 => 1
@@ -111,7 +107,6 @@ theorem generator_sigma_braid_past (m : ℕ) (w : FreeMonoid ℕ) : (∀ k ∈ w
     rw [mul_assoc, mul_assoc]
     exact BraidMonoidInf.append_left_mk <| hy <| fun k k_in => h_in k (mem_mul.mpr (Or.inr k_in))
 
--- m is the moved, n is what delta_braid is
 theorem generator_delta_braid_past (n m : ℕ) {h : n < m}: BraidMonoidInf.mk (of m * delta_braid n) =
     BraidMonoidInf.mk (delta_braid n * of m) := by
   induction n
@@ -120,13 +115,12 @@ theorem generator_delta_braid_past (n m : ℕ) {h : n < m}: BraidMonoidInf.mk (o
     Nat.lt_of_le_of_lt (delta_braid_bounded _ k h1) h
 
 theorem factor_delta_braid (n : ℕ) : 1 ≤ n → BraidMonoidInf.mk (delta_braid n) =
-    BraidMonoidInf.mk (delta_braid (n-1) * sigma_braid n 0 ) := by
+    BraidMonoidInf.mk (delta_braid (n-1) * sigma_braid n 0) := by
   cases n with
   | zero => aesop
   | succ n =>
     induction n with
     | zero =>
-      intro _
       simp [sigma_braid]
     | succ n ih =>
       intro hn
@@ -218,13 +212,13 @@ theorem additional_braid_spec (i n : ℕ) (h_n : n > 0) (h : i < n) : BraidMonoi
         rw [this]
         simp only [Nat.succ_sub_succ_eq_sub, tsub_zero]
         rw [eq]
-        have step_two : ∀ L, (∀ x, x ∈ L → x < n+1) → BraidMonoidInf.mk (L * sigma_braid (n+2) 0) =
+        apply (factor_delta_braid _ (by linarith)).trans
+        have : ∀ L, (∀ x, x ∈ L → x < n+1) → BraidMonoidInf.mk (L * sigma_braid (n+2) 0) =
             BraidMonoidInf.mk ((sigma_braid (n+2) 0) * (FreeMonoid.map (λ i => i+1) (L))) := by
           intro L hb
           apply word_sigma_braid_through
           aesop
-        apply (factor_delta_braid _ (by linarith)).trans
-        apply (step_two _ (delta_braid_bounded n.succ)).trans
+        apply (this _ (delta_braid_bounded n.succ)).trans
         conv => rhs; rw [← mul_assoc]
         apply BraidMonoidInf.append_right_mk
         have helper : 0 <= n+1 := by linarith
@@ -305,12 +299,3 @@ theorem equiv_multiple_delta_braid (u : FreeMonoid ℕ) (l n : ℕ) (h : FreeMon
     · exact additional_braid_bounded caboose n (by omega) _ in_additional_braid
     rcases FreeMonoid.mem_map.mp in_phi with ⟨w, hw⟩
     omega
-
-def left_divides (a b : BraidMonoidInf) : Prop := ∃ (x : BraidMonoidInf), a * x = b
-
-example : left_divides (BraidMonoidInf.of (0))
-  (BraidMonoidInf.mk (delta_braid 2)) := by
-  unfold left_divides
-  use BraidMonoidInf.mk (of 1 * of 0)
-  simp only [map_mul, delta_braid_two]
-  rfl

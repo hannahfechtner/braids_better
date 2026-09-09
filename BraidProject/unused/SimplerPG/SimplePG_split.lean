@@ -1245,7 +1245,7 @@ theorem pg_adjacent {a b c d e} (h : PartialGrid a b c d e)
     | separated i j h =>
       simp [to_up_plain] at ha
       simp [to_over_plain] at hb
-      apply or_dist_iff.mpr at h
+      apply le_dist_iff.mpr at h
       aesop
   | empty a b ha ha1 hb hb =>
     rw [ha] at hd

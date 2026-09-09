@@ -12,12 +12,10 @@ def left_multiple_iso [Mul A] [Mul B] [h2 : IsCommonLeftMultipleMul A] (e : A �
   IsCommonLeftMultipleMul B where
   common_left_multiple := by
     intro a b
-    have := (h2.common_left_multiple (e.symm a) (e.symm b))
-    rcases this with ⟨c, d, hcd⟩
+    rcases (h2.common_left_multiple (e.symm a) (e.symm b)) with ⟨c, d, hcd⟩
     apply congr_arg e at hcd
-    simp at hcd
+    simp only [map_mul, MulEquiv.apply_symm_apply] at hcd
     use e c, e d
-
 
 def cancel_mul_iso [Mul A] [Mul B] [h2 : IsCancelMul A] (e : A ≃* B) :
   IsCancelMul B where

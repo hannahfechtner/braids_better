@@ -215,7 +215,7 @@ theorem SignedOptionList.toSignedList_eq_to_horizontal_edge_plain_prod {n : List
 
 
 
-theorem List.suffix_of_append {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨ ∃ a1, a1.length > 0 ∧
+theorem List.suffix_append_of_suffix {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨ ∃ a1, a1.length > 0 ∧
      a = a1 ++ c ∧ a1 <:+ b := by
   rcases h with ⟨r, hr⟩
   rcases List.append_eq_append_iff.mp hr with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
@@ -236,7 +236,7 @@ theorem List.suffix_of_append {a b c : List α} (h : a <:+ b ++ c) : a <:+ c ∨
     rw [s2]
     exact List.suffix_append ([f1] ++ f2) a
 
-theorem List.prefix_of_append_mine {a b c : List α} (h : a <+: b ++ c) : a <+: b ∨ ∃ a2, a2.length > 0 ∧
+theorem List.prefix_append_of_prefix_mine {a b c : List α} (h : a <+: b ++ c) : a <+: b ∨ ∃ a2, a2.length > 0 ∧
   a = b ++ a2 ∧ a2 <+: c := by
   rcases h with ⟨r, hr⟩
   rcases List.append_eq_append_iff.mp hr with ⟨tm, s1, s2⟩ | ⟨fm, s1, s2⟩
@@ -264,7 +264,7 @@ theorem helper_bajillion {q m2 : List α}
     SignedOptionList.toSignedList a <:+ to_vertical_edge_plain (m1 :: m2) ∨
     ∃ (a1 a2 : List (Option α × Bool)), a1.length > 0 ∧ a = a1 ++ a2 ∧
     SignedOptionList.toSignedList a2 = to_vertical_edge_plain (m1 :: m2) ∧ SignedOptionList.toSignedList a1 <:+ to_vertical_edge_plain q := by
-  rcases List.suffix_of_append ha with one | two
+  rcases List.suffix_append_of_suffix ha with one | two
   · left
     exact one
   rcases two with ⟨a1, a1_len, a_is, a1_suff⟩
@@ -285,7 +285,7 @@ theorem helper_bajillion {q m2 : List α}
 theorem helper_kajillion {α : Type} {n q : List α} {b : List (Option α × Bool)} (h : SignedOptionList.toSignedList b <+: to_horizontal_edge_plain n ++ to_horizontal_edge_plain q) (hn : n.length > 0):
   SignedOptionList.toSignedList b <+: to_horizontal_edge_plain n ∨ ∃ (b₁ b₂ : List (Option α × Bool)), b₁.length > 0 ∧ b₂.length > 0 ∧ b = b₁ ++ b₂ ∧
     SignedOptionList.toSignedList b₁ = to_horizontal_edge_plain n ∧ SignedOptionList.toSignedList b₂ <+: to_horizontal_edge_plain q := by
-  rcases List.prefix_of_append_mine h with one | two
+  rcases List.prefix_append_of_prefix_mine h with one | two
   · left
     exact one
   rcases two with ⟨b1, b1_len, b_is, b1_pref⟩
@@ -683,7 +683,7 @@ theorem same_time (h : GridData i j l k) (h1 : PartialGrid a b mid d2 e2)
         · specialize h1_ih h1
           have new_ih := h1_ih.1 a_is one
           rw [to_horizontal_edge_plain_prod]
-          exact List.prefix_of_append new_ih
+          exact List.prefix_append_of_prefix new_ih
         rcases two with ⟨b1, b2, b1_len, b2_len, b_is, b1_n, b2_q⟩
         rcases PartialGrid.splittable_vertically h1 _ _ b_is b1_len b2_len
           with ⟨mid1, d3, e3, d4, e4, i1, i2, ⟨hf⟩, ⟨hl⟩⟩ | baaad
@@ -699,12 +699,12 @@ theorem same_time (h : GridData i j l k) (h1 : PartialGrid a b mid d2 e2)
             exact (List.prefix_append_right_inj (SignedOptionList.toSignedList d3)).mpr ((h2_ih).1 H.1.symm)
           have helper := h1_ih.1
           rw [h_two.1, to_horizontal_edge_plain_prod]
-          exact List.prefix_of_append helper
+          exact List.prefix_append_of_prefix helper
         rcases baaad with ⟨db, drest, h3, ⟨d2_is⟩, ⟨a1_is⟩, ⟨mid_nil⟩, len3⟩
         specialize h1_ih h3
         have H2 := h1_ih.1 a_is (by rw [b1_n])
         rw [to_horizontal_edge_plain_prod]
-        exact List.prefix_of_append H2
+        exact List.prefix_append_of_prefix H2
     intro b_is a_is
     have hb1 : n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
         b = b1 ++ b2 ∧ SignedOptionList.toSignedList b1 = to_horizontal_edge_plain n ∧ SignedOptionList.toSignedList b2 = to_horizontal_edge_plain q :=

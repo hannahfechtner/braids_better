@@ -146,7 +146,7 @@ theorem List.prefix_of_singleton (h : L <:+ [a]) : L = [] ∨ L = [a] := by
   exact
   suffix_of_singleton h
 
-theorem List.prefix_of_append' (h : L <+: a) : L <+: a ++ b := by
+theorem List.prefix_append_of_prefix' (h : L <+: a) : L <+: a ++ b := by
   refine (List.isPrefix_append_of_length ?_).mpr h
   refine List.IsPrefix.length_le h
 
@@ -174,7 +174,7 @@ theorem partial_grid_rm_top_bottom_length_w (h : PartialGrid a b c d e)
         have H := helper_pg_empty g2 g1_ih.2.1
         simp_all [PartialGrid.length]
       | i3 :: i4 =>
-        have H' := List.append_eq_len_two (by simp) (by simp) hb
+        have H' := List.append_non_nil_eq_len_two (by simp) (by simp) hb
         simp at H'
         --simp [H] at hb
         simp_all
@@ -204,7 +204,7 @@ theorem partial_grid_rm_top_bottom_length_w (h : PartialGrid a b c d e)
         have H := helper_pg_empty g2 g1_ih.2.1
         simp_all [PartialGrid.length]
       | i3 :: i4 =>
-        -- have H := List.append_eq_len_two (by simp) (by simp) hb
+        -- have H := List.append_non_nil_eq_len_two (by simp) (by simp) hb
         -- simp at H
         -- simp [H] at hn hi
         -- simp_all
@@ -230,7 +230,7 @@ theorem partial_grid_rm_top_bottom_length_w (h : PartialGrid a b c d e)
         have H1 := @partial_grid_rm_top_bottom_length _ _ _ _ _ i2 g2 H.2.1
         simp_all [PartialGrid.length]
         change _ <+: [(i1, true)] ++ [(i2, true)]
-        refine List.prefix_of_append H.1
+        refine List.prefix_append_of_prefix H.1
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     simp at ha
     simp_all
@@ -240,7 +240,7 @@ theorem partial_grid_rm_top_bottom_length_w (h : PartialGrid a b c d e)
     · have H := partial_grid_rm_top_bottom_length g2 ha.1 two
       simp_all [PartialGrid.length]
       change _ <+: [(i1, true)] ++ [(i2, true)]
-      apply List.prefix_of_append H.1
+      apply List.prefix_append_of_prefix H.1
     simp_all [PartialGrid.length]
   | vertical_append g1 g2 h g1_ih g2_ih =>
     simp at ha
@@ -251,7 +251,7 @@ theorem partial_grid_rm_top_bottom_length_w (h : PartialGrid a b c d e)
     · have H := partial_grid_rm_top_bottom_length g2 ha.1 two
       simp_all [PartialGrid.length]
       change _ <+: [(i1, true)] ++ [(i2, true)]
-      apply List.prefix_of_append H.1
+      apply List.prefix_append_of_prefix H.1
     simp_all [PartialGrid.length]
 
 theorem partial_grid_rm_side_length (h : PartialGrid a b c d e)
@@ -291,7 +291,7 @@ theorem partial_grid_rm_side_length (h : PartialGrid a b c d e)
     have H := helper_pg_empty g1 a2_is hb
     simp_all [PartialGrid.length]
 
-theorem List.suffix_of_append_mine (h1 : a <:+ b) : a <:+ c ++ b := by
+theorem List.suffix_append_of_suffix_mine (h1 : a <:+ b) : a <:+ c ++ b := by
   refine reverse_prefix.mp ?_
   simp
   refine prefix_of_append' ?_
@@ -314,7 +314,7 @@ theorem partial_grid_rm_side_length_w (h : PartialGrid a b c d e)
     · have H := partial_grid_rm_side_length g2 two hb.2
       simp_all [PartialGrid.length]
       change _ <:+ [(i1, false)] ++ [(i2, false)]
-      apply List.suffix_of_append_mine H.2.1
+      apply List.suffix_append_of_suffix_mine H.2.1
     simp_all [PartialGrid.length]
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     simp only [List.append_eq_nil_iff] at hb
@@ -325,7 +325,7 @@ theorem partial_grid_rm_side_length_w (h : PartialGrid a b c d e)
     · have H := partial_grid_rm_side_length g2 two hb.2
       simp_all [PartialGrid.length]
       change _ <:+ [(i1, false)] ++ [(i2, false)]
-      apply List.suffix_of_append_mine H.2.1
+      apply List.suffix_append_of_suffix_mine H.2.1
     simp_all [PartialGrid.length]
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i i j k l m n o p q
@@ -343,7 +343,7 @@ theorem partial_grid_rm_side_length_w (h : PartialGrid a b c d e)
         have H := helper_pg_empty g1 rfl hb
         simp_all [PartialGrid.length]
       | i3 :: i4 =>
-        have H := List.append_eq_len_two (by simp) (by simp) ha
+        have H := List.append_non_nil_eq_len_two (by simp) (by simp) ha
         simp at H
         simp [H] at hn hi
         simp_all
@@ -351,7 +351,7 @@ theorem partial_grid_rm_side_length_w (h : PartialGrid a b c d e)
         have H1 := @partial_grid_rm_side_length _ _ _ _ _ i1 g2 (by simp [H.1]) H'.1
         simp_all [PartialGrid.length]
         change _ <:+ [(i1, false)] ++ [(i2, false)]
-        exact List.suffix_of_append_mine H'.2.1
+        exact List.suffix_append_of_suffix_mine H'.2.1
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     rename_i i j k l m n o p
     match  m with
@@ -368,7 +368,7 @@ theorem partial_grid_rm_side_length_w (h : PartialGrid a b c d e)
         have H := helper_pg_empty g1 rfl hb
         simp_all [PartialGrid.length]
       | i3 :: i4 =>
-        have H := List.append_eq_len_two (by simp) (by simp) ha
+        have H := List.append_non_nil_eq_len_two (by simp) (by simp) ha
         simp at H
         simp_all
         have H' := @partial_grid_rm_side_length _ _ _ _ _ i2 g1 (by simp [H.2]) hb
@@ -471,7 +471,7 @@ theorem partial_grid_rm_adjacent_length (h : PartialGrid a b c d e)
     · have H := partial_grid_rm_side_length g2 two b2_is
       simp_all [PartialGrid.length]
       change _ <:+ [(k, false)] ++ [(i, false)]
-      apply List.suffix_of_append_mine H.2.1
+      apply List.suffix_append_of_suffix_mine H.2.1
     have H := partial_grid_rm_side_length_w g2 three b2_is
     simp_all [PartialGrid.length]
   | horizontal_append h g1 g2 g1_ih g2_ih =>
@@ -488,7 +488,7 @@ theorem partial_grid_rm_adjacent_length (h : PartialGrid a b c d e)
     · have H := partial_grid_rm_side_length g2 two b2_is
       simp_all [PartialGrid.length]
       change _ <:+ [(k, false)] ++ [(i, false)]
-      apply List.suffix_of_append_mine H.2.1
+      apply List.suffix_append_of_suffix_mine H.2.1
     have H := partial_grid_rm_side_length_w g2 three b2_is
     simp_all [PartialGrid.length]
   | vertical_append_one g1 g2 g1_ih g2_ih =>
@@ -500,7 +500,7 @@ theorem partial_grid_rm_adjacent_length (h : PartialGrid a b c d e)
       · have H := partial_grid_rm_top_bottom_length g2 a1_is two
         simp_all [PartialGrid.length]
         change _ <+: [(k, true)] ++ [(i, true)]
-        apply List.prefix_of_append H.1
+        apply List.prefix_append_of_prefix H.1
       have H := partial_grid_rm_top_bottom_length_w g2 a1_is three
       simp_all [PartialGrid.length]
     have H1 := partial_grid_rm_top_helper g1 a2_is hb
@@ -515,7 +515,7 @@ theorem partial_grid_rm_adjacent_length (h : PartialGrid a b c d e)
       · have H := partial_grid_rm_top_bottom_length g2 a1_is two
         simp_all [PartialGrid.length]
         change _ <+: [(k, true)] ++ [(i, true)]
-        apply List.prefix_of_append H.1
+        apply List.prefix_append_of_prefix H.1
       have H := partial_grid_rm_top_bottom_length_w g2 a1_is three
       simp_all [PartialGrid.length]
     have H := partial_grid_rm_top_bottom_length g1 a2_is hb

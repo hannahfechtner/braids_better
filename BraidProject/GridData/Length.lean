@@ -1,7 +1,23 @@
-import BraidProject.Cancellability_C
-import BraidProject.ConstructiveBasics.FreeMonoid
-import BraidProject.GridsTwo_C
+import BraidProject.GridData.Properties
+import BraidProject.DataCarrying.FreeMonoid
+import BraidProject.GridData.DeterminativeSpine
 namespace Braid
+
+namespace GridData
+
+def length : GridData a b c d → ℕ := by
+  intro h
+  match h with
+  | GridData.empty => exact 0
+  | GridData.top_bottom _ => exact 0
+  | GridData.sides _ => exact  0
+  | GridData.top_left _ => exact 1
+  | GridData.adjacent _ _ _ => exact 1
+  | GridData.separated _ _ _ => exact 1
+  | GridData.horizontal h1 h2 => exact length h1 + length h2
+  | GridData.vertical h1 h2 => exact length h1 + length h2
+
+end GridData
 
 noncomputable def ab_len (a b : List ℕ) : ℕ :=
   match GridData.existence a b with
@@ -153,24 +169,24 @@ noncomputable def splittable_horizontally {a b c d : FreeMonoid ℕ} (h : GridDa
     exact ⟨.of i, 1, 1, .top_bottom _, .top_bottom _, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
   | sides i =>
     intro a₁ a₂ b_is
-    rcases FreeMonoid.prod_eq_of_sum a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
+    rcases FreeMonoid.prodEqOfCases a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
     · exact ⟨1, 1, .of i, .empty, .sides _, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
     exact ⟨1, .of i, 1, .sides _, .empty, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
   | top_left i =>
     intro a₁ a₂ b_is
-    rcases FreeMonoid.prod_eq_of_sum a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
+    rcases FreeMonoid.prodEqOfCases a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
     · exact ⟨.of i, 1, 1, .top_bottom _, .top_left _, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
     exact ⟨1, 1, 1, .top_left _, .empty, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
   | adjacent i k dist =>
     intro a₁ a₂ b_is
-    rcases FreeMonoid.prod_eq_of_sum a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
+    rcases FreeMonoid.prodEqOfCases a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
     · exact ⟨.of k, 1, .of i * .of k, .top_bottom _, .adjacent i k dist, ⟨by simp⟩,
         ⟨by simp [GridData.length]⟩⟩
     exact ⟨.of k * .of i, .of i * .of k, 1, .adjacent i k dist,
       .horizontal (.top_bottom k) (.top_bottom i), ⟨by simp⟩, ⟨by simp [GridData.length]⟩⟩
   | separated i j dist =>
     intro a₁ a₂ b_is
-    rcases FreeMonoid.prod_eq_of_sum a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
+    rcases FreeMonoid.prodEqOfCases a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
     · exact ⟨.of j, 1, .of i, .top_bottom _, .separated _ _ dist, ⟨by simp⟩,
         ⟨by simp [GridData.length]⟩⟩
     exact ⟨.of j, .of i, 1, .separated _ _ dist, .top_bottom _, ⟨by simp⟩,
@@ -178,7 +194,7 @@ noncomputable def splittable_horizontally {a b c d : FreeMonoid ℕ} (h : GridDa
   | vertical h1 h2 ih1 ih2 =>
     rename_i a' b' c' d' e' f' g'
     intro fi₁ fi₂ fi_is
-    rcases FreeMonoid.prod_eq_prod_sum a' e' fi₁ fi₂ fi_is with ⟨m, ⟨rfl, rfl⟩⟩ | ⟨m, ⟨rfl, rfl⟩⟩
+    rcases FreeMonoid.prodEqProdCases a' e' fi₁ fi₂ fi_is with ⟨m, ⟨rfl, rfl⟩⟩ | ⟨m, ⟨rfl, rfl⟩⟩
     · rcases ih2 m fi₂ rfl with ⟨u, k₁, k₂, g1, g2, ⟨hk⟩, ⟨len⟩⟩
       use u, d' * k₁, k₂
       exact ⟨.vertical h1 g1, g2, ⟨by rw [hk, mul_assoc]⟩,
@@ -208,7 +224,7 @@ noncomputable def splittable_vertically {a b c d : FreeMonoid ℕ} (h : GridData
     exact ⟨GridData.empty, ⟨GridData.empty, ⟨⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩⟩⟩
   | top_bottom i =>
     intro _ _ b_is
-    rcases FreeMonoid.prod_eq_of_sum _ _ b_is.symm with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
+    rcases FreeMonoid.prodEqOfCases _ _ b_is.symm with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
     · use 1, 1, (.of i)
       exact ⟨GridData.empty, ⟨GridData.top_bottom _, ⟨⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩⟩⟩
     use 1, (.of i), 1
@@ -220,14 +236,14 @@ noncomputable def splittable_vertically {a b c d : FreeMonoid ℕ} (h : GridData
     exact ⟨GridData.sides _, ⟨GridData.sides _, ⟨⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩⟩⟩
   | top_left i =>
     intro _ _ b_is
-    rcases (FreeMonoid.prod_eq_of_sum _ _ b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
+    rcases (FreeMonoid.prodEqOfCases _ _ b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
     · use (.of i), 1, 1
       exact ⟨GridData.sides _, ⟨GridData.top_left _, ⟨⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩⟩⟩
     use 1, 1, 1
     exact ⟨GridData.top_left _, ⟨GridData.empty, ⟨⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩⟩⟩
   | adjacent i =>
     intro _ _ b_is
-    rcases (FreeMonoid.prod_eq_of_sum _ _ b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
+    rcases (FreeMonoid.prodEqOfCases _ _ b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
     · rename_i k l
       use .of i, 1, .of (k) * .of i
       exact ⟨GridData.sides i, ⟨GridData.adjacent i k l, ⟨⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩⟩⟩
@@ -237,7 +253,7 @@ noncomputable def splittable_vertically {a b c d : FreeMonoid ℕ} (h : GridData
         ⟨by simp only [length, Nat.left_eq_add]; rfl⟩⟩⟩⟩
   | separated i j h =>
     intro _ _ b_is
-    rcases (FreeMonoid.prod_eq_of_sum _ _ b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
+    rcases (FreeMonoid.prodEqOfCases _ _ b_is.symm) with ⟨⟨ha1⟩, ⟨ha2⟩⟩ | ⟨⟨ha1⟩, ⟨ha2⟩⟩
     · use .of i, 1, .of j
       exact ⟨GridData.sides _, ⟨GridData.separated _ _ h, ⟨⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩⟩⟩
     use .of i, .of j, 1
@@ -252,7 +268,7 @@ noncomputable def splittable_vertically {a b c d : FreeMonoid ℕ} (h : GridData
   | horizontal h1 h2 h1_ih h2_ih =>
     rename_i e f g h i j k
     intro fi₁ fi₂ fi_is
-    rcases FreeMonoid.prod_eq_prod_sum _ _ _ _ fi_is with ⟨m, ⟨rfl, rfl⟩⟩ | ⟨m, ⟨rfl, rfl⟩⟩
+    rcases FreeMonoid.prodEqProdCases _ _ _ _ fi_is with ⟨m, ⟨rfl, rfl⟩⟩ | ⟨m, ⟨rfl, rfl⟩⟩
     · rcases h2_ih m fi₂ rfl with ⟨u, k₁, k₂, hg1, hg2, ⟨heq⟩, ⟨len⟩⟩
       use u, g * k₁, k₂
       exact ⟨GridData.horizontal h1 hg1, hg2, ⟨by rw [heq, mul_assoc]⟩,

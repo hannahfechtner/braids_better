@@ -1,7 +1,7 @@
-import BraidProject.Stability'
-import BraidProject.Grids_C
-import BraidProject.FlipBraid'
-import BraidProject.Cancellability
+import BraidProject.Grid.Stability
+import BraidProject.Grid.Properties
+import BraidProject.GridData.Basic
+import BraidProject.FlipBraid
 
 namespace Braid
 namespace GridData
@@ -14,9 +14,9 @@ def unicity {a b c d c' d'} (h1 : GridData a b c d) : GridData a1 b1 c' d' → a
 
 noncomputable def existence' : ∀ a b, ∃ c d, Nonempty (GridData a b c d) := by
   intro a b
-  rcases common_right_mul_inf_mk a b with ⟨c1, d1, h⟩
+  rcases BraidMonoidInf.common_right_mul_mk a b with ⟨c1, d1, h⟩
   have big_grid : grid (a * c1) (b * d1) 1 1 := by
-    apply Grid.of_mk_eq_mk
+    apply Grid.of_BraidMonoidInf_eq
     rw [h]
     rfl
   rcases Grid.splittable_horizontally big_grid _ _ rfl with ⟨_, c₁, c₂, top_grid, _, side_one⟩

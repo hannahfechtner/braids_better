@@ -6,6 +6,8 @@ import BraidProject.Additions.Finset
 import BraidProject.Additions.NatDist
 import BraidProject.Additions.FreeMonoid
 
+namespace Braid
+
 open FreeMonoid
 
 local instance : Coe ℕ (FreeMonoid ℕ) := ⟨of⟩
@@ -85,6 +87,7 @@ theorem count_down_pop {i j : ℕ} (h : i < j) : count_down j i = count_down j (
   · rw [reverse_mul, reverse_of]
   rw [reverse_mul, reverse_of]
 
+-- The following three theorems are needed for the infinite case as well
 theorem count_up_bounded (k : ℕ) {j b : ℕ} : j ∈ count_up b k → j < k := by
   intro h
   rcases Nat.lt_or_ge b k with lt | ge
@@ -185,3 +188,5 @@ theorem map_sigma_braid_bounded (n k : ℕ): ∀ x, x ∈ (FreeMonoid.map (fun x
   intro x h
   rcases mem_map.mp h with ⟨w, w_in, rfl⟩
   linarith [sigma_braid_descending_bounded _ w_in]
+
+end Braid

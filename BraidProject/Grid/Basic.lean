@@ -3,7 +3,7 @@ import Mathlib.Data.Nat.Dist
 import BraidProject.Additions.FreeMonoid
 import BraidProject.Additions.NatDist
 
-open FreeMonoid
+open FreeMonoid Nat
 
 namespace Braid
 /-- a rectangular grid for the braid monoid, inductively defined as from the set of basic cells,
@@ -56,7 +56,7 @@ theorem top_left_word (u : FreeMonoid ℕ) : grid u u 1 1 := by
       (grid.horizontal (sides_word y) ih2)
 
 /-- relating grid equivalence to braid equivalence in the forward direction -/
-theorem braid_eq_of_grid (h : grid a b c d) :
+theorem braid_monoid_eq_of_grid (h : grid a b c d) :
     BraidMonoidInf.mk (a * c) = BraidMonoidInf.mk (b * d) := by
   induction h with
   | empty => rfl
@@ -76,15 +76,15 @@ theorem braid_eq_of_grid (h : grid a b c d) :
     simp_all only [BraidMonoidInf.mk_mul, mul_assoc]
     rw [← h2_ih, ← mul_assoc, h1_ih, ← mul_assoc]
 
-theorem braid_equiv_of_grid_empty_sink : grid a b 1 1 → BraidMonoidInf.rel a b := by
+theorem braid_monoid_equiv_of_grid_empty_sink : grid a b 1 1 → BraidMonoidInf.rel a b := by
   intro h
   apply BraidMonoidInf.exact
   rw [← mul_one a, ← mul_one b]
-  exact braid_eq_of_grid h
+  exact braid_monoid_eq_of_grid h
 
 /- the length of the words labelling the left-bottom and top-right paths in a grid are equal -/
 theorem diag_length_eq (h : grid a b c d) : a.length + c.length = b.length + d.length := by
-  have H := congr_arg BraidMonoidInf.length (braid_eq_of_grid h)
+  have H := congr_arg BraidMonoidInf.length (braid_monoid_eq_of_grid h)
   simp only [BraidMonoidInf.length_mk, length_mul] at H
   exact H
 
@@ -124,14 +124,14 @@ theorem splittable_vertically {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
   | adjacent i k l =>
     intro m n b_is
     rcases (FreeMonoid.prod_eq_of b_is.symm) with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · rcases or_dist_iff_eq.mp l with rfl | rfl
+    · rcases eq_dist_iff.mp l with rfl | rfl
       · use of i, 1, of (i+1) * of i
-        exact ⟨grid.sides i, ⟨grid.adjacent i (i+1) dist_succ, rfl⟩⟩
+        exact ⟨grid.sides i, ⟨grid.adjacent i (i+1) dist_self_add_one, rfl⟩⟩
       use of (k+1), 1, of k * of (k+1)
       exact ⟨grid.sides (k+1), ⟨grid.adjacent (k+1) k l, rfl⟩⟩
-    · rcases or_dist_iff_eq.mp l with rfl | rfl
+    · rcases eq_dist_iff.mp l with rfl | rfl
       · use of i * of (i+1), of (i+1) * of i, 1
-        exact ⟨grid.adjacent i (i+1) dist_succ, ⟨sides_word _, rfl⟩⟩
+        exact ⟨grid.adjacent i (i+1) dist_self_add_one, ⟨sides_word _, rfl⟩⟩
       use of (k+1) * of k, of k * of (k+1), 1
       exact ⟨grid.adjacent _ _ l, ⟨sides_word _, rfl⟩⟩
   | separated i j h =>
@@ -194,18 +194,18 @@ theorem splittable_horizontally {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
   | adjacent i j dist =>
     intro _ _ b_is
     rcases FreeMonoid.prod_eq_of b_is.symm with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · rcases or_dist_iff_eq.mp dist with rfl | rfl
+    · rcases eq_dist_iff.mp dist with rfl | rfl
       · use of (i+1), 1, of i * of (i + 1)
-        exact ⟨grid.top_bottom _, ⟨grid.adjacent i (i + 1) dist_succ, rfl⟩⟩
+        exact ⟨grid.top_bottom _, ⟨grid.adjacent i (i + 1) dist_self_add_one, rfl⟩⟩
       use of j, 1, of (j + 1) * of j
-      exact ⟨grid.top_bottom _, ⟨grid.adjacent _ _ succ_dist, rfl⟩⟩
-    rcases or_dist_iff_eq.mp dist with k_is | i_is
+      exact ⟨grid.top_bottom _, ⟨grid.adjacent _ _ add_one_dist_self, rfl⟩⟩
+    rcases eq_dist_iff.mp dist with k_is | i_is
     · rw [← k_is]
       use of (i + 1) * of i, of i * of (i + 1), 1
-      exact ⟨grid.adjacent i (i + 1) dist_succ, ⟨top_bottom_word _, rfl⟩⟩
+      exact ⟨grid.adjacent i (i + 1) dist_self_add_one, ⟨top_bottom_word _, rfl⟩⟩
     rw [← i_is]
     use of j * of (j + 1), of (j + 1) * of j, 1
-    exact ⟨grid.adjacent _ _ succ_dist, ⟨top_bottom_word _, rfl⟩⟩
+    exact ⟨grid.adjacent _ _ add_one_dist_self, ⟨top_bottom_word _, rfl⟩⟩
   | separated i j h =>
     intro _ _ b_is
     rcases FreeMonoid.prod_eq_of b_is.symm with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩

@@ -1,6 +1,5 @@
-import BraidProject.SemiThue_C
+import BraidProject.DataCarrying.SemiThue
 import BraidProject.Relations
-
 
 namespace Braid
 
@@ -13,16 +12,15 @@ def length {a b : List α} {rels : List α → List α → Type}
 | SemiThueData.trans h1 h2 => length rels_length h1 + length rels_length h2
 
 @[simp]
-def length_refl : length rels_length (@SemiThueData.refl _ _ a) = 0 := by
-  rfl
+def length_refl : length rels_length (@SemiThueData.refl _ _ a) = 0 := rfl
 
 @[simp]
-def length_trans : length rels_length (SemiThueData.trans h1 h2) = length rels_length h1 + length rels_length h2 := by
-  rfl
+def length_trans : length rels_length (SemiThueData.trans h1 h2) =
+    length rels_length h1 + length rels_length h2 := rfl
 
 @[simp]
-def length_step {c d : List α}: length rels_length (SemiThueData.step c d h) = rels_length h := by
-  rfl
+def length_step {c d : List α} :
+  length rels_length (SemiThueData.step c d h) = rels_length h := rfl
 
 def grid_style.length (h : SemiThueData grid_style a b) : ℕ :=
   SemiThueData.length Braid.grid_style.length h

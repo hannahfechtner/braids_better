@@ -1,4 +1,4 @@
-import BraidProject.List_C
+import BraidProject.DataCarrying.List
 import BraidProject.SignedOptionList
 import Mathlib.Algebra.Order.Group.Nat
 import Mathlib.Data.Nat.Cast.Order.Basic
@@ -19,17 +19,15 @@ def pairAppears_empty : pairAppears [] := by
 
 def pairAppears_singleton : pairAppears [a] := by
   intro c d hcd
-  exfalso
   match a with
   | (none, _) =>
-    change List.InfixData [(c, false), (d, true)] [] at hcd
     apply List.InfixData.length_le  at hcd
     simp at hcd
   | (some a, b) =>
-    change List.InfixData [(c, false), (d, true)] [(a, b)] at hcd
     rcases hcd with ⟨w, t, ⟨hwt⟩⟩
     apply congr_arg List.length at hwt
-    simp at hwt
+    simp only [List.append_assoc, List.cons_append, List.nil_append, List.length_append,
+      List.length_cons, toSignedList_cons_some, toSignedList_nil, List.length_nil, zero_add] at hwt
     omega
 
 open List
@@ -53,36 +51,24 @@ def irreducible (L : List (Option ℕ × Bool)) :=
 def irreducible_nil : irreducible [] := by
   unfold irreducible
   intro h
-  exact ⟨InfixData.length_two_not_infix_nil, ⟨InfixData.length_two_not_infix_nil, InfixData.length_two_not_infix_nil⟩⟩
+  constructor; any_goals constructor
+  all_goals exact InfixData.length_two_not_infix_nil
 
 def irreducible_singleton : irreducible [a] := by
-  unfold irreducible
   intro a
-  constructor
-  · intro h
-    apply InfixData.length_le at h
-    simp at h
-  constructor
-  · intro h
-    apply InfixData.length_le at h
-    simp at h
+  constructor; any_goals constructor
+  all_goals
   intro h
   apply InfixData.length_le at h
   simp at h
 
 def irreducible_tail {head : Option ℕ × Bool} {tail : List (Option ℕ × Bool)} (h : irreducible (head :: tail)) : irreducible tail := by
   intro a
-  constructor
-  · intro h1
-    apply (h a).1
-    exact InfixData.cons h1
-  constructor
-  · intro h1
-    apply (h a).2.1
-    exact InfixData.cons h1
-  intro h1
-  apply (h a).2.2
-  exact InfixData.cons h1
+  constructor; any_goals constructor
+  all_goals intro h1
+  · exact (h a).1 <| InfixData.cons h1
+  · exact (h a).2.1 <| InfixData.cons h1
+  exact (h a).2.2 <| InfixData.cons h1
 
 def irreducible_append (h : irreducible (a ++ b)) : irreducible a × irreducible b :=
   ⟨fun x ↦ ⟨fun hx ↦ (h x).1 (InfixData.append_right hx),
@@ -96,18 +82,15 @@ def SignedList.toSignedOptionList_irreducible : irreducible (SignedList.to_Signe
   | cons head tail ih =>
     unfold SignedList.to_SignedOptionList
     intro x
-    constructor
-    · intro hx
-      match tail with
+    constructor; any_goals constructor
+    all_goals intro hx
+    · match tail with
       | [] =>
         apply InfixData.length_le at hx
         simp at hx
       | t1 :: tr =>
         exact (ih x).1 (InfixData.tail_of_cons_cons_ne hx (by simp))
-    constructor
-    · intro hx
-      exact (ih x).2.1 (InfixData.tail_of_cons_ne hx (by simp))
-    intro hx
+    · exact (ih x).2.1 (InfixData.tail_of_cons_ne hx (by simp))
     exact (ih x).2.2 (InfixData.tail_of_cons_ne hx (by simp))
 
 def irreducible_cons_true (h : irreducible L) : irreducible ((a, true) :: L) := by
@@ -126,11 +109,9 @@ def irreducible_cons_cons_bool_eq  (h : irreducible ((b1, b) :: L)) :
     apply (h a1).1
     match b with
     | true =>
-      apply InfixData.tail_of_cons_ne h2
-      simp
+      exact InfixData.tail_of_cons_ne h2 (by simp)
     | false =>
-      apply InfixData.tail_of_cons_cons_ne h2
-      simp
+      exact InfixData.tail_of_cons_cons_ne h2 (by simp)
   constructor
   · intro h2
     apply (h a1).2.1
@@ -145,11 +126,9 @@ def irreducible_cons_cons_bool_eq  (h : irreducible ((b1, b) :: L)) :
   apply (h a1).2.2
   match b with
   | true =>
-    apply InfixData.tail_of_cons_ne h2
-    simp
+    exact InfixData.tail_of_cons_ne h2 (by simp)
   | false =>
-    apply InfixData.tail_of_cons_cons_ne h2
-    simp
+    apply InfixData.tail_of_cons_cons_ne h2 (by simp)
 
 def irreducible_cons_some_cons_some (h : irreducible ((some c, b1) :: L)) :
     irreducible ((some d, b2) :: (some c, b1) :: L) := by
@@ -157,66 +136,46 @@ def irreducible_cons_some_cons_some (h : irreducible ((some c, b1) :: L)) :
   match b2 with
   | true =>
     constructor
-    · intro h3
-      apply (h a1).1
-      apply InfixData.tail_of_cons_ne h3 (by simp)
+    · exact fun h3 => (h a1).1 <| InfixData.tail_of_cons_ne h3 (by simp)
     constructor
-    · intro h3
-      apply (h a1).2.1
-      apply InfixData.tail_of_cons_ne h3 (by simp)
-    intro h3
-    apply (h a1).2.2
-    apply InfixData.tail_of_cons_ne h3 (by simp)
+    · exact fun h3 => (h a1).2.1 <| InfixData.tail_of_cons_ne h3 (by simp)
+    exact fun h3 => (h a1).2.2 <| InfixData.tail_of_cons_ne h3 (by simp)
   | false =>
     constructor
-    · intro h3
-      apply (h a1).1
-      apply InfixData.tail_of_cons_cons_ne h3 (by simp)
+    · exact fun h3 => (h a1).1 <| InfixData.tail_of_cons_cons_ne h3 (by simp)
     constructor
-    · intro h3
-      apply (h a1).2.1
-      apply InfixData.tail_of_cons_ne h3 (by simp)
-    intro h3
-    apply (h a1).2.2
-    apply InfixData.tail_of_cons_ne h3 (by simp)
+    · exact fun h3 =>(h a1).2.1 <| InfixData.tail_of_cons_ne h3 (by simp)
+    exact fun h3 => (h a1).2.2 <| InfixData.tail_of_cons_ne h3 (by simp)
 
 def irreducible_none_false_swap (b) (h : irreducible ((none, false) :: L)) : irreducible ((b, false) :: L) := by
   match L with
   | [] => exact irreducible_singleton
   | (some c, true) :: tail =>
-    specialize h c
     apply Empty.elim
-    apply h.2.1
+    apply (h c).2.1
     use [], tail
     constructor
     simp
   | (some c, false) :: tail =>
     intro a
     constructor
-    · intro h1
-      apply (irreducible_tail h a).1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
+    · exact fun h1 => (irreducible_tail h a).1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
     constructor
-    · intro h1
-      apply (irreducible_tail h a).2.1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
-    intro h1
-    apply (irreducible_tail h a).2.2 (InfixData.tail_of_cons_cons_ne h1 (by simp))
+    · exact fun h1 => (irreducible_tail h a).2.1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
+    exact fun h1 => (irreducible_tail h a).2.2 (InfixData.tail_of_cons_cons_ne h1 (by simp))
   | (none, true) :: tail =>
-    specialize h 0
     apply Empty.elim
-    apply h.2.2
+    apply (h 0).2.2
     use [], tail
     constructor
     simp
   | (none, false) :: tail =>
     intro a
     constructor
-    · intro h1
-      apply (irreducible_tail h a).1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
+    · exact fun h1 => (irreducible_tail h a).1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
     constructor
-    · intro h1
-      apply (irreducible_tail h a).2.1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
-    intro h1
-    apply (irreducible_tail h a).2.2 (InfixData.tail_of_cons_cons_ne h1 (by simp))
+    · exact fun h1 => (irreducible_tail h a).2.1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
+    exact fun h1 => (irreducible_tail h a).2.2 (InfixData.tail_of_cons_cons_ne h1 (by simp))
 
 theorem toSignedList_tail_not_cons_true_of_irreducible_cons_none_false
     {tail : List (Option ℕ × Bool)} (h : irreducible ((none, false) :: tail))
@@ -224,33 +183,29 @@ theorem toSignedList_tail_not_cons_true_of_irreducible_cons_none_false
   have H : ∀ t L rest, L.length = t → irreducible ((none, false) :: L) → toSignedList L = (a, true) :: rest → False := by
     intro t
     induction t with
-    | zero =>
-      intro L rest len irr hin
-      simp at len
-      simp [len] at hin
+    | zero => simp_all
     | succ n ih =>
       intro L rest len irr hin
       match L with
       | [] => simp at len
       | (none, true) :: tail1 =>
-        have H := by
+        have := by
           apply (irr 0).2.2
           use [], tail1
+          constructor
           simp
-          exact {down := trivial}
-        cases H
+        cases this
       | (none, false) :: tail1 =>
-        simp [toSignedList] at hin
         specialize ih tail1 rest
-        simp at len
+        simp only [length_cons, Nat.add_right_cancel_iff] at len
         exact ih len (irreducible_tail irr) hin
       | (some b, true) :: tail1 =>
-        have H := by
+        have := by
           apply (irr b).2.1
           use [], tail1
+          constructor
           simp
-          exact {down := trivial}
-        cases H
+        cases this
       | (some b, false) :: tail1 => simp [toSignedList] at hin
   exact H _ _ _ rfl h h2
 
@@ -274,10 +229,8 @@ open List
 -- a quick example to show that pairsTogether does not imply irreducible
 def not_irreducible_of_pairAppears : (pairsTogether [(some a, false), (none, true)]) × (irreducible [(some a, false), (none, true)] → Empty) := by
   constructor
-  · intro L1 hL1
+  · intro L1 hL1 c d hcd
     rcases hL1 with ⟨w, t, ⟨hwt⟩⟩
-    intro c d hcd
-    exfalso
     have ts_eq : toSignedList (w ++ L1 ++ t) = [(a, false)] := by
       rw [hwt]; rfl
     rw [toSignedList_append, toSignedList_append] at ts_eq
@@ -319,13 +272,11 @@ def pairAppears_of_irreducible (h : irreducible L) : pairAppears L := by
           apply InfixData.length_le at h
           simp [toSignedList] at h
         | (none, true) :: tail1 =>
-          simp [toSignedList] at h
           simp only [length_cons, add_le_add_iff_right] at len
           apply InfixData.cons
           apply InfixData.cons
           exact ih tail1 (by omega) (irreducible_tail (irreducible_tail irr)) c d h
         | (none, false) :: tail1 =>
-          simp only [toSignedList] at h
           simp only [length_cons, add_le_add_iff_right] at len
           apply InfixData.cons
           apply InfixData.cons
@@ -346,47 +297,28 @@ def pairAppears_of_irreducible (h : irreducible L) : pairAppears L := by
           apply InfixData.length_le at h
           simp [toSignedList] at h
         | (none, true) :: tail1 =>
-          simp only [toSignedList] at h
-          simp at len
+          simp only [length_cons, add_le_add_iff_right, Order.add_one_le_iff] at len
           apply InfixData.cons
           apply InfixData.cons
-          apply ih tail1
-          · omega
-          apply irreducible_tail (irreducible_tail irr)
-          apply InfixData.tail_of_cons_ne h
-          simp
+          apply ih tail1 (by omega) (irreducible_tail (irreducible_tail irr))
+          exact (InfixData.tail_of_cons_ne h (by simp))
         | (none, false) :: tail1 =>
-          simp only [toSignedList] at h
           simp only [length_cons, add_le_add_iff_right] at len
           apply InfixData.cons
           apply InfixData.cons
-          apply ih tail1
-          · omega
-          apply irreducible_tail (irreducible_tail irr)
-          apply InfixData.tail_of_cons_ne h
-          simp
+          exact ih tail1 (by omega) (irreducible_tail (irreducible_tail irr))
+            _ _ (InfixData.tail_of_cons_ne h (by simp))
         | (some e, true) :: tail1 =>
-          simp only [toSignedList] at h
           simp only [length_cons, add_le_add_iff_right] at len
           apply InfixData.cons
           apply InfixData.cons
-          apply ih tail1
-          · omega
-          apply irreducible_tail (irreducible_tail irr)
-          have h3 : [(c, false), (d, true)].InfixData ((e, true) :: toSignedList tail1) := by
-            apply InfixData.tail_of_cons_ne h
-            simp
-          apply InfixData.tail_of_cons_ne h3
-          simp
+          apply ih tail1 (by omega) (irreducible_tail (irreducible_tail irr))
+          exact InfixData.tail_of_cons_ne (InfixData.tail_of_cons_ne h (by simp)) (by simp)
         | (some c, false) :: tail1 =>
-          simp only [toSignedList] at h
           simp only [length_cons, add_le_add_iff_right] at len
           apply InfixData.cons
-          apply ih ((some c, false) :: tail1)
-          · simp [len]
-          apply irreducible_tail irr
-          apply InfixData.tail_of_cons_ne h
-          simp
+          apply ih ((some c, false) :: tail1) (by simp [len]) (irreducible_tail irr)
+          exact InfixData.tail_of_cons_ne h (by simp)
       | (some b, false) =>
         match tail with
         | [] =>
@@ -399,17 +331,18 @@ def pairAppears_of_irreducible (h : irreducible L) : pairAppears L := by
           apply Empty.elim
           apply (irr b).1
           use [], tail1
+          constructor
           simp
-          exact {down := trivial}
         | (none, false) :: tail1 =>
           simp only [List.length_cons, add_le_add_iff_right] at len
           apply InfixData.cons <| InfixData.cons <| ih tail1 (by omega) (irreducible_tail (irreducible_tail irr)) _ _
             (infixData_false_true_tail_of_cons_false_toSignedList_of_irreducible_cons_none_false (irreducible_tail irr) h)
         | (some e, true) :: tail1 =>
-          simp at len
+          simp only [length_cons, add_le_add_iff_right, Order.add_one_le_iff] at len
           if hcd : c = b then
             if hed : e = d
-              then use [], tail1; simp; exact {down := ⟨hcd, hed.symm⟩}
+              then use [], tail1; simp only [nil_append, cons_append, cons.injEq, Prod.mk.injEq,
+                Option.some.injEq, and_true]; exact {down := ⟨hcd, hed.symm⟩}
             else
             {
               have h3 : [(c, false), (d, true)].InfixData ((e, true) :: toSignedList tail1) := by
@@ -420,25 +353,19 @@ def pairAppears_of_irreducible (h : irreducible L) : pairAppears L := by
                 (irreducible_tail irr)) _ _ (InfixData.tail_of_cons_ne h3 (by simp))
             }
           else
-          {
-            have h3 : [(c, false), (d, true)].InfixData (toSignedList ((some e, true) :: tail1)) := by
-              apply InfixData.tail_of_cons_ne h
-              simp [hcd]
-            apply InfixData.cons <| InfixData.cons <| ih tail1 (by omega)
-              (irreducible_tail (irreducible_tail irr)) _ _ (InfixData.tail_of_cons_ne h3 (by simp))
-          }
+            exact InfixData.cons <| InfixData.cons <| ih tail1 (by omega)
+              (irreducible_tail (irreducible_tail irr)) _ _ (InfixData.tail_of_cons_ne
+              (by apply InfixData.tail_of_cons_ne h; simp [hcd]) (by simp))
         | (some e, false) :: tail1 =>
           simp only [length_cons, add_le_add_iff_right] at len
           apply InfixData.cons
           apply ih ((some e, false) :: tail1) (by simp [len]) (irreducible_tail irr)
-          apply InfixData.tail_of_cons_cons_ne h
-          simp
+          exact InfixData.tail_of_cons_cons_ne h (by simp)
   exact H L.length L (by simp) h
 
 def irreducible_infix (h : irreducible L) (h2 : InfixData L1 L) : irreducible L1 :=
   fun a ↦ ⟨fun ha ↦ (h a).1 (ha.trans h2), ⟨fun ha ↦ (h a).2.1 (ha.trans h2), fun ha ↦
         (h a).2.2 (ha.trans h2)⟩⟩
 
-def pairsTogether_of_irreducible (h : irreducible L) : pairsTogether L := by
-  intro h1 hl
-  apply pairAppears_of_irreducible (irreducible_infix h hl)
+def pairsTogether_of_irreducible (h : irreducible L) : pairsTogether L :=
+  fun _ hl => pairAppears_of_irreducible (irreducible_infix h hl)

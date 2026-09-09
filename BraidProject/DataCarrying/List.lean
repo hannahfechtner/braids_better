@@ -1,34 +1,47 @@
 import Mathlib.Data.List.Basic
 
-noncomputable def ListC.append_eq_append {a b c d : List α} (h : a ++ b = c ++ d) :
-    (Σ to_middle, PLift (a = c ++ to_middle ∧ d = to_middle ++ b)) ⊕
-    (Σ from_middle, PLift (a ++ from_middle = c ∧ b = from_middle ++ d)) := by
-  induction a generalizing b c d
-  · simp only [List.nil_append] at h
-    match c with
-    | [] =>
-      exact Sum.inl ⟨[], by simp [h]; exact ⟨trivial⟩⟩
-    | c1 :: cr =>
-      exact Sum.inr ⟨(c1 :: cr), by simp [h]; exact ⟨trivial⟩⟩
-  rename_i a1 ar ih
-  match c with
-  | [] =>
-    exact Sum.inl ⟨(a1 :: ar), by simp [h]; exact ⟨trivial⟩⟩
-  | c1 :: cr =>
-    simp only [List.cons_append, List.cons.injEq] at h
-    rw [← h.1]
-    simp only [List.cons.injEq, true_and, List.cons_append]
-    exact ih h.2
-
-
 namespace List
+
+def appendEqAppendCases {α} : ∀ {a b c d : List α}, a ++ b = c ++ d →
+    (Σ m : List α, PLift (c = a ++ m ∧ b = m ++ d)) ⊕
+    (Σ m : List α, PLift (a = c ++ m ∧ d = m ++ b))
+  | [], b, c, d, h => .inl ⟨c, ⟨rfl, by simpa using h⟩⟩
+  | x :: rest, b, [], d, h => .inr ⟨x :: rest, ⟨by simp, by simpa using h.symm⟩⟩
+  | x :: rest, b, y :: rest', d, h => by
+    simp only [List.cons_append, List.cons.injEq] at h
+    obtain ⟨hxy, heq⟩ := h
+    have ih := appendEqAppendCases heq
+    match ih with
+    | .inl ⟨m, hm⟩ =>
+      exact .inl ⟨m, ⟨by rw [hxy, hm.down.1]; rfl, hm.down.2⟩⟩
+    | .inr ⟨m, hm⟩ =>
+      exact .inr ⟨m, ⟨by rw [hxy, hm.down.1]; rfl, hm.down.2⟩⟩
+
+-- noncomputable def appendEqAppendCases {a b c d : List α} (h : a ++ b = c ++ d) :
+--     (Σ to_middle, PLift (a = c ++ to_middle ∧ d = to_middle ++ b)) ⊕
+--     (Σ from_middle, PLift (a ++ from_middle = c ∧ b = from_middle ++ d)) := by
+--   induction a generalizing b c d
+--   · simp only [List.nil_append] at h
+--     match c with
+--     | [] =>
+--       exact Sum.inl ⟨[], by simp [h]; exact ⟨trivial⟩⟩
+--     | c1 :: cr =>
+--       exact Sum.inr ⟨(c1 :: cr), by simp [h]; exact ⟨trivial⟩⟩
+--   rename_i a1 ar ih
+--   match c with
+--   | [] =>
+--     exact Sum.inl ⟨(a1 :: ar), by simp [h]; exact ⟨trivial⟩⟩
+--   | c1 :: cr =>
+--     simp only [List.cons_append, List.cons.injEq] at h
+--     rw [← h.1]
+--     simp only [List.cons.injEq, true_and, List.cons_append]
+--     exact ih h.2
 
 def PrefixData {α : Type} (l₁ l₂ : List α) : Type :=
   Σ sx, PLift (l₁ ++ sx = l₂)
 
 def SuffixData {α : Type} (l₁ l₂ : List α) : Type :=
   Σ pr, PLift (pr ++ l₁ = l₂)
-
 
 @[simp]
 def PrefixData.nil : PrefixData [] u := by
@@ -84,7 +97,6 @@ def PrefixData.of_append_left : PrefixData (l ++ l₁) (l ++ l₂) → PrefixDat
     use w
     constructor
     grind
-
 
 theorem SuffixData.of_nil (h : List.SuffixData a []) : a = [] := by
   rcases h with ⟨b, ⟨hb⟩⟩
@@ -229,7 +241,7 @@ def InfixData.trans (h1 : InfixData a b) (h2 : InfixData b c) : InfixData a c :=
   exact {down := by simp}
 
 
-def distinct_pair_infix_eq (b_ne : b1 ≠ b2) (h : a ++ [b1, b2] ++ c = d ++ [b1, b2] ++ e) :
+def distinctPairInfixCases (b_ne : b1 ≠ b2) (h : a ++ [b1, b2] ++ c = d ++ [b1, b2] ++ e) :
   PLift (a = d ∧ c = e) ⊕ (Σ a1 a2, PLift (a = a1 ++ [b1, b2] ++ a2 ∧ d = a1 ∧ e = a2 ++ [b1, b2] ++ c)) ⊕
   (Σ c1 c2, PLift (c = c1 ++ [b1, b2] ++ c2 ∧ d = a ++ [b1, b2] ++ c1 ∧ e = c2)) := by
   induction a generalizing b1 b2 c d e

@@ -704,9 +704,9 @@ noncomputable def pg_to_rev (h : PartialGrid a b c d e) :
       constructor
       simp [PartialGrid.length, (SemiThue_adjacent_w_len i k h).2]
     | separated i j h =>
-      use (SemiThue_separated_w_len i j (or_dist_iff.mpr h)).1
+      use (SemiThue_separated_w_len i j (le_dist_iff.mpr h)).1
       constructor
-      simp [PartialGrid.length, (SemiThue_separated_w_len i j (or_dist_iff.mpr h)).2]
+      simp [PartialGrid.length, (SemiThue_separated_w_len i j (le_dist_iff.mpr h)).2]
   | empty a b ha ha1 hb hb =>
     rw [List.append_nil, List.nil_append]
     use SemiThue.refl _

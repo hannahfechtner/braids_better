@@ -1,4 +1,4 @@
-import BraidProject.List_C
+import BraidProject.DataCarrying.List
 import BraidProject.SignedList
 
 namespace SignedList
@@ -9,7 +9,6 @@ def is_false_singleton (h : is_false [a]) : Σ a', PLift (a = (a', false)) := by
   simp only [Prod.mk.injEq, true_and]
   constructor
   exact h (c, b) (List.mem_singleton.mpr rfl)
-
 
 def is_true_singleton (h : is_true [a]) : Σ a', PLift (a = (a', true)) := by
   rcases a with ⟨c, b⟩
@@ -61,32 +60,21 @@ def PosNegData.tail (h : PosNegData (head :: t)) : PosNegData t := by
 
 noncomputable def PosNegData.of_append (h : PosNegData (a++b)) : PosNegData a × PosNegData b := by
   rcases h with ⟨a1, a2, a1_true, a2_false, ha⟩
-  rcases ListC.append_eq_append ha with ⟨to_middle, ⟨spec⟩⟩ | ⟨to_middle, ⟨spec⟩⟩
-  · constructor
-    · rw [spec.1] at ha
-      simp only [List.append_assoc, List.append_cancel_left_eq] at ha
-      rw [spec.1]
-      use a1, to_middle
-      constructor
-      constructor
-      · exact a1_true
-      constructor
-      · rw [← ha] at a2_false
-        exact (is_false_of_append a2_false).1
-      rfl
-    apply PosNegData.of_false
-    rw [spec.2] at a2_false
-    exact (is_false_of_append a2_false).2
+  rcases List.appendEqAppendCases ha with ⟨to_middle, ⟨spec⟩⟩ | ⟨to_middle, ⟨spec⟩⟩
+  · rw [spec.1] at a1_true
+    constructor
+    · exact PosNegData.of_true (is_true_of_append a1_true).1
+    use to_middle, a2
+    exact ⟨⟨(is_true_of_append a1_true).2, a2_false, spec.2⟩⟩
   constructor
-  · apply PosNegData.of_true
-    rw [← spec.1] at a1_true
-    exact (is_true_of_append a1_true).1
-  use to_middle, a2
-  constructor
-  constructor
-  · rw [← spec.1] at a1_true
-    exact fun _ hx => a1_true _ (List.mem_append_right _ hx)
-  exact ⟨a2_false, spec.right⟩
+  · rw [spec.1] at ha
+    simp only [List.append_assoc, List.append_cancel_left_eq] at ha
+    rw [spec.1]
+    rw [← ha] at a2_false
+    use a1, to_middle
+    exact ⟨⟨a1_true, (is_false_of_append a2_false).1, rfl⟩⟩
+  rw [spec.2] at a2_false
+  apply PosNegData.of_false (is_false_of_append a2_false).2
 
 def NegPosData (a : List (α × Bool)) := Σ a1 a2, PLift (is_false a1 ∧ is_true a2 ∧ a = a1 ++ a2)
 
@@ -98,7 +86,7 @@ def NegPosData.singleton : NegPosData ([a]) := by
   match a with
   | (a1, false) => use [(a1,false)], []; simp [is_false]; constructor; trivial
   | (a1, true) => use [], [(a1, true)]; simp [is_true]; constructor; trivial
-  
+
 def NegPosData.of_false (h : is_false L) : NegPosData L := by
   use L, []
   exact ⟨⟨h, is_true_nil, by simp⟩⟩
@@ -132,32 +120,18 @@ def NegPosData.tail (h : NegPosData (head :: t)) : NegPosData t := by
 
 noncomputable def NegPosData.of_append (h : NegPosData (a++b)) : NegPosData a × NegPosData b := by
   rcases h with ⟨a1, a2, a1_false, a2_true, ha⟩
-  rcases ListC.append_eq_append ha with ⟨to_middle, ⟨spec⟩⟩ | ⟨to_middle, ⟨spec⟩⟩
-  · constructor
-    · rw [spec.1] at ha
-      simp only [List.append_assoc, List.append_cancel_left_eq] at ha
-      rw [spec.1]
-      use a1, to_middle
-      constructor
-      constructor
-      · exact a1_false
-      constructor
-      · rw [← ha] at a2_true
-        exact (is_true_of_append a2_true).1
-      rfl
-    apply NegPosData.of_true
-    rw [spec.2] at a2_true
-    exact (is_true_of_append a2_true).2
+  rcases List.appendEqAppendCases ha with ⟨to_middle, ⟨spec⟩⟩ | ⟨to_middle, ⟨spec⟩⟩
+  · rw [spec.1] at a1_false
+    constructor
+    · apply NegPosData.of_false
+      exact (is_false_of_append a1_false).1
+    use to_middle, a2
+    exact ⟨⟨(is_false_of_append a1_false).2, a2_true, spec.2⟩⟩
+  rw [spec.2] at a2_true
   constructor
-  · apply NegPosData.of_false
-    rw [← spec.1] at a1_false
-    exact (is_false_of_append a1_false).1
-  use to_middle, a2
-  constructor
-  constructor
-  · rw [← spec.1] at a1_false
-    exact fun _ hx => a1_false _ (List.mem_append_right _ hx)
-  exact ⟨a2_true, spec.right⟩
+  · use a1, to_middle
+    exact ⟨⟨a1_false, (is_true_of_append a2_true).1, spec.1⟩⟩
+  apply NegPosData.of_true (is_true_of_append a2_true).2
 
 def toSignedOptionList_NegPosData (h : NegPosData a) : NegPosData (to_SignedOptionList a) := by
   rcases h with ⟨a1, a2, ⟨spec⟩⟩

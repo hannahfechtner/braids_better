@@ -1,4 +1,4 @@
-import BraidProject.ConstructiveBasics.List
+import BraidProject.DataCarrying.List
 import BraidProject.PartialGrid.Basic
 
 namespace Braid
@@ -36,16 +36,18 @@ noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vert
   | horizontal_append_one g1 g2 g1_ih g2_ih =>
     rename_i a1 b1 bot1 up1 b2 bot2 mid2 up2
     intro b₃ b₄ b_is b₃_len b₄_len
-    rcases List.append_eq_append_sum b_is with ⟨from_middle, one, two⟩ | ⟨to_middle, one, two⟩
-    · rcases List.cases_C from_middle with ⟨⟨silly⟩⟩ | ⟨⟨fm_l⟩⟩
-      · left
-        rw [silly, List.append_nil] at one
-        rw [silly, List.nil_append] at two
+    rcases List.appendEqAppendCases b_is with ⟨from_middle, one, two⟩ | ⟨to_middle, one, two⟩
+    · match from_middle with
+      | [] =>
+        left
+        rw [List.append_nil] at one
+        rw [List.nil_append] at two
         rw [one, ← two]
         use up1, bot1, [], bot2, mid2, g1, g2
         simp only [List.append_assoc, List.append_nil, PartialGrid.length]
         exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
-      rcases g2_ih _ _ two fm_l b₄_len with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
+      | fm1 :: fm2 =>
+      rcases g2_ih _ _ two (by simp) b₄_len with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
       · left
         rw [one]
         use mid, (bot1 ++ c1), d1, c2, d2, PartialGrid.horizontal_append_one g1 h1, h2
@@ -56,15 +58,17 @@ noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vert
       rw [one]
       use d1, PartialGrid.horizontal_append_one g1 h3
       exact ⟨⟨by rw [PartialGrid.length, h_len.1, PartialGrid.length]⟩, end_is⟩
-    rcases List.cases_C to_middle with ⟨⟨silly⟩⟩ | ⟨⟨tm_l⟩⟩
-    · left
-      rw [silly, List.append_nil] at one
-      rw [silly, List.nil_append] at two
+    match to_middle with
+    | [] =>
+      left
+      rw [List.append_nil] at one
+      rw [List.nil_append] at two
       rw [← one, two]
       use up1, bot1, [], bot2, mid2, g1, g2
       simp only [PartialGrid.length, List.append_nil, List.append_assoc]
       exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
-    rcases g1_ih _ _ one b₃_len tm_l with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
+    | tm1 :: tm2 =>
+    rcases g1_ih _ _ one b₃_len (by simp) with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
     · left
       rw [two]
       use mid, c1, d1
@@ -88,16 +92,18 @@ noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vert
   | horizontal_append g1 g2 h g1_ih g2_ih =>
     rename_i a1 b1 bot1 mid1 up1 b2 bot2 mid2 up2
     intro b₃ b₄ b_is b₃_len b₄_len
-    rcases List.append_eq_append_sum b_is with ⟨from_middle, one, two⟩ | ⟨to_middle, one, two⟩
-    · rcases List.cases_C from_middle with ⟨⟨silly⟩⟩ | ⟨⟨fm_l⟩⟩
-      · left
-        rw [silly, List.append_nil] at one
-        rw [silly, List.nil_append] at two
+    rcases List.appendEqAppendCases b_is with ⟨from_middle, one, two⟩ | ⟨to_middle, one, two⟩
+    · match from_middle with
+      | [] =>
+        left
+        rw [List.append_nil] at one
+        rw [List.nil_append] at two
         rw [one, ← two]
         use up1, bot1, mid1, bot2, mid2, g1, g2
         simp only [PartialGrid.length, List.append_assoc]
         exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
-      rcases g2_ih _ _ two fm_l b₄_len with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
+      | fm1 :: fm2 =>
+      rcases g2_ih _ _ two (by simp) b₄_len with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
       · left
         rw [one]
         use mid, bot1, (mid1 ++ c1 ++ d1), c2, d2, PartialGrid.horizontal_append g1 h1 h, h2
@@ -111,15 +117,17 @@ noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vert
       refine ⟨⟨by rw [PartialGrid.length, h_len.1, PartialGrid.length]⟩, end_is.1, ⟨?_⟩⟩
       rw [end_is.2.1]
       simp only [List.append_assoc]
-    rcases List.cases_C to_middle with ⟨⟨silly⟩⟩ | ⟨⟨tm_l⟩⟩
-    · left
-      rw [silly, List.append_nil] at one
-      rw [silly, List.nil_append] at two
+    match to_middle with
+    | [] =>
+      left
+      rw [List.append_nil] at one
+      rw [List.nil_append] at two
       rw [← one, two]
       use up1, bot1, mid1, bot2, mid2, g1, g2
       simp only [PartialGrid.length, List.append_assoc]
       exact ⟨⟨trivial⟩, ⟨trivial⟩⟩
-    rcases g1_ih _ _ one b₃_len tm_l with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
+    | tm1 :: tm2 =>
+    rcases g1_ih _ _ one b₃_len (by simp) with ⟨mid, c1, d1, c2, d2, h1, h2, ⟨long⟩, ⟨h_len⟩⟩ | bad
     · left
       rw [two]
       use mid, c1, d1
@@ -151,13 +159,11 @@ noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vert
           rw [List.append_nil, List.append_nil, List.append_nil] at long
           have hc1 : c1.length > 0 := by
             match c1 with
-            | [] =>
-              exact (bottom_middle_frontier_not_both_nil h1 rfl rfl).elim
+            | [] => exact (bottom_middle_frontier_not_both_nil h1 rfl rfl).elim
             | co :: ct => simp
           have hc2 : c2.length > 0 := by
              match c2 with
-            | [] =>
-              exact (bottom_middle_frontier_not_both_nil h2 rfl rfl).elim
+            | [] => exact (bottom_middle_frontier_not_both_nil h2 rfl rfl).elim
             | co :: ct => simp
           rcases g2_ih _ _ long hc1 hc2 with ⟨mid2, c3, d3, c4, d4, i1, i2, long1, len1⟩ | bad
           · use mid2 ++ mid, c3, d3, c4, d4,

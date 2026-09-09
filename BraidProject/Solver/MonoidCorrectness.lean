@@ -472,7 +472,7 @@ theorem correct_one_dir' (h : monoid_solver a b) : BraidMonoidInf.mk a =
       apply SemiThueDataDerivation.toSemiThueData at this
       have empty_to_sink : ([] : List (ℕ × Bool)) = (to_horizontal_edge_no_epsilon [] ++ to_vertical_edge_no_epsilon []) := rfl
       rw [empty_to_sink] at this
-      have := Grid.braid_eq_of_grid (grid_of_rev this)
+      have := Grid.braid_monoid_eq_of_grid (grid_of_rev this)
       simp only [map_mul, mul_left_inj] at this
       exact this
 

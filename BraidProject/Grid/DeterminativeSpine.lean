@@ -1,6 +1,8 @@
-import BraidProject.Grids'
+import BraidProject.Grid.Basic
 set_option maxRecDepth 10000
-open FreeMonoid Braid
+open FreeMonoid
+
+namespace Braid
 
 namespace Grid
 
@@ -141,7 +143,7 @@ private theorem generator_generator_close_helper (h : grid a b c d) (ha : a = of
   | adjacent i k h =>
     rw [FreeMonoid.of_injective ha, FreeMonoid.of_injective hb]
     simp only [and_self]
-  | separated i j h => 
+  | separated i j h =>
     rw [FreeMonoid.of_injective ha, FreeMonoid.of_injective hb] at h
     aesop
   | vertical h1 h2 h1_ih h2_ih =>
@@ -205,3 +207,4 @@ def generator_generator_apart (h : grid (of i) (of j) c d) (dist : i.dist j > 1)
 
 end DeterminativeSpine
 end Grid
+end Braid

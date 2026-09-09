@@ -137,8 +137,8 @@ theorem reverse_reverse : reverse_braid (reverse_braid a) = a := by
   induction a
   rw [reverse_braid_mk, reverse_braid_mk, FreeMonoid.reverse_reverse]
 
-theorem rel_reverse_reverse_iff : PresentedMonoid.rel braid_monoid_rels_inf a1.reverse b1.reverse ↔
-  PresentedMonoid.rel braid_monoid_rels_inf a1 b1 := by
+theorem rel_reverse_reverse_iff : BraidMonoidInf.rel a1.reverse b1.reverse ↔
+  BraidMonoidInf.rel a1 b1 := by
   have : ∀ a1 b1, PresentedMonoid.rel braid_monoid_rels_inf a1 b1 →
       PresentedMonoid.rel braid_monoid_rels_inf a1.reverse b1.reverse := by
     intro a1 b1 h
@@ -152,6 +152,7 @@ theorem rel_reverse_reverse_iff : PresentedMonoid.rel braid_monoid_rels_inf a1.r
     | mul _ _ h1 h2 =>
       rw [reverse_mul, reverse_mul]
       exact PresentedMonoid.mul h2 h1
+  unfold BraidMonoidInf.rel
   grind [FreeMonoid.reverse_reverse]
 
 theorem reverse_eq_reverse_iff : a = b ↔ reverse_braid a = reverse_braid b := by
@@ -163,7 +164,7 @@ theorem reverse_eq_reverse_iff : a = b ↔ reverse_braid a = reverse_braid b := 
   simp only [reverse_braid_mk] at h
   exact PresentedMonoid.sound (rel_reverse_reverse_iff.mp (PresentedMonoid.exact h))
 
-theorem singleton_eq (h : BraidMonoidInf.mk (of i) = BraidMonoidInf.mk a) : a = of i := by
+theorem eq_singleton (h : BraidMonoidInf.mk (of i) = BraidMonoidInf.mk a) : a = of i := by
   have h1 := congrArg generators h
   apply congrArg length at h
   rw [length_mk, length_mk, length_of] at h
@@ -172,7 +173,7 @@ theorem singleton_eq (h : BraidMonoidInf.mk (of i) = BraidMonoidInf.mk a) : a = 
   rw [generators_mk, symbols_of, Finset.singleton_inj] at h1
   rw [h1]
 
-theorem length_two_eq {j k : ℕ} (h : BraidMonoidInf.mk (of j * of k) = BraidMonoidInf.mk v') :
+theorem eq_length_two {j k : ℕ} (h : BraidMonoidInf.mk (of j * of k) = BraidMonoidInf.mk v') :
     v' = (FreeMonoid.of j * FreeMonoid.of k) ∨ v' = (FreeMonoid.of k * FreeMonoid.of j) := by
   have h1 := h
   apply congrArg length at h
@@ -187,7 +188,7 @@ theorem length_two_eq {j k : ℕ} (h : BraidMonoidInf.mk (of j * of k) = BraidMo
   have : k ∈ ({c, d} : Finset ℕ) := by grind
   grind
 
-theorem alternating_length_three_eq {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * of k * of j)⟧ =
+theorem eq_alternating_length_three {j k : ℕ} (h : j.dist k = 1) : ⟦(of j * of k * of j)⟧ =
    (⟦v'⟧ : BraidMonoidInf) → v' = of j * of k * of j ∨ v' = of k * of j * of k := by
   have H : ∀ t, rel t v' → t = of j * of k * of j ∨ t = of k * of j * of k →
       v' = of j * of k * of j ∨ v' = of k * of j * of k := by
@@ -296,7 +297,7 @@ theorem comm_mk {j k : ℕ} (h : j.dist k >= 2) :
 theorem braid_mk {j k : ℕ} (h : j.dist k = 1) :
     BraidMonoidInf.mk (of j * of k * of j) = BraidMonoidInf.mk (of k * of j * of k) := by
   apply PresentedMonoid.sound
-  rcases or_dist_iff_eq.mp h
+  rcases Nat.eq_dist_iff.mp h
   · apply PresentedMonoid.rels_alone
     rename_i k_is
     rw [← k_is]
@@ -308,7 +309,7 @@ theorem braid_mk {j k : ℕ} (h : j.dist k = 1) :
 
 theorem braid_rel {j k : ℕ} (h : j.dist k = 1) :
     BraidMonoidInf.rel (of j * of k * of j) (of k * of j * of k) := by
-  rcases or_dist_iff_eq.mp h
+  rcases Nat.eq_dist_iff.mp h
   · apply PresentedMonoid.rels_alone
     rename_i k_is
     rw [← k_is]

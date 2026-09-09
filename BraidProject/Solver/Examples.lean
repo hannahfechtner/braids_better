@@ -20,7 +20,6 @@ def foo1 := (reverse_word [(1, false), (1, false), (2, false), (2, false), (3, t
   [(3, true), (2, true), (3, true), (0, false)],
   [(2, true), (3, true), (2, true), (0, false)]] : List (List ((ℕ × Bool))))
 
-
 #show_braid_word_help ([foo1,
   [(3, true), (2, true), (3, true), (0, false)],
   [(2, true), (3, true), (2, true), (0, false)]] : List (List ((ℕ × Bool))))

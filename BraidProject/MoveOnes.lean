@@ -1,4 +1,4 @@
-import BraidProject.SemiThue_C
+import BraidProject.DataCarrying.SemiThue
 import BraidProject.Relations
 import BraidProject.TrueFalse_C
 import BraidProject.Irreducibility

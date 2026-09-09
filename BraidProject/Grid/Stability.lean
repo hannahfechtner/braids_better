@@ -1,9 +1,9 @@
-import BraidProject.GridsTwo'
-
-open FreeMonoid Grid DeterminativeSpine
+import BraidProject.Grid.DeterminativeSpine
 
 namespace Braid
 namespace Grid
+
+open FreeMonoid Nat DeterminativeSpine
 
 def stable (a b : FreeMonoid ℕ) := ∀ c d, grid a b c d → ∀ a' b',
   BraidMonoidInf.mk a = .mk a' → BraidMonoidInf.mk b = .mk b' → ∃ c' d', grid a' b' c' d' ∧
@@ -47,14 +47,14 @@ private theorem stable_one_word : stable 1 v := stable_swap stable_word_one
 private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
     stable (FreeMonoid.of i) (FreeMonoid.of j * FreeMonoid.of k) := by
   intro c d grid_abcd a' b' ha' hb'
-  rw [BraidMonoidInf.singleton_eq ha']
-  rcases BraidMonoidInf.length_two_eq hb' with rfl | rfl
+  rw [BraidMonoidInf.eq_singleton ha']
+  rcases BraidMonoidInf.eq_length_two hb' with rfl | rfl
   · use c, d
   rcases splittable_vertically grid_abcd (of j) (of k) rfl with ⟨u, c₁, c₂, g1, g2, rfl⟩
-  rcases trichotomous_dist i j with ij_dist_ge_two | ij_dist_eq_one | ij_eq
+  rcases dist_trichotomy i j with ij_dist_ge_two | ij_dist_eq_one | ij_eq
   · have ⟨hc₁, hu⟩ := generator_generator_apart g1 ij_dist_ge_two
     rw [hu] at g2
-    rcases trichotomous_dist i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
+    rcases dist_trichotomy i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
     · have ⟨hc₂, hd⟩ := generator_generator_apart g2 ik_dist_ge_two
       use of k * of j, of i
       rw [hd, hc₁, hc₂]
@@ -83,14 +83,14 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
     rw [hu] at g2
     rw [hc₁]
     rcases splittable_horizontally g2 _ _ rfl with ⟨m, d₁, d₂, g3, g4, hd⟩
-    rcases trichotomous_dist i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
+    rcases dist_trichotomy i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
     · use of k * of j * of i, of i * of j
       constructor
-      · have := grid.horizontal (.separated i k ik_dist_ge_two) (.adjacent i j ij_dist_eq_one)
-        exact this
+      · rw [mul_assoc]
+        exact grid.horizontal (.separated i k ik_dist_ge_two) (.adjacent i j ij_dist_eq_one)
       have ⟨hm, hd₁⟩ := generator_generator_apart g3 ik_dist_ge_two
       rw [hm] at g4
-      rcases trichotomous_dist j k with jk_dist_ge_two | jk_dist_eq_one | jk_eq
+      rcases dist_trichotomy j k with jk_dist_ge_two | jk_dist_eq_one | jk_eq
       · have ⟨hc₂, hd₂⟩ := generator_generator_apart g4 jk_dist_ge_two
         rw [hc₂, hd, hd₁, hd₂]
         constructor
@@ -131,7 +131,7 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
   have ⟨hc₂, hd⟩ := one_generator g2
   rw [hc₁, hc₂, hd]
   rw [← ij_eq]
-  rcases trichotomous_dist i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
+  rcases dist_trichotomy i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
   · use of k, 1
     constructor
     · exact grid.horizontal (.separated i k ik_dist_ge_two) (.top_left i)
@@ -150,16 +150,16 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
 private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) :
     stable (FreeMonoid.of i) (of j * of k * of j) := by
   intro c d grid_abcd a' b' ha hb
-  rw [BraidMonoidInf.singleton_eq ha]
-  rcases BraidMonoidInf.alternating_length_three_eq h hb with rfl | rfl
+  rw [BraidMonoidInf.eq_singleton ha]
+  rcases BraidMonoidInf.eq_alternating_length_three h hb with rfl | rfl
   · use c, d
   rcases splittable_vertically grid_abcd (of j * of k) (of j) rfl with
     ⟨u, c₁, c₂, g1, g2, rfl⟩
   rcases splittable_vertically g1 (of j) (of k) rfl with ⟨m, u₁, u₂, g3, g4, rfl⟩
-  rcases trichotomous_dist i j with ij_ge_two_apart | ij_one_apart | ij_eq
+  rcases dist_trichotomy i j with ij_ge_two_apart | ij_one_apart | ij_eq
   · have ⟨hu₁, hm⟩ := generator_generator_apart g3 ij_ge_two_apart
     rw [hm] at g4
-    rcases trichotomous_dist i k with ik_ge_two_apart | ik_one_apart | ik_eq
+    rcases dist_trichotomy i k with ik_ge_two_apart | ik_one_apart | ik_eq
     · have ⟨hu₂, hu⟩ := generator_generator_apart g4 ik_ge_two_apart
       rw [hu] at g2
       have ⟨c₂, d⟩ := generator_generator_apart g2 ij_ge_two_apart
@@ -197,7 +197,7 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
   · have ⟨hu₁, hm⟩ := generator_generator_close g3 ij_one_apart
     rw [hm] at g4
     rcases splittable_horizontally g4 (of i) (of j) rfl with ⟨n, u₃, u₄, g5, g6, hu⟩
-    rcases trichotomous_dist i k with ik_ge_two_apart | ik_one_apart | ik_eq
+    rcases dist_trichotomy i k with ik_ge_two_apart | ik_one_apart | ik_eq
     · have ⟨hn, hu₃⟩ := generator_generator_apart g5 ik_ge_two_apart
       rw [hn] at g6
       have ⟨hu₂, hu₄⟩ := generator_generator_close g6 h
@@ -254,16 +254,15 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
   rw [ij_eq]
   use of k * of j, 1
   constructor
-  · apply grid.horizontal (.adjacent j k h)
-    apply grid.horizontal (.vertical (.top_left j) (.sides k))
-    apply grid.vertical (.top_bottom k) (.top_left k)
+  · apply grid.horizontal (.adjacent j k h) <| grid.horizontal (.vertical (.top_left j) (.sides k))
+      (grid.vertical (.top_bottom k) (.top_left k))
   exact ⟨rfl, rfl⟩
 
 private theorem stable_generator_elem_braid_rels {w y : FreeMonoid ℕ} (h : braid_monoid_rels_inf w y) :
     ∀ a, stable (of a) w := by
   rcases h
-  · exact fun a ↦ stable_generator_braid_rel a _ _ dist_succ
-  exact fun a ↦ stable_generator_comm_rel a _ _ (or_dist_iff.mpr (Or.inl (by assumption)))
+  · exact fun a ↦ stable_generator_braid_rel a _ _ dist_self_add_one
+  exact fun a ↦ stable_generator_comm_rel a _ _ (le_dist_iff.mpr (Or.inl (by assumption)))
 
 private theorem stable_generator_elem_braid_rels_symm {w y : FreeMonoid ℕ} (h : braid_monoid_rels_inf y w) :
     ∀ a, stable (of a) w := by
@@ -271,7 +270,7 @@ private theorem stable_generator_elem_braid_rels_symm {w y : FreeMonoid ℕ} (h 
   · intro a
     apply stable_generator_braid_rel
     rw [Nat.dist_comm]
-    exact dist_succ
+    exact dist_self_add_one
   exact fun a => stable_generator_comm_rel a _ _ (by grind [Nat.dist])
 
 private theorem stable_generator_elem_braid_rels_both {w y : FreeMonoid ℕ}

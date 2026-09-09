@@ -56,7 +56,7 @@ theorem grid_top_left_word (u : FreeMonoid ℕ) : grid u u 1 1 := by
       (grid.horizontal (grid_sides_word y) two)
 
 /-- relating grid equivalence to braid equivalence, one way -/
-theorem braid_eq_of_grid (h : grid a b c d) :
+theorem braid_monoid_eq_of_grid (h : grid a b c d) :
     BraidMonoidInf.mk (a * d) = BraidMonoidInf.mk (b * c) := by
   induction h with
   | empty => rfl
@@ -71,7 +71,7 @@ theorem braid_eq_of_grid (h : grid a b c d) :
       exact ConGen.Rel.of _ _ (braid_rels_m_inf.adjacent _)
   | separated i j h =>
       apply PresentedMonoid.sound
-      rcases or_dist_iff.mp h with h1 | h2
+      rcases le_dist_iff.mp h with h1 | h2
       · apply ConGen.Rel.of
         exact braid_rels_m_inf.separated _ _ h1
       apply ConGen.Rel.symm
@@ -90,7 +90,7 @@ theorem braid_eq_of_grid (h : grid a b c d) :
       exact (ConGen.Rel.mul (ConGen.Rel.refl _) (Quotient.exact h2_ih))
 
 theorem grid_diag_length_eq (h : grid a b c d) : a.length + d.length = b.length + c.length := by
-  have H := congr_arg BraidMonoidInf.length (braid_eq_of_grid h)
+  have H := congr_arg BraidMonoidInf.length (braid_monoid_eq_of_grid h)
   simp only [BraidMonoidInf.length_mk, length_mul] at H
   exact H
 
@@ -172,13 +172,13 @@ theorem splittable_vertically_of_grid {a b c d : FreeMonoid ℕ} (h : grid a b c
     rcases (FreeMonoid.prod_eq_of b_is.symm) with ha | hb
     · rw [ha.1, ha.2]
       rename_i k l m n
-      rcases or_dist_iff_eq.mp l with k_is | i_is
+      rcases eq_dist_iff.mp l with k_is | i_is
       · use of i, 1, of (i+1) * of i
         rw [← k_is]
         constructor
         · exact grid.sides i
         constructor
-        · exact grid.adjacent i (i + 1) dist_succ
+        · exact grid.adjacent i (i + 1) dist_self_add_one
         rfl
       rw [← i_is]
       use of (k + 1), 1, of k * of (k + 1)
@@ -187,14 +187,14 @@ theorem splittable_vertically_of_grid {a b c d : FreeMonoid ℕ} (h : grid a b c
       constructor
       · apply grid.adjacent
         rw [Nat.dist_comm]
-        exact dist_succ
+        exact dist_self_add_one
       rfl
     · rw [hb.1, hb.2]
       rename_i k l m n
-      rcases or_dist_iff_eq.mp l with k_is | i_is
+      rcases eq_dist_iff.mp l with k_is | i_is
       · rw [← k_is]
         use of i * of (i+1), of (i+1) * of i, 1
-        exact ⟨grid.adjacent i (i + 1) dist_succ, ⟨grid_sides_word _, rfl⟩⟩
+        exact ⟨grid.adjacent i (i + 1) dist_self_add_one, ⟨grid_sides_word _, rfl⟩⟩
       rw [← i_is]
       use of (k + 1) * of k, of k * of (k + 1), 1
       constructor
@@ -265,20 +265,20 @@ theorem splittable_horizontally_of_grid {a b c d : FreeMonoid ℕ} (h : grid a b
     rcases FreeMonoid.prod_eq_of b_is.symm with ha | hb
     · rw [ha.1, ha.2]
       rename_i dist _ _
-      rcases or_dist_iff_eq.mp dist with k_is | i_is
+      rcases eq_dist_iff.mp dist with k_is | i_is
       · use of (i+1), 1, of i * of (i + 1)
         rw [← k_is]
-        exact ⟨grid.top_bottom _, ⟨grid.adjacent i (i + 1) dist_succ, rfl⟩⟩
+        exact ⟨grid.top_bottom _, ⟨grid.adjacent i (i + 1) dist_self_add_one, rfl⟩⟩
       rename_i k _ _
       rw [← i_is]
       use of k, 1, of (k + 1) * of k
       exact ⟨grid.top_bottom _, ⟨grid.adjacent _ _ (by unfold Nat.dist; simp), rfl⟩⟩
     rw [hb.1, hb.2]
     rename_i k dist _ _
-    rcases or_dist_iff_eq.mp dist with k_is | i_is
+    rcases eq_dist_iff.mp dist with k_is | i_is
     · rw [← k_is]
       use of (i + 1) * of i, of i * of (i + 1), 1
-      exact ⟨grid.adjacent i (i + 1) dist_succ, ⟨grid_top_bottom_word _, rfl⟩⟩
+      exact ⟨grid.adjacent i (i + 1) dist_self_add_one, ⟨grid_top_bottom_word _, rfl⟩⟩
     rw [← i_is]
     use of k * of (k + 1), of (k + 1) * of k, 1
     exact ⟨grid.adjacent _ _ (by unfold Nat.dist; simp), ⟨grid_top_bottom_word _, rfl⟩⟩

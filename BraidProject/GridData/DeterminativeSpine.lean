@@ -1,5 +1,5 @@
-import BraidProject.Grids_C
-import BraidProject.GridsTwo'
+import BraidProject.GridData.Basic
+import BraidProject.Grid.DeterminativeSpine
 
 open FreeMonoid
 
@@ -14,8 +14,6 @@ theorem one_one : GridData a b c d → a = 1 → b = 1 → (c = 1 ∧ d = 1) := 
   have H := to_grid h
   rw [one, two] at H
   apply Grid.DeterminativeSpine.one_one H
-
---theorem one_one (h1 : GridData 1 1 c d) : c = 1 ∧ d = 1 := one_one_helper h1 rfl rfl
 
 theorem one_generator (h : GridData a b c d) : ∀ {i}, a = 1 → b = FreeMonoid.of i → c = of i ∧ d = 1 := by
   intro i ha hb
@@ -67,12 +65,6 @@ theorem generator_generator_apart {a b c d : FreeMonoid ℕ} (h : GridData a b c
   have H := to_grid h
   rw [ha, hb] at H
   apply Grid.DeterminativeSpine.generator_generator_apart H hij
-
-theorem braid_eq_of_GridData_empty_sink : GridData a b 1 1 → PresentedMonoid.rel braid_monoid_rels_inf a b := by
-  intro h
-  apply PresentedMonoid.exact
-  rw [← mul_one a, ← mul_one b]
-  exact braid_eq h
 
 end DeterminativeSpine
 end GridData

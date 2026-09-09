@@ -81,7 +81,7 @@ theorem concat_mk : BraidMonoidFin.mk n a = BraidMonoidFin.mk n b →
 -- theorem comm {j k : Fin n} (h1 : n >= 3) (h : j - k >= (⟨2, h1⟩ : Fin n)) :
 --     BraidMonoidFin.mk n (FreeMonoid.of j * FreeMonoid.of k) = BraidMonoidFin.mk n (FreeMonoid.of k * FreeMonoid.of j) := by
 --   apply PresentedMonoid.sound
---   -- rcases or_dist_iff.mp h
+--   -- rcases le_dist_iff.mp h
 --   -- · apply PresentedMonoid.rel_alone
 --   --   apply braid_rels_m_inf.separated
 --   --   assumption
@@ -95,7 +95,7 @@ theorem concat_mk : BraidMonoidFin.mk n a = BraidMonoidFin.mk n b →
 
 -- theorem comm_rel {j k : Fin n} (h1 : n≥ 3) (h : j - k >= ⟨2, h1⟩) :
 --     BraidMonoidFin.rel n (FreeMonoid.of j * FreeMonoid.of k) (FreeMonoid.of k * FreeMonoid.of j) := by sorry
-  -- rcases or_dist_iff.mp h
+  -- rcases le_dist_iff.mp h
   -- · apply PresentedMonoid.rel_alone
   --   apply braid_rels_m_inf.separated
   --   assumption
@@ -106,7 +106,7 @@ theorem concat_mk : BraidMonoidFin.mk n a = BraidMonoidFin.mk n b →
 -- theorem braid {j k : ℕ} (h : j.dist k = 1) :
 --     BraidMonoidFin.mk n (of j * of k * of j) = BraidMonoidFin.mk n (of k * of j * of k) := by
 --   apply PresentedMonoid.sound
---   rcases or_dist_iff_eq.mp h
+--   rcases eq_dist_iff.mp h
 --   · apply PresentedMonoid.rel_alone
 --     rename_i k_is
 --     rw [← k_is]
@@ -118,7 +118,7 @@ theorem concat_mk : BraidMonoidFin.mk n a = BraidMonoidFin.mk n b →
 
 -- theorem braid_rel {j k : ℕ} (h : j.dist k = 1) :
 --     BraidMonoidFin.rel n (of j * of k * of j) (of k * of j * of k) := by
---   rcases or_dist_iff_eq.mp h
+--   rcases eq_dist_iff.mp h
 --   · apply PresentedMonoid.rel_alone
 --     rename_i k_is
 --     rw [← k_is]

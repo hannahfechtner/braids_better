@@ -1,4 +1,4 @@
-import BraidProject.NewListFacts
+import BraidProject.Additions.List
 import BraidProject.PartialGrid.FrontierPossibilities
 import BraidProject.PartialGrid.ToGrid
 
@@ -96,7 +96,7 @@ theorem frontier_prefix (h : GridData i j k l)
                 have := right_frontier_spec_from_split_horizontally h1 p1 p2 rfl hf
                 aesop
               rw [to_vertical_edge_no_epsilon_mul, this]
-              exact List.suffix_of_append h1_ih.2.1
+              exact List.suffix_append_of_suffix h1_ih.2.1
             linarith
           | rfirst :: rrest =>
             rcases middle_frontier_spec p1 with ⟨⟨rfl⟩⟩ | ⟨d_head, d_body, d_tail, ⟨d_spec⟩⟩
@@ -126,13 +126,13 @@ theorem frontier_prefix (h : GridData i j k l)
             specialize h2_ih p3.1 ha₁
             simp only [toSignedList_append, toSignedList_toSignedOptionList, ← hr, toSignedList_nil,
               List.nil_suffix, true_and, forall_const] at h2_ih
-            exact ⟨h2_ih.1, List.suffix_of_append h1_ih.2.1,by linarith⟩
+            exact ⟨h2_ih.1, List.suffix_append_of_suffix h1_ih.2.1,by linarith⟩
         specialize h1_ih h3 ha₂ hb
         constructor
         · aesop
         rw [to_vertical_edge_no_epsilon_mul]
         constructor
-        · exact List.suffix_of_append h1_ih.2.1
+        · exact List.suffix_append_of_suffix h1_ih.2.1
         linarith
   | horizontal h1 h2 h1_ih h2_ih =>
     rename_i m n o p q r s t
@@ -193,7 +193,7 @@ theorem frontier_prefix (h : GridData i j k l)
                 have := bottom_frontier_spec_from_split_vertically h1 p1 p2 rfl hf
                 aesop
               rw [to_horizontal_edge_no_epsilon_mul, this]
-              exact List.prefix_of_append h1_ih.1
+              exact List.prefix_append_of_prefix h1_ih.1
             constructor
             · exact h2_ih.2.1
             linarith
@@ -216,7 +216,7 @@ theorem frontier_prefix (h : GridData i j k l)
               aesop
             rw [to_horizontal_edge_no_epsilon_mul, this]
             constructor
-            · exact List.prefix_of_append h1_ih.1
+            · exact List.prefix_append_of_prefix h1_ih.1
             have p3 := PartialGrid.extend_left_side_w_length p2 (SignedList.to_SignedOptionList (rfirst::rrest)) (
               SignedList.is_false_to_SignedOptionList rest_false) (by simp [SignedList.to_SignedOptionList])
             rw [p3.2.1]
@@ -227,7 +227,7 @@ theorem frontier_prefix (h : GridData i j k l)
         specialize h1_ih h3 ha hb₁
         constructor
         · rw [to_horizontal_edge_no_epsilon_mul]
-          exact List.prefix_of_append h1_ih.1
+          exact List.prefix_append_of_prefix h1_ih.1
         constructor
         · aesop
         linarith

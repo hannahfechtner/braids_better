@@ -4,7 +4,7 @@ namespace Braid
 
 open List SignedList SignedOptionList
 
-def distinct_pair_infix_eq (b_ne : b1 ≠ b2) (h : a ++ [b1, b2] ++ c = d ++ [b1, b2] ++ e) :
+def distinctPairInfixCases (b_ne : b1 ≠ b2) (h : a ++ [b1, b2] ++ c = d ++ [b1, b2] ++ e) :
   PLift (a = d ∧ c = e) ⊕ (Σ a1 a2, PLift (a = a1 ++ [b1, b2] ++ a2 ∧ d = a1 ∧ e = a2 ++ [b1, b2] ++ c)) ⊕
   (Σ c1 c2, PLift (c = c1 ++ [b1, b2] ++ c2 ∧ d = a ++ [b1, b2] ++ c1 ∧ e = c2)) := by
   induction a generalizing b1 b2 c d e
@@ -216,7 +216,7 @@ def giant_list_split {w : List (Option ℕ × Bool)}
     (Σ t1 t2, PLift (t = t1 ++ [(some c1, false), (some c2, true)] ++ t2 ∧
     e = toSignedList w ++ [(c1, false), (c2, true)] ++ toSignedList t1 ∧
     f = toSignedList t2)) := by
-  rcases distinct_pair_infix_eq (by simp) h with h1 | h2 | h3
+  rcases distinctPairInfixCases (by simp) h with h1 | h2 | h3
   · left; exact h1
   · rcases h2 with ⟨a1, a2, spec⟩
     rcases split_of_toSignedList_pair_infix spec.1.1.symm ptw with ⟨L3, L4, speckle⟩
@@ -246,7 +246,7 @@ noncomputable def rg_of_rev_rel' (d1)
   rw [← hwt.1] at pt_b
   have ptw : irreducible w := (irreducible_append (irreducible_append pt_b).1).1
   have ptt : irreducible t := (irreducible_append pt_b).2
-  rcases distinct_pair_infix_eq (by simp) b'_is with h1 | h2 | h3
+  rcases distinctPairInfixCases (by simp) b'_is with h1 | h2 | h3
   · use move_ones (w ++ d1 ++ t)
     constructor
     · apply SemiThueData.trans gr

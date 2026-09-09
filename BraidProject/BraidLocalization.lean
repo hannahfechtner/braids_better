@@ -8,6 +8,8 @@ import BraidProject.OreLocalizationCombined
 
 namespace Braid
 
+open Nat
+
 -- MOVE ME
 theorem freeMonoid_lift_freeGroup_of {a : FreeMonoid ℕ} : (FreeMonoid.lift FreeGroup.of) a =
   FreeGroup.mk (to_horizontal_edge_no_epsilon a) := by
@@ -96,9 +98,9 @@ theorem one_symm_is_really_the_same : mk braid_monoid_rels_inf a = mk braid_mono
     | of x y h2 =>
       cases h2 with
       | adjacent i =>
-        exact PresentedMonoid.rels_alone <| braid_rels_m_inf_one_symm.adjacent _ _ dist_succ
+        exact PresentedMonoid.rels_alone <| braid_rels_m_inf_one_symm.adjacent _ _ dist_self_add_one
       | separated i j h =>
-        exact PresentedMonoid.rels_alone <| braid_rels_m_inf_one_symm.separated _ _ (or_dist_iff.mpr (Or.inl h))
+        exact PresentedMonoid.rels_alone <| braid_rels_m_inf_one_symm.separated _ _ (le_dist_iff.mpr (Or.inl h))
     | refl x => exact PresentedMonoid.refl
     | symm _ ih => exact PresentedMonoid.symm ih
     | trans _ _ ih1 ih2 => exact PresentedMonoid.trans ih1 ih2
@@ -110,11 +112,11 @@ theorem one_symm_is_really_the_same : mk braid_monoid_rels_inf a = mk braid_mono
   | of x y h =>
     cases h with
     | adjacent i j h =>
-      rcases or_dist_iff_eq.mp h with ⟨rfl⟩ | ⟨rfl⟩
+      rcases eq_dist_iff.mp h with ⟨rfl⟩ | ⟨rfl⟩
       · exact rels_alone (braid_monoid_rels_inf.adjacent _)
       exact PresentedMonoid.symm (rels_alone (braid_monoid_rels_inf.adjacent j))
     | separated i j h =>
-      rcases or_dist_iff.mp h with h | h
+      rcases le_dist_iff.mp h with h | h
       · exact rels_alone <| braid_monoid_rels_inf.separated _ _ h
       exact PresentedMonoid.symm <| rels_alone <| braid_monoid_rels_inf.separated _ _ h
     | basic i => exact BraidMonoidInf.exact rfl

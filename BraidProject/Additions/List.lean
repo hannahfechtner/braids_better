@@ -20,8 +20,8 @@ theorem IsPrefix.of_singleton (h : l <+: [a]) : l = [] ∨ l = [a] := by
   | [] => aesop
   | r1 :: r2 =>
     apply congr_arg List.length at hr
-    simp at hr
-    have H : l.length = 0 := by omega
+    simp only [length_append, length_cons, length_nil, zero_add] at hr
+    have : l.length = 0 := by omega
     aesop
 
 theorem IsPrefix.append_cases {a b c : List α} (h : a <+: b ++ c) : a <+: b ∨ ∃ a2, a2.length > 0 ∧
@@ -44,3 +44,30 @@ theorem IsPrefix.append_cases {a b c : List α} (h : a <+: b ++ c) : a <+: b ∨
     constructor
     · exact s1
     simp [s2]
+
+def append_singleton_eq_append_singleton (h : L1 ++ [a] = L2 ++ [b]) : L1 = L2 ∧ a = b := by
+  simp only [← concat_eq_append] at h
+  exact of_concat_eq_concat h
+
+theorem suffix_append_right (h : l1 <:+ l2) : l1 ++ l3 <:+ l2 ++ l3 := by
+  rcases h with ⟨rest, spec⟩
+  use rest
+  rw [← spec, List.append_assoc]
+
+theorem append_non_nil_eq_len_two (h1 : a.length > 0) (h2 : b.length > 0) (h3 : a ++ b = [c, d]) : a = [c] ∧ b = [d] := by
+  have H : ¬ a.length > 1 := by
+    intro h
+    apply congr_arg List.length at h3
+    simp only [length_append, length_cons, length_nil, Nat.zero_add, Nat.reduceAdd] at h3
+    omega
+  exact append_inj h3 (Nat.le_antisymm h1 (Nat.le_of_not_lt H)).symm
+
+theorem length_geq_one_eq_cons_cons (b) (h : a ++ b = c :: d :: e) (h2 : a.length > 1) : ∃ f, a = c :: d :: f := by
+  match a with
+  | [] => simp at h2
+  | a1 :: [] => simp at h2
+  | a1 :: a2 :: tail =>
+    use tail
+    grind
+
+end List

@@ -28,9 +28,9 @@ digraph "import_graph" {
   "BraidProject.Grids_C" -> "BraidProject.GridsTwo_C";
   "BraidProject.GridsTwo'" -> "BraidProject.GridsTwo_C";
   "BraidProject.GridsTwo'" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.Grids'" -> "BraidProject.GridsTwo'";
-  "BraidProject.Grids'" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.BraidMonoidInf" -> "BraidProject.Grids'";
+  "BraidProject.Grid" -> "BraidProject.GridsTwo'";
+  "BraidProject.Grid" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject.BraidMonoidInf" -> "BraidProject.Grid";
   "BraidProject.Solver_G" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.Solver_ST" -> "BraidProject.Solver_G";
   "BraidProject.OreLocalizationPresented" -> "BraidProject.Solver_G";
@@ -68,12 +68,12 @@ digraph "import_graph" {
   "BraidProject.TrueFalse_C" -> "BraidProject.PartialGrids_C";
   "BraidProject.NewListFacts" -> "BraidProject.PartialGrids_C";
   "BraidProject.Relations" -> "BraidProject.PartialGrids_C";
-  "BraidProject.FlipBraid'" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.BraidMonoidInf" -> "BraidProject.FlipBraid'";
-  "BraidProject.AcrossStrands'" -> "BraidProject.FlipBraid'";
+  "BraidProject.FlipBraid" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject.BraidMonoidInf" -> "BraidProject.FlipBraid";
+  "BraidProject.AcrossStrands" -> "BraidProject.FlipBraid";
   "BraidProject.CommonMultiples" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.FlipBraid'" -> "BraidProject.CommonMultiples";
-  "BraidProject.AcrossStrands'" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
+  "BraidProject.FlipBraid" -> "BraidProject.CommonMultiples";
+  "BraidProject.AcrossStrands" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.ToOption" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.TrueFalse_C" -> "BraidProject.ToOption";
   "BraidProject.ArtinTits" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
@@ -85,7 +85,7 @@ digraph "import_graph" {
   "BraidProject.Relations" -> "BraidProject.StepOne_C_basic_eq";
   "BraidProject.ToOption" -> "BraidProject.StepOne_C_basic_eq";
   "BraidProject.Grids_C" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
-  "BraidProject.Grids'" -> "BraidProject.Grids_C";
+  "BraidProject.Grid" -> "BraidProject.Grids_C";
   "BraidProject.Stability'" [style=filled, fillcolor="#e0e0e0", shape=ellipse];
   "BraidProject.GridsTwo'" -> "BraidProject.Stability'";
 }

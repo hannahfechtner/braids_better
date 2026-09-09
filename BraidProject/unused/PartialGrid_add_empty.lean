@@ -36,11 +36,11 @@ noncomputable def skeleton_one_one_empty (h : grid_style_trivial i j)
     Σ bot mid up, (h1 : PartialGrid a b bot mid up )× PLift (bot ++ mid ++ up = j) × PLift (h1.length = 0) := by
   rcases grid_style_trivial_means_new h with ⟨a1, b1, c1, d1, h_cell, i_is', j_is, len⟩
   use to_horizontal_edge c1, [], to_vertical_edge d1
-  have ab_is := List.append_eq_len_two ha hb ab.symm
+  have ab_is := List.append_non_nil_eq_len_two ha hb ab.symm
   rw [ab_is.1, ab_is.2]
   change _ = [(a3, false)] ++ [(b3, true)] at i_is
   rw [i_is'] at i_is
-  have happ := List.append_eq_len_two (by simp) (by simp) i_is.symm
+  have happ := List.append_non_nil_eq_len_two (by simp) (by simp) i_is.symm
   rw [happ.1, happ.2]
   rw [← to_vertical_edge_option_to_list, ← to_horizontal_edge_option_to_list]
   use PartialGrid.single_cell h_cell
