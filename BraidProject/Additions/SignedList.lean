@@ -92,7 +92,7 @@ theorem nil_of_is_true_and_is_false (h1 : SignedList.is_true m) (h2 : SignedList
     rw [H1] at H2
     simp at H2
 
-theorem eq_of_is_true_append_false_append_eq (ha : is_true a) (hb : is_true b)
+theorem parts_eq_of_false_singleton_infix_true_lists (ha : is_true a) (hb : is_true b)
     (h : a ++ [(c, false)] ++ d = b ++ [(e, false)] ++ f) : a = b ∧ c = e ∧ d = f := by
   have hab : a = b := by
     have h' := h
@@ -117,7 +117,7 @@ theorem eq_of_is_true_append_false_append_eq (ha : is_true a) (hb : is_true b)
   simp at h
   exact h
 
-theorem eq_of_is_false_append_true_append_eq (ha : is_false a) (hb : is_false b)
+theorem parts_eq_of_true_singleton_infix_false_lists (ha : is_false a) (hb : is_false b)
     (h : a ++ [(c, true)] ++ d = b ++ [(e, true)] ++ f) : a = b ∧ c = e ∧ d = f := by
   have hab : a = b := by
     have h' := h
@@ -142,16 +142,19 @@ theorem eq_of_is_false_append_true_append_eq (ha : is_false a) (hb : is_false b)
   simp at h
   exact h
 
-def to_SignedOptionList (L : List (ℕ × Bool)) : List (Option ℕ × Bool) := (List.map (fun x ↦ (some x.1, x.2)) L)
+def to_SignedOptionList (L : List (ℕ × Bool)) : List (Option ℕ × Bool) :=
+  (List.map (fun x ↦ (some x.1, x.2)) L)
 
 @[simp]
 theorem to_SignedOptionList_nil : to_SignedOptionList ([] : List (ℕ × Bool)) = [] := rfl
 
 @[simp]
-theorem to_SignedOptionList_cons : to_SignedOptionList ((a, b) :: tail) = (some a, b) :: to_SignedOptionList tail := rfl
+theorem to_SignedOptionList_cons : to_SignedOptionList ((a, b) :: tail) =
+  (some a, b) :: to_SignedOptionList tail := rfl
 
 @[simp]
-theorem to_SignedOptionList_append : to_SignedOptionList (a ++ b) = to_SignedOptionList a ++ to_SignedOptionList b := by
+theorem to_SignedOptionList_append : to_SignedOptionList (a ++ b) =
+    to_SignedOptionList a ++ to_SignedOptionList b := by
   simp [to_SignedOptionList]
 
 theorem is_false_to_SignedOptionList (ha : is_false a) : is_false (to_SignedOptionList a) := by

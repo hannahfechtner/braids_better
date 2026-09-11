@@ -6,23 +6,6 @@ open Relations
 
 namespace SemiThueData
 
-def length {a b : List α} {rels : List α → List α → Type}
-  (rels_length : {a : List α} → {b : List α} → rels a b → ℕ) (h : SemiThueData rels a b) : ℕ := match h with
-| SemiThueData.refl => 0
-| SemiThueData.step _ _ h1 => rels_length h1
-| SemiThueData.trans h1 h2 => length rels_length h1 + length rels_length h2
-
-@[simp]
-def length_refl : length rels_length (@SemiThueData.refl _ _ a) = 0 := rfl
-
-@[simp]
-def length_trans : length rels_length (SemiThueData.trans h1 h2) =
-    length rels_length h1 + length rels_length h2 := rfl
-
-@[simp]
-def length_step {c d : List α} :
-  length rels_length (SemiThueData.step c d h) = rels_length h := rfl
-
 def grid_style.length (h : SemiThueData grid_style a b) : ℕ :=
   SemiThueData.length Braid.Relations.grid_style.length h
 
@@ -43,11 +26,6 @@ end SemiThueData
 
 namespace SemiThueDataDerivation
 
-def length {rels : List α → List α → Type} (rels_length : {a : List α} → {b : List α} → rels a b → ℕ) (h : SemiThueDataDerivation rels a b) : ℕ := match h with
-| SemiThueDataDerivation.refl => 0
-| SemiThueDataDerivation.step h1 h2 => SemiThueDataDerivation.length rels_length h1 + rels_length h2
-
-
 def grid_style.length (h : SemiThueDataDerivation grid_style a b) : ℕ :=
   SemiThueDataDerivation.length Braid.Relations.grid_style.length h
 
@@ -60,68 +38,20 @@ theorem grid_style.length_step (h1 : SemiThueDataDerivation grid_style a (c ++ b
   grid_style.length (SemiThueDataDerivation.step h1 h2) = grid_style.length h1 + Braid.Relations.grid_style.length h2 := by
   rfl
 
-noncomputable def grid_style.length_trans
+noncomputable def grid_style.trans_with_length
   (h1 : SemiThueDataDerivation grid_style a b) (h2 : SemiThueDataDerivation grid_style b c) :
     {h3 : SemiThueDataDerivation grid_style a c //
     SemiThueDataDerivation.grid_style.length h3 =
     SemiThueDataDerivation.grid_style.length h1 + SemiThueDataDerivation.grid_style.length h2} := by
-  induction h2
-  · use h1
-    simp [SemiThueDataDerivation.length, SemiThueDataDerivation.grid_style.length]
-  rename_i d e f g h i j k
-  specialize k h1
-  rcases k with ⟨h4, len4⟩
-  cases j with
-  | basic n =>
-    use h4.step (grid_style.basic n)
-    rw [SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.grid_style.length,
-      SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.length,
-      ← SemiThueDataDerivation.grid_style.length,
-      len4, add_assoc]
-    rfl
-  | over n =>
-    use h4.step (grid_style.over n)
-    rw [SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.grid_style.length,
-      SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.length,
-      ← SemiThueDataDerivation.grid_style.length,
-      len4, add_assoc]
-    rfl
-  | up n =>
-    use h4.step (grid_style.up n)
-    rw [SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.grid_style.length,
-      SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.length,
-      ← SemiThueDataDerivation.grid_style.length,
-      len4, add_assoc]
-    rfl
-  | empty =>
-    use h4.step (grid_style.empty)
-    rw [SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.grid_style.length,
-      SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.length,
-      ← SemiThueDataDerivation.grid_style.length,
-      len4, add_assoc]
-    rfl
-  | apart h =>
-    use h4.step (grid_style.apart h)
-    rw [SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.grid_style.length,
-      SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.length,
-      ← SemiThueDataDerivation.grid_style.length,
-      len4, add_assoc]
-    rfl
-  | close h =>
-    use h4.step (grid_style.close h)
-    rw [SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.grid_style.length,
-      SemiThueDataDerivation.grid_style.length, SemiThueDataDerivation.length,
-      ← SemiThueDataDerivation.grid_style.length,
-      len4, add_assoc]
-    rfl
+  apply SemiThueDataDerivation.trans_with_length
 
 /-- A `@[simp]` version of `length_trans`'s `.2`, so `simp` rewrites the length of the result. -/
 @[simp]
-theorem grid_style.length_length_trans
+theorem grid_style.length_trans
   (h1 : SemiThueDataDerivation grid_style a b) (h2 : SemiThueDataDerivation grid_style b c) :
-    SemiThueDataDerivation.grid_style.length (SemiThueDataDerivation.grid_style.length_trans h1 h2).1 =
+    SemiThueDataDerivation.grid_style.length (SemiThueDataDerivation.grid_style.trans_with_length h1 h2).1 =
       SemiThueDataDerivation.grid_style.length h1 + SemiThueDataDerivation.grid_style.length h2 :=
-  (SemiThueDataDerivation.grid_style.length_trans h1 h2).2
+  (SemiThueDataDerivation.grid_style.trans_with_length h1 h2).2
 
 end SemiThueDataDerivation
 
@@ -129,32 +59,18 @@ noncomputable def SemiThueData.grid_style.toSemiThueDataDerivation_with_length {
     (h1 : SemiThueData grid_style a b ) :
     {h2 : SemiThueDataDerivation grid_style a b //
     SemiThueData.grid_style.length h1 = SemiThueDataDerivation.grid_style.length h2} := by
-  induction h1
-  · use SemiThueDataDerivation.refl
-    simp [SemiThueData.grid_style.length, SemiThueDataDerivation.grid_style.length,
-      SemiThueData.length, SemiThueDataDerivation.length]
-  · rename_i c d e f h
-    use SemiThueDataDerivation.step (SemiThueDataDerivation.refl) h
-    cases h
-    all_goals rw [SemiThueData.grid_style.length, SemiThueDataDerivation.grid_style.length]; rfl
-  rename_i ih1 ih2
-  use (SemiThueDataDerivation.grid_style.length_trans ih1.1 ih2.1).1
-  rw [SemiThueData.grid_style.length, SemiThueData.length, ← SemiThueData.grid_style.length, (SemiThueDataDerivation.grid_style.length_trans ih1.1 ih2.1).2,
-    ]
-  aesop
+  have := @SemiThueData.toSemiThueDataDerivation_with_length _ _ Braid.Relations.grid_style.length _ _ h1
+  use this.1
+  symm
+  exact this.2
 
 noncomputable def SemiThueDataDerivation.grid_style.toSemiThueData_with_length :
     (h1 : SemiThueDataDerivation grid_style a b) → (Σ h2 : SemiThueData grid_style a b,
     PLift (SemiThueData.grid_style.length h2 = SemiThueDataDerivation.grid_style.length h1)) := by
   intro h1
-  induction h1
-  · use SemiThueData.refl
-    constructor
-    rfl
-  rename_i h1 h2
-  use h2.1.trans (SemiThueData.step _ _ h1)
+  use @SemiThueDataDerivation.toSemiThueData_with_length _ _ Braid.Relations.grid_style.length _ _ h1
   constructor
-  simp [h2.2.1]
+  exact (@SemiThueDataDerivation.toSemiThueData_with_length _ _ Braid.Relations.grid_style.length _ _ h1).2
 
 noncomputable def SemiThueData.grid_style.empty_w_length : {h : SemiThueData grid_style [(none, false), (none, true)] [(none, true), (none, false)] // SemiThueData.grid_style.length h = 0}:= by
   rw [← List.nil_append [(none, false), (none, true)], ← List.nil_append [(none, true), (none, false)],
@@ -197,25 +113,25 @@ noncomputable def SemiThueData.grid_style.separated_w_length (i j : ℕ) (hd : N
   use SemiThueData.step _ _ (grid_style.apart hd)
   simp [SemiThueData.grid_style.length]; rfl
 
-noncomputable def SemiThueData.grid_style.cons_w_length (h : SemiThueData grid_style a b) :
-    {h1 : SemiThueData grid_style (c :: a) (c :: b) // SemiThueData.grid_style.length h1 = SemiThueData.grid_style.length h} := by
-  induction h with
-  | refl =>
-    use SemiThueData.refl
-    rfl
-  | step _ _ h =>
-    rw [← List.cons_append, ← List.cons_append]
-    use SemiThueData.step _ _ h
-    rfl
-  | trans h1 h2 ih1 ih2 =>
-    use SemiThueData.trans ih1.1 ih2.1
-    unfold SemiThueData.grid_style.length at ih1 ih2
-    simp [SemiThueData.grid_style.length, SemiThueData.length, ih1.2, ih2.2]
+-- noncomputable def SemiThueData.grid_style.cons_w_length (h : SemiThueData grid_style a b) :
+--     {h1 : SemiThueData grid_style (c :: a) (c :: b) // SemiThueData.grid_style.length h1 = SemiThueData.grid_style.length h} := by
+--   induction h with
+--   | refl =>
+--     use SemiThueData.refl
+--     rfl
+--   | step _ _ h =>
+--     rw [← List.cons_append, ← List.cons_append]
+--     use SemiThueData.step _ _ h
+--     rfl
+--   | trans h1 h2 ih1 ih2 =>
+--     use SemiThueData.trans ih1.1 ih2.1
+--     unfold SemiThueData.grid_style.length at ih1 ih2
+--     simp [SemiThueData.grid_style.length, SemiThueData.length, ih1.2, ih2.2]
 
-@[simp] theorem SemiThueData.grid_style.length_cons_w_length (h : SemiThueData grid_style a b) :
-    SemiThueData.grid_style.length (@SemiThueData.grid_style.cons_w_length _ _ c h).1 =
-      SemiThueData.grid_style.length h :=
-  (SemiThueData.grid_style.cons_w_length h).2
+-- @[simp] theorem SemiThueData.grid_style.length_cons_w_length (h : SemiThueData grid_style a b) :
+--     SemiThueData.grid_style.length (@SemiThueData.grid_style.cons_w_length _ _ c h).1 =
+--       SemiThueData.grid_style.length h :=
+--   (SemiThueData.grid_style.cons_w_length h).2
 
 noncomputable def SemiThueData.grid_style.append_left_w_length (c) (h : SemiThueData grid_style a b) :
   {h1 : SemiThueData grid_style (c ++ a) (c ++ b) // SemiThueData.grid_style.length h1 = SemiThueData.grid_style.length h} := by
@@ -223,6 +139,8 @@ noncomputable def SemiThueData.grid_style.append_left_w_length (c) (h : SemiThue
   · use h
     simp
   rename_i head tail ih
+  use ih.1.cons
+  convert SemiThueData.length_cons
   have H := @SemiThueData.grid_style.cons_w_length (tail ++ a) (tail ++ b) head ih.1
   use H.1
   erw [H.2, ih.2]

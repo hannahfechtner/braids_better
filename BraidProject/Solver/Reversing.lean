@@ -1,7 +1,6 @@
 import BraidProject.Relations
 import BraidProject.SemiThue
 import BraidProject.DataCarrying.SemiThue
-import BraidProject.TrueFalse_C
 import BraidProject.PartialGrid.Build
 
 namespace Braid

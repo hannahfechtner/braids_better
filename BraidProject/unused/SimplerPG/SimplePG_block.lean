@@ -58,7 +58,7 @@ def to_up_plain_is_false : is_false (to_up_plain a) := by
     simp at ha
     constructor
     rw [ha.1]
-    
+
 theorem remove_bool_to_up_plain : remove_bool (to_up_plain a).reverse = a := by
   simp only [remove_bool, to_up_plain, List.map_reverse, List.reverse_reverse, List.map_map]
   induction a with
@@ -286,7 +286,7 @@ noncomputable def middle_frontier_nil_or_caps (h : PartialGrid a b c d e) : midd
         omega
       | cons hf td =>
         have H : Σ cb, PLift (cn = (cb, true)) := by
-          apply is_true_singleton
+          apply is_true_singletonData
           rename_i length_b _
           induction b using List.reverseRecOn with
           | nil => simp at length_b
@@ -296,7 +296,7 @@ noncomputable def middle_frontier_nil_or_caps (h : PartialGrid a b c d e) : midd
             rw [← hn.2]
             exact (is_true_append hb).2
         have H2 : Σ bb, PLift (hf = (bb, false)) := by
-          apply is_false_singleton
+          apply is_false_singletonData
           induction a with
           | nil => simp at ha
           | cons front caboose _ =>
@@ -324,7 +324,7 @@ noncomputable def middle_frontier_nil_or_caps (h : PartialGrid a b c d e) : midd
       | append_singleton f2 c2 _ =>
         rcases hb with ⟨f1, m1, c1, h1⟩
         rw [h1.1]
-        have H : Σ cb, PLift (c2 = (cb, true)) := is_true_singleton <| (is_true_append (bottom_frontier_is_true g2)).2
+        have H : Σ cb, PLift (c2 = (cb, true)) := is_true_singletonData <| (is_true_append (bottom_frontier_is_true g2)).2
         rcases H with ⟨cb, cbspec⟩
         rw [cbspec.1]
         use f1, m1 ++ [(c1, true)] ++ f2, cb
@@ -353,7 +353,7 @@ noncomputable def middle_frontier_nil_or_caps (h : PartialGrid a b c d e) : midd
       | cons head tail =>
         have H : is_false [head] := by
           exact (is_false_append (right_frontier_is_false g2)).1
-        rcases is_false_singleton H with ⟨hf, spec2⟩
+        rcases is_false_singletonData H with ⟨hf, spec2⟩
         use hf, tail ++ [(f1, false)] ++ m1, c1
         constructor
         simp only [spec2.1, spec.1, List.cons_append, List.nil_append, List.append_assoc]

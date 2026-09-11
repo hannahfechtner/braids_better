@@ -70,4 +70,8 @@ theorem length_geq_one_eq_cons_cons (b) (h : a ++ b = c :: d :: e) (h2 : a.lengt
     use tail
     grind
 
+theorem map_mul (a b : FreeMonoid α) : List.map f (a * b) = List.map f a ++ List.map f b := by
+  rw [← List.map_append]
+  congr
+
 end List

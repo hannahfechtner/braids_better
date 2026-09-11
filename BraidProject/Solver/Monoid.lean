@@ -12,7 +12,7 @@ theorem st_smaller_than_g (h : SemiThueDataDerivation reversing (to_vertical_edg
   have := SemiThueDataDerivation.reversing.toSemiThueData_with_length h
   rcases PartialGrid.of_SemiThueData_reversing this.1 ha hb with ⟨c, d, e, h1, hl⟩
   rw [this.2.1, hl.1.1]
-  exact straight_pg_sm_g _ _ rfl rfl
+  exact PartialGrid.length_le_grid_length _ _ rfl rfl
 
 abbrev triangle (a b : List ℕ) : Type := (c : List (ℕ × Bool)) ×
   (SemiThueDataDerivation reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)

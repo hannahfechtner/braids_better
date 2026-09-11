@@ -1,6 +1,7 @@
-import BraidProject.TrueFalse_C
+import BraidProject.Additions.SignedList
+import Mathlib.Data.Nat.SuccPred
 
-def separate_maximal_true_prefix (c : List (ℕ × Bool)) : List (ℕ × Bool) × List (ℕ × Bool) :=
+def separate_maximal_true_prefix (c : List (Nat × Bool)) : List (Nat × Bool) × List (Nat × Bool) :=
   match c with
   | [] => ([], [])
   | (c1, false) :: c2 => ([], (c1, false) :: c2)
@@ -30,7 +31,7 @@ def separate_maximal_true_prefix_is_true : is_true (separate_maximal_true_prefix
       exact is_true_cons _ ih
 
 -- give a list, returns the maximal false prefix, and then the rest as a pair
-def separate_maximal_false_prefix (c : List (ℕ × Bool)) : List (ℕ × Bool) × List (ℕ × Bool) :=
+def separate_maximal_false_prefix (c : List (Nat × Bool)) : List (Nat × Bool) × List (Nat × Bool) :=
   match c with
   | [] => ([], [])
   | (c2, true) :: c1 => ([], (c2, true) :: c1)
@@ -56,24 +57,24 @@ def separate_maximal_false_prefix_is_false : is_false (separate_maximal_false_pr
     | (d1, true) =>
       simp [separate_maximal_false_prefix]
     | (d2, false) =>
-      simp [separate_maximal_false_prefix]
+      simp only [separate_maximal_false_prefix]
       apply is_false_cons
       assumption
 
 -- makes a list into the first run of falses, then the run of trues, then the rest
-def separate_first_pair (L) := ((separate_maximal_false_prefix L).1,
+def separate_first_pair (L : List (Nat × Bool)) := ((separate_maximal_false_prefix L).1,
   (separate_maximal_true_prefix (separate_maximal_false_prefix L).2).1,
   (separate_maximal_true_prefix (separate_maximal_false_prefix L).2).2)
 
-theorem separate_first_pair_correct (L) :
+theorem separate_first_pair_correct (L : List (Nat × Bool)) :
     (separate_first_pair L).1 ++ (separate_first_pair L).2.1 ++ (separate_first_pair L).2.2 = L := by
   unfold separate_first_pair
   simp [separate_maximal_true_prefix_correct, separate_maximal_false_prefix_correct]
 
-def separate_first_pair_first_false (L) : is_false (separate_first_pair L).1 := by
+def separate_first_pair_first_false (L : List (Nat × Bool)) : is_false (separate_first_pair L).1 := by
   apply separate_maximal_false_prefix_is_false
 
-def separate_first_pair_second_true (L) : is_true (separate_first_pair L).2.1 := by
+def separate_first_pair_second_true (L : List (Nat × Bool)) : is_true (separate_first_pair L).2.1 := by
   apply separate_maximal_true_prefix_is_true
 
 theorem separate_first_pair_length_disj (hl : L.length > 0) :
@@ -85,16 +86,17 @@ theorem separate_first_pair_length_disj (hl : L.length > 0) :
   | (b, true) :: L2 =>
     simp [separate_first_pair, separate_maximal_false_prefix, separate_maximal_true_prefix]
 
-theorem separate_first_pair_length (hl : L.length > 0) :
+theorem separate_first_pair_length {L : List (Nat × Bool)} (hl : L.length > 0) :
     (separate_first_pair L).1.length + (separate_first_pair L).2.1.length > 0 := by
   match L with
   | [] => simp at hl
   | (a, false) :: L1 =>
-    simp [separate_first_pair, separate_maximal_false_prefix]
+    simp only [separate_first_pair, separate_maximal_false_prefix, List.length_cons, gt_iff_lt]
+    omega
   | (b, true) :: L2 =>
     simp [separate_first_pair, separate_maximal_false_prefix, separate_maximal_true_prefix]
 
-theorem separate_first_pair_nil_nil (h : separate_first_pair L = ([], [], c)) : c = [] := by
+theorem separate_first_pair_nil_nil {L : List (Nat × Bool)} (h : separate_first_pair L = ([], [], c)) : c = [] := by
   match c with
   | [] => rfl
   | c1 :: c2 =>
@@ -122,7 +124,8 @@ theorem c_nil_of_separate_no_true (h : separate_first_pair L = (a, ([], c))) : c
       | [] =>
         apply separate_first_pair_nil_nil h
       | a1 :: a2 =>
-        simp [separate_first_pair, separate_maximal_false_prefix] at h
+        simp only [separate_first_pair, separate_maximal_false_prefix, Prod.mk.eta, Prod.mk.injEq,
+          List.cons.injEq] at h
         specialize @ih a2 c
         apply ih
         unfold separate_first_pair

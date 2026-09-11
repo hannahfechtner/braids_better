@@ -229,10 +229,5 @@ def exists_even : ∃ (n : Nat), Even n := by
 def exists_even' : ∃ (n : Nat), Even n := by
   sorry
 
-theorem exists_even_proof : False := by
-  have := exists_even
-  
-  unfold Even
-  use 1
 #check exists_even
 def proofs_are_the_same : exists_even = exists_even' := by rfl

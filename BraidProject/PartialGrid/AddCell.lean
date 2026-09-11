@@ -1,5 +1,6 @@
 import BraidProject.Relations
 import BraidProject.SpecificConstructiveThings
+import BraidProject.UnfinishedFrontier
 
 namespace Braid
 open PartialGrid SignedList SignedOptionList GridData Relations
@@ -136,7 +137,7 @@ def grid_style.toPartialGrid_extend_both_sides (gs : grid_style i j)
   rcases gs.toPartialGrid_extend_top_side (a := [(a3, false)]) (b1 := [(b3, true)])
       (by simp) rfl ha_singleton (by simp) hb_full rfl i_is
     with ⟨bot, mid, up, pg, ⟨hf⟩, ⟨hl⟩⟩
-  have res := PartialGrid.extend_left_side_w_length pg (head :: tail) ha (by simp)
+  have res := PartialGrid.extend_left_side_with_length pg (head :: tail) ha (by simp)
   refine ⟨[], head :: tail ++ bot ++ mid, up, res.1, ⟨?_⟩, ⟨?_⟩⟩
   · show [] ++ (head :: tail ++ bot ++ mid) ++ up = head :: tail ++ j ++ headb :: tailb
     rw [List.nil_append, List.append_assoc, List.append_assoc,
@@ -146,7 +147,7 @@ def grid_style.toPartialGrid_extend_both_sides (gs : grid_style i j)
 
 open PartialGrid
 
--- this can be done computably (see below), but the noncomputable version is easier prove,
+-- this can be done computably (see below), but the noncomputable version is easier to prove,
 -- as we can see the inductive hypotheses listed. The PLifts are ugly, but are preferable to
 -- subtypes while implementing this proof, as subtypes hide the type of the object in the infoview
 noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid up)
@@ -162,7 +163,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
     exact (not_false_true_infix_horizontal_vertical_edge fe).elim
   | empty a b ha ha1 hb hb1 =>
     simp only [List.nil_append, List.append_nil, List.append_assoc, List.cons_append] at fe
-    rcases over_up_splits_at_i ha1 hb1 ha fe with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
+    rcases false_true_eq_unfinished_frontier_split ha1 hb1 ha fe with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
     cases a1 with
     | nil =>
       rw [List.nil_append] at a_is
@@ -217,7 +218,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
           ← h4.2.1]⟩⟩
   | horizontal_append_one g1 g2 ih1 ih2 =>
     rename_i a2 b2 bot2 up2 b3 bot3 mid3 up3
-    rcases big_split_first (PartialGrid.bottom_frontier_is_true g1) fe with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
+    rcases unfinished_frontier_true_prefix_split (PartialGrid.bottom_frontier_is_true g1) fe with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
     rcases @ih2 k₂ l eq_rest with ⟨bot1, mid1, up1, pg1, fe1, h5, h6⟩
     use bot2 ++ bot1, mid1, up1
     use PartialGrid.horizontal_append_one g1 pg1
@@ -230,18 +231,16 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
     omega
   | horizontal_append g1 g2 h g1_ih g2_ih =>
     rename_i a2 b2 bot2 mid2 up2 b3 bot3 mid3 up3
-    have := double_split_horiz (bottom_frontier_is_true g1) (Sum.inl ⟨bottom_frontier_is_true g2⟩)
+    have := open_pair_lies_in_one_middle_frontier_for_horizontal_case (bottom_frontier_is_true g1) (Sum.inl ⟨bottom_frontier_is_true g2⟩)
       (right_frontier_is_false g2) fe (middle_frontier_spec g1)
       (middle_frontier_spec g2)
-    rcases this with hl | hr
-    · rcases hl with ⟨k₁, k₂, k_is, k1_is, k2_is⟩
-      rcases g2_ih k2_is.symm with ⟨bot3, mid3, up3, hpg, hf⟩
+    rcases this with ⟨k₁, k₂, k_is, k1_is, k2_is⟩ | ⟨l₁, l₂, l_is, l1_is, l2_is⟩
+    · rcases g2_ih k2_is.symm with ⟨bot3, mid3, up3, hpg, hf⟩
       use bot2, mid2 ++ bot3++mid3, up3, PartialGrid.horizontal_append g1 hpg h
       simp only [List.append_assoc, hf.1.1, k_is, k1_is]
       refine ⟨⟨trivial⟩, hf.2.1, List.PrefixData.refl, ⟨?_⟩⟩
       rw [PartialGrid.length, PartialGrid.length, ← hf.2.2.2.1]
       omega
-    rcases hr with ⟨l₁, l₂, l_is, l1_is, l2_is⟩
     have H3 : bot2 ++ mid2 ++ up2 = k ++ [(a1, false), (b1, true)] ++ (l₁ ++ up2) := by
       rw [← l2_is]
       simp
@@ -278,7 +277,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
             have H0 := right_frontier_is_false hpg
             rw [← spec] at H0
             exact (is_false_of_append H0).1
-        have H := PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp)
+        have H := PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp)
         have nonsense := spec.symm
         subst nonsense
         simp only [List.cons_append, List.append_assoc, List.append_assoc]
@@ -322,7 +321,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
           exact (is_false_of_append H0).1
         have nonsense := spec.symm
         subst nonsense
-        have H3 := (PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp))
+        have H3 := (PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp))
         have nonsense : head :: tail ++ [] ++ (heade :: taile ++ bot3 ++ mid3) =
           (head :: tail ++ heade :: taile ++ bot3 ++ mid3) := by simp
         rw [← nonsense]
@@ -339,7 +338,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
         exact ⟨List.SuffixData.refl, ⟨by assumption, ⟨by omega⟩⟩⟩
   | vertical_append_one g1 g2 ih1 ih2 =>
     rename_i a2 b2 bot2 up2 b3 bot3 mid3 up3
-    rcases big_split (right_frontier_is_false g1) fe with ⟨l₁, l₂, l_is, eq_rest, l₂_is⟩
+    rcases unfinished_frontier_false_suffix_split (right_frontier_is_false g1) fe with ⟨l₁, l₂, l_is, eq_rest, l₂_is⟩
     rcases @ih2 _ _ eq_rest with ⟨bot1, mid1, up1, pg1, fe1, h5, h6⟩
     use bot1, mid1, up1 ++ up2, PartialGrid.vertical_append_one g1 pg1
     rw [l_is, l₂_is, ← List.append_assoc, fe1.1, ← List.append_assoc]
@@ -347,7 +346,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
       ⟨by simp only [PartialGrid.length, ← h6.2.1]; omega⟩⟩⟩⟩
   | vertical_append g1 g2 h g1_ih g2_ih =>
     rename_i a b bot mid up a2 bot2 mid2 up2
-    have := double_split_horiz' (bottom_frontier_is_true g2) (Sum.inr ⟨right_frontier_is_false g2⟩)
+    have := open_pair_lies_in_one_middle_frontier_for_vertical_case (bottom_frontier_is_true g2) (Sum.inr ⟨right_frontier_is_false g2⟩)
       (right_frontier_is_false g1) fe (middle_frontier_spec g2) (middle_frontier_spec g1)
     rcases this with ⟨k1, k2, k_is, k1_is, k2_is⟩ | ⟨l1, l2, l_is, l1_is, l2_is⟩
     · specialize @g1_ih (bot ++ k2) l (by rw [List.append_assoc, ← k2_is]; simp)
@@ -394,7 +393,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
             have H : is_true nb := bottom_frontier_is_true pg
             rw [← spec.1] at H
             exact (is_true_of_append H).2
-          have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+          have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
           rw [spec.1] at H2
           use PartialGrid.vertical_append_one pg H2.1
           refine ⟨⟨?_⟩, upp, List.PrefixData.refl, ⟨?_⟩⟩
@@ -410,9 +409,8 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
               have H : is_true nb := bottom_frontier_is_true pg
               rw [← spec.1] at H
               exact (is_true_of_append H).2
-          have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+          have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
           rw [spec.1] at H2
-          have H := PartialGrid.vertical_append pg H2.1 (by simp)
           have nonsense : (mid2 ++ up2 ++ head :: tail ++ [] ++ head1 :: tail1) =
             (mid2 ++ up2 ++ head :: tail ++ head1 :: tail1) := by simp
           rw [← nonsense]
@@ -445,7 +443,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --     exact (not_false_true_infix_horizontal_vertical_edge fe).elim
 --   | empty a b ha ha1 hb hb1 =>
 --     simp only [List.nil_append, List.append_nil, List.append_assoc, List.cons_append] at fe
---     rcases over_up_splits_at_i ha1 hb1 ha fe with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
+--     rcases false_true_eq_unfinished_frontier_split ha1 hb1 ha fe with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
 --     cases a1 with
 --     | nil =>
 --       rw [List.nil_append] at a_is
@@ -500,7 +498,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --           ← h4.2.1]⟩⟩
 --   | horizontal_append_one g1 g2 =>
 --     rename_i up2 b3 bot3 mid3 up3
---     rcases big_split_first (PartialGrid.bottom_frontier_is_true g1) fe with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
+--     rcases unfinished_frontier_true_prefix_split (PartialGrid.bottom_frontier_is_true g1) fe with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
 --     rcases @PartialGrid.add_cell_with_length' _ _ _ _ _ _ _ k₂ l g2 hg eq_rest with ⟨bot1, mid1, up1, pg1, fe1, h5, h6⟩
 --     use b3 ++ bot1, mid1, up1
 --     use PartialGrid.horizontal_append_one g1 pg1
@@ -513,7 +511,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --     omega
 --   | horizontal_append g1 g2 h =>
 --     rename_i b2 mid2 up2 b3 bot3 mid3
---     have := double_split_horiz (bottom_frontier_is_true g1) (Sum.inl ⟨bottom_frontier_is_true g2⟩)
+--     have := open_pair_lies_in_one_middle_frontier_for_horizontal_case (bottom_frontier_is_true g1) (Sum.inl ⟨bottom_frontier_is_true g2⟩)
 --       (right_frontier_is_false g2) fe (middle_frontier_spec g1)
 --       (middle_frontier_spec g2)
 --     rcases this with hl | hr
@@ -560,7 +558,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --             have H0 := right_frontier_is_false hpg
 --             rw [← spec] at H0
 --             exact (is_false_of_append H0).1
---         have H := PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp)
+--         have H := PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp)
 --         have nonsense := spec.symm
 --         subst nonsense
 --         simp only [List.cons_append, List.append_assoc, List.append_assoc]
@@ -604,7 +602,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --           exact (is_false_of_append H0).1
 --         have nonsense := spec.symm
 --         subst nonsense
---         have H3 := (PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp))
+--         have H3 := (PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp))
 --         have nonsense : head :: tail ++ [] ++ (heade :: taile ++ bot3 ++ mid3) =
 --           (head :: tail ++ heade :: taile ++ bot3 ++ mid3) := by simp
 --         rw [← nonsense]
@@ -621,7 +619,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --         exact ⟨List.SuffixData.refl, ⟨by assumption, ⟨by omega⟩⟩⟩
 --   | vertical_append_one g1 g2 =>
 --     rename_i a2 bot2 up2 mid3 up3
---     rcases big_split (right_frontier_is_false g1) fe with ⟨l₁, l₂, l_is, eq_rest, l₂_is⟩
+--     rcases unfinished_frontier_false_suffix_split (right_frontier_is_false g1) fe with ⟨l₁, l₂, l_is, eq_rest, l₂_is⟩
 --     rcases PartialGrid.add_cell_with_length' g2 hg eq_rest with ⟨bot1, mid1, up1, pg1, fe1, h5, h6⟩
 --     use bot1, mid1, up1 ++ up2, PartialGrid.vertical_append_one g1 pg1
 --     rw [l_is, l₂_is, ← List.append_assoc, fe1.1, ← List.append_assoc]
@@ -629,7 +627,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --       ⟨by simp only [PartialGrid.length, ← h6.2.1]; omega⟩⟩⟩⟩
 --   | vertical_append g1 g2 h =>
 --     rename_i a bot2 mid a2 mid2 up2
---     have := double_split_horiz' (bottom_frontier_is_true g2) (Sum.inr ⟨right_frontier_is_false g2⟩)
+--     have := open_pair_lies_in_one_middle_frontier_for_vertical_case (bottom_frontier_is_true g2) (Sum.inr ⟨right_frontier_is_false g2⟩)
 --       (right_frontier_is_false g1) fe (middle_frontier_spec g2) (middle_frontier_spec g1)
 --     rcases this with ⟨k1, k2, k_is, k1_is, k2_is⟩ | ⟨l1, l2, l_is, l1_is, l2_is⟩
 --     · have := @PartialGrid.add_cell_with_length' _ _ _ _ _ _ _ (bot2 ++ k2) l g1 hg (by rw [List.append_assoc, ← k2_is]; simp)
@@ -676,7 +674,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --             have H : is_true nb := bottom_frontier_is_true pg
 --             rw [← spec.1] at H
 --             exact (is_true_of_append H).2
---           have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+--           have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
 --           rw [spec.1] at H2
 --           use PartialGrid.vertical_append_one pg H2.1
 --           refine ⟨⟨?_⟩, upp, List.PrefixData.refl, ⟨?_⟩⟩
@@ -692,7 +690,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --               have H : is_true nb := bottom_frontier_is_true pg
 --               rw [← spec.1] at H
 --               exact (is_true_of_append H).2
---           have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+--           have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
 --           rw [spec.1] at H2
 --           have H := PartialGrid.vertical_append pg H2.1 (by simp)
 --           have nonsense : (mid2 ++ up2 ++ head :: tail ++ [] ++ head1 :: tail1) =
@@ -726,7 +724,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --     exact (not_false_true_infix_horizontal_vertical_edge fe).elim
 --   | empty a b ha ha1 hb hb1 =>
 --     simp only [List.nil_append, List.append_nil, List.append_assoc, List.cons_append] at fe
---     rcases over_up_splits_at_i ha1 hb1 ha fe with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
+--     rcases false_true_eq_unfinished_frontier_split ha1 hb1 ha fe with ⟨a1, a2, b1, b2, a_is, b_is, i_is, k_is, l_is⟩
 --     cases a1 with
 --     | nil =>
 --       rw [List.nil_append] at a_is
@@ -777,7 +775,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --           List.SuffixData.nil, List.PrefixData.nil⟩
 --   | horizontal_append_one g1 g2 =>
 --     rename_i up2 b3 bot3 mid3 up3
---     rcases big_split_first (PartialGrid.bottom_frontier_is_true g1) fe with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
+--     rcases unfinished_frontier_true_prefix_split (PartialGrid.bottom_frontier_is_true g1) fe with ⟨k₁, k₂, k_is, eq_rest, k₁_is⟩
 --     rcases @PartialGrid.add_cell_with_length' _ _ _ _ _ _ _ k₂ l g2 hg eq_rest with ⟨bot1, mid1, up1, pg1, fe1, h5, h6⟩
 --     use b3 ++ bot1, mid1, up1
 --     refine ⟨⟨PartialGrid.horizontal_append_one g1 pg1, ?_, ?_⟩, h5, List.PrefixData.append_left h6.1⟩
@@ -788,7 +786,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --       omega
 --   | horizontal_append g1 g2 h =>
 --     rename_i b2 mid2 up2 b3 bot3 mid3
---     have := double_split_horiz (bottom_frontier_is_true g1) (Sum.inl ⟨bottom_frontier_is_true g2⟩)
+--     have := open_pair_lies_in_one_middle_frontier_for_horizontal_case (bottom_frontier_is_true g1) (Sum.inl ⟨bottom_frontier_is_true g2⟩)
 --       (right_frontier_is_false g2) fe (middle_frontier_spec g1)
 --       (middle_frontier_spec g2)
 --     rcases this with hl | hr
@@ -829,7 +827,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --             have H0 := right_frontier_is_false hpg
 --             rw [← spec] at H0
 --             exact (is_false_of_append H0).1
---         have H := PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp)
+--         have H := PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp)
 --         have nonsense := spec.symm
 --         subst nonsense
 --         simp only [List.cons_append, List.append_assoc, List.append_assoc]
@@ -870,7 +868,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --           exact (is_false_of_append H0).1
 --         have nonsense := spec.symm
 --         subst nonsense
---         have H3 := (PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp))
+--         have H3 := (PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp))
 --         have nonsense : head :: tail ++ [] ++ (heade :: taile ++ bot3 ++ mid3) =
 --           (head :: tail ++ heade :: taile ++ bot3 ++ mid3) := by simp
 --         rw [← nonsense]
@@ -885,7 +883,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --           omega
 --   | vertical_append_one g1 g2 =>
 --     rename_i a2 bot2 up2 mid3 up3
---     rcases big_split (right_frontier_is_false g1) fe with ⟨l₁, l₂, l_is, eq_rest, l₂_is⟩
+--     rcases unfinished_frontier_false_suffix_split (right_frontier_is_false g1) fe with ⟨l₁, l₂, l_is, eq_rest, l₂_is⟩
 --     rcases PartialGrid.add_cell_with_length' g2 hg eq_rest with ⟨bot1, mid1, up1, pg1, fe1, h5, h6⟩
 --     refine ⟨bot1, mid1, up1 ++ up2,
 --       ⟨PartialGrid.vertical_append_one g1 pg1, ?_, ?_⟩,
@@ -895,7 +893,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --       omega
 --   | vertical_append g1 g2 h =>
 --     rename_i a bot2 mid a2 mid2 up2
---     have := double_split_horiz' (bottom_frontier_is_true g2) (Sum.inr ⟨right_frontier_is_false g2⟩)
+--     have := open_pair_lies_in_one_middle_frontier_for_vertical_case (bottom_frontier_is_true g2) (Sum.inr ⟨right_frontier_is_false g2⟩)
 --       (right_frontier_is_false g1) fe (middle_frontier_spec g2) (middle_frontier_spec g1)
 --     rcases this with ⟨k1, k2, k_is, k1_is, k2_is⟩ | ⟨l1, l2, l_is, l1_is, l2_is⟩
 --     · have := @PartialGrid.add_cell_with_length' _ _ _ _ _ _ _ (bot2 ++ k2) l g1 hg (by rw [List.append_assoc, ← k2_is]; simp)
@@ -935,7 +933,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --             have H : is_true nb := bottom_frontier_is_true pg
 --             rw [← spec.1] at H
 --             exact (is_true_of_append H).2
---           have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+--           have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
 --           rw [spec.1] at H2
 --           refine ⟨⟨PartialGrid.vertical_append_one pg H2.1, ?_, ?_⟩, upp, List.PrefixData.refl⟩
 --           · rw [← spec.1] at fe'
@@ -950,7 +948,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
 --               have H : is_true nb := bottom_frontier_is_true pg
 --               rw [← spec.1] at H
 --               exact (is_true_of_append H).2
---           have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+--           have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
 --           rw [spec.1] at H2
 --           have nonsense : (mid2 ++ up2 ++ head :: tail ++ [] ++ head1 :: tail1) =
 --             (mid2 ++ up2 ++ head :: tail ++ head1 :: tail1) := by simp

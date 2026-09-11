@@ -21,15 +21,15 @@ inductive grid : FreeMonoid ℕ → FreeMonoid ℕ → FreeMonoid ℕ → FreeMo
 namespace Grid
 
 /-- grids can be flipped along their NW - SE axis to produce another grid -/
-noncomputable def swap : grid a b c d → grid b a d c := by
+theorem swap : grid a b c d → grid b a d c := by
   intro h
   induction h with
   | empty => exact grid.empty
   | top_bottom i => exact grid.sides i
   | sides i => exact grid.top_bottom i
   | top_left i => exact grid.top_left i
-  | adjacent i k h => exact grid.adjacent k i (by rw [Nat.dist_comm] at h; exact h)
-  | separated i j h => exact grid.separated j i (by rw [Nat.dist_comm] at h; exact h)
+  | adjacent i k h => exact grid.adjacent k i (by rw [Nat.dist_comm]; exact h)
+  | separated i j h => exact grid.separated j i (by rw [Nat.dist_comm]; exact h)
   | vertical _ _ h1 h2 => exact grid.horizontal h1 h2
   | horizontal _ _ h1 h2 => exact grid.vertical h1 h2
 
@@ -38,12 +38,12 @@ bottom -/
 theorem sides_word (u : FreeMonoid ℕ) : grid u 1 1 u := by
   induction u with
   | one => exact grid.empty
-  | of => exact grid.sides _
+  | of i => exact grid.sides i
   | mul x y ih1 ih2 => exact grid.vertical ih1 ih2
 
 /-- Given any word u, there is a grid with u on the top and bottom, and 1 on the left and
 right sides -/
-theorem top_bottom_word (u : FreeMonoid ℕ) : grid 1 u u 1 := swap (sides_word _)
+theorem top_bottom_word (u : FreeMonoid ℕ) : grid 1 u u 1 := swap (sides_word u)
 
 /-- Given any word u, there is a grid with u on the top and left sides, and 1 on the bottom and
 right sides -/

@@ -1,5 +1,6 @@
 import BraidProject.StepOne
 import BraidProject.SemiThue_length_general
+import BraidProject.ToEdge
 
 namespace Braid
 

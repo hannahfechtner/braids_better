@@ -3,11 +3,12 @@ import BraidProject.Additions.List
 import BraidProject.Additions.Mixins
 import BraidProject.Additions.OreLocalization
 import BraidProject.Additions.PresentedGroup
+import BraidProject.DataCarrying.Mixins
 
 namespace OreLocalization
 namespace Self
 
-section Nonconstructive
+section NonDataCarrying
 variable {M : Type*} [Monoid M] [IsRightCancelMul M] [IsCommonLeftMultipleMul M]
 
 open IsCommonLeftMultipleMul in
@@ -20,22 +21,22 @@ noncomputable instance : OreLocalization.OreSet (⊤ : Submonoid M) where
     rcases Classical.choose_spec (common_left_multiple r s) with ⟨d1, hd1⟩
     simp [hd1]
 
-end Nonconstructive
+end NonDataCarrying
 
-section Constructive
+section DataCarrying
 
-variable {M : Type*} [Monoid M] [IsRightCancelMul M] [IsCommonLeftMultipleMul M]
+variable {M : Type*} [Monoid M] [IsRightCancelMul M] [HasCommonLeftMultipleData M]
 
 open IsCommonLeftMultipleMul in
 noncomputable instance : OreLocalization.OreSet (⊤ : Submonoid M) where
   ore_right_cancel  := by aesop
-  oreNum r s := Classical.choose (Classical.choose_spec (common_left_multiple r s))
-  oreDenom r s :=⟨(Classical.choose (common_left_multiple r s)), trivial⟩
+  oreNum r s := HasCommonLeftMultipleData.cl₁ r s
+  oreDenom r s := ⟨HasCommonLeftMultipleData.cl₂ r s, trivial⟩
   ore_eq := by
     intro r s
-    rcases Classical.choose_spec (common_left_multiple r s) with ⟨d1, hd1⟩
-    simp [hd1]
-end Constructive
+    exact HasCommonLeftMultipleData.cl_spec r s
+
+end DataCarrying
 
 variable {M : Type} [Monoid M] [OreLocalization.OreSet (⊤ : Submonoid M)]
 
@@ -65,28 +66,23 @@ theorem universalMonoidHom_unique {G₁ : Type} [Group G₁] (f : M →* G₁)
   OreLocalization.universalMulHom_unique f _ _ _ h
 
 end Self
-end OreLocalization
 
-namespace OreLocalization
 variable {α : Type} (rels : FreeMonoid α → FreeMonoid α → Prop)
   [h1 : OreLocalization.OreSet (⊤ : Submonoid (PresentedMonoid rels))]
 
 abbrev PresentedMonoidFullLocalization :=
   OreLocalization (⊤ : Submonoid (PresentedMonoid rels)) (PresentedMonoid rels)
 
-
-
 namespace Presented
 
-open PresentedMonoid in
+open PresentedMonoid
+
 def universalMonoidHom {G₁ : Type} [Group G₁] (f : α → G₁)
     (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂)) :
     PresentedMonoidFullLocalization rels →* G₁ := by
   apply Self.universalMonoidHom <| PresentedMonoid.lift f (fun _ _ rab =>
     PresentedMonoid.freeMonoid_lift_eq_of_rel f universal_h  _ _ (rels_alone rab))
 
-
-open PresentedMonoid in
 theorem universalMonoidHom_unique {G₁ : Type} [Group G₁] (f : α → G₁)
     (universal_h : ∀ r₁ r₂, rels r₁ r₂ → (FreeMonoid.lift f r₁ = FreeMonoid.lift f r₂))
     (φ : PresentedMonoidFullLocalization rels →* G₁)
@@ -157,10 +153,6 @@ theorem presentedGroup_to_PresentedMonoidFullLocalization_apply_of (a : α) :
   unfold presentedGroup_to_PresentedMonoidFullLocalization
   simp only [PresentedGroup.toGroup.of]
 
-theorem List.map_mul (a b : FreeMonoid α) : List.map f (a * b) = List.map f a ++ List.map f b := by
-  rw [← List.map_append]
-  congr
-
 @[simp]
 theorem presentedGroup_to_PresentedMonoidFullLocalization_apply_mk (a : FreeMonoid α) :
     presentedGroup_to_PresentedMonoidFullLocalization rels
@@ -226,7 +218,7 @@ theorem PresentedMonoidFullLocalization_to_presented_group_surjective :
   Function.RightInverse.surjective <| congrFun (MonoidHom.comp_toFun
   (pmfl_to_presentedGroup_comp_presentedGroup_to_pmfl rels))
 
--- specialize me to braids!!
+-- equivalence in the group implies equivalence in the monoid for positive words
 theorem presentedMonoid_mk_eq_of_presentedGroup_mk_eq_of_positive [IsLeftCancelMul (PresentedMonoid rels)]
     (h : PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk e) =
     PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk d))
@@ -239,6 +231,7 @@ theorem presentedMonoid_mk_eq_of_presentedGroup_mk_eq_of_positive [IsLeftCancelM
   apply numeratorHom_injective_of_cancellative _ _
     (PresentedMonoidFullLocalization_to_presented_group_injective rels h)
 
+-- not necessary for our algorithm, but a nice fact
 theorem presentedGroup_exists_fraction_form
     (c : PresentedGroup (free_group_set_of_function rels)) : ∃ (a b : PresentedMonoid rels),
     c = (PresentedMonoidFullLocalization_to_presented_group rels (numeratorHom b))⁻¹ *

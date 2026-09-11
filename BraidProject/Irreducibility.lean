@@ -1,5 +1,5 @@
 import BraidProject.DataCarrying.List
-import BraidProject.SignedOptionList
+import BraidProject.Additions.SignedOptionList
 import Mathlib.Algebra.Order.Group.Nat
 import Mathlib.Data.Nat.Cast.Order.Basic
 
@@ -7,6 +7,8 @@ namespace Braid
 
 open SignedOptionList
 
+-- we need InfixData over List.isInfix because eventually we will have to eliminate into
+-- Type in StepOne_length
 def pairAppears (L : List (Option ℕ × Bool)) := ∀ a b, List.InfixData [(a, false), (b, true)] (toSignedList L) →
     List.InfixData [(some a, false), (some b, true)] L
 
@@ -117,18 +119,16 @@ def irreducible_cons_cons_bool_eq  (h : irreducible ((b1, b) :: L)) :
     apply (h a1).2.1
     match b with
     | true =>
-      apply InfixData.tail_of_cons_ne h2
-      simp
+      exact InfixData.tail_of_cons_ne h2 (by simp)
     | false =>
-      apply InfixData.tail_of_cons_cons_ne h2
-      simp
+      exact InfixData.tail_of_cons_cons_ne h2 (by simp)
   intro h2
   apply (h a1).2.2
   match b with
   | true =>
     exact InfixData.tail_of_cons_ne h2 (by simp)
   | false =>
-    apply InfixData.tail_of_cons_cons_ne h2 (by simp)
+    exact InfixData.tail_of_cons_cons_ne h2 (by simp)
 
 def irreducible_cons_some_cons_some (h : irreducible ((some c, b1) :: L)) :
     irreducible ((some d, b2) :: (some c, b1) :: L) := by
@@ -189,23 +189,21 @@ theorem toSignedList_tail_not_cons_true_of_irreducible_cons_none_false
       match L with
       | [] => simp at len
       | (none, true) :: tail1 =>
-        have := by
-          apply (irr 0).2.2
-          use [], tail1
-          constructor
-          simp
-        cases this
+        apply Empty.elim
+        apply (irr 0).2.2
+        use [], tail1
+        constructor
+        simp
       | (none, false) :: tail1 =>
         specialize ih tail1 rest
         simp only [length_cons, Nat.add_right_cancel_iff] at len
         exact ih len (irreducible_tail irr) hin
       | (some b, true) :: tail1 =>
-        have := by
-          apply (irr b).2.1
-          use [], tail1
-          constructor
-          simp
-        cases this
+        apply Empty.elim
+        apply (irr b).2.1
+        use [], tail1
+        constructor
+        simp
       | (some b, false) :: tail1 => simp [toSignedList] at hin
   exact H _ _ _ rfl h h2
 

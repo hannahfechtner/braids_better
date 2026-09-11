@@ -1,5 +1,5 @@
 import BraidProject.BraidGroup
-import BraidProject.TrueFalse_C
+import BraidProject.ToEdge
 import BraidProject.Additions.NatDist
 import BraidProject.BraidMonoidInf
 import BraidProject.Grid.Properties
@@ -10,23 +10,16 @@ namespace Braid
 
 open Nat
 
--- MOVE ME
-theorem freeMonoid_lift_freeGroup_of {a : FreeMonoid ℕ} : (FreeMonoid.lift FreeGroup.of) a =
-  FreeGroup.mk (to_horizontal_edge_no_epsilon a) := by
-  induction a using FreeMonoid.inductionOn' with
-  | one => rfl
-  | mul_of b a ih =>
-    simp [to_horizontal_edge_no_epsilon_mul, ih, ← FreeGroup.mul_mk]
-    change FreeGroup.of b = FreeGroup.mk [(b, true)]
-    rfl
-
 open FreeMonoid in
 inductive braid_rels_m_inf_one_symm : FreeMonoid ℕ → FreeMonoid ℕ → Prop
-  | adjacent (i j : ℕ) (h : i.dist j = 1) : braid_rels_m_inf_one_symm (of i * of j * of i) (of j * of i * of j)
-  | separated (i j : ℕ) (h : i.dist j ≥ 2) : braid_rels_m_inf_one_symm (of i * of j) (of j * of i)
+  | adjacent (i j : ℕ) (h : i.dist j = 1) :
+      braid_rels_m_inf_one_symm (of i * of j * of i) (of j * of i * of j)
+  | separated (i j : ℕ) (h : i.dist j ≥ 2) :
+      braid_rels_m_inf_one_symm (of i * of j) (of j * of i)
   | basic (i) : braid_rels_m_inf_one_symm (of i) (of i)
 
-theorem connect_monoid_group_braid_rels : PresentedGroup.free_group_set_of_function braid_rels_m_inf_one_symm =
+theorem connect_monoid_group_braid_rels :
+    PresentedGroup.free_group_set_of_function braid_rels_m_inf_one_symm =
     Braid.braidRelationInf := by
   unfold PresentedGroup.free_group_set_of_function
   ext y
@@ -125,9 +118,7 @@ theorem one_symm_is_really_the_same : mk braid_monoid_rels_inf a = mk braid_mono
   | trans _ _ ih1 ih2 => exact PresentedMonoid.trans ih1 ih2
   | mul _ _ ih1 ih2 => exact mul ih1 ih2
 
-/-- If equality in `PresentedMonoid rels₁` implies equality in `PresentedMonoid rels₂`, the
-identity on generators descends to a monoid homomorphism between the two presentations. -/
-noncomputable def PresentedMonoid.homOfMkImp {α : Type*}
+noncomputable def PresentedMonoid.hom_two_rels_of_mk_imp {α : Type*}
     {rels₁ rels₂ : FreeMonoid α → FreeMonoid α → Prop}
     (h : ∀ a b, PresentedMonoid.mk rels₁ a = PresentedMonoid.mk rels₁ b →
                 PresentedMonoid.mk rels₂ a = PresentedMonoid.mk rels₂ b) :
@@ -139,11 +130,11 @@ noncomputable def PresentedMonoid.homOfMkImp {α : Type*}
 
 noncomputable def map_to_one_symm : (PresentedMonoid braid_monoid_rels_inf) →*
     PresentedMonoid braid_rels_m_inf_one_symm :=
-  PresentedMonoid.homOfMkImp fun _ _ => one_symm_is_really_the_same.mp
+  PresentedMonoid.hom_two_rels_of_mk_imp fun _ _ => one_symm_is_really_the_same.mp
 
 noncomputable def map_from_one_symm : (PresentedMonoid braid_rels_m_inf_one_symm) →*
     PresentedMonoid braid_monoid_rels_inf :=
-  PresentedMonoid.homOfMkImp fun _ _ => one_symm_is_really_the_same.mpr
+  PresentedMonoid.hom_two_rels_of_mk_imp fun _ _ => one_symm_is_really_the_same.mpr
 
 noncomputable def one_symm_type_iso_me : (PresentedMonoid braid_rels_m_inf_one_symm) ≃*
     PresentedMonoid braid_monoid_rels_inf :=

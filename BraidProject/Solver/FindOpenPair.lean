@@ -1,4 +1,4 @@
-import BraidProject.SignedList_C
+import BraidProject.DataCarrying.SignedList
 import Mathlib.Algebra.Group.Nat.Defs
 import Mathlib.Data.Prod.Basic
 
@@ -21,10 +21,10 @@ def FindOpenPair (L : List (ℕ × Bool)) :
 namespace FindOpenPair
 
 @[simp]
-theorem nil : FindOpenPair [] = none := by rfl
+theorem nil : FindOpenPair [] = none := rfl
 
 @[simp]
-theorem singleton : FindOpenPair [a] = none := by rfl
+theorem singleton : FindOpenPair [a] = none := rfl
 
 theorem cons_eq_none (h : FindOpenPair (a :: b) = none) :
     FindOpenPair b = none := by

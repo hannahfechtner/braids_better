@@ -50,9 +50,9 @@ protected theorem inductionOn {δ : BraidMonoidInf → Prop} (q : BraidMonoidInf
 def length : BraidMonoidInf → ℕ :=
   PresentedMonoid.lift_of_mul (FreeMonoid.length)
   (fun h1 h2 => by rw [length_mul, length_mul, h1, h2]) (fun _ _ h => by
-  induction h with
+  cases h with
   | adjacent i => simp only [length_mul, length_of, Nat.reduceAdd]
-  | separated i j _ => simp only [length_mul, length_of, Nat.reduceAdd])
+  | separated i j => simp only [length_mul, length_of, Nat.reduceAdd])
 
 @[simp]
 theorem length_one : length 1 = 0 := rfl
@@ -65,6 +65,7 @@ theorem length_mul {a b : BraidMonoidInf} : length (a * b) = length a + length b
   induction a; induction b
   rw [← map_mul, length_mk, length_mk, length_mk, FreeMonoid.length_mul]
 
+#eval BraidMonoidInf.length ⟦FreeMonoid.of 3⟧
 theorem length_eq (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) : a.length = b.length :=
   congr_arg length h
 

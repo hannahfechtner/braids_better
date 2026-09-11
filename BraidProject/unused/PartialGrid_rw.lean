@@ -436,7 +436,7 @@ noncomputable def PartialGrid.add_cell_w_length (h : PartialGrid a b bot mid up)
             have H0 : is_false up4 := by exact right_frontier_is_false hpg
             rw [← spec] at H0
             exact (is_false_of_append H0).1
-        have H := PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp)
+        have H := PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp)
         have nonsense := spec.symm
         subst nonsense
         simp only [List.cons_append, List.append_assoc, List.append_assoc]
@@ -493,7 +493,7 @@ noncomputable def PartialGrid.add_cell_w_length (h : PartialGrid a b bot mid up)
           exact (is_false_of_append H0).1
         have nonsense := spec.symm
         subst nonsense
-        have H3 := (PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp))
+        have H3 := (PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp))
         have nonsense : head :: tail ++ [] ++ (heade :: taile ++ bot3 ++ mid3) =
           (head :: tail ++ heade :: taile ++ bot3 ++ mid3) := by simp
         rw [← nonsense]
@@ -584,7 +584,7 @@ noncomputable def PartialGrid.add_cell_w_length (h : PartialGrid a b bot mid up)
             have H : is_true nb := bottom_frontier_is_true pg
             rw [← spec.1] at H
             exact (is_true_of_append H).2
-          have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+          have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
           rw [spec.1] at H2
           use PartialGrid.vertical_append_one pg H2.1
           constructor
@@ -606,7 +606,7 @@ noncomputable def PartialGrid.add_cell_w_length (h : PartialGrid a b bot mid up)
               have H : is_true nb := bottom_frontier_is_true pg
               rw [← spec.1] at H
               exact (is_true_of_append H).2
-          have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+          have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
           rw [spec.1] at H2
           have H := PartialGrid.vertical_append pg H2.1 (by simp)
           have nonsense : (mid2 ++ up2 ++ head :: tail ++ [] ++ head1 :: tail1) =
@@ -785,7 +785,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
             have H0 : is_false up4 := by exact right_frontier_is_false hpg
             rw [← spec] at H0
             exact (is_false_of_append H0).1
-        have H := PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp)
+        have H := PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp)
         have nonsense := spec.symm
         subst nonsense
         simp only [List.cons_append, List.append_assoc, List.append_assoc]
@@ -841,7 +841,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
           exact (is_false_of_append H0).1
         have nonsense := spec.symm
         subst nonsense
-        have H3 := (PartialGrid.extend_left_side_w_length g2 (heade::taile) lf (by simp))
+        have H3 := (PartialGrid.extend_left_side_with_length g2 (heade::taile) lf (by simp))
         have nonsense : head :: tail ++ [] ++ (heade :: taile ++ bot3 ++ mid3) =
           (head :: tail ++ heade :: taile ++ bot3 ++ mid3) := by simp
         rw [← nonsense]
@@ -929,7 +929,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
             have H : is_true nb := bottom_frontier_is_true pg
             rw [← spec.1] at H
             exact (is_true_of_append H).2
-          have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+          have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
           rw [spec.1] at H2
           use PartialGrid.vertical_append_one pg H2.1
           constructor
@@ -950,7 +950,7 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
               have H : is_true nb := bottom_frontier_is_true pg
               rw [← spec.1] at H
               exact (is_true_of_append H).2
-          have H2 := (PartialGrid.extend_top_side_w_length g2 (head::tail) H1 (by simp))
+          have H2 := (PartialGrid.extend_top_side_with_length g2 (head::tail) H1 (by simp))
           rw [spec.1] at H2
           have H := PartialGrid.vertical_append pg H2.1 (by simp)
           have nonsense : (mid2 ++ up2 ++ head :: tail ++ [] ++ head1 :: tail1) =

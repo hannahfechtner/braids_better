@@ -1,6 +1,6 @@
 import BraidProject.Additions.InvRev
 import BraidProject.GridData.Basic
-import BraidProject.TrueFalse_C
+import BraidProject.ToEdge
 
 namespace Braid
 
@@ -78,34 +78,33 @@ def reflect (h : PartialGrid a b c d e) :
     rw [← FreeGroup.invRev_length] at ha
     rw [← FreeGroup.invRev_length] at hb
     use PartialGrid.empty (FreeGroup.invRev b) (FreeGroup.invRev a) hb (FreeGroup.invRev_false hb1) ha (FreeGroup.invRev_true ha1)
-    simp [PartialGrid.length]
-    exact ⟨trivial⟩
+    exact ⟨by simp [PartialGrid.length]⟩
   | horizontal_append_one g1 g2 =>
     rw [FreeGroup.invRev_append, FreeGroup.invRev_append]
-    have ⟨h3, len3⟩ := reflect g1
-    have ⟨h4, len4⟩ := reflect g2
+    have ⟨h3, ⟨len3⟩⟩ := reflect g1
+    have ⟨h4, ⟨len4⟩⟩ := reflect g2
     use PartialGrid.vertical_append_one h3 h4
-    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+    exact ⟨by simp [PartialGrid.length, len3, len4]⟩
   | horizontal_append g1 g2 h_mid =>
     rw [FreeGroup.invRev_append, FreeGroup.invRev_append, FreeGroup.invRev_append, ← List.append_assoc]
-    have ⟨h3, len3⟩ := reflect g1
-    have ⟨h4, len4⟩ := reflect g2
+    have ⟨h3, ⟨len3⟩⟩ := reflect g1
+    have ⟨h4, ⟨len4⟩⟩ := reflect g2
     rw [← FreeGroup.invRev_length] at h_mid
     use PartialGrid.vertical_append h3 h4 h_mid
-    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+    exact ⟨by simp [PartialGrid.length, len3, len4]⟩
   | vertical_append_one g1 g2 =>
     rw [FreeGroup.invRev_append, FreeGroup.invRev_append]
-    have ⟨h3, len3⟩ := reflect g1
-    have ⟨h4, len4⟩ := reflect g2
+    have ⟨h3, ⟨len3⟩⟩ := reflect g1
+    have ⟨h4, ⟨len4⟩⟩ := reflect g2
     use PartialGrid.horizontal_append_one h3 h4
-    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+    exact ⟨by simp [PartialGrid.length, len3, len4]⟩
   | vertical_append g1 g2 h_mid =>
     rw [FreeGroup.invRev_append, FreeGroup.invRev_append, FreeGroup.invRev_append, ← List.append_assoc]
-    have ⟨h3, len3⟩ := reflect g1
-    have ⟨h4, len4⟩ := reflect g2
+    have ⟨h3, ⟨len3⟩⟩ := reflect g1
+    have ⟨h4, ⟨len4⟩⟩ := reflect g2
     rw [← FreeGroup.invRev_length] at h_mid
     use PartialGrid.horizontal_append h3 h4 h_mid
-    exact ⟨by simp [PartialGrid.length, len3.1, len4.1]⟩
+    exact ⟨by simp [PartialGrid.length, len3, len4]⟩
 
 /-- a helper function, which gives the conclusion of `reflect` on a partial grid that has all 5
 parts of its frame already `FreeGroup.invRev`-images -/
@@ -115,17 +114,13 @@ private def reflect_of_invRev_images (a b c d e) (h : PartialGrid a1 b1 c1 d1 e1
     (h1 : PartialGrid b a e d c) × PLift (h.length = h1.length) := by
   intro a_eq b_eq c_eq d_eq e_eq
   apply congr_arg FreeGroup.invRev at a_eq
-  rw [FreeGroup.invRev_invRev] at a_eq
   apply congr_arg FreeGroup.invRev at b_eq
-  rw [FreeGroup.invRev_invRev] at b_eq
   apply congr_arg FreeGroup.invRev at c_eq
-  rw [FreeGroup.invRev_invRev] at c_eq
   apply congr_arg FreeGroup.invRev at d_eq
-  rw [FreeGroup.invRev_invRev] at d_eq
   apply congr_arg FreeGroup.invRev at e_eq
-  rw [FreeGroup.invRev_invRev] at e_eq
+  rw [FreeGroup.invRev_invRev] at a_eq b_eq c_eq d_eq e_eq
   rw [← a_eq, ← b_eq, ← c_eq, ← d_eq, ← e_eq]
-  apply reflect h
+  exact reflect h
 
 def right_frontier_is_false (h : PartialGrid a b c d e) : SignedList.is_false e :=
   match h with
@@ -189,7 +184,7 @@ theorem top_length_pos (h : PartialGrid a b c d e) : b.length > 0 := by
   | vertical_append_one => assumption
   | vertical_append => assumption
 
-def extend_left_side_w_length (h : PartialGrid a b c d e) (a₂) (h2 : is_false a₂) (h3 : a₂ ≠ []) :
+def extend_left_side_with_length (h : PartialGrid a b c d e) (a₂) (h2 : is_false a₂) (h3 : a₂ ≠ []) :
     (h1 : PartialGrid (a₂ ++ a) b [] (a₂ ++ c ++ d) e) × PLift (h.length = h1.length) := by
   match h with
   | single_cell h =>
@@ -210,33 +205,33 @@ def extend_left_side_w_length (h : PartialGrid a b c d e) (a₂) (h2 : is_false 
   | horizontal_append_one g1 g2 =>
     rename_i m n o p q
     rw [← List.append_assoc, ← List.append_nil (a₂ ++ n)]
-    have ih1 := extend_left_side_w_length g1 a₂ h2 h3
+    have ih1 := extend_left_side_with_length g1 a₂ h2 h3
     use PartialGrid.horizontal_append ih1.1 g2
       (by grind [List.length_pos_iff.mpr h3])
     exact ⟨by simp [PartialGrid.length, ih1.2.down]⟩
   | horizontal_append g1 g2 h_mid =>
     rw [← List.append_assoc, ← List.append_assoc]
-    have ih1 := extend_left_side_w_length g1 a₂ h2 h3
+    have ih1 := extend_left_side_with_length g1 a₂ h2 h3
     use PartialGrid.horizontal_append ih1.1 g2 (by grind)
     exact ⟨by simp [PartialGrid.length, ih1.2.down]⟩
   | vertical_append_one g1 g2 =>
     rw [← List.append_assoc]
-    have ih2 := extend_left_side_w_length g2 a₂ h2 h3
+    have ih2 := extend_left_side_with_length g2 a₂ h2 h3
     use PartialGrid.vertical_append_one g1 ih2.1
     exact ⟨by simp [PartialGrid.length, ih2.2.down]⟩
   | vertical_append g1 g2 h_mid =>
     rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc]
-    have ih2 := extend_left_side_w_length g2 a₂ h2 h3
+    have ih2 := extend_left_side_with_length g2 a₂ h2 h3
     use PartialGrid.vertical_append g1 ih2.1 h_mid
     exact ⟨by simp [PartialGrid.length, ih2.2.down]⟩
 
 def extend_left_side (h : PartialGrid a b c d e) (a₂) (h2 : is_false a₂) (h3 : a₂ ≠ []) :
-    PartialGrid (a₂ ++ a) b [] (a₂ ++ c ++ d) e := (extend_left_side_w_length h a₂ h2 h3).1
+    PartialGrid (a₂ ++ a) b [] (a₂ ++ c ++ d) e := (extend_left_side_with_length h a₂ h2 h3).1
 
- def extend_top_side_w_length  (h : PartialGrid a b c d e) (b2) (h2 : is_true b2) (h3 : b2 ≠ []) :
+ def extend_top_side_with_length  (h : PartialGrid a b c d e) (b2) (h2 : is_true b2) (h3 : b2 ≠ []) :
     (h1 : PartialGrid a (b ++ b2) c (d ++ e ++ b2) []) × PLift  (h.length = h1.length) := by
   rcases reflect h with ⟨h4, ⟨len⟩⟩
-  have ⟨h5, ⟨len2⟩⟩ := PartialGrid.extend_left_side_w_length h4 (FreeGroup.invRev b2)
+  have ⟨h5, ⟨len2⟩⟩ := PartialGrid.extend_left_side_with_length h4 (FreeGroup.invRev b2)
     (FreeGroup.invRev_false h2) (fun h => h3 (FreeGroup.invRev_eq_nil_iff.mp h))
   rcases reflect h5 with ⟨h6, ⟨len3⟩⟩
   rcases reflect_of_invRev_images _ _ _ _ _ h6 rfl rfl rfl rfl rfl with ⟨h7, ⟨len4⟩⟩
@@ -248,7 +243,7 @@ def extend_left_side (h : PartialGrid a b c d e) (a₂) (h2 : is_false a₂) (h3
   omega
 
 def extend_top_side  (h : PartialGrid a b c d e) (b₂) (h2 : is_true b₂) (h3 : b₂ ≠ []) :
-    PartialGrid a (b ++ b₂) c (d ++ e ++ b₂) []  := (extend_top_side_w_length h b₂ h2 h3).1
+    PartialGrid a (b ++ b₂) c (d ++ e ++ b₂) []  := (extend_top_side_with_length h b₂ h2 h3).1
 
 theorem middle_right_frontier_not_both_nil : PartialGrid a b c d e → d = [] → e = [] → False := by
   intro h
@@ -270,14 +265,12 @@ theorem middle_right_frontier_not_both_nil : PartialGrid a b c d e → d = [] �
     exact g2_ih
   | horizontal_append h g1 g2 g1_ih g2_ih =>
     intro h1
-    apply g2_ih
     simp only [append_assoc, append_eq_nil_iff] at h1
-    exact h1.2.2
+    apply g2_ih h1.2.2
   | vertical_append_one g1 g2 g1_ih g2_ih =>
     intro h1 h2
     simp only [append_eq_nil_iff] at h2
-    apply g2_ih h1
-    exact h2.1
+    apply g2_ih h1 h2.1
   | vertical_append g1 g2 h g1_ih g2_ih =>
     intro h1 h2
     simp only [append_assoc, append_eq_nil_iff] at h1
@@ -313,9 +306,6 @@ theorem bottom_middle_frontier_not_both_nil : PartialGrid a b c d e → c = [] �
     intro h1 h2
     simp only [append_assoc, append_eq_nil_iff] at h2
     exact g2_ih h1 h2.1
-
-def middle_spec (d : List (α × Bool)) := PLift (d = []) ⊕ Σ front mid caboose,
-  PLift (d = [(front, false)] ++ mid ++ [(caboose, true)])
 
 def middle_frontier_spec (h : PartialGrid a b c d e) :
     PLift (d = []) ⊕ Σ front mid caboose,
@@ -362,7 +352,7 @@ def middle_frontier_spec (h : PartialGrid a b c d e) :
         rcases hb with ⟨f1, m1, c1, h1⟩
         rw [h1.1]
         have H : Σ cb, PLift (c2 = (cb, true)) :=
-          is_true_singleton <| (is_true_of_append (bottom_frontier_is_true g2)).2
+          is_true_singletonData <| (is_true_of_append (bottom_frontier_is_true g2)).2
         rcases H with ⟨cb, cbspec⟩
         rw [cbspec.1]
         use f1, m1 ++ [(c1, true)] ++ f2, cb
@@ -391,7 +381,7 @@ def middle_frontier_spec (h : PartialGrid a b c d e) :
       | cons head tail =>
         have H : is_false [head] := by
           exact (is_false_of_append (right_frontier_is_false g2)).1
-        rcases is_false_singleton H with ⟨hf, spec2⟩
+        rcases is_false_singletonData H with ⟨hf, spec2⟩
         use hf, tail ++ [(f1, false)] ++ m1, c1
         constructor
         simp only [spec2.1, spec.1, List.cons_append, List.nil_append, List.append_assoc]
@@ -401,41 +391,6 @@ def middle_frontier_spec (h : PartialGrid a b c d e) :
     rename_i up2
     use f2, m2 ++ [(c2, true)] ++ up2 ++ [(f1, false)] ++ m1, c1
     exact {down := by simp}
-
-def middle_frontier_end_spec (d : List (α × Bool)) := PLift (d = []) ⊕
-  Σ mid caboose, PLift (d = mid ++ [(caboose, true)])
-
-def middle_frontier_start_spec (d : List (α × Bool)) := PLift (d = []) ⊕
-  Σ front mid, PLift (d = [(front, false)] ++ mid)
-
-def middle_frontier_start_spec_of_append (h : middle_frontier_start_spec (d1 ++ d2)) :
-    middle_frontier_start_spec d1 := by
-  cases d1 with
-  | nil => left; exact {down := rfl}
-  | cons head tail =>
-    right
-    rcases h with h1 | ⟨f, m, spec⟩
-    · simp only [List.cons_append, reduceCtorEq] at h1
-      apply h1.1.elim
-    simp only [List.cons_append, List.nil_append, List.cons.injEq] at spec
-    use f, tail
-    rw [spec.1.1]
-    constructor
-    simp
-
-def middle_frontier_start_spec_from_spec (h : middle_spec d) : middle_frontier_start_spec d := by
-  rcases h with h1 | ⟨f, m, c, spec⟩
-  · left; exact h1
-  right
-  use f, m ++ [(c, true)]
-  exact spec
-
-def middle_frontier_end_spec_from_spec (h : middle_spec d) : middle_frontier_end_spec d := by
-  rcases h with h1 | ⟨f, m, c, spec⟩
-  · left; exact h1
-  right
-  use [(f, false)] ++ m, c
-  exact spec
 
 theorem frontier_options_from_horizontal
     (h : PartialGrid a b c m e)
@@ -541,191 +496,6 @@ theorem frontier_options_from_vertical (h : PartialGrid a b c m e)
   apply congr_arg FreeGroup.invRev at he
   simp only [FreeGroup.invRev_invRev] at he
   exact he.symm
-
-/-- Bundle a `PartialGrid` together with its frame indices, so we can put a
-homogeneous relation on all partial grids regardless of their frame shapes. -/
-structure AnyPartialGrid : Type where
-  a : List (Option ℕ × Bool)
-  b : List (Option ℕ × Bool)
-  c : List (Option ℕ × Bool)
-  d : List (Option ℕ × Bool)
-  e : List (Option ℕ × Bool)
-  grid : PartialGrid a b c d e
-
-/-- Wrap a `PartialGrid` as an `AnyPartialGrid`. -/
-@[reducible] def toAny (h : PartialGrid a b c d e) : AnyPartialGrid :=
-  ⟨_, _, _, _, _, h⟩
-
-/-- One-step "sub-grid" relation: `lt_helper h₁ h` holds when `h` is one of the
-four append constructors applied with `h₁` filling either the left/top (`g1`)
-or right/bottom (`g2`) slot. -/
-inductive lt_helper : AnyPartialGrid → AnyPartialGrid → Prop
-  | horizontal_append_one_g1 {a b bot up b2 bot2 mid2 up2}
-      (h1 : PartialGrid a b bot [] up)
-      (h2 : PartialGrid up b2 bot2 mid2 up2) :
-      lt_helper (toAny h1) (toAny (horizontal_append_one h1 h2))
-  | horizontal_append_one_g2 {a b bot up b2 bot2 mid2 up2}
-      (h1 : PartialGrid a b bot [] up)
-      (h2 : PartialGrid up b2 bot2 mid2 up2) :
-      lt_helper (toAny h2) (toAny (horizontal_append_one h1 h2))
-  | horizontal_append_g1 {a b bot mid up b2 bot2 mid2 up2}
-      (h1 : PartialGrid a b bot mid up)
-      (h2 : PartialGrid up b2 bot2 mid2 up2) (hl : mid.length > 0) :
-      lt_helper (toAny h1) (toAny (horizontal_append h1 h2 hl))
-  | horizontal_append_g2 {a b bot mid up b2 bot2 mid2 up2}
-      (h1 : PartialGrid a b bot mid up)
-      (h2 : PartialGrid up b2 bot2 mid2 up2) (hl : mid.length > 0) :
-      lt_helper (toAny h2) (toAny (horizontal_append h1 h2 hl))
-  | vertical_append_one_g1 {a b bot up a1 bot2 mid2 up2}
-      (h1 : PartialGrid a b bot [] up)
-      (h2 : PartialGrid a1 bot bot2 mid2 up2) :
-      lt_helper (toAny h1) (toAny (vertical_append_one h1 h2))
-  | vertical_append_one_g2 {a b bot up a1 bot2 mid2 up2}
-      (h1 : PartialGrid a b bot [] up)
-      (h2 : PartialGrid a1 bot bot2 mid2 up2) :
-      lt_helper (toAny h2) (toAny (vertical_append_one h1 h2))
-  | vertical_append_g1 {a b bot mid up a1 bot2 mid2 up2}
-      (h1 : PartialGrid a b bot mid up)
-      (h2 : PartialGrid a1 bot bot2 mid2 up2) (hl : mid.length > 0) :
-      lt_helper (toAny h1) (toAny (vertical_append h1 h2 hl))
-  | vertical_append_g2 {a b bot mid up a1 bot2 mid2 up2}
-      (h1 : PartialGrid a b bot mid up)
-      (h2 : PartialGrid a1 bot bot2 mid2 up2) (hl : mid.length > 0) :
-      lt_helper (toAny h2) (toAny (vertical_append h1 h2 hl))
-  | extend_left_side {a b c d e a₂} (h : PartialGrid a b c d e)
-      (h2 : is_false a₂) (h3 : a₂ ≠ []) :
-      lt_helper (toAny h) (toAny (extend_left_side h a₂ h2 h3))
-  | extend_top_side {a b c d e b₂} (h : PartialGrid a b c d e)
-      (h2 : is_true b₂) (h3 : b₂ ≠ []) :
-      lt_helper (toAny h) (toAny (extend_top_side h b₂ h2 h3))
-
-/-- Strict partial order on partial grids: the transitive closure of `lt_helper`.
-Irreflexive because each `lt_helper` step strictly decreases structural size. -/
-def lt : AnyPartialGrid → AnyPartialGrid → Prop := Relation.TransGen lt_helper
-
-/-- Total number of `single_cell` nodes in a partial grid. Unlike `length` (which
-gives `0` for cells whose `CellData` is `empty`, `top_bottom`, or `sides`), this
-metric counts every cell, including "empty" ones. Regions built with the `empty`
-constructor contribute `0`. Serves as the primary key of the well-founded
-metric; ties are broken by `spine`. -/
-def size (h : PartialGrid a b c d e) : ℕ :=
-  match h with
-  | single_cell _ => 1
-  | empty _ _ _ _ _ _ => 0
-  | horizontal_append_one g1 g2 => g1.size + g2.size
-  | horizontal_append g1 g2 _ => g1.size + g2.size
-  | vertical_append_one g1 g2 => g1.size + g2.size
-  | vertical_append g1 g2 _ => g1.size + g2.size
-
-/-- Length of a partial grid's spine: `a.length + b.length` (left frame plus top
-frame). The secondary (tie-breaking) key in the well-founded metric. -/
-def spine (_ : PartialGrid a b c d e) : ℕ := a.length + b.length
-
-/-- Lexicographic key on `AnyPartialGrid`: primary is `size`, secondary is
-`spine`. -/
-def metric (h : AnyPartialGrid) : ℕ ×ₗ ℕ := toLex (h.grid.size, h.grid.spine)
-
-/-- Strict well-founded order on `AnyPartialGrid` given by `metric` under the
-lexicographic ordering. Intended to dominate `lt_helper`, and therefore `lt`. -/
-def lt_metric : AnyPartialGrid → AnyPartialGrid → Prop := InvImage (· < ·) metric
-
-/-- `lt_metric` is well-founded: lifted from the well-founded strict order on
-`ℕ ×ₗ ℕ` via `metric`. -/
-theorem lt_metric_wf : WellFounded lt_metric :=
-  InvImage.wf metric wellFounded_lt
-
-/-- If a partial grid has a non-empty bottom frontier or right frontier, then it
-must contain at least one `single_cell` node, so its `size` is positive. -/
-theorem size_pos_of_c_or_e (h : PartialGrid a b c d e) :
-    c ≠ [] ∨ e ≠ [] → 0 < h.size := by
-  induction h with
-  | single_cell _ => intro _; simp [size]
-  | empty _ _ _ _ _ _ =>
-    intro hh
-    rcases hh with hc | he
-    · exact absurd rfl hc
-    · exact absurd rfl he
-  | horizontal_append_one g1 g2 ih1 ih2 =>
-    intro hh
-    show 0 < g1.size + g2.size
-    rcases hh with hc | he
-    · rw [ne_eq, List.append_eq_nil_iff, not_and_or] at hc
-      rcases hc with hb | hb2
-      · exact Nat.add_pos_left (ih1 (Or.inl hb)) _
-      · exact Nat.add_pos_right _ (ih2 (Or.inl hb2))
-    · exact Nat.add_pos_right _ (ih2 (Or.inr he))
-  | horizontal_append g1 g2 _ ih1 ih2 =>
-    intro hh
-    show 0 < g1.size + g2.size
-    rcases hh with hc | he
-    · exact Nat.add_pos_left (ih1 (Or.inl hc)) _
-    · exact Nat.add_pos_right _ (ih2 (Or.inr he))
-  | vertical_append_one g1 g2 ih1 ih2 =>
-    intro hh
-    show 0 < g1.size + g2.size
-    rcases hh with hc | he
-    · exact Nat.add_pos_right _ (ih2 (Or.inl hc))
-    · rw [ne_eq, List.append_eq_nil_iff, not_and_or] at he
-      rcases he with hu2 | hu
-      · exact Nat.add_pos_right _ (ih2 (Or.inr hu2))
-      · exact Nat.add_pos_left (ih1 (Or.inr hu)) _
-  | vertical_append g1 g2 _ ih1 ih2 =>
-    intro hh
-    show 0 < g1.size + g2.size
-    rcases hh with hc | he
-    · exact Nat.add_pos_right _ (ih2 (Or.inl hc))
-    · exact Nat.add_pos_left (ih1 (Or.inr he)) _
-
-/-- A helper that mirrors `extend_left_side_w_length` structurally but also carries
-`size` preservation. Used to prove `extend_left_side_size` below. -/
-private def extend_left_side_ws (h : PartialGrid a b c d e) (a₂ : List (Option ℕ × Bool))
-    (h2 : is_false a₂) (h3 : a₂ ≠ []) :
-    (h1 : PartialGrid (a₂ ++ a) b [] (a₂ ++ c ++ d) e) ×
-      PLift (h.length = h1.length ∧ h.size = h1.size) := by
-  match h with
-  | single_cell hh =>
-    cases a₂ with
-    | nil => simp at h3
-    | cons head tail =>
-      rename_i cCell dCell
-      rw [List.append_nil]
-      refine ⟨PartialGrid.vertical_append_one (PartialGrid.single_cell hh)
-        (PartialGrid.empty (head :: tail) (to_horizontal_edge cCell) (by simp)
-        h2 to_horizontal_edge_length_pos is_true_to_horizontal_edge), ⟨?_, ?_⟩⟩
-      · simp [PartialGrid.length]
-      · simp [PartialGrid.size]
-  | empty a b ha ha1 hb hb1 =>
-    rw [List.append_nil, ← List.append_assoc]
-    refine ⟨PartialGrid.empty (a₂ ++ a) b (by rw [List.length_append]; omega)
-      (is_false_append h2 ha1) hb hb1, ⟨?_, ?_⟩⟩
-    · simp [PartialGrid.length]
-    · simp [PartialGrid.size]
-  | horizontal_append_one g1 g2 =>
-    rename_i m n o p q
-    rw [← List.append_assoc, ← List.append_nil (a₂ ++ n)]
-    have ih1 := extend_left_side_ws g1 a₂ h2 h3
-    refine ⟨PartialGrid.horizontal_append ih1.1 g2
-      (by grind [List.length_pos_iff.mpr h3]), ⟨?_, ?_⟩⟩
-    · simp [PartialGrid.length, ih1.2.down.1]
-    · simp [PartialGrid.size, ih1.2.down.2]
-  | horizontal_append g1 g2 h_mid =>
-    rw [← List.append_assoc, ← List.append_assoc]
-    have ih1 := extend_left_side_ws g1 a₂ h2 h3
-    refine ⟨PartialGrid.horizontal_append ih1.1 g2 (by grind), ⟨?_, ?_⟩⟩
-    · simp [PartialGrid.length, ih1.2.down.1]
-    · simp [PartialGrid.size, ih1.2.down.2]
-  | vertical_append_one g1 g2 =>
-    rw [← List.append_assoc]
-    have ih2 := extend_left_side_ws g2 a₂ h2 h3
-    refine ⟨PartialGrid.vertical_append_one g1 ih2.1, ⟨?_, ?_⟩⟩
-    · simp [PartialGrid.length, ih2.2.down.1]
-    · simp [PartialGrid.size, ih2.2.down.2]
-  | vertical_append g1 g2 h_mid =>
-    rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc]
-    have ih2 := extend_left_side_ws g2 a₂ h2 h3
-    refine ⟨PartialGrid.vertical_append g1 ih2.1 h_mid, ⟨?_, ?_⟩⟩
-    · simp [PartialGrid.length, ih2.2.down.1]
-    · simp [PartialGrid.size, ih2.2.down.2]
 
 end PartialGrid
 

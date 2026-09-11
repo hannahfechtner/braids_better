@@ -1,5 +1,6 @@
 import BraidProject.DataCarrying.List
 import BraidProject.PartialGrid.Basic
+import BraidProject.UnfinishedFrontier
 
 namespace Braid
 
@@ -230,7 +231,7 @@ noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vert
             simp at both_c
           rw [spec1.1] at long
           simp only [List.cons_append, List.nil_append] at long
-          have := SignedList.eq_of_is_true_append_false_append_eq (g2.top_side_is_true) both_c
+          have := SignedList.parts_eq_of_false_singleton_infix_true_lists (g2.top_side_is_true) both_c
             (by simp only [List.append_assoc, List.cons_append, List.nil_append]; exact long)
           aesop
         have mid_is : mid1 = d2 := by
@@ -246,16 +247,16 @@ noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vert
           left
           rw [List.append_nil] at bot1_is
           subst bot1_is
-          use up2 ++ mid, bot2, mid2, [], up2++ [] ++ d2, PartialGrid.vertical_append_one h1 g2
+          use up2 ++ mid, bot2, mid2, [], up2 ++ [] ++ d2, PartialGrid.vertical_append_one h1 g2
           match up2 with
           | [] =>
             use h2
             exact ⟨⟨by simp [mid_is]⟩, ⟨by grind [PartialGrid.length]⟩⟩
           | up21 :: up22 =>
-            use (PartialGrid.extend_left_side_w_length h2 (up21 :: up22)
+            use (PartialGrid.extend_left_side_with_length h2 (up21 :: up22)
               (PartialGrid.right_frontier_is_false g2) (by simp)).1
             refine ⟨⟨by simp [mid_is]⟩, ⟨?_⟩⟩
-            grind [PartialGrid.length, (PartialGrid.extend_left_side_w_length h2 (up21 :: up22)
+            grind [PartialGrid.length, (PartialGrid.extend_left_side_with_length h2 (up21 :: up22)
               (PartialGrid.right_frontier_is_false g2) (by simp)).2.1]
         | c21 :: c22 =>
           left
@@ -287,7 +288,7 @@ noncomputable def splittable_vertically (h : PartialGrid a b c m d) : split_vert
             simp at H0
           rw [spec1.1] at long
           simp only [List.cons_append, List.nil_append, List.append_assoc] at long
-          have := SignedList.eq_of_is_true_append_false_append_eq (g2.top_side_is_true) h1.bottom_frontier_is_true
+          have := SignedList.parts_eq_of_false_singleton_infix_true_lists (g2.top_side_is_true) h1.bottom_frontier_is_true
             (by simp only [List.append_assoc, List.cons_append, List.nil_append]; exact long)
           grind
         simp [bot1_is] at long

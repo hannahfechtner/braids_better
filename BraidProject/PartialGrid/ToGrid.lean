@@ -41,52 +41,6 @@ def append_vertical_with_length
   use GridData.vertical h1 h2
   rfl
 
-noncomputable def of_PartialGrid (h : PartialGrid a b c [] d) :
-    GridData.PartialGridStyle a b c d := by
-  generalize hm : ([] : List (Option ℕ × Bool)) = m at h
-  induction h with
-  | single_cell h =>
-    unfold GridData.PartialGridStyle
-    simp only [toList_to_vertical_edge_rev, toList_to_horizontal_edge]
-    exact of_CellData h
-  | empty a b =>
-    apply congr_arg List.length at hm
-    simp only [List.length_nil, List.length_append] at hm
-    linarith
-  | horizontal_append_one _ _ ih1 ih2 =>
-    exact GridData.PartialGridStyle.append_horizontal (ih1 rfl) (ih2 hm)
-  | horizontal_append _ _ _ g1_ih g2_ih =>
-    simp only [List.append_assoc, List.nil_eq_append_iff, List.append_eq_nil_iff] at hm
-    have H := GridData.PartialGridStyle.append_horizontal (g1_ih hm.1.symm) (g2_ih hm.2.2.symm)
-    rw [hm.2.1, List.append_nil] at H
-    exact H
-  | vertical_append_one _ _ ih1 ih2 =>
-    exact GridData.PartialGridStyle.append_vertical (ih1 rfl) (ih2 hm)
-  | vertical_append _ _ _ g1_ih g2_ih =>
-    simp only [List.append_assoc, List.nil_eq_append_iff, List.append_eq_nil_iff] at hm
-    have H := GridData.PartialGridStyle.append_vertical (g1_ih hm.2.2.symm) (g2_ih hm.1.symm)
-    rw [hm.2.1, List.nil_append] at H
-    exact H
-
-theorem SignedOptionList.toList_eq_nil_to_SignedList_eq_nil (h : SignedOptionList.toSignedList a = []) :
-    SignedOptionList.toList a = [] := by
-  induction a with
-  | nil => rfl
-  | cons head tail ih =>
-    unfold SignedOptionList.toSignedList at h
-    split at h
-    · aesop
-    · aesop
-    simp_all
-
-theorem SignedOptionList.toList_reverse : SignedOptionList.toList (a.reverse) = (SignedOptionList.toList a).reverse := by
-  induction a with
-  | nil => rfl
-  | cons head tail ih =>
-    simp only [List.reverse_cons, toList_append, ih]
-    conv => rhs; unfold SignedOptionList.toList
-    aesop
-
 noncomputable def of_PartialGrid_almost_empty_middle_frontier (h : PartialGrid a b c m d)
     (hm : SignedOptionList.toSignedList m = []) :
     GridData.PartialGridStyle a b c d := by
@@ -124,6 +78,10 @@ noncomputable def of_PartialGrid_almost_empty_middle_frontier (h : PartialGrid a
       List.nil_append, ← toList_append, ← toList_reverse, ← toList_reverse] at H
     unfold PartialGridStyle
     exact H
+
+noncomputable def of_PartialGrid (h : PartialGrid a b c [] d) :
+    GridData.PartialGridStyle a b c d :=
+  of_PartialGrid_almost_empty_middle_frontier h rfl
 
 noncomputable def of_PartialGrid_with_length (h : PartialGrid a b c [] d) :
     {h1 : GridData.PartialGridStyle a b c d // h.length = h1.length } := by
@@ -175,20 +133,6 @@ end GridData
 
 namespace PartialGrid
 
-theorem empty_middle_frontier_matches_grid
-    (g1 : PartialGrid a2 b2 bot2 [] up2) (ha : a1 = toList (FreeGroup.invRev a2))
-    (b4_is : b4 = toList b2) (b9 : GridData a1 b4 b7 b6) :
-    b6 = toList (FreeGroup.invRev up2) ∧ b7 = toList bot2 := by
-  have ha1 : a1 = toList a2.reverse := by
-    simp only [toList_invRev, ← SignedOptionList.toList_reverse] at ha
-    rw [ha]
-  have H := GridData.PartialGridStyle.of_PartialGrid g1
-  have H3 := GridData.unicity b9 H ha1 b4_is
-  rw [← H3.1.1, ← H3.2.1]
-  constructor
-  · simp [SignedOptionList.toList_reverse]
-  rfl
-
 theorem almost_empty_middle_frontier_matches_grid
     (g1 : PartialGrid a2 b2 bot2 m up2) (hm : SignedOptionList.toSignedList m = []) (ha : a1 = toList (FreeGroup.invRev a2))
     (b4_is : b4 = toList b2) (b9 : GridData a1 b4 b7 b6) :
@@ -202,6 +146,12 @@ theorem almost_empty_middle_frontier_matches_grid
   constructor
   · simp [SignedOptionList.toList_reverse]
   rfl
+
+theorem empty_middle_frontier_matches_grid
+    (g1 : PartialGrid a2 b2 bot2 [] up2) (ha : a1 = toList (FreeGroup.invRev a2))
+    (b4_is : b4 = toList b2) (b9 : GridData a1 b4 b7 b6) :
+    b6 = toList (FreeGroup.invRev up2) ∧ b7 = toList bot2 :=
+  almost_empty_middle_frontier_matches_grid g1 rfl ha b4_is b9
 
 theorem empty_middle_frontier_matches_grid_length
     (g1 : PartialGrid a2 b2 bot2 [] up2) (ha : a1 = toList (FreeGroup.invRev a2))
@@ -220,4 +170,5 @@ theorem empty_middle_frontier_matches_grid_with_length
     b6 = toList (FreeGroup.invRev up2) ∧ b7 = toList bot2 ∧ g1.length = b9.length := by
   rw [← and_assoc]
   exact ⟨empty_middle_frontier_matches_grid g1 ha b4_is b9, empty_middle_frontier_matches_grid_length g1 ha b4_is b9⟩
+
 end PartialGrid

@@ -1,4 +1,4 @@
-import BraidProject.SignedList
+import BraidProject.Additions.SignedList
 import BraidProject.Additions.List
 
 namespace SignedOptionList
@@ -121,8 +121,6 @@ theorem toList_prefix_append_cases {α : Type} {n q : List α} {b : List (Option
     omega
   aesop
 
-
-
 def toSignedList {α : Type} (L : List (Option α × Bool)) : List (α × Bool) :=
   match L with
   | [] => []
@@ -132,7 +130,6 @@ def toSignedList {α : Type} (L : List (Option α × Bool)) : List (α × Bool) 
 @[simp]
 theorem toSignedList_nil : toSignedList ([] : List (Option α × Bool)) = [] := rfl
 
-
 @[simp]
 theorem toSignedList_append : toSignedList (L1 ++ L2) = toSignedList L1 ++ toSignedList L2 := by
   induction L1
@@ -141,7 +138,6 @@ theorem toSignedList_append : toSignedList (L1 ++ L2) = toSignedList L1 ++ toSig
   match head with
   | (none, _) => simp [toSignedList, ih]
   | (some _, _) => simp [toSignedList, ih]
-
 
 theorem toSignedList_cons : toSignedList (a :: b) = toSignedList [a] ++ toSignedList b := by
   rw [← toSignedList_append]
@@ -238,6 +234,15 @@ theorem toSignedList_tail_eq_nil_of_eq_nil (h : toSignedList (head :: tail) = []
   rw [toSignedList_append, List.append_eq_nil_iff] at h
   exact h.2
 
+theorem toSignedList_invRev : SignedOptionList.toSignedList (FreeGroup.invRev a) =
+  FreeGroup.invRev (SignedOptionList.toSignedList a) := by
+  induction a with
+  | nil => rfl
+  | cons head tail ih =>
+    rw [FreeGroup.invRev_cons, SignedOptionList.toSignedList_append, ih]
+    match head with
+    | (none, b) => simp [SignedOptionList.toSignedList, FreeGroup.invRev]
+    | (some n, b) => simp [SignedOptionList.toSignedList, FreeGroup.invRev]
 
 @[simp]
 theorem toSignedList_toSignedOptionList {a : List (ℕ × Bool)} : toSignedList (SignedList.to_SignedOptionList a) = a := by
@@ -246,6 +251,17 @@ theorem toSignedList_toSignedOptionList {a : List (ℕ × Bool)} : toSignedList 
   rename_i ih
   simp only [SignedList.to_SignedOptionList, List.map_cons, toSignedList, List.cons.injEq, true_and]
   exact ih
+
+theorem toList_eq_nil_to_SignedList_eq_nil (h : SignedOptionList.toSignedList a = []) :
+    SignedOptionList.toList a = [] := by
+  induction a with
+  | nil => rfl
+  | cons head tail ih =>
+    unfold SignedOptionList.toSignedList at h
+    split at h
+    · aesop
+    · aesop
+    simp_all
 
 @[simp]
 theorem  toList_invRev : SignedOptionList.toList (FreeGroup.invRev a) = (SignedOptionList.toList a).reverse := by
@@ -295,8 +311,8 @@ theorem toList_invRev_eq_append_cases {m q : List α}
       have := SignedOptionList.toList_len a2
       have a1le := congr_arg List.length a1s
       have a2le := congr_arg List.length a2s
-      simp [] at a1le
-      simp [] at a2le
+      simp only [List.length_cons] at a1le
+      simp only [List.length_cons] at a2le
       have a1_len : a1.length > 0 := by omega
       have a2_len : a2.length > 0 := by omega
       simp_all
@@ -322,5 +338,3 @@ theorem toList_invRev_prefix_append_cases {m q : List α}
   · rw [FreeGroup.invRev_invRev, b2s]; exact h_pref
 
 end SignedOptionList
-
-#min_imports

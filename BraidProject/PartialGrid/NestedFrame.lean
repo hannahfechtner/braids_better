@@ -120,7 +120,7 @@ theorem frontier_prefix (h : GridData i j k l)
                 have := right_frontier_spec_from_split_horizontally h1 p1 p2 rfl hf
                 aesop
             rw [to_vertical_edge_no_epsilon_mul, this]
-            have p3 := PartialGrid.extend_top_side_w_length p2 (SignedList.to_SignedOptionList (rfirst::rrest)) (
+            have p3 := PartialGrid.extend_top_side_with_length p2 (SignedList.to_SignedOptionList (rfirst::rrest)) (
               SignedList.is_true_to_SignedOptionList rest_true) (by simp [SignedList.to_SignedOptionList])
             rw [p3.2.1]
             specialize h2_ih p3.1 ha₁
@@ -217,7 +217,7 @@ theorem frontier_prefix (h : GridData i j k l)
             rw [to_horizontal_edge_no_epsilon_mul, this]
             constructor
             · exact List.prefix_append_of_prefix h1_ih.1
-            have p3 := PartialGrid.extend_left_side_w_length p2 (SignedList.to_SignedOptionList (rfirst::rrest)) (
+            have p3 := PartialGrid.extend_left_side_with_length p2 (SignedList.to_SignedOptionList (rfirst::rrest)) (
               SignedList.is_false_to_SignedOptionList rest_false) (by simp [SignedList.to_SignedOptionList])
             rw [p3.2.1]
             specialize h2_ih p3.1
@@ -249,7 +249,7 @@ theorem frontier_prefix_generalized (h : GridData i j k l) (h1 : PartialGrid a b
       · exact (toSignedList_prefix_to_horizontal_edge_no_epsilon_iff (bottom_frontier_is_true h1)).mp this.1
       aesop
     | rf :: rt =>
-      have p1 := PartialGrid.extend_top_side_w_length h1 (to_horizontal_edge (rf :: rt))
+      have p1 := PartialGrid.extend_top_side_with_length h1 (to_horizontal_edge (rf :: rt))
         is_true_to_horizontal_edge (by refine List.ne_nil_of_length_pos to_horizontal_edge_length_pos)
       have := frontier_prefix h p1.1
         ((toSignedList_eq_to_vertical_edge_no_epsilon_iff (left_side_is_false h1)).mpr ha.symm)
@@ -270,7 +270,7 @@ theorem frontier_prefix_generalized (h : GridData i j k l) (h1 : PartialGrid a b
     · exact (toSignedList_suffix_to_vertical_edge_no_epsilon_iff (right_frontier_is_false h1)).mp this.2.1
     aesop
   | rf :: rt =>
-    have p1 := PartialGrid.extend_left_side_w_length h1 (to_vertical_edge (rf :: rt))
+    have p1 := PartialGrid.extend_left_side_with_length h1 (to_vertical_edge (rf :: rt))
       is_false_to_vertical_edge (by refine List.ne_nil_of_length_pos to_vertical_edge_length_pos)
     have := frontier_prefix h p1.1
       (by rw [← hrest, to_vertical_edge_no_epsilon_append,

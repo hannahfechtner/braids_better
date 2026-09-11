@@ -1,31 +1,34 @@
 import BraidProject.DataCarrying.List
-import BraidProject.SignedList
+import BraidProject.Additions.SignedList
 
 namespace SignedList
 
-def is_false_singleton (h : is_false [a]) : Σ a', PLift (a = (a', false)) := by
+def is_false_singletonData (h : is_false [a]) : Σ a', PLift (a = (a', false)) := by
   rcases a with ⟨c, b⟩
   use c
   simp only [Prod.mk.injEq, true_and]
   constructor
   exact h (c, b) (List.mem_singleton.mpr rfl)
 
-def is_true_singleton (h : is_true [a]) : Σ a', PLift (a = (a', true)) := by
+def is_true_singletonData (h : is_true [a]) : Σ a', PLift (a = (a', true)) := by
   rcases a with ⟨c, b⟩
   use c
-  simp
   specialize h (c, b) (List.mem_singleton.mpr rfl)
   constructor
-  exact h
+  simp [← h]
 
+-- note that this could also be defined as a subtype. The original choice was arbitrary,
+-- but the amount of work to change it to a subtype is far greater than the benefit of
+-- adhering more strictly to the style guidelines
 def PosNegData (a : List (α × Bool)) := Σ a1 a2, PLift (is_true a1 ∧ is_false a2 ∧ a = a1 ++ a2)
 
-def PosNegData.nil {α} : PosNegData ([] : List (α × Bool)) := by use [], []; simp; exact ⟨trivial⟩
+def PosNegData.nil {α} : PosNegData ([] : List (α × Bool)) := by
+  use [], []; simp; exact ⟨trivial⟩
 
 def PosNegData.singleton : PosNegData ([a]) := by
   match a with
-  | (a1, false) => use [], [(a1,false)]; simp [is_false]; constructor; trivial
-  | (a1, true) => use [(a1, true)], []; simp [is_true]; constructor; trivial
+  | (a1, false) => use [], [(a1,false)]; constructor; simp [is_false]
+  | (a1, true) => use [(a1, true)], []; constructor; simp [is_true]
 
 def PosNegData.of_true (h : is_true L) : PosNegData L := by
   use L, []
@@ -140,49 +143,5 @@ def toSignedOptionList_NegPosData (h : NegPosData a) : NegPosData (to_SignedOpti
   rw [spec.2.2]
   unfold to_SignedOptionList
   rw [List.map_append]
-
-def prefix_true (h1 : is_true bot3) (h : k₂ ++ [(a1, false), (b1, true)] ++ l = bot3 ++ mid3 ++ up3) :
-    List.PrefixData bot3 k₂ := by
-  induction k₂ generalizing bot3 with
-  | nil =>
-    cases bot3 with
-    | nil => exact List.PrefixData.nil
-    | cons head tail =>
-      simp only [List.nil_append, List.cons_append, List.append_assoc, List.cons.injEq] at h
-      rw [← h.1] at h1
-      simp [is_true] at h1
-  | cons head tail ih =>
-    cases bot3 with
-    | nil => exact List.PrefixData.nil
-    | cons head1 tail1 =>
-      simp only [List.cons_append, List.cons.injEq] at h
-      specialize @ih tail1 (is_true_of_cons h1).2 h.2
-      rw [h.1]
-      exact (List.PrefixData.cons head1) ih
-
-def prefix_false (h1 : is_false t3) (h : tk ++ [(a1, false), (b1, true)] ++ l =
-    t3 ++ (f, false) :: (m ++ [(c, true)]) ++ up3) : List.PrefixData t3 tk := by
-  induction tk generalizing t3 with
-  | nil =>
-    cases t3 with
-    | nil => exact List.PrefixData.nil
-    | cons head tail =>
-      cases tail with
-      | nil =>
-        simp at h
-      | cons ht tt =>
-        simp at h
-        rw [← h.2.1] at h1
-        specialize h1 (b1, true)
-        simp at h1
-  | cons head tail ih =>
-    cases t3 with
-    | nil =>
-      exact List.PrefixData.nil
-    | cons ht tt =>
-      simp at h
-      specialize @ih tt (is_false_of_cons h1).2 (by simp [h.2])
-      rw [h.1]
-      exact List.PrefixData.cons ht ih
 
 end SignedList

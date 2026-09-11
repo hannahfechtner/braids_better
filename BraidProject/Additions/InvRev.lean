@@ -1,5 +1,5 @@
 import Mathlib.GroupTheory.FreeGroup.Basic
-import BraidProject.SignedOptionList
+import BraidProject.Additions.SignedOptionList
 
 theorem FreeGroup.invRev_eq_nil_iff : FreeGroup.invRev a = [] ↔ a = [] := by
   simp [FreeGroup.invRev]
@@ -30,13 +30,3 @@ def FreeGroup.invRev_true (h : is_false a) : is_true (FreeGroup.invRev a) := by
   intro a1 a1_in
   specialize h (a1, true) a1_in
   simp at h
-
-theorem SignedOptionList.toSignedList_invRev : SignedOptionList.toSignedList (FreeGroup.invRev a) =
-  FreeGroup.invRev (SignedOptionList.toSignedList a) := by
-  induction a with
-  | nil => rfl
-  | cons head tail ih =>
-    rw [FreeGroup.invRev_cons, SignedOptionList.toSignedList_append, ih]
-    match head with
-    | (none, b) => simp [SignedOptionList.toSignedList, FreeGroup.invRev]
-    | (some n, b) => simp [SignedOptionList.toSignedList, FreeGroup.invRev]
