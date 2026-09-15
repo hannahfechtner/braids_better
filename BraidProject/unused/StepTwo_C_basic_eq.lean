@@ -406,7 +406,7 @@ noncomputable def step_two (ha : is_false a) (ha1 : a.length > 0)
 -- noncomputable def chain_length (h : SemiThue reversing (a1 ++ a2) (b1 ++ b2))
 --     (ha1 : is_false a1) (a1_len : a1.length >0) (ha2 : is_true a2) (a2_len : a2.length > 0)
 --     (hb1 : is_true b1) (hb2 : is_false b2) : ℕ := by
---   have H := stepOne h (by use a1, a2; exact ⟨ha1, ⟨ha2, rfl⟩⟩)
+--   have H := SemiThueData.reversing.to_grid_style_NegPos_to_PosNeg h (by use a1, a2; exact ⟨ha1, ⟨ha2, rfl⟩⟩)
 --       (by use b1, b2; exact ⟨hb1, ⟨hb2, rfl⟩⟩)
 --   rcases H with ⟨c, spec1, spec2, spec3, spec35⟩
 --   unfold to_SignedOptionList at spec1

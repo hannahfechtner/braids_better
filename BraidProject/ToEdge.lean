@@ -2,6 +2,7 @@ import BraidProject.DataCarrying.List
 import BraidProject.Additions.SignedOptionList
 import BraidProject.DataCarrying.SignedList
 import Mathlib.GroupTheory.FreeGroup.Basic
+import BraidProject.BraidGroup
 
 namespace Braid
 
@@ -238,6 +239,20 @@ theorem to_horizontal_edge_options (c : List (α)) : (∃ a, to_horizontal_edge 
   induction c with
   | nil => simp
   | cons head tail ih => cases tail; all_goals simp
+
+theorem to_vertical_edge_no_epsilon_invRev_to_horizontal_edge_no_epsilon :
+  to_vertical_edge_no_epsilon a = FreeGroup.invRev (to_horizontal_edge_no_epsilon a) := by
+  induction a with
+  | nil => simp
+  | cons head tail ih =>
+    rw [to_vertical_edge_no_epsilon_cons, ih, to_horizontal_edge_no_epsilon_cons, FreeGroup.invRev_cons]
+    rfl
+
+theorem BraidGroupInf.mk_to_vertical_edge :
+  BraidGroupInf.mk (FreeGroup.mk (to_vertical_edge_no_epsilon a)) =
+  (BraidGroupInf.mk (FreeGroup.mk (to_horizontal_edge_no_epsilon a)))⁻¹ := by
+  rw [to_vertical_edge_no_epsilon_invRev_to_horizontal_edge_no_epsilon]
+  rfl
 
 theorem to_vertical_edge_no_epsilon_injective (h : to_vertical_edge_no_epsilon a = to_vertical_edge_no_epsilon b) : a = b := by
   unfold to_vertical_edge_no_epsilon at h

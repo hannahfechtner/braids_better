@@ -28,16 +28,14 @@ def reverse_word_helper_from_reverse_pair_nonempty_false_suffix_empty_true_prefi
     (hout :
       ((reverse_pair
         (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
-        (List.map (fun x ↦ x.1) (b1 :: b2))
-        (by simp) (by simp))).1 = d ++ e1 :: e2)
+        (List.map (fun x ↦ x.1) (b1 :: b2)))).1 = d ++ e1 :: e2)
     (H3' :
       SemiThueData reversing
         (to_vertical_edge_no_epsilon (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
           to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) (b1 :: b2)))
         ((reverse_pair
           (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
-          (List.map (fun x ↦ x.1) (b1 :: b2))
-          (by simp) (by simp))).1) :
+          (List.map (fun x ↦ x.1) (b1 :: b2)))).1) :
     ReverseResult (l1 :: l2) := by
   use d ++ (e1 :: e2) ++ g
   use d, (e1 :: e2) ++ g
@@ -82,22 +80,19 @@ def reverse_word_helper_from_reverse_pair_nonempty_false_suffix_nonempty_true_pr
     (hout :
       ((reverse_pair
         (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
-        (List.map (fun x ↦ x.1) (b1 :: b2))
-        (by simp) (by simp))).1 = d ++ e1 :: e2)
+        (List.map (fun x ↦ x.1) (b1 :: b2)))).1 = d ++ e1 :: e2)
     (H3' :
       SemiThueData reversing
         (to_vertical_edge_no_epsilon (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
           to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) (b1 :: b2)))
         ((reverse_pair
           (List.map (fun x ↦ x.1) (a1 :: a2).reverse)
-          (List.map (fun x ↦ x.1) (b1 :: b2))
-          (by simp) (by simp))).1) :
+          (List.map (fun x ↦ x.1) (b1 :: b2)))).1) :
     ReverseResult (l1 :: l2) := by
         have H3 := reverse_pair (List.map (fun x => x.1) (e1 :: e2).reverse)
-          (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp)
-        have H4 : SignedList.PosNegData _ := reverse_pair_PosNegData (List.map (fun x => x.1) (e1 :: e2).reverse)
-          (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp)
-        rcases H4 with ⟨i, j, hij⟩
+          (List.map (fun x => x.1) (f1 :: f2))
+        have ⟨i, j, hij⟩ : SignedList.PosNegData _ := reverse_pair_PosNegData (List.map (fun x => x.1) (e1 :: e2).reverse)
+          (List.map (fun x => x.1) (f1 :: f2))
         use d ++ i ++ j ++ g
         use (d ++ i), j ++ g
         constructor
@@ -109,8 +104,8 @@ def reverse_word_helper_from_reverse_pair_nonempty_false_suffix_nonempty_true_pr
         simp only [hs, List.cons_append, List.append_assoc] at sfpc
         rw [← sfpc, List.append_assoc d i j, ← hij.1.2.2]
         have H5 := @SemiThueData.append_left_right _ _ _ _ d g
-            (SemiThueDataDerivation.reversing.toSemiThueData_with_length (@reverse_pair_spec (List.map (fun x => x.1) (e1 :: e2).reverse)
-            (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp))).1
+            (SemiThueDataDerivation.toSemiThueData (@reverse_pair_spec (List.map (fun x => x.1) (e1 :: e2).reverse)
+            (List.map (fun x => x.1) (f1 :: f2))))
         apply SemiThueData.trans _ H5
         have H6 : (to_vertical_edge_no_epsilon (List.map (fun x ↦ x.1) (e1 :: e2).reverse) ++
             to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) (f1 :: f2))) = e1 :: e2 ++ f1 :: f2 := by
@@ -152,12 +147,11 @@ def reverse_word_helper_from_reverse_pair_nonempty_false_suffix (l1 : ℕ × Boo
     (htrue : SignedList.is_true d)
       (hfalse : SignedList.is_false (e1 :: e2))
 
-          (hout : (((reverse_pair (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)) (by simp)
-                      (by simp))).1 =
+          (hout : (((reverse_pair (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)))).1 =
             d ++ e1 :: e2))
     (H3' : SemiThueData reversing
       (to_vertical_edge_no_epsilon (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++ to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) (b1 :: b2)))
-      ((reverse_pair (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)) (by simp) (by simp))).1)
+      ((reverse_pair (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)))).1)
     : ReverseResult (l1 :: l2) := by
     match f with
     | [] =>
@@ -173,7 +167,7 @@ def reverse_word_helper_from_reverse_pair (l1 : ℕ × Bool) (l2 : List (ℕ × 
     (a1 : ℕ × Bool) (a2 : List (ℕ × Bool)) (b1 : ℕ × Bool) (b2 c : List (ℕ × Bool))
     (hs : separate_first_pair (l1 :: l2) = (a1 :: a2, b1 :: b2, c))
     (d e : List (ℕ × Bool)) (htrue : SignedList.is_true d) (hfalse : SignedList.is_false e)
-    (hout : ((reverse_pair (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)) (by simp) (by simp))).1 =
+    (hout : ((reverse_pair (List.map (fun x ↦ x.1) (a1 :: a2).reverse) (List.map (fun x ↦ x.1) (b1 :: b2)))).1 =
       d ++ e) (H2 : ReverseResult c) (f g : List (ℕ × Bool))
     (hfg : SignedList.is_true f ∧ SignedList.is_false g ∧ H2.out = f ++ g) : ReverseResult (l1 :: l2) := by
   match e with
@@ -192,10 +186,7 @@ def reverse_word_helper_from_reverse_pair (l1 : ℕ × Bool) (l2 : List (ℕ × 
         ← List.cons_append, ← List.cons_append, ← List.append_assoc]
       apply SemiThueData.append
       · have H'' := @reverse_pair_spec (List.map (fun x => x.1) (a1 :: a2).reverse)
-          (List.map (fun x => x.1) (b1 :: b2)) (by simp only [List.reverse_cons, List.map_append, List.map_reverse, List.map_cons, List.map_nil, List.length_append,
-          List.length_reverse, List.length_map, List.length_cons, List.length_nil, zero_add, gt_iff_lt, lt_add_iff_pos_left,
-          add_pos_iff, zero_lt_one, or_true]) (by simp only [List.map_cons, List.length_cons, List.length_map, gt_iff_lt, lt_add_iff_pos_left, add_pos_iff,
-          zero_lt_one, or_true])
+          (List.map (fun x => x.1) (b1 :: b2))
         have H3 : (to_vertical_edge_no_epsilon (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
           to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) (b1 :: b2))) = a1 :: a2 ++ b1 :: b2 := by
           have af := (separate_first_pair_first_false (l1 :: l2))
@@ -204,17 +195,14 @@ def reverse_word_helper_from_reverse_pair (l1 : ℕ × Bool) (l2 : List (ℕ × 
           rw [hs] at bt
           rw [to_vertical_edge_no_epsilon_no_bool af, to_horizontal_edge_no_epsilon_no_bool bt]
         rw [← H3]
-        exact (SemiThueDataDerivation.reversing.toSemiThueData_with_length H'').1
+        exact (SemiThueDataDerivation.toSemiThueData H'')
       apply H2.steps
      | e1 :: e2 =>
       have H3' := @reverse_pair_spec (List.map (fun x => x.1) (a1 :: a2).reverse)
-            (List.map (fun x => x.1) (b1 :: b2)) (by simp only [List.reverse_cons, List.map_append, List.map_reverse, List.map_cons, List.map_nil, List.length_append,
-            List.length_reverse, List.length_map, List.length_cons, List.length_nil, zero_add, gt_iff_lt, lt_add_iff_pos_left,
-            add_pos_iff, zero_lt_one, or_true]) (by simp only [List.map_cons, List.length_cons, List.length_map, gt_iff_lt, lt_add_iff_pos_left, add_pos_iff,
-            zero_lt_one, or_true])
+            (List.map (fun x => x.1) (b1 :: b2))
       exact reverse_word_helper_from_reverse_pair_nonempty_false_suffix l1 l2 sfpc a1 a2 b1 b2 c
         hs d H2 f g hfg e1 e2 htrue hfalse hout
-        (SemiThueDataDerivation.reversing.toSemiThueData_with_length H3').1
+        (SemiThueDataDerivation.toSemiThueData H3')
 
 def reverse_word_pair_case
     (l1 : ℕ × Bool) (l2 : List (ℕ × Bool))
@@ -223,19 +211,10 @@ def reverse_word_pair_case
     (hs : separate_first_pair (l1 :: l2) = (a1 :: a2, b1 :: b2, c))
     (H2 : ReverseResult c) :
     ReverseResult (l1 :: l2) := by
-  have H1 : SignedList.PosNegData _ :=
+  have ⟨d, e, htrue, hfalse, hout⟩ : SignedList.PosNegData _ :=
     reverse_pair_PosNegData
       (List.map (fun x => x.1) (a1 :: a2).reverse)
       (List.map (fun x => x.1) (b1 :: b2))
-      (by
-        simp only [List.reverse_cons, List.map_append, List.map_reverse,
-          List.map_cons, List.map_nil, List.length_append, List.length_reverse,
-          List.length_map, List.length_cons, List.length_nil, zero_add,
-          gt_iff_lt, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true])
-      (by
-        simp only [List.map_cons, List.length_cons, List.length_map,
-          gt_iff_lt, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true])
-  rcases H1 with ⟨d, e, htrue, hfalse, hout⟩
   rcases H2.ordered with ⟨f, g, hfg⟩
   have sfpc := separate_first_pair_correct (l1 :: l2)
   exact reverse_word_helper_from_reverse_pair l1 l2 sfpc a1 a2 b1 b2 c hs d e htrue hfalse hout H2 f g hfg.1

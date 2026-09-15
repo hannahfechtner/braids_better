@@ -92,6 +92,19 @@ theorem nil_of_is_true_and_is_false (h1 : SignedList.is_true m) (h2 : SignedList
     rw [H1] at H2
     simp at H2
 
+theorem parts_eq_of_true_false_eq {t1 t2 f1 f2 : List (α × Bool)}
+    (ht1 : is_true t1) (ht2 : is_true t2) (hf1 : is_false f1) (hf2 : is_false f2)
+    (h : t1 ++ f1 = t2 ++ f2) : t1 = t2 ∧ f1 = f2 := by
+  rcases List.append_eq_append_iff.mp h with ⟨mid, hm1, hm2⟩ | ⟨mid, hm1, hm2⟩
+  · rw [hm1] at ht2
+    rw [hm2] at hf1
+    rw [nil_of_is_true_and_is_false (is_true_of_append ht2).2 (is_false_of_append hf1).1] at hm1 hm2
+    exact ⟨by rw [List.append_nil] at hm1; exact hm1.symm, hm2⟩
+  rw [hm1] at ht1
+  rw [hm2] at hf2
+  rw [nil_of_is_true_and_is_false (is_true_of_append ht1).2 (is_false_of_append hf2).1] at hm1 hm2
+  exact ⟨by rw [List.append_nil] at hm1; exact hm1, hm2.symm⟩
+
 theorem parts_eq_of_false_singleton_infix_true_lists (ha : is_true a) (hb : is_true b)
     (h : a ++ [(c, false)] ++ d = b ++ [(e, false)] ++ f) : a = b ∧ c = e ∧ d = f := by
   have hab : a = b := by

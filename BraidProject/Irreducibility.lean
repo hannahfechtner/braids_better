@@ -1,4 +1,4 @@
-import BraidProject.DataCarrying.List
+import BraidProject.DataCarrying.SignedList
 import BraidProject.Additions.SignedOptionList
 import Mathlib.Algebra.Order.Group.Nat
 import Mathlib.Data.Nat.Cast.Order.Basic
@@ -7,9 +7,10 @@ namespace Braid
 
 open SignedOptionList
 
--- we need InfixData over List.isInfix because eventually we will have to eliminate into
--- Type in StepOne_length
-def pairAppears (L : List (Option ℕ × Bool)) := ∀ a b, List.InfixData [(a, false), (b, true)] (toSignedList L) →
+-- we need InfixData over List.isInfix because eventually we will need to define a function
+-- on this data in StepOne_length
+def pairAppears (L : List (Option ℕ × Bool)) :=
+    ∀ a b, List.InfixData [(a, false), (b, true)] (toSignedList L) →
     List.InfixData [(some a, false), (some b, true)] L
 
 def pairAppears_empty : pairAppears [] := by
@@ -176,6 +177,112 @@ def irreducible_none_false_swap (b) (h : irreducible ((none, false) :: L)) : irr
     constructor
     · exact fun h1 => (irreducible_tail h a).2.1 (InfixData.tail_of_cons_cons_ne h1 (by simp))
     exact fun h1 => (irreducible_tail h a).2.2 (InfixData.tail_of_cons_cons_ne h1 (by simp))
+
+def PosNegData_of_toSignedList_PosNeg_and_irreducible (h : SignedList.PosNegData (toSignedList L)) (h2 : irreducible L) :
+    SignedList.PosNegData L := by
+  induction L
+  · exact SignedList.PosNegData.nil
+  rename_i head tail ih
+  have h_io : SignedList.PosNegData (toSignedList tail) := by
+    match head with
+    | (none, _) =>
+      exact h
+    | (some _, _) =>
+      exact SignedList.PosNegData.tail h
+  rcases ih h_io (irreducible_tail h2) with ⟨a1, a2, ha⟩
+  match head with
+  | (b, true) =>
+    use (b, true) :: a1, a2
+    constructor
+    constructor
+    · intro x hx
+      simp only [mem_cons] at hx
+      rcases hx with h1 | h2
+      · simp [h1]
+      exact ha.1.1 _ h2
+    constructor
+    · exact ha.1.2.1
+    simp only [cons_append, cons.injEq, true_and]
+    exact ha.1.2.2
+  | (none, false) =>
+    use [], (none, false) :: a2
+    constructor
+    constructor
+    · exact SignedList.is_true_nil
+    constructor
+    · exact SignedList.is_false_cons _ ha.1.2.1
+    simp only [ha.1.2.2, nil_append, cons.injEq, append_left_eq_self, true_and]
+    match a1 with
+    | [] => exact rfl
+    | head :: tail1 =>
+      exfalso
+      match head with
+      | (fst, false) =>
+        simp only [SignedList.is_true, mem_cons, forall_eq_or_imp, Bool.false_eq_true, Prod.forall,
+          Bool.forall_bool, imp_false, implies_true, and_true, false_and, cons_append] at ha
+        exact ha.1
+      | (none, true) =>
+        simp only [toSignedList] at h
+        simp only [SignedList.is_true, mem_cons, forall_eq_or_imp, Prod.forall, Bool.forall_bool,
+          Bool.false_eq_true, imp_false, implies_true, and_true, true_and, cons_append] at ha
+        rw [ha.1.2.2] at h2
+        specialize h2 0
+        apply Empty.elim
+        apply h2.2.2
+        use [], tail1 ++ a2
+        exact {down := by simp}
+      | (some c, true) =>
+        simp only [toSignedList] at h
+        simp only [SignedList.is_true, mem_cons, forall_eq_or_imp, Prod.forall, Bool.forall_bool,
+          Bool.false_eq_true, imp_false, implies_true, and_true, true_and, cons_append] at ha
+        rw [ha.1.2.2] at h2
+        specialize h2 c
+        apply Empty.elim
+        apply h2.2.1
+        use [], tail1 ++ a2
+        exact {down := by simp}
+  | (some a, false) =>
+    use [], (some a, false) :: a2
+    constructor
+    constructor
+    · exact SignedList.is_true_nil
+    constructor
+    · exact SignedList.is_false_cons _ ha.1.2.1
+    simp only [ha.1.2.2, nil_append, cons.injEq, append_left_eq_self, true_and]
+    match tail with
+    | [] =>
+      simp only [nil_eq, append_eq_nil_iff] at ha
+      exact ha.1.2.2.1
+    | (none, true) :: tail2 =>
+      apply Empty.elim
+      apply (h2 a).1
+      use [], tail2
+      exact {down := by simp}
+    | (_, false) :: tail2 =>
+      match a1 with
+      | [] => rfl
+      | (_, true) :: rest =>
+        simp only [cons_append, cons.injEq, Prod.mk.injEq, Bool.false_eq_true, and_false,
+          false_and] at ha
+        exact ha.1.elim
+      | (fst, false) :: rest =>
+        simp only [SignedList.is_true, mem_cons, forall_eq_or_imp, Bool.false_eq_true, Prod.forall,
+          Bool.forall_bool, imp_false, implies_true, and_true, false_and, cons_append, cons.injEq,
+          Prod.mk.injEq] at ha
+        exact ha.1.elim
+    | (some c, true) :: tail2 =>
+      change SignedList.PosNegData ([(a, false), (c, true)] ++ _ ) at h
+      apply SignedList.PosNegData.of_append at h
+      rcases h.1 with ⟨a3, a4, ha34⟩
+      match a3 with
+      | [] =>
+        simp only [SignedList.is_true_nil, nil_append, true_and] at ha34
+        have := ha34.1.1 (c, true) (by simp [← ha34.1.2])
+        simp at this
+      | head :: tail =>
+        simp only [cons_append, cons.injEq] at ha34
+        have := (ha34.1.1 (a, false) (by simp [← ha34.1.2.2.1]))
+        simp at this
 
 theorem toSignedList_tail_not_cons_true_of_irreducible_cons_none_false
     {tail : List (Option ℕ × Bool)} (h : irreducible ((none, false) :: tail))

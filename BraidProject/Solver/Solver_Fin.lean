@@ -22,44 +22,13 @@ def make_fin  (n : ℕ) (a : FreeMonoid ℕ) (bound : ∀ x ∈ a, x<n) : FreeMo
 theorem monoid_correctness_easy_direction {n : ℕ} (ha : ∀ x ∈ a, x < n.pred) (hb : ∀ x ∈ b, x < n.pred)
   (h : monoid_solver a b) : PresentedMonoid.mk (braid_monoid_rels_fin n) (make_fin n.pred a ha) =
   PresentedMonoid.mk (braid_monoid_rels_fin n) (make_fin n.pred b hb) := by
-  match a with
-  | [] =>
-    match b with
-    | [] => rfl
-    | b1 :: b2 =>
-      simp [monoid_solver] at h
-  | a1 :: a2 =>
-    match b with
-    | [] => simp [monoid_solver] at h
-    | b1 :: b2 =>
-      simp [monoid_solver] at h
-      apply BraidMonoidFin.eq_of_BraidMonoidInf_eq
-      rw [← List.append_nil (a1 :: a2), ← List.append_nil (b1 :: b2)]
-      apply bm_equiv_of_reversing (by simp) (by simp)
-      have H := @reverse_pair_spec (a1 :: a2) (b1 :: b2) (by simp) (by simp)
-      rw [h] at H
-      exact SemiThueDataDerivation.toSemiThueData H
-
-theorem monoid_correctness_easy_direction' {n : ℕ} (ha : ∀ x ∈ a, x < n.pred) (hb : ∀ x ∈ b, x < n.pred)
-  (h : monoid_solver a b) : PresentedMonoid.mk (braid_monoid_rels_fin n) (make_fin n.pred a ha) =
-  PresentedMonoid.mk (braid_monoid_rels_fin n) (make_fin n.pred b hb) := by
-  match a with
-  | [] =>
-    match b with
-    | [] => rfl
-    | b1 :: b2 =>
-      simp [monoid_solver] at h
-  | a1 :: a2 =>
-    match b with
-    | [] => simp [monoid_solver] at h
-    | b1 :: b2 =>
-      simp [monoid_solver] at h
-      apply BraidMonoidFin.eq_of_BraidMonoidInf_eq
-      rw [← List.append_nil (a1 :: a2), ← List.append_nil (b1 :: b2)]
-      apply bm_equiv_of_reversing (by simp) (by simp)
-      have H := @reverse_pair_spec (a1 :: a2) (b1 :: b2) (by simp) (by simp)
-      rw [h] at H
-      exact SemiThueDataDerivation.toSemiThueData H
+  simp [monoid_solver] at h
+  apply BraidMonoidFin.eq_of_BraidMonoidInf_eq
+  rw [← List.append_nil a, ← List.append_nil b]
+  apply bm_equiv_of_reversing'
+  have H := @reverse_pair_spec a b
+  rw [h] at H
+  exact SemiThueDataDerivation.toSemiThueData H
 
 theorem is_bounded_by_append [LT α] {a b : List (α × Bool)}: is_bounded_by n (a ++ b) ↔ is_bounded_by n a ∧ is_bounded_by n b := by
   constructor
@@ -300,7 +269,7 @@ theorem recover_from_is_true_fin (h : SignedList.is_true d) : to_horizontal_edge
     unfold to_horizontal_edge_no_epsilon
     simp
 
-theorem SemiThueData_reversing_to_braid_group_equiv_fin (h : SemiThueData reversing a b) (ha : is_bounded_by n.pred a)
+theorem SemiThueData.reversing.to_braid_group_equiv_fin (h : SemiThueData reversing a b) (ha : is_bounded_by n.pred a)
   (hb : is_bounded_by n.pred b) :
   (PresentedGroup.mk (Braid.braidRelationFin n)) (FreeGroup.mk (bb_to_fin a n.pred ha)) =
   (PresentedGroup.mk (Braid.braidRelationFin n)) (FreeGroup.mk (bb_to_fin b n.pred hb)) := by
@@ -436,7 +405,7 @@ theorem solver_g_correct_one_direction_fin {n : ℕ} (ha : is_bounded_by n.pred 
   have h_ms : monoid_solver (List.map (fun x => x.1) e.reverse) (List.map (fun x => x.1) d) = true := by
     rw [dede] at h; exact h
   -- Get PresentedMonoid equation
-  have H := @monoid_correctness_easy_direction' _ _ n he_rev_map hd_map h_ms
+  have H := @monoid_correctness_easy_direction _ _ n he_rev_map hd_map h_ms
   -- Convert to PresentedGroup equation via bm_to_bg_fin''
   apply bm_to_bg_fin'' at H
   -- Get SemiThueData reversing to (d ++ e)
@@ -444,7 +413,7 @@ theorem solver_g_correct_one_direction_fin {n : ℕ} (ha : is_bounded_by n.pred 
     have := (reverse_word (a ++ FreeGroup.invRev b)).3
     rw [hde_out] at this; exact this
   -- H2 from the fin version of SemiThue reversing → braid group equiv
-  have H2 := SemiThueData_reversing_to_braid_group_equiv_fin (n := n) steps_de hab hde_b
+  have H2 := SemiThueData.reversing.to_braid_group_equiv_fin (n := n) steps_de hab hde_b
   -- Split bb_to_fin over ++
   rw [bb_to_fin_append' hab, bb_to_fin_append' hde_b,
       ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, map_mul, map_mul] at H2

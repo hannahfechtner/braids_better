@@ -87,8 +87,7 @@ theorem toList_eq_append (h : toList a = b ++ c) :
 theorem toList_eq_append_cases {n : List (α)} (h : toList b = n ++ q) :
   n = [] ∨ q = [] ∨ ∃ b1 b2, b1.length > 0 ∧ b2.length > 0 ∧
           b = b1 ++ b2 ∧ toList b1 = n ∧ toList b2 = q := by
-  have := SignedOptionList.toList_eq_append h
-  rcases this with ⟨a₁, a₂, b_is, n_is, q_is⟩
+  have ⟨a₁, a₂, b_is, n_is, q_is⟩ := SignedOptionList.toList_eq_append h
   match a₁ with
   | [] => left; rw [← n_is]; simp
   | head₁ :: tail₁ =>

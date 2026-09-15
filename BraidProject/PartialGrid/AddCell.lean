@@ -1,5 +1,5 @@
 import BraidProject.Relations
-import BraidProject.SpecificConstructiveThings
+import BraidProject.UnfinishedFrontierData
 import BraidProject.UnfinishedFrontier
 
 namespace Braid
@@ -174,8 +174,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
         rw [← l_is, List.append_nil, List.nil_append]
         rw [List.append_nil] at b_is
         rw [← a_is,← b_is] at i_is
-        have := grid_style.toPartialGrid hg ha hb (by assumption) i_is
-        rcases this with ⟨b, m, u, h3, h4, hl⟩
+        have ⟨b, m, u, h3, h4, hl⟩ := grid_style.toPartialGrid hg ha hb (by assumption) i_is
         use b, m, u
         refine ⟨h3, ⟨h4, ⟨List.SuffixData.nil, ⟨List.PrefixData.nil, ?_⟩⟩⟩⟩
         constructor
@@ -184,9 +183,8 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
         rw [← l_is]
         rw [← k_is, List.nil_append, ← l_is] at fe
         rw [← a_is] at ha1
-        have := grid_style.toPartialGrid_extend_top_side hg fe b_is ha1 ha hb1 (by rw [← a_is] at i_is; exact i_is)
+        have ⟨b, m, u, h3, h4, hl⟩ := grid_style.toPartialGrid_extend_top_side hg fe b_is ha1 ha hb1 (by rw [← a_is] at i_is; exact i_is)
           (by assumption)
-        rcases this with ⟨b, m, u, h3, h4, hl⟩
         use b, m, u
         refine ⟨h3, ⟨h4, ⟨List.SuffixData.nil, ⟨List.PrefixData.nil, ?_⟩⟩⟩⟩
         constructor
@@ -196,8 +194,7 @@ noncomputable def PartialGrid.add_cell_with_length (h : PartialGrid a b bot mid 
       | nil =>
         rw [← k_is, ← l_is,]
         rw [List.append_nil] at b_is
-        have := grid_style.toPartialGrid_extend_left_side hg a_is ha1 hb1 i_is (by assumption) b_is hb
-        rcases this with ⟨b, m, u, h3, h4, ⟨hl⟩⟩
+        have ⟨b, m, u, h3, h4, ⟨hl⟩⟩ := grid_style.toPartialGrid_extend_left_side hg a_is ha1 hb1 i_is (by assumption) b_is hb
         use b, m, u
         refine ⟨h3, ⟨h4, ⟨List.SuffixData.nil, ⟨List.PrefixData.nil, ?_⟩⟩⟩⟩
         simp only [length, zero_add]

@@ -43,7 +43,8 @@ noncomputable def grid_style.trans_with_length
     {h3 : SemiThueDataDerivation grid_style a c //
     SemiThueDataDerivation.grid_style.length h3 =
     SemiThueDataDerivation.grid_style.length h1 + SemiThueDataDerivation.grid_style.length h2} := by
-  apply SemiThueDataDerivation.trans_with_length
+  use SemiThueDataDerivation.trans h1 h2
+  apply SemiThueDataDerivation.length_trans
 
 /-- A `@[simp]` version of `length_trans`'s `.2`, so `simp` rewrites the length of the result. -/
 @[simp]
@@ -59,10 +60,11 @@ noncomputable def SemiThueData.grid_style.toSemiThueDataDerivation_with_length {
     (h1 : SemiThueData grid_style a b ) :
     {h2 : SemiThueDataDerivation grid_style a b //
     SemiThueData.grid_style.length h1 = SemiThueDataDerivation.grid_style.length h2} := by
-  have := @SemiThueData.toSemiThueDataDerivation_with_length _ _ Braid.Relations.grid_style.length _ _ h1
-  use this.1
-  symm
-  exact this.2
+    sorry
+  -- have := @SemiThueData.toSemiThueDataDerivation _ _ Braid.Relations.grid_style.length _ _ h1
+  -- use this.1
+  -- symm
+  -- exact this.2
 
 noncomputable def SemiThueDataDerivation.grid_style.toSemiThueData_with_length :
     (h1 : SemiThueDataDerivation grid_style a b) → (Σ h2 : SemiThueData grid_style a b,

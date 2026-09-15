@@ -17,12 +17,11 @@ theorem braid_monoid_rels_fin_of_inf (n: ℕ) (a b: FreeMonoid ℕ) (holds_in_in
     braid_monoid_rels_fin n (FreeMonoid.mapNatToFin n.pred a bounded_a) (FreeMonoid.mapNatToFin n.pred b bounded_b) := by
   induction holds_in_inf
   · rename_i i
-    have : ∃ k, n = Nat.succ (Nat.succ (Nat.succ k)) := by  -- because its bigger than n+1
+    have ⟨k, hk⟩ : ∃ k, n = Nat.succ (Nat.succ (Nat.succ k)) := by  -- because its bigger than n+1
       have : i+1 < n.pred :=
         bounded_b (i + 1) (FreeMonoid.mem_mul.mpr (Or.inr FreeMonoid.mem_of_self))
       use (Nat.pred (Nat.pred (Nat.pred n)))
       grind [Nat.pred_eq_sub_one, Nat.succ_eq_add_one]
-    rcases this with ⟨k, hk⟩
     subst hk
     have : i + 1 < k + 2 :=
       bounded_a (i + 1) (FreeMonoid.mem_mul.mpr (Or.inl (FreeMonoid.mem_mul.mpr
@@ -30,12 +29,11 @@ theorem braid_monoid_rels_fin_of_inf (n: ℕ) (a b: FreeMonoid ℕ) (holds_in_in
     apply braid_rels_multi.adjacent ⟨i, _⟩
     grind
   rename_i i j apart
-  have : ∃ k, n = Nat.succ (Nat.succ (Nat.succ k)) := by
+  have ⟨k, hk⟩ : ∃ k, n = Nat.succ (Nat.succ (Nat.succ k)) := by
     have := bounded_a j (FreeMonoid.mem_mul.mpr (Or.inr FreeMonoid.mem_of_self))
     use (Nat.pred (Nat.pred (Nat.pred n)))
     repeat rw [Nat.succ_pred]
     all_goals grind [Nat.pred_zero, Nat.pred_eq_zero_iff]
-  rcases this with ⟨k, hk⟩
   subst hk
   exact braid_rels_multi_of_separated apart
 

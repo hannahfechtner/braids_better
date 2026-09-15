@@ -101,7 +101,7 @@ theorem empty_generator_pair (h : PartialGrid a b c d e)
     have H := SignedOptionList.toSignedList_len a2
     aesop
   rcases PartialGrid.splittable_vertically h _ _ ha.1 ha1 ha2 with
-    ⟨mid, d1, e1, d2, e2, i1, i2, ⟨long⟩, len⟩ | H
+    ⟨mid, d1, e1, d2, e2, i1, i2, ⟨long⟩, len⟩ | ⟨c1, i1, ⟨d_is⟩, ⟨db_is⟩, ⟨d_is'⟩, ⟨a_is⟩⟩
   · have H := empty_generator i1 h1 ha.2.1
     have hmid : SignedOptionList.toSignedList mid = [] := by aesop
     have H2 := empty_generator i2 hmid ha.2.2
@@ -140,7 +140,6 @@ theorem empty_generator_pair (h : PartialGrid a b c d e)
           List.length_append, Nat.reduceEqDiff] at hl
         have hc2 : c2.length = 0 := by omega
         aesop
-  rcases H with ⟨c1, i1, ⟨d_is⟩, ⟨db_is⟩, ⟨d_is'⟩, ⟨a_is⟩⟩
   have := empty_generator i1 h1 ha.2.1
   aesop
 

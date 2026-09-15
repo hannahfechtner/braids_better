@@ -3,16 +3,32 @@ import Mathlib.Data.List.Basic
 import Mathlib.Data.List.Lex
 import Mathlib.Data.List.Induction
 import BraidProject.Additions.FreeMonoid
+import BraidProject.SemiThue
 
 inductive SemiThueData {α : Type} (rels : List α → List α → Type) : List α → List α → Type
 | refl {a : List α} : SemiThueData rels a a
 | step {a b : List α} (c d : List α) (h : rels a b) : SemiThueData rels (c ++ a ++ d) (c ++ b ++ d)
 | trans {a b c : List α} : SemiThueData rels a b → SemiThueData rels b c → SemiThueData rels a c
 
+theorem SemiThueData.to_SemiThue {rels : List α → List α → Type} {rels' : List α → List α → Prop}
+    (h : SemiThueData rels a b) (hr : ∀ a b, rels a b → rels' a b) : SemiThue rels' a b :=
+  match h with
+  | .refl => SemiThue.refl
+  | .step c d h => SemiThue.step c d (hr _ _ h)
+  | .trans f g => (f.to_SemiThue hr).trans (g.to_SemiThue hr)
+
 inductive SemiThueDataDerivation (rels : List α → List α → Type) : List α → List α → Type
 | refl {a : List α} : SemiThueDataDerivation rels a a
 | step {a b c d e : List α} (h1 : SemiThueDataDerivation rels e (c ++ a ++ d)) (h2 : rels a b) :
     SemiThueDataDerivation rels e (c ++ b ++ d)
+
+theorem SemiThueDataDerivation.to_SemiThueDerivation
+    {rels : List α → List α → Type} {rels' : List α → List α → Prop}
+    (h : SemiThueDataDerivation rels a b) (hr : ∀ a b, rels a b → rels' a b) :
+    SemiThueDerivation rels' a b :=
+  match h with
+  | .refl => SemiThueDerivation.refl
+  | .step h1 h2 => SemiThueDerivation.step (h1.to_SemiThueDerivation hr) (hr _ _ h2)
 
 def SemiThueDataDerivation.trans
     (h1 : SemiThueDataDerivation rels a b) (h2 : SemiThueDataDerivation rels b c) :
@@ -23,15 +39,14 @@ def SemiThueDataDerivation.trans
     rename_i e f g h i j k
     use SemiThueDataDerivation.step (SemiThueDataDerivation.trans f h1) h2
 
-
 namespace SemiThueData
 
-noncomputable def toSemiThueDataDerivation {a b : List α} (h : SemiThueData rels a b) :
+def toSemiThueDataDerivation {a b : List α} (h : SemiThueData rels a b) :
     SemiThueDataDerivation rels a b := by
-  induction h with
-  | refl => exact SemiThueDataDerivation.refl
-  | step _ _ h => exact SemiThueDataDerivation.step SemiThueDataDerivation.refl h
-  | trans _ _ ih1 ih2 => exact SemiThueDataDerivation.trans ih1 ih2
+  match h with
+  | SemiThueData.refl => exact SemiThueDataDerivation.refl
+  | SemiThueData.step _ _ h => exact SemiThueDataDerivation.step SemiThueDataDerivation.refl h
+  | SemiThueData.trans h1 h2 => exact SemiThueDataDerivation.trans (toSemiThueDataDerivation h1) (toSemiThueDataDerivation h2)
 
 def cons (h : SemiThueData rels a b) : SemiThueData rels (c :: a) (c :: b) := by
   match h with
@@ -42,26 +57,6 @@ def cons (h : SemiThueData rels a b) : SemiThueData rels (c :: a) (c :: b) := by
   | SemiThueData.trans f g =>
     apply (SemiThueData.cons f).trans (SemiThueData.cons g)
 
--- def append_left (h : SemiThueData rels a b) : SemiThueData rels (c ++ a) (c ++ b) := by
---   match h with
---   | SemiThueData.refl => exact SemiThueData.refl
---   | SemiThueData.step _ _ h =>
---     rename_i e f g i j
---     rw [← List.append_assoc, ← List.append_assoc, ← List.append_assoc, ← List.append_assoc]
---     apply SemiThueData.step _ _ h
---   | SemiThueData.trans f g =>
---     apply (SemiThueData.append_left f).trans (SemiThueData.append_left g)
-
--- def append_right (h : SemiThueData rels a b) : SemiThueData rels (a ++ c) (b ++ c) := by
---   match h with
---   | SemiThueData.refl => exact SemiThueData.refl
---   | SemiThueData.step _ _ h =>
---     rename_i e f g i j
---     rw [List.append_assoc _ j c, List.append_assoc _ j c]
---     apply SemiThueData.step _ _ h
---   | SemiThueData.trans f g =>
---     apply (SemiThueData.append_right f).trans (SemiThueData.append_right g)
-
 def append_left : {c : List α} → SemiThueData rels a b → SemiThueData rels (c ++ a) (c ++ b)
   | [], h => h
   | _ :: _, h => SemiThueData.cons (append_left h)
@@ -69,35 +64,49 @@ def append_left : {c : List α} → SemiThueData rels a b → SemiThueData rels 
 def append_right (h : SemiThueData rels a b) : SemiThueData rels (a ++ c) (b ++ c) := by
   match h with
   | SemiThueData.refl => exact SemiThueData.refl
-  | @SemiThueData.step _ _ x y c' d h =>
-    have step := SemiThueData.step (rels := rels) c' (d ++ c) h
-    have eq1 : c' ++ x ++ (d ++ c) = c' ++ x ++ d ++ c := (List.append_assoc _ _ _).symm
-    have eq2 : c' ++ y ++ (d ++ c) = c' ++ y ++ d ++ c := (List.append_assoc _ _ _).symm
-    exact eq1 ▸ eq2 ▸ step
+  | @SemiThueData.step _ _ x y c₁ d₁ h =>
+    have eq1 : c₁ ++ x ++ (d₁ ++ c) = c₁ ++ x ++ d₁ ++ c := (List.append_assoc _ _ _).symm
+    have eq2 : c₁ ++ y ++ (d₁ ++ c) = c₁ ++ y ++ d₁ ++ c := (List.append_assoc _ _ _).symm
+    exact eq1 ▸ eq2 ▸ (SemiThueData.step c₁ (d₁ ++ c) h)
   | SemiThueData.trans f g =>
     apply (SemiThueData.append_right f).trans (SemiThueData.append_right g)
 
 def append_left_right (h : SemiThueData rels a b) : SemiThueData rels (c ++ a ++ d) (c ++ b ++ d) :=
   SemiThueData.append_right (SemiThueData.append_left h)
 
-def of_rel' (h : rels a b) : SemiThueData rels a b := by
-  rw [← List.nil_append a, ← List.nil_append b, ← List.append_nil ([] ++ a), ← List.append_nil ([] ++ b)]
-  exact SemiThueData.step _ _ h
-
 def of_rel (h : rels a b) : SemiThueData rels a b :=
-  have step := SemiThueData.step (rels := rels) [] [] h
   have eq1 : a ++ [] = a := List.append_nil _
   have eq2 : b ++ [] = b := List.append_nil _
-  eq1 ▸ eq2 ▸ step
+  eq1 ▸ eq2 ▸ (SemiThueData.step [] [] h)
 
 def append (hab : SemiThueData rels a b) (hcd : SemiThueData rels c d) :
   SemiThueData rels (a ++ c) (b ++ d) := (SemiThueData.append_right hab).trans (SemiThueData.append_left hcd)
+
+def rel_subset (h : SemiThueData rel₁ a b) (hr : ∀ a b, rel₁ a b → rel₂ a b) :
+    SemiThueData rel₂ a b :=
+  match h with
+  | .refl => .refl
+  | .step c d h => .step c d (hr _ _ h)
+  | .trans f g => .trans (rel_subset f hr) (rel_subset g hr)
+
+@[simp]
+theorem rel_subset_refl {rel₁ rel₂ : List α → List α → Type}  (hr : ∀ a b, rel₁ a b → rel₂ a b) :
+    rel_subset (@SemiThueData.refl _ rel₁ a) hr = SemiThueData.refl := rfl
+@[simp]
+theorem rel_subset_step {rel₁ rel₂ : List α → List α → Type} (c d : List α) (h : rel₁ a b)
+    (hr : ∀ a b, rel₁ a b → rel₂ a b) :
+    rel_subset (SemiThueData.step c d h) hr = SemiThueData.step c d (hr _ _ h) := rfl
+@[simp]
+theorem rel_subset_trans {rel₁ rel₂ : List α → List α → Type} (f : SemiThueData rel₁ a b) (g : SemiThueData rel₁ b c)
+    (hr : ∀ a b, rel₁ a b → rel₂ a b) :
+    rel_subset (f.trans g) hr = (rel_subset f hr).trans (rel_subset g hr) := rfl
 
 def length {a b : List α} {rels : List α → List α → Type}
   (rels_length : {a b : List α} → rels a b → ℕ) (h : SemiThueData rels a b) : ℕ := match h with
 | SemiThueData.refl => 0
 | SemiThueData.step _ _ h1 => rels_length h1
 | SemiThueData.trans h1 h2 => length rels_length h1 + length rels_length h2
+
 
 @[simp]
 theorem length_refl : length rels_length (@SemiThueData.refl _ _ a) = 0 := rfl
@@ -110,6 +119,14 @@ theorem length_trans : length rels_length (SemiThueData.trans h1 h2) =
 theorem length_step {c d : List α} :
   length rels_length (SemiThueData.step c d h) = rels_length h := rfl
 
+theorem length_eq_zero (h : SemiThueData rels a b)
+    (hz : ∀ {a b} (r : rels a b), rels_length r = 0) :
+    length rels_length h = 0 := by
+  induction h with
+  | refl => rfl
+  | step c d h => exact hz h
+  | trans _ _ _ _ => simp_all
+
 @[simp]
 theorem length_cons (h : SemiThueData rels a b) :
     length rels_length (@SemiThueData.cons _ _ a b c h) = length rels_length h := by
@@ -120,40 +137,25 @@ theorem length_cons (h : SemiThueData rels a b) :
     unfold SemiThueData.cons
     rw [length_trans, length_trans, hf, hg]
 
--- @[simp]
--- theorem length_append_left (h : SemiThueData rels a b) :
---     length rels_length (@SemiThueData.append_left _ _ a b c h) = length rels_length h := by
---   induction h with
---   | refl => rfl
---   | step _ _ h =>
---     unfold SemiThueData.append_left
---     rfl
---   | trans f g hf hg =>
---     unfold SemiThueData.append_left
---     rw [length_trans, length_trans, hf, hg]
+theorem length_rel_subset {rel₁ rel₂ : List α → List α → Type}
+    {rel₁_length : {a b : List α} → rel₁ a b → ℕ} {rel₂_length : {a b : List α} → rel₂ a b → ℕ}
+    (h : SemiThueData rel₁ a b) (hr : ∀ a b, rel₁ a b → rel₂ a b)
+    (hr' : ∀ a b, (h1 : rel₁ a b) → @rel₁_length a b h1 = @rel₂_length a b (hr a b h1)) :
+    length rel₁_length h = length rel₂_length (rel_subset h hr) := by
+  induction h with
+  | refl => rfl
+  | step c d h => simp [hr']
+  | trans _ _ _ _ => simp_all
 
--- @[simp]
--- theorem length_append_right (h : SemiThueData rels a b) :
---   length rels_length (@SemiThueData.append_right _ _ a b c h) = length rels_length h := by
---   induction h with
---   | refl => rfl
---   | step c d h =>
---     rw [length_step]
---     unfold append_right
---     simp
---     rfl
---     unfold SemiThueData.append_right
---     rw [length_step]
---     sorry
---   | trans f g hf hg =>
---     unfold SemiThueData.append_right
---     rw [length_trans, length_trans, hf, hg]
-
-private theorem length_eq_rec_left {a a' b : List α} (h : SemiThueData rels a b) (eq : a = a') :
+--Fording
+@[simp]
+private theorem ford_length_left
+    {a a' b : List α} (h : SemiThueData rels a b) (eq : a = a') :
     length rels_length (eq ▸ h : SemiThueData rels a' b) = length rels_length h := by
   subst eq; rfl
 
-private theorem length_eq_rec_right {a b b' : List α} (h : SemiThueData rels a b) (eq : b = b') :
+@[simp]
+private theorem ford_length_right {a b b' : List α} (h : SemiThueData rels a b) (eq : b = b') :
     length rels_length (eq ▸ h : SemiThueData rels a b') = length rels_length h := by
   subst eq; rfl
 
@@ -172,9 +174,9 @@ theorem length_append_right (h : SemiThueData rels a b) :
     length rels_length (@SemiThueData.append_right _ _ a b c h) = length rels_length h := by
   induction h with
   | refl => rfl
-  | step c' d h =>
+  | step c d h =>
     unfold SemiThueData.append_right
-    rw [length_eq_rec_left, length_eq_rec_right, length_step, length_step]
+    simp
   | trans f g hf hg =>
     unfold SemiThueData.append_right
     rw [length_trans, length_trans, hf, hg]
@@ -182,8 +184,7 @@ theorem length_append_right (h : SemiThueData rels a b) :
 @[simp]
 theorem length_append_left_right (h : SemiThueData rels a b) :
     length rels_length (@SemiThueData.append_left_right _ _ a b c d h) = length rels_length h := by
-  unfold SemiThueData.append_left_right
-  simp
+  simp [SemiThueData.append_left_right]
 
 @[simp]
 theorem length_append (hab : SemiThueData rels a b) (hcd : SemiThueData rels c d) :
@@ -197,20 +198,23 @@ theorem length_append (hab : SemiThueData rels a b) (hcd : SemiThueData rels c d
 theorem length_of_rel {a b : List α} {rels : List α → List α → Type}
     {rels_length : {a b : List α} → rels a b → ℕ} (h : rels a b) :
     length rels_length (@SemiThueData.of_rel _ rels _ _ h) = rels_length h := by
-  unfold SemiThueData.of_rel
-  rw [length_eq_rec_left, length_eq_rec_right]
+  simp only [of_rel, ford_length_left, ford_length_right]
   rfl
 
 end SemiThueData
 
-
 namespace SemiThueDataDerivation
 
-noncomputable def toSemiThueData {a b : List α} (h : SemiThueDataDerivation rels a b) :
+def toSemiThueData {a b : List α} (h : SemiThueDataDerivation rels a b) :
     SemiThueData rels a b := by
-  induction h with
-  | refl =>  exact SemiThueData.refl
-  | step h1 h2 ih => exact ih.trans (SemiThueData.step _ _ h2)
+  match h with
+  | SemiThueDataDerivation.refl =>  exact SemiThueData.refl
+  | SemiThueDataDerivation.step h1 h2 => exact (toSemiThueData h1).trans (SemiThueData.step _ _ h2)
+
+def rel_subset (h : SemiThueDataDerivation rel₁ a b) (hr : ∀ a b, rel₁ a b → rel₂ a b) : SemiThueDataDerivation rel₂ a b := by
+  match h with
+  | SemiThueDataDerivation.refl => exact SemiThueDataDerivation.refl
+  | SemiThueDataDerivation.step h1 h => exact SemiThueDataDerivation.step (rel_subset h1 hr) (hr _ _ h)
 
 section Length
 def length {rels : List α → List α → Type} (rels_length : {a b : List α} → rels a b → ℕ) (h : SemiThueDataDerivation rels a b) : ℕ := match h with
@@ -238,31 +242,13 @@ theorem length_trans (h1 : SemiThueDataDerivation rels a b) (h2 : SemiThueDataDe
     rw [length_step, Nat.add_right_cancel_iff]
     apply ih
 
--- noncomputable def trans_with_length
---     (h1 : SemiThueDataDerivation rels a b) (h2 : SemiThueDataDerivation rels b c) :
---     {h3 : SemiThueDataDerivation rels a c // length rels_length h3 = length rels_length h1 + length rels_length h2} := by
---   induction h2 with
---   | refl =>
---     use h1; simp
---   | step h1 h2 ih =>
---     have ⟨s1, ls1⟩ := ih h1
---     use SemiThueDataDerivation.step s1 h2
---     simp only [length, ls1, Nat.add_assoc]
-
--- @[simp]
--- def length_trans : length rels_length (@SemiThueDataDerivation.trans_with_length _ rels rels_length _ _ _ h1 h2).1 =
---     length rels_length h1 + length rels_length h2 :=
---   (@SemiThueDataDerivation.trans_with_length _ rels rels_length _ _ _ h1 h2).2
-
-
 theorem toSemiThueData_length {a b : List α} (h : SemiThueDataDerivation rels a b) :
     SemiThueData.length rels_length (toSemiThueData h) = length rels_length h := by
   induction h with
   | refl => rfl
   | step h1 h2 ih =>
     rw [length_step, ← ih]
-    unfold toSemiThueData
-    rw [SemiThueData.length_trans, SemiThueData.length_step, Nat.add_left_cancel_iff]
+    rfl
 
 end Length
 
@@ -278,20 +264,4 @@ theorem SemiThueData.toSemiThueDataDerivation_length {h : SemiThueData rels a b}
     simp only [SemiThueDataDerivation.length_step, SemiThueDataDerivation.length_refl, zero_add]
   | trans f g hf hg =>
     rw [length_trans, ← hf, ← hg]
-    unfold toSemiThueDataDerivation
-    simp only [SemiThueDataDerivation.length_trans]
-
--- noncomputable def SemiThueData.toSemiThueDataDerivation_with_length
---     {rels : List α → List α → Type} {rels_length : {a b : List α} → rels a b → ℕ} {a b : List α} (h : SemiThueData rels a b) :
---     {h1 : SemiThueDataDerivation rels a b //
---       SemiThueDataDerivation.length rels_length h1 = SemiThueData.length rels_length h}:= by
---   induction h with
---   | refl => use SemiThueDataDerivation.refl; rfl
---   | step _ _ h =>
---     use SemiThueDataDerivation.step SemiThueDataDerivation.refl h
---     simp
---   | trans _ _ ih1 ih2 =>
---     have ⟨s1, ls1⟩ := ih1
---     have ⟨s2, ls2⟩ := ih2
---     use (@SemiThueDataDerivation.trans_with_length _ rels rels_length _ _ _ s1 s2)
---     simp [ls1, ls2]
+    exact SemiThueDataDerivation.length_trans _ _

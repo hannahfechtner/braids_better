@@ -315,9 +315,8 @@ private theorem stable_first_refl_second_one_step_both (ih : ∀ (u v a b : Free
       apply ConGen.Rel.of _ _ h1
     apply PresentedMonoid.sound
     apply ConGen.Rel.of _ _ h2
-  have := stable_generator_elem_braid_rels_both br head mid a₁ gr_top_middle (of head) f rfl
-    fg
-  rcases this with ⟨mid', a₁', top_middle_fact⟩
+  have ⟨mid', a₁', top_middle_fact⟩ := stable_generator_elem_braid_rels_both br head mid a₁
+    gr_top_middle (of head) f rfl fg
   have H_len : n ≥ tail.length + d₂.length := by
     rw [diag_length_eq gr] at len
     have H1 : (g * j).length + d.length ≤ n + 1 := Nat.le_trans (by simp) len

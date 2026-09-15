@@ -88,9 +88,8 @@ theorem concat_mk : BraidMonoidFin.mk n a = BraidMonoidFin.mk n b →
 --   apply PresentedMonoid.symm_alone
 --   have hjk : j<=k := by sorry
 --   have H := braid_rels_multi.separated j k hjk
---   have H3 : ∃ (l : ℕ), n = l.succ.succ := by sorry
+--   have ⟨l, hl⟩ : ∃ (l : ℕ), n = l.succ.succ := by sorry
 --   unfold braid_monoid_rels_fin
---   rcases H3 with ⟨l, hl⟩
 --   sorry
 
 -- theorem comm_rel {j k : Fin n} (h1 : n≥ 3) (h : j - k >= ⟨2, h1⟩) :

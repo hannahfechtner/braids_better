@@ -1,13 +1,14 @@
 import BraidProject.PartialGrid.NestedFrame
 import BraidProject.PartialGrid.FrontierPossibilities
-import BraidProject.Solver.Reversing
+import BraidProject.SemiThueReversing
+import BraidProject.PartialGrid.Build
 
 namespace Braid
 namespace PartialGrid
 
 open Relations
 
-noncomputable def pg_mid_frontier_reverses_to_grid_helper
+private noncomputable def mid_frontier_reverses_to_grid_helper
     (h : PartialGrid a1 b1 c1 m1 d1)
     (ha : SignedOptionList.toSignedList a1 = to_vertical_edge_no_epsilon a)
     (hb : SignedOptionList.toSignedList b1 = to_horizontal_edge_no_epsilon b)
@@ -42,9 +43,8 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
     rcases this with h1 | h2
     · rw [h1]
       exact SemiThue.refl
-    apply SemiThue.of_rel
     rw [h2]
-    exact reversing_prop.basic
+    exact SemiThue.of_rel reversing_prop.basic
   | adjacent i k hd =>
     have := PartialGrid.FrontierPossibilitiesEpsilonRemoved.generator_generator_close h ha hb (by assumption)
     change _ = [(k, true), (i, true)] at hc
@@ -63,7 +63,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
       apply SemiThue.of_rel
       exact reversing_prop.close (by assumption)
     any_goals
-      apply SemiThue.refl
+      exact SemiThue.refl
   | separated i j h =>
     have := PartialGrid.FrontierPossibilitiesEpsilonRemoved.generator_generator_apart h ha hb (by assumption)
     change _ = [(j, true)] at hc
@@ -79,7 +79,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
       apply SemiThue.of_rel
       apply reversing_prop.apart (by assumption)
     all_goals
-      apply SemiThue.refl
+      exact SemiThue.refl
   | vertical h1 h2 h1_ih h2_ih =>
     rename_i k l m n o p q
     change _ = to_vertical_edge_no_epsilon (k.toList ++ o.toList) at ha
@@ -99,8 +99,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
       | y :: ys =>
       rcases PartialGrid.splittable_horizontally h _ _ ha (by simp) (by simp) with
           ⟨center, r, s, t, u, v, w, ⟨⟨z⟩, ⟨_⟩⟩⟩ | ⟨r, s, _, ⟨u⟩, ⟨v⟩⟩
-      · have := PartialGrid.frontier_prefix h1 v ha₄ hb
-        rcases this with ⟨⟨r₁, hr₁⟩, ⟨r₂, hr₂⟩, hl⟩
+      · have ⟨⟨r₁, hr₁⟩, ⟨r₂, hr₂⟩, hl⟩ := PartialGrid.frontier_prefix h1 v ha₄ hb
         have r₁t : SignedList.is_true r₁ := by
           have : SignedList.is_true (to_horizontal_edge_no_epsilon m) :=
             is_true_to_horizontal_edge_no_epsilon
@@ -108,7 +107,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
           exact (SignedList.is_true_of_append this).2
         specialize h1_ih v ha₄ hb hr₁ hr₂
         rcases right_frontier_spec_from_split_horizontally h v w ha z with ⟨rfl, h3⟩ | h4
-        · have := SemiThue_reversing_nil h1_ih (by simp)
+        · have := nil_of_SemiThue_reversing_nil h1_ih (by simp)
           rw [List.append_eq_nil_iff] at this
           rw [h3] at z
           simp only [List.append_nil, List.append_assoc, List.append_cancel_right_eq] at z
@@ -158,7 +157,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
       simp only [← List.append_assoc]
       apply SemiThue.append_right
       rw [SignedOptionList.toSignedList_append, List.append_assoc, hrest2]
-      convert grid_to_rev h2
+      convert GridData.to_SemiThue_reversing h2
   | horizontal h1 h2 h1_ih h2_ih =>
     rename_i k l m n o p q
     change _ = to_horizontal_edge_no_epsilon (l.toList ++ o.toList) at hb
@@ -178,8 +177,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
       | y :: ys =>
       rcases PartialGrid.splittable_vertically h _ _ hb (by simp) (by simp) with
           ⟨center, r, s, t, u, v, w, ⟨⟨z⟩, ⟨_⟩⟩⟩ | ⟨r, s, _, ⟨u⟩, ⟨v⟩⟩
-      · have := PartialGrid.frontier_prefix h1 v ha hb₃
-        rcases this with ⟨⟨r₁, hr₁⟩, ⟨r₂, hr₂⟩, hl⟩
+      · have ⟨⟨r₁, hr₁⟩, ⟨r₂, hr₂⟩, hl⟩ := PartialGrid.frontier_prefix h1 v ha hb₃
         have r₂f : SignedList.is_false r₂ := by
           have : SignedList.is_false (to_vertical_edge_no_epsilon n) :=
             is_false_to_vertical_edge_no_epsilon
@@ -187,7 +185,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
           exact (SignedList.is_false_of_append this).1
         specialize h1_ih v ha hb₃ hr₁ hr₂
         rcases bottom_frontier_spec_from_split_vertically h v w hb z with ⟨rfl, h3⟩ | h4
-        · have := SemiThue_reversing_nil h1_ih (by simp)
+        · have := nil_of_SemiThue_reversing_nil h1_ih (by simp)
           rw [List.append_eq_nil_iff] at this
           rw [h3] at z
           simp only [List.append_assoc, List.append_nil, List.append_cancel_left_eq] at z
@@ -232,7 +230,7 @@ noncomputable def pg_mid_frontier_reverses_to_grid_helper
       simp only [List.append_assoc]
       apply SemiThue.append_left
       rw [hb₄]
-      exact grid_to_rev h2
+      exact GridData.to_SemiThue_reversing h2
 
 def frontier_reverses_to_grid_def (h : PartialGrid a1 b1 c1 d1 e1) :=
   ∀ {a b f g},
@@ -249,10 +247,9 @@ noncomputable def frontier_reverses_to_grid (h : PartialGrid a b c d e) : fronti
   simp only [List.append_assoc, SignedOptionList.toSignedList_append]
   apply SemiThue.append_left
   simp only [← List.append_assoc]
-  exact SemiThue.append_right (pg_mid_frontier_reverses_to_grid_helper h ha hb hc1 he1 h2)
+  exact SemiThue.append_right (mid_frontier_reverses_to_grid_helper h ha hb hc1 he1 h2)
 
-
-noncomputable def restricted_confluence (h1 : SemiThue reversing_prop
+noncomputable def restricted_confluence_non_nil (h1 : SemiThue reversing_prop
     (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
     (h2 : SemiThue reversing_prop (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) d)
     (ha : a.length > 0) (hb : b.length > 0) :
@@ -261,11 +258,35 @@ noncomputable def restricted_confluence (h1 : SemiThue reversing_prop
   have H2 := PartialGrid.of_SemiThueData_reversing (Classical.choice (SemiThueData.ofSemiThue_reversing h2)) ha hb
   rcases H1 with ⟨c1, d1, e1, pg, ⟨rm1⟩, ⟨rfl⟩⟩
   rcases H2 with ⟨c2, d2, e2, pg2, ⟨rm2⟩, ⟨rfl⟩⟩
-  have H2 : Σ c3 d3, GridData a b c3 d3 := GridData.existence a b
-  rcases H2 with ⟨c3, d3, gt⟩
+  have ⟨c3, d3, gt⟩ : Σ c3 d3, GridData a b c3 d3 := GridData.existence a b
   use (to_horizontal_edge_no_epsilon c3 ++ to_vertical_edge_no_epsilon d3)
   constructor
   · exact PartialGrid.frontier_reverses_to_grid pg toSignedList_to_vertical_edge
       toSignedList_to_horizontal_edge gt
   exact PartialGrid.frontier_reverses_to_grid pg2 toSignedList_to_vertical_edge
       toSignedList_to_horizontal_edge gt
+
+noncomputable def restricted_confluence (h1 : SemiThue reversing_prop
+    (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
+    (h2 : SemiThue reversing_prop (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) d) :
+    ∃ e, SemiThue reversing_prop c e ∧ SemiThue reversing_prop d e := by
+  match a with
+  | [] =>
+    use c
+    rw [to_vertical_edge_no_epsilon_nil, List.nil_append] at h1 h2
+    have := eq_of_SemiThue_reversing_true h1 is_true_to_horizontal_edge_no_epsilon
+    have := eq_of_SemiThue_reversing_true h2 is_true_to_horizontal_edge_no_epsilon
+    have : c = d := by aesop
+    rw [this]
+    exact ⟨SemiThue.refl, SemiThue.refl⟩
+  | a1 :: a2 =>
+  match b with
+  | [] =>
+    use c
+    rw [to_horizontal_edge_no_epsilon_nil, List.append_nil] at h1 h2
+    have := eq_of_SemiThue_reversing_false h1 is_false_to_vertical_edge_no_epsilon
+    have := eq_of_SemiThue_reversing_false h2 is_false_to_vertical_edge_no_epsilon
+    have : c = d := by aesop
+    rw [this]
+    exact ⟨SemiThue.refl, SemiThue.refl⟩
+  | b1 :: b2 => exact restricted_confluence_non_nil h1 h2 (by simp) (by simp)

@@ -210,9 +210,8 @@ noncomputable def add_empty_cell_w_len (h : PartialGrid a b bot mid up)
         rw [← l_is]
         rw [← k_is, List.nil_append, ← l_is] at fe
         rw [← a_is] at ha1
-        have := skeleton_one_cons_empty hg fe b_is ha1 ha hb1 (by rw [← a_is] at i_is; exact i_is)
-          (by assumption)
-        rcases this with ⟨b, m, u, h3, h4, hl⟩
+        have ⟨b, m, u, h3, h4, hl⟩ := skeleton_one_cons_empty hg fe b_is ha1 ha hb1
+          (by rw [← a_is] at i_is; exact i_is) (by assumption)
         use b, m, u
         refine ⟨h3, ⟨h4, ⟨List.nil_suffix_C, ⟨List.nil_prefix_C, ?_⟩⟩⟩⟩
         constructor

@@ -335,8 +335,7 @@ def open_pair_eq_middle_frontier_from_appending_grids
     exact h2.1
   have : bot3.length ≠ 1 := by
     intro h2
-    have Hb : ∃ a, bot3 = [a] := List.length_eq_one_iff.mp h2
-    rcases Hb with ⟨a, ha⟩
+    have ⟨a, ha⟩ : ∃ a, bot3 = [a] := List.length_eq_one_iff.mp h2
     rcases hbot3 with h_t | h_f
     · rw [ha] at h_t
       rcases is_true_singletonData h_t.1 with ⟨a', spec⟩
@@ -632,10 +631,9 @@ def open_pair_lies_in_one_middle_frontier_for_vertical_case {bot2 mid2 bot3 mid3
       constructor
       grind
     rename_i h3 t3
-    have : Σ ender, PLift (hk::tk = h3 :: t3 ++ ender) := by
+    have ⟨e, he⟩ : Σ ender, PLift (hk::tk = h3 :: t3 ++ ender) := by
       rcases hbot3 with h5 | h6
-      · have H := PrefixData.of_is_true_prefix_unfinished_frontier h5.1 k12_is.2.symm
-        rcases H with ⟨w, hw⟩
+      · have ⟨w, hw⟩ := PrefixData.of_is_true_prefix_unfinished_frontier h5.1 k12_is.2.symm
         use w; exact ⟨hw.1.symm⟩
       rcases hm3 with h5 | ⟨f, m ,c, spec⟩
       · have H := is_false_append h6.1 hup3
@@ -652,7 +650,6 @@ def open_pair_lies_in_one_middle_frontier_for_vertical_case {bot2 mid2 bot3 mid3
       rw [← spec.1]
       use f
       exact ⟨rfl⟩
-    rcases this with ⟨e, he⟩
     use k₁ ++ h3::t3, e
     constructor
     constructor
@@ -666,12 +663,11 @@ def open_pair_lies_in_one_middle_frontier_for_vertical_case {bot2 mid2 bot3 mid3
     simp [k12_is.2]
   right
   use l₁ ++ bot3
-  have : List.PrefixData bot3 l₂ := by
+  have ⟨f, spec⟩ : List.PrefixData bot3 l₂ := by
     use mid3 ++ up3
     rw [← List.append_assoc]
     constructor
     exact l12_is.1.symm
-  rcases this with ⟨f, spec⟩
   use f
   constructor
   rw [← spec.1] at l12_is

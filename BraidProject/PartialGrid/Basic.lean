@@ -235,9 +235,8 @@ def extend_left_side (h : PartialGrid a b c d e) (a₂) (h2 : is_false a₂) (h3
     (FreeGroup.invRev_false h2) (fun h => h3 (FreeGroup.invRev_eq_nil_iff.mp h))
   rcases reflect h5 with ⟨h6, ⟨len3⟩⟩
   rcases reflect_of_invRev_images _ _ _ _ _ h6 rfl rfl rfl rfl rfl with ⟨h7, ⟨len4⟩⟩
-  have H7 := @reflect_of_invRev_images _ _ _ _ _ (b ++ b2) a [] (d ++ e ++ b2) c h7
+  have ⟨h8, ⟨len5⟩⟩ := @reflect_of_invRev_images _ _ _ _ _ (b ++ b2) a [] (d ++ e ++ b2) c h7
     (FreeGroup.invRev_append).symm rfl FreeGroup.invRev_empty (by simp) rfl
-  rcases H7 with ⟨h8, ⟨len5⟩⟩
   use h8
   constructor
   omega
@@ -351,9 +350,8 @@ def middle_frontier_spec (h : PartialGrid a b c d e) :
       | append_singleton f2 c2 _ =>
         rcases hb with ⟨f1, m1, c1, h1⟩
         rw [h1.1]
-        have H : Σ cb, PLift (c2 = (cb, true)) :=
+        have ⟨cb, cbspec⟩ : Σ cb, PLift (c2 = (cb, true)) :=
           is_true_singletonData <| (is_true_of_append (bottom_frontier_is_true g2)).2
-        rcases H with ⟨cb, cbspec⟩
         rw [cbspec.1]
         use f1, m1 ++ [(c1, true)] ++ f2, cb
         exact {down := by simp}

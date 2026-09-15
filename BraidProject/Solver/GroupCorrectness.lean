@@ -1,6 +1,6 @@
 import BraidProject.Solver.Group
 import BraidProject.Solver.MonoidCorrectness
-import BraidProject.Solver.Reversing
+import BraidProject.SemiThueReversing
 
 namespace Braid
 
@@ -74,7 +74,7 @@ theorem solver_g_correct_one_direction : group_solver a b = true →
   unfold group_solver at h
   rcases dede : (reverse_word (a ++ (FreeGroup.invRev b))).ordered with ⟨d, e, hde⟩
   have H := correct_one_dir h
-  have H2 := SemiThueData_reversing_to_braid_group_equiv ((reverse_word (a ++ (FreeGroup.invRev b))).steps)
+  have H2 := SemiThueData.reversing.to_braid_group_equiv ((reverse_word (a ++ (FreeGroup.invRev b))).steps)
   rw [hde.1.2.2] at H2
   rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, map_mul, map_mul] at H2
   have d_is : (reverse_word (a ++ FreeGroup.invRev b)).ordered.fst = d := by aesop
