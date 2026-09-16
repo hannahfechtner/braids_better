@@ -101,7 +101,7 @@ theorem splittable_vertically {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
     intro _ _ b_is
     rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
     use 1, 1, 1
-    exact ⟨grid.empty, ⟨grid.empty, rfl⟩⟩
+    exact ⟨grid.empty, grid.empty, rfl⟩
   | top_bottom i =>
     intro _ _ b_is
     rcases (FreeMonoid.prod_eq_of b_is.symm) with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
@@ -124,16 +124,10 @@ theorem splittable_vertically {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
   | adjacent i k l =>
     intro m n b_is
     rcases (FreeMonoid.prod_eq_of b_is.symm) with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · rcases eq_dist_iff.mp l with rfl | rfl
-      · use of i, 1, of (i+1) * of i
-        exact ⟨grid.sides i, ⟨grid.adjacent i (i+1) dist_self_add_one, rfl⟩⟩
-      use of (k+1), 1, of k * of (k+1)
-      exact ⟨grid.sides (k+1), ⟨grid.adjacent (k+1) k l, rfl⟩⟩
-    · rcases eq_dist_iff.mp l with rfl | rfl
-      · use of i * of (i+1), of (i+1) * of i, 1
-        exact ⟨grid.adjacent i (i+1) dist_self_add_one, ⟨sides_word _, rfl⟩⟩
-      use of (k+1) * of k, of k * of (k+1), 1
-      exact ⟨grid.adjacent _ _ l, ⟨sides_word _, rfl⟩⟩
+    · use of i, 1, of k * of i
+      exact ⟨grid.sides i, ⟨grid.adjacent i k l, rfl⟩⟩
+    use of i * of k, of k * of i, 1
+    exact ⟨grid.adjacent _ _ l, ⟨sides_word _, rfl⟩⟩
   | separated i j h =>
     intro _ _ b_is
     rcases FreeMonoid.prod_eq_of b_is.symm with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
@@ -153,7 +147,7 @@ theorem splittable_vertically {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
     rcases FreeMonoid.prod_eq_prod fi_is with ⟨m, rfl, hm2⟩ | ⟨m, hm1, rfl⟩
     · rcases h2_ih m fi₂ hm2 with ⟨u, k₁, k₂, g1, g2, hk⟩
       use u, g * k₁, k₂
-      exact ⟨grid.horizontal h1 g1, ⟨g2, by rw [mul_assoc, hk]⟩⟩
+      exact ⟨grid.horizontal h1 g1, ⟨g2, by rw [hk, mul_assoc]⟩⟩
     rcases h1_ih fi₁ m hm1 with ⟨u, h₁, h₂, g1, g2, hh⟩
     use u, h₁, (h₂ * j)
     exact ⟨g1, ⟨grid.horizontal g2 h2, by rw [← mul_assoc, hh]⟩⟩
@@ -166,69 +160,9 @@ top subgrid and a bottom subgrid. edge case where either a₁ or a₂ is 1 is de
 a top-bottom grid -/
 theorem splittable_horizontally {a b c d : FreeMonoid ℕ} (h : grid a b c d) :
     split_horizontally a b c d := by
-  induction h with
-  | empty =>
-    intro _ _ b_is
-    rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
-    use 1, 1, 1
-    exact ⟨grid.empty, ⟨grid.empty, rfl⟩⟩
-  | top_bottom i =>
-    intro _ _ b_is
-    rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
-    use of i, 1, 1
-    exact ⟨grid.top_bottom _, ⟨grid.top_bottom _, rfl⟩⟩
-  | sides i =>
-    intro _ _ b_is
-    rcases FreeMonoid.prod_eq_of b_is.symm with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · use 1, 1, of i
-      exact ⟨grid.empty, ⟨grid.sides _, rfl⟩⟩
-    use 1, of i, 1
-    exact ⟨grid.sides _, ⟨grid.empty, rfl⟩⟩
-  | top_left i =>
-    intro _ _ b_is
-    rcases FreeMonoid.prod_eq_of b_is.symm with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · use of i, 1, 1
-      exact ⟨grid.top_bottom _, ⟨grid.top_left _, rfl⟩⟩
-    use 1, 1, 1
-    exact ⟨grid.top_left _, ⟨grid.empty, rfl⟩⟩
-  | adjacent i j dist =>
-    intro _ _ b_is
-    rcases FreeMonoid.prod_eq_of b_is.symm with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · rcases eq_dist_iff.mp dist with rfl | rfl
-      · use of (i+1), 1, of i * of (i + 1)
-        exact ⟨grid.top_bottom _, ⟨grid.adjacent i (i + 1) dist_self_add_one, rfl⟩⟩
-      use of j, 1, of (j + 1) * of j
-      exact ⟨grid.top_bottom _, ⟨grid.adjacent _ _ add_one_dist_self, rfl⟩⟩
-    rcases eq_dist_iff.mp dist with k_is | i_is
-    · rw [← k_is]
-      use of (i + 1) * of i, of i * of (i + 1), 1
-      exact ⟨grid.adjacent i (i + 1) dist_self_add_one, ⟨top_bottom_word _, rfl⟩⟩
-    rw [← i_is]
-    use of j * of (j + 1), of (j + 1) * of j, 1
-    exact ⟨grid.adjacent _ _ add_one_dist_self, ⟨top_bottom_word _, rfl⟩⟩
-  | separated i j h =>
-    intro _ _ b_is
-    rcases FreeMonoid.prod_eq_of b_is.symm with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · use of j, 1, of i
-      exact ⟨grid.top_bottom _, ⟨grid.separated _ _ h, rfl⟩⟩
-    use of j, of i, 1
-    exact ⟨grid.separated _ _ h, ⟨grid.top_bottom _, rfl⟩⟩
-  | vertical h1 h2 h1_ih h2_ih =>
-    rename_i e f g h i j k
-    intro fi₁ fi₂ fi_is
-    rcases FreeMonoid.prod_eq_prod fi_is with ⟨m, rfl, hm2⟩ | ⟨m, hm1, rfl⟩
-    · rcases h2_ih m fi₂ hm2 with ⟨u, k₁, k₂, g1, g2, hk⟩
-      use u, h * k₁, k₂
-      exact ⟨grid.vertical h1 g1, ⟨g2, by rw [mul_assoc, hk]⟩⟩
-    rcases h1_ih fi₁ m hm1 with ⟨u, h₁, h₂, g1, g2, hh⟩
-    use u, h₁, (h₂ * k)
-    exact ⟨g1, ⟨grid.vertical g2 h2, by rw [← mul_assoc, hh]⟩⟩
-  | horizontal _ _ h1_ih h2_ih =>
-    intro f₁ f₂ f_is
-    rcases h1_ih f₁ f₂ f_is with ⟨l, m, n, hg1, hg2, heq⟩
-    rcases h2_ih m n heq with ⟨o, p, q, hg3, hg4, heq'⟩
-    use l * o, p, q
-    exact ⟨grid.horizontal hg1 hg3, ⟨grid.horizontal hg2 hg4, heq'⟩⟩
+  intro b₁ b₂ hb
+  rcases splittable_vertically (swap h) b₁ b₂ hb with ⟨u, c₁, c₂, g1, g2, hs⟩
+  use u, c₁, c₂, swap g1, swap g2
 
 end Grid
 end Braid
