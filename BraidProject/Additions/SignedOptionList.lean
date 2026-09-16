@@ -251,7 +251,7 @@ theorem toSignedList_toSignedOptionList {a : List (ℕ × Bool)} : toSignedList 
   simp only [SignedList.to_SignedOptionList, List.map_cons, toSignedList, List.cons.injEq, true_and]
   exact ih
 
-theorem toList_eq_nil_to_SignedList_eq_nil (h : SignedOptionList.toSignedList a = []) :
+theorem toList_eq_ni_of_to_SignedList_eq_nil (h : SignedOptionList.toSignedList a = []) :
     SignedOptionList.toList a = [] := by
   induction a with
   | nil => rfl

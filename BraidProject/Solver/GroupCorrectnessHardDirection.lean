@@ -5,13 +5,13 @@ import BraidProject.Solver.MonoidCorrectnessHardDirection
 namespace Braid
 
 set_option maxHeartbeats 2000000
-theorem solver_g_correct_other_direction :
+theorem solver_g_monoid_solver_true_of_BraidMonoidInf_eqection :
     BraidGroupInf.mk (FreeGroup.mk a) =
     BraidGroupInf.mk (FreeGroup.mk b) →
     group_solver a b = true := by
   intro h
   unfold group_solver
-  apply correct_other_dir
+  apply monoid_solver_true_of_BraidMonoidInf_eq
   rcases dede : (reverse_word (a ++ (FreeGroup.invRev b))).ordered with ⟨d, e, hde⟩
   have d_is : (reverse_word (a ++ FreeGroup.invRev b)).ordered.fst = d := by aesop
   have e_is : (reverse_word (a ++ FreeGroup.invRev b)).ordered.2.1 = e := by
@@ -32,8 +32,8 @@ theorem solver_g_correct : group_solver a b ↔
   BraidGroupInf.mk (FreeGroup.mk a) =
   BraidGroupInf.mk (FreeGroup.mk b) := by
   constructor
-  · exact solver_g_correct_one_direction
-  exact solver_g_correct_other_direction
+  · exact BraidGroupInf.eq_of_group_solver_true
+  exact solver_g_monoid_solver_true_of_BraidMonoidInf_eqection
 
 
 --start with elements of the free group
@@ -46,13 +46,13 @@ def solver_fg (a b : FreeGroup ℕ) : Bool := by
     · symm
       apply eq_false_of_ne_true
       intro h1
-      apply solver_g_correct_one_direction at h1
+      apply BraidGroupInf.eq_of_group_solver_true at h1
       rw [← HAC] at h1
-      apply solver_g_correct_other_direction at h1
+      apply solver_g_monoid_solver_true_of_BraidMonoidInf_eqection at h1
       aesop
     apply solver_g_correct.1 at hi
     symm
-    apply solver_g_correct_other_direction
+    apply solver_g_monoid_solver_true_of_BraidMonoidInf_eqection
     rw [← HAC, hi]
   intro a1 b1 c1 relsy
   have HBC := Quot.sound relsy
@@ -61,13 +61,13 @@ def solver_fg (a b : FreeGroup ℕ) : Bool := by
   · symm
     apply eq_false_of_ne_true
     intro h1
-    apply solver_g_correct_one_direction at h1
+    apply BraidGroupInf.eq_of_group_solver_true at h1
     rw [← HBC] at h1
-    apply solver_g_correct_other_direction at h1
+    apply solver_g_monoid_solver_true_of_BraidMonoidInf_eqection at h1
     aesop
   apply solver_g_correct.1 at hi
   symm
-  apply solver_g_correct_other_direction
+  apply solver_g_monoid_solver_true_of_BraidMonoidInf_eqection
   rw [← HBC, hi]
 
 theorem solver_fg_correct : solver_fg a b ↔

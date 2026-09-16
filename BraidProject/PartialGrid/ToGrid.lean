@@ -54,8 +54,8 @@ noncomputable def of_PartialGrid_almost_empty_middle_frontier (h : PartialGrid a
     simp only [toSignedList_append, List.length_append, List.length_nil, Nat.add_eq_zero_iff,
       List.length_eq_zero_iff] at hm
     unfold PartialGridStyle
-    have ha := SignedOptionList.toList_eq_nil_to_SignedList_eq_nil hm.1
-    have hb := SignedOptionList.toList_eq_nil_to_SignedList_eq_nil hm.2
+    have ha := SignedOptionList.toList_eq_ni_of_to_SignedList_eq_nil hm.1
+    have hb := SignedOptionList.toList_eq_ni_of_to_SignedList_eq_nil hm.2
     rw [hb, SignedOptionList.toList_reverse, ha]
     exact of_CellData (CellData.empty)
   | horizontal_append_one _ _ ih1 ih2 =>
@@ -63,7 +63,7 @@ noncomputable def of_PartialGrid_almost_empty_middle_frontier (h : PartialGrid a
   | horizontal_append _ _ _ g1_ih g2_ih =>
     simp only [List.append_assoc, toSignedList_append, List.append_eq_nil_iff] at hm
     have H := GridData.PartialGridStyle.append_horizontal (g1_ih hm.1) (g2_ih hm.2.2)
-    have := SignedOptionList.toList_eq_nil_to_SignedList_eq_nil hm.2.1
+    have := SignedOptionList.toList_eq_ni_of_to_SignedList_eq_nil hm.2.1
     unfold PartialGridStyle at H
     rw [toList_append, toList_append, this, List.append_nil, ← toList_append] at H
     exact H
@@ -72,7 +72,7 @@ noncomputable def of_PartialGrid_almost_empty_middle_frontier (h : PartialGrid a
   | vertical_append _ _ _ g1_ih g2_ih =>
     simp only [List.append_assoc, toSignedList_append, List.append_eq_nil_iff] at hm
     have H := GridData.PartialGridStyle.append_vertical (g1_ih hm.2.2) (g2_ih hm.1)
-    have := SignedOptionList.toList_eq_nil_to_SignedList_eq_nil hm.2.1
+    have := SignedOptionList.toList_eq_ni_of_to_SignedList_eq_nil hm.2.1
     unfold PartialGridStyle at H
     rw [toList_reverse, toList_append, toList_reverse, toList_append, this,
       List.nil_append, ← toList_append, ← toList_reverse, ← toList_reverse] at H

@@ -200,6 +200,12 @@ theorem to_horizontal_edge_no_epsilon_length : (to_horizontal_edge_no_epsilon a)
   unfold to_horizontal_edge_no_epsilon
   simp
 
+theorem project_first_element_to_horizontal_edge_no_epsilon {a : List α} :
+    List.map (fun x => x.1) (to_horizontal_edge_no_epsilon a) = a := by
+  induction a with
+  | nil => rfl
+  | cons head tail ih => simp [ih]
+
 @[simp]
 theorem to_horizontal_edge_nil : to_horizontal_edge ([] : List (α)) = [(none, true)] := rfl
 

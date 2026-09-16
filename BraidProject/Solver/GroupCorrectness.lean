@@ -67,13 +67,13 @@ theorem recover_from_is_true (h : SignedList.is_true d) : to_horizontal_edge_no_
     simp
 
 --okay this is fine
-theorem solver_g_correct_one_direction : group_solver a b = true →
+theorem BraidGroupInf.eq_of_group_solver_true : group_solver a b = true →
     BraidGroupInf.mk (FreeGroup.mk a) =
     BraidGroupInf.mk (FreeGroup.mk b) := by
   intro h
   unfold group_solver at h
   rcases dede : (reverse_word (a ++ (FreeGroup.invRev b))).ordered with ⟨d, e, hde⟩
-  have H := correct_one_dir h
+  have H := BraidMonoidInf.eq_of_monoid_solver h
   have H2 := SemiThueData.reversing.to_braid_group_equiv ((reverse_word (a ++ (FreeGroup.invRev b))).steps)
   rw [hde.1.2.2] at H2
   rw [← FreeGroup.mul_mk, ← FreeGroup.mul_mk, map_mul, map_mul] at H2
@@ -85,12 +85,10 @@ theorem solver_g_correct_one_direction : group_solver a b = true →
   apply bm_to_bg at H
   apply (mul_right_inj (BraidGroupInf.mk
     (FreeGroup.mk (to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) e.reverse))))⁻¹).mpr at H
-  simp at H
+  simp only [List.map_reverse, inv_mul_cancel] at H
   rw [pg_mk_to_horizontal_edge_no_epsilon_inv, recover_from_is_true hde.1.1, recover_from_is_false hde.1.2.1] at H
-  apply (mul_right_inj ((BraidGroupInf.mk
-        (FreeGroup.mk e))⁻¹)).mpr at H
-  apply (mul_left_inj (BraidGroupInf.mk
-        (FreeGroup.mk e))).mpr at H
+  apply (mul_right_inj ((BraidGroupInf.mk (FreeGroup.mk e))⁻¹)).mpr at H
+  apply (mul_left_inj (BraidGroupInf.mk (FreeGroup.mk e))).mpr at H
   rw [mul_one, inv_mul_cancel, inv_mul_cancel_left] at H
   rw [← H] at H2
   apply (mul_left_inj (BraidGroupInf.mk

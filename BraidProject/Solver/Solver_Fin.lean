@@ -25,7 +25,7 @@ theorem monoid_correctness_easy_direction {n : ℕ} (ha : ∀ x ∈ a, x < n.pre
   simp [monoid_solver] at h
   apply BraidMonoidFin.eq_of_BraidMonoidInf_eq
   rw [← List.append_nil a, ← List.append_nil b]
-  apply bm_equiv_of_reversing'
+  apply BraidMonoidInf.eq_of_SemiThueData_reversing
   have H := @reverse_pair_spec a b
   rw [h] at H
   exact SemiThueDataDerivation.toSemiThueData H
@@ -375,7 +375,7 @@ theorem bb_to_fin_of_is_false (e : List (ℕ × Bool)) (n : ℕ) (h_false : Sign
       List.nil_append, List.singleton_append, Bool.not_true]
     exact congrArg _ ih'
 
-theorem solver_g_correct_one_direction_fin {n : ℕ} (ha : is_bounded_by n.pred a) (hb : is_bounded_by n.pred b) :
+theorem BraidGroupInf.eq_of_group_solver_true_fin {n : ℕ} (ha : is_bounded_by n.pred a) (hb : is_bounded_by n.pred b) :
     group_solver a b = true →
   PresentedGroup.mk (Braid.braidRelationFin n) (FreeGroup.mk (bb_to_fin a n.pred ha)) =
   PresentedGroup.mk (Braid.braidRelationFin n) (FreeGroup.mk (bb_to_fin b n.pred hb)) := by
@@ -478,9 +478,9 @@ theorem solver_g_correct_fin {n : ℕ} (ha : is_bounded_by n.pred a) (hb : is_bo
   PresentedGroup.mk (Braid.braidRelationFin n) (FreeGroup.mk (bb_to_fin b n.pred hb)) := by
   constructor
   · intro sgt
-    exact solver_g_correct_one_direction_fin ha hb sgt
+    exact BraidGroupInf.eq_of_group_solver_true_fin ha hb sgt
   intro h1
-  apply solver_g_correct_other_direction
+  apply solver_g_monoid_solver_true_of_BraidMonoidInf_eqection
   apply BraidGroupInf.eq_of_BraidGroupFin_eq' ha hb h1
 
 def solver_fin {n : ℕ} (a b : List (Fin n.pred × Bool)) : Bool :=

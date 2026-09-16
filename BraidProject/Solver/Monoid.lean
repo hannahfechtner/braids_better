@@ -1,13 +1,13 @@
 import BraidProject.PartialGrid.Bounded
 import BraidProject.PartialGrid.Build
-import BraidProject.Solver.FindOpenPair
 import BraidProject.SemiThueReversing
+import BraidProject.Solver.FindOpenPair
 
 namespace Braid
 
 open Relations
 
-theorem SemiThueDataDerivation.reversing.length_le_ab_len_non_nil_inputs
+private theorem SemiThueDataDerivation.reversing.length_le_ab_len_non_nil_inputs
     (h : SemiThueDataDerivation reversing
       (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
     (ha : a.length > 0) (hb : b.length > 0) :

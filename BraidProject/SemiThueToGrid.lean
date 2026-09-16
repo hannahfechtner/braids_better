@@ -7,7 +7,7 @@ namespace Braid
 
 open Relations
 
-theorem grid_of_rev
+theorem Grid.of_SemiThueData_reversing
     (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b)
       (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)) :
     grid a b c d := by
@@ -77,8 +77,8 @@ theorem grid_of_rev
   rw [hc, hd]
   exact h1
 
-theorem bm_equiv_of_reversing'
+theorem BraidMonoidInf.eq_of_SemiThueData_reversing_grid_frame
     (h : SemiThueData reversing (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b)
       (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d)) :
     BraidMonoidInf.mk (a ++ c) = BraidMonoidInf.mk (b ++ d) :=
-  Grid.braid_monoid_eq_of_grid (grid_of_rev h)
+  Grid.braid_monoid_eq_of_grid (Grid.of_SemiThueData_reversing h)
