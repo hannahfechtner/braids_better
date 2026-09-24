@@ -2,11 +2,11 @@ import BraidProject.Solver.GroupCorrectnessHardDirection
 import BraidProject.Solver.Solver_Fin
 
 open Braid
-#eval group_solver [(1, true), (2, true), (4, true), (1, true)]
+#eval braid_word_solver [(1, true), (2, true), (4, true), (1, true)]
   [(2, true), (1, true), (2, true), (4, true)]
 
 set_option trace.profiler true
-#eval solver_fg (FreeGroup.mk [(1, true), (2, true), (4, true), (1, true)])
+#eval free_group_elem_braid_solver (FreeGroup.mk [(1, true), (2, true), (4, true), (1, true)])
   (FreeGroup.mk [(2, true), (1, true), (2, true), (4, true)])
 #eval braid_solver (σ 1 * σ 2 * σ 1) (σ 2 * σ 1 * σ 2 * (σ 3)⁻¹* (σ 3))
 

@@ -1,6 +1,11 @@
 import Mathlib.Algebra.FreeMonoid.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.GroupTheory.FreeGroup.Basic
+import BraidProject.Additions.List
+
+theorem List.map_mul {a b : FreeMonoid α} : List.map f (a * b) = List.map f a ++ List.map f b := by
+  rw [← List.map_append]
+  rfl
 
 namespace FreeMonoid
 
@@ -218,4 +223,15 @@ theorem mapNatToFin_map_val_mul_right : mapNatToFin n (map (fun i => i.val) u  *
   simp only [mul_left_inj]
   apply mapNatToFin_map_val
 
+theorem mapNatToFin_inj {n : ℕ} {a b : FreeMonoid ℕ}
+  (bound_a : ∀ x ∈ a, x < n) (bound_b : ∀ x ∈ b, x < n)
+  (ha : FreeMonoid.mapNatToFin n a bound_a = FreeMonoid.mapNatToFin n b bound_b) :
+  a = b := by
+  unfold FreeMonoid.mapNatToFin at ha
+  apply List.pmap_inj at ha
+  exact ha
+  intro a b ha hb hx
+  simp only [Fin.mk.injEq] at hx
+  exact hx
+  
 end FreeMonoid

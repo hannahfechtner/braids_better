@@ -70,8 +70,27 @@ theorem length_geq_one_eq_cons_cons (b) (h : a ++ b = c :: d :: e) (h2 : a.lengt
     use tail
     grind
 
-theorem map_mul (a b : FreeMonoid α) : List.map f (a * b) = List.map f a ++ List.map f b := by
-  rw [← List.map_append]
-  congr
+set_option pp.proofs true in
+theorem pmap_inj {α β : Type*} {P : α → Prop} (f : ∀ a, P a → β)
+  (hf : ∀ a b ha hb, f a ha = f b hb → a = b) (l1 l2 : List α)
+  (h1 : ∀ a ∈ l1, P a) (h2 : ∀ a ∈ l2, P a) :
+  List.pmap f l1 h1 = List.pmap f l2 h2 → l1 = l2 := by
+  induction l1 generalizing l2 with
+  | nil =>
+    intro hx
+    simp only [List.pmap_nil, List.nil_eq, List.pmap_eq_nil_iff] at hx
+    exact hx.symm
+  | cons head tail ih =>
+    intro hx
+    simp at hx
+    cases l2 with
+    | nil => simp at hx
+    | cons head1 tail1 =>
+      simp at hx
+      refine List.cons_eq_cons.mpr ?_
+      constructor
+      · apply hf _ _ _ _ hx.1
+      apply ih
+      exact hx.2
 
 end List

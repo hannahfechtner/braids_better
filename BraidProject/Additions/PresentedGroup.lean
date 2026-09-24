@@ -43,7 +43,4 @@ theorem lift_of_eq_one_of_mem_free_group_set_of_function
   rw [← PresentedGroup.mk_eq_lift_of]
   exact one_of_mem h
 
-theorem mk_mul : PresentedGroup.mk rels (a * b) = PresentedGroup.mk rels a * PresentedGroup.mk rels b := by
-  rw [map_mul]
-
 end PresentedGroup

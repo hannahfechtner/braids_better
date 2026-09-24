@@ -190,9 +190,8 @@ private def reverse_word_helper_from_reverse_pair (l1 : ℕ × Bool) (l2 : List 
       have H3 : (to_vertical_edge_no_epsilon (List.map (fun x ↦ x.1) (a1 :: a2).reverse) ++
         to_horizontal_edge_no_epsilon (List.map (fun x ↦ x.1) (b1 :: b2))) = a1 :: a2 ++ b1 :: b2 := by
         have af := (separate_first_pair_first_false (l1 :: l2))
-        rw [hs] at af
         have bt := (separate_first_pair_second_true (l1 :: l2))
-        rw [hs] at bt
+        rw [hs] at af bt
         rw [to_vertical_edge_no_epsilon_no_bool af, to_horizontal_edge_no_epsilon_no_bool bt]
       rw [← H3]
       exact (SemiThueDataDerivation.toSemiThueData H'')
@@ -250,11 +249,11 @@ def reverse_word (L : List (ℕ × Bool)) : ReverseResult L :=
   | (a1::a2, ([], c)) => by
     have hc : c = [] := c_nil_of_separate_no_true hs
     use a1 :: a2
-    have af : SignedList.is_false (a1 :: a2) := by
-      have H := separate_first_pair_first_false (l1 :: l2)
-      rw [hs] at H
-      exact H
-    exact SignedList.PosNegData.of_false af
+    · have af : SignedList.is_false (a1 :: a2) := by
+        have H := separate_first_pair_first_false (l1 :: l2)
+        rw [hs] at H
+        exact H
+      exact SignedList.PosNegData.of_false af
     have sfpc := separate_first_pair_correct (l1 :: l2)
     have : l1 :: l2 = a1 :: a2 := by
       rw [hc] at hs
@@ -265,13 +264,12 @@ def reverse_word (L : List (ℕ × Bool)) : ReverseResult L :=
     exact SemiThueData.refl
   | (a1::a2, (b1::b2, c)) => by
     have hc : c.length < (l1 :: l2).length := separate_tail_length hs (by simp)
-    let H2 := reverse_word c
-    exact reverse_word_pair_case l1 l2 a1 a2 b1 b2 c hs H2
+    exact reverse_word_pair_case l1 l2 a1 a2 b1 b2 c hs (reverse_word c)
   termination_by L.length
   decreasing_by
   · assumption
-  · assumption
+  assumption
 
-def group_solver (L1 L2 : List (ℕ × Bool)) : Bool := by
+def braid_word_solver (L1 L2 : List (ℕ × Bool)) : Bool := by
   rcases (reverse_word (L1 ++ (FreeGroup.invRev L2))).ordered with ⟨d, e, hde⟩
   exact monoid_solver (List.map (fun x => x.1) e.reverse) (List.map (fun x => x.1) d)

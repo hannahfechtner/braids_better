@@ -1,5 +1,6 @@
 import BraidProject.Additions.Hom
 import BraidProject.Additions.List
+import BraidProject.Additions.FreeMonoid
 import BraidProject.Additions.Mixins
 import BraidProject.Additions.OreLocalization
 import BraidProject.Additions.PresentedGroup

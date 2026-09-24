@@ -41,6 +41,28 @@ theorem sound (h : BraidMonoidInf.rel a b) : BraidMonoidInf.mk a = BraidMonoidIn
 theorem exact (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b ) : BraidMonoidInf.rel a b :=
   Quotient.exact h
 
+end BraidMonoidInf
+
+theorem BraidGroupInf.eq_of_BraidMonoidInf_eq (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
+    BraidGroupInf.mk (FreeGroup.mk (List.map (fun x => (x, true)) a)) =
+    BraidGroupInf.mk (FreeGroup.mk (List.map (fun x => (x, true)) b)) := by
+  apply exact at h
+  induction h with
+  | of x y h =>
+    cases h with
+    | adjacent i => exact Braid.BraidGroupInf.braid Nat.dist_self_add_one
+    | separated i j h =>
+      apply Braid.BraidGroupInf.comm
+      apply Nat.le_dist_iff.mpr
+      left; exact h
+  | refl x => rfl
+  | symm _ ih => exact ih.symm
+  | trans _ _ ih1 ih2 => exact ih1.trans ih2
+  | mul _ _ ih1 ih2 =>
+    rw [List.map_mul, List.map_mul, ← FreeGroup.mul_mk, ← FreeGroup.mul_mk,
+      map_mul, map_mul, ih1, ih2]
+
+namespace BraidMonoidInf
 @[induction_eliminator]
 protected theorem inductionOn {δ : BraidMonoidInf → Prop} (q : BraidMonoidInf)
     (h : ∀ a, δ (BraidMonoidInf.mk a)) : δ q :=
@@ -340,7 +362,7 @@ theorem braid_rw (x i j) (h : i.dist j = 1) :
   rw [mul_assoc x, mul_assoc x, mul_assoc x, mul_assoc x, ← map_mul, ← map_mul, ← map_mul,
       ← map_mul, ← braid_mk h]
 
-theorem toBraidGroup_helper (a b : FreeMonoid ℕ) (h : braid_monoid_rels_inf a b) :
+theorem toBraidGroupInf_helper (a b : FreeMonoid ℕ) (h : braid_monoid_rels_inf a b) :
     (FreeMonoid.lift fun a => σ a) a = (FreeMonoid.lift fun a => σ a) b := by
   cases h
   · apply BraidGroupInf.braid
@@ -350,8 +372,32 @@ theorem toBraidGroup_helper (a b : FreeMonoid ℕ) (h : braid_monoid_rels_inf a 
   unfold Nat.dist
   omega
 
-def toBraidGroup : BraidMonoidInf →* BraidGroupInf :=
-  PresentedMonoid.lift (fun a => σ a) toBraidGroup_helper
+def toBraidGroupInf : BraidMonoidInf →* BraidGroupInf :=
+  PresentedMonoid.lift (fun a => σ a) toBraidGroupInf_helper
+
+@[simp]
+theorem toBraidGroupInf_one : toBraidGroupInf 1 = 1 := rfl
+
+@[simp]
+theorem toBraidGroupInf_of : toBraidGroupInf (BraidMonoidInf.of i) = σ i := rfl
+
+@[simp]
+theorem toBraidGroupInf_mk : toBraidGroupInf (BraidMonoidInf.mk a) =
+  BraidGroupInf.mk (FreeGroup.mk (List.map (fun x => (x, true)) a)) := by
+  induction a with
+  | one => rfl
+  | of x => rfl
+  | mul x y hx hy =>
+    rw [map_mul, map_mul, hx, hy, List.map_mul, ← FreeGroup.mul_mk, map_mul]
+    rfl
+
+theorem BraidGroupInf.eq_of_BraidMonoidInf_eq {n : ℕ} {a1 b1 : FreeMonoid ℕ}
+  (h : BraidMonoidInf.mk a1 = BraidMonoidInf.mk b1) :
+  BraidGroupInf.mk (FreeGroup.mk (List.map (fun x => (x, true)) a1)) =
+  BraidGroupInf.mk (FreeGroup.mk (List.map (fun x => (x, true)) b1)) := by
+  apply congr_arg toBraidGroupInf at h
+  rw [toBraidGroupInf_mk, toBraidGroupInf_mk] at h
+  exact h
 
 end BraidMonoidInf
 

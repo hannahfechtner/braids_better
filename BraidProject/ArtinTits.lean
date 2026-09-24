@@ -14,6 +14,7 @@ structure ArtinTitsMatrix (α : Type*) where
   M : Matrix α α ℕ
   isSymm : M.IsSymm := by decide
   off_diagonal i i' : i ≠ i' → M i i' ≠ 1 := by decide
+  diagonal i : M i i = 0 := by decide
 
 variable {α : Type*}
 
@@ -39,6 +40,11 @@ theorem Group.mem_relation_set_iff {r : FreeGroup α} :
   rintro ⟨i, j, rfl⟩
   exact ⟨⟨i, j⟩, rfl⟩
 
+theorem Group.one_mem_relation_set_of_nonempty [Nonempty α] : (1 : FreeGroup α) ∈ Group.relation_set M := by
+  rcases ‹Nonempty α› with ⟨i⟩
+  use (i, i)
+  simp [Group.relation]
+  
 def ArtinTitsGroup := PresentedGroup (Group.relation_set M)
 
 instance {M : ArtinTitsMatrix α} : Group (ArtinTitsGroup M):= by

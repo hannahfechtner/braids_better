@@ -4,6 +4,8 @@ import Mathlib.Data.Nat.Dist
 import Mathlib.GroupTheory.PresentedGroup
 import Mathlib.LinearAlgebra.Matrix.Symmetric
 import BraidProject.ArtinTits
+import BraidProject.Additions.FreeGroup
+import BraidProject.SignedListBounded
 
 namespace Braid
 
@@ -12,9 +14,12 @@ open ArtinTits
 def BraidMatrixFin {n : ℕ} : ArtinTitsMatrix (Fin n.pred) where
   M := Matrix.of fun i j : Fin n.pred ↦
     if i = j then 0
-      else (if (j : ℕ) + 1 = i ∨ (i : ℕ) + 1 = j then 3 else 2)
-  isSymm := by unfold Matrix.IsSymm; aesop
+      else (if Nat.dist i.val j.val = 1 then 3 else 2)
+  isSymm := by
+    unfold Matrix.IsSymm
+    aesop (add simp Nat.dist_comm)
   off_diagonal := by aesop
+  diagonal := by aesop
 
 /-- The Artin-Tits matrix for Artin's infinite braid group -/
 def BraidMatrixInf : ArtinTitsMatrix ℕ where
@@ -25,6 +30,7 @@ def BraidMatrixInf : ArtinTitsMatrix ℕ where
     grind [Matrix.IsSymm, Matrix.transpose, Matrix.of_apply, EmbeddingLike.apply_eq_iff_eq,
       Nat.dist]
   off_diagonal := by aesop
+  diagonal := by aesop
 
 def BraidGroupInf := ArtinTitsGroup BraidMatrixInf
 
@@ -221,5 +227,125 @@ theorem BraidGroupFin.toGroup_unique (n : ℕ) {G : Type*} [Group G] {f : Fin n.
     (hf : BraidGroupFin.IsLiftable n f) (g : BraidGroupFin n →* G)
     (hg : ∀ i : Fin n.pred, g (σₙ i) = f i) : BraidGroupFin.toGroup n hf = g :=
   ArtinTits.toGroup_unique (BraidMatrixFin) g hg _
+
+theorem BraidGroupFin.toBraidGroupInf_helper : BraidGroupFin.IsLiftable n (fun x => σ x.1) := by
+  constructor
+  · intro i j h
+    apply BraidGroupInf.braid
+    exact h
+  intro i j h
+  apply BraidGroupInf.comm
+  exact h
+
+def BraidGroupFin.toBraidGroupInf (n : ℕ) : BraidGroupFin n →* BraidGroupInf :=
+  BraidGroupFin.toGroup n BraidGroupFin.toBraidGroupInf_helper
+
+theorem BraidGroupFin.toBraidGroupInf_one (n : ℕ) : BraidGroupFin.toBraidGroupInf n 1 = 1 := rfl
+
+theorem BraidGroupFin.toBraidGroupInf_of (n : ℕ) (i : Fin n.pred) :
+    BraidGroupFin.toBraidGroupInf n (σₙ i) = σ i.1 := rfl
+
+theorem BraidGroupFin.toBraidGroupInf_mk_mk (n : ℕ) (w : List (Fin n.pred × Bool)) :
+    BraidGroupFin.toBraidGroupInf n (BraidGroupFin.mk n (FreeGroup.mk w)) =
+    BraidGroupInf.mk (FreeGroup.mk (List.map (fun i => (i.1.val, i.2)) w)) := by
+  induction w with
+  | nil => rfl
+  | cons head tail ih =>
+    rw [List.map_cons, FreeGroup.mk_cons, map_mul]
+    erw [map_mul, ih]
+    conv => rhs; rw [FreeGroup.mk_cons, map_mul]
+    match head with
+    | ⟨hh, true⟩ => rfl
+    | (hh, false) => rfl
+
+theorem BraidGroupInf.eq_of_BraidGroupFin_eq_word {n : ℕ} {a b : List (Fin n.pred × Bool)}
+    (h : BraidGroupFin.mk n (FreeGroup.mk a) = BraidGroupFin.mk n (FreeGroup.mk b)) :
+    BraidGroupInf.mk (FreeGroup.mk (List.map (fun i => (i.1.1, i.2)) a)) =
+    BraidGroupInf.mk (FreeGroup.mk (List.map (fun i => (i.1.1, i.2)) b)) := by
+  apply congr_arg (BraidGroupFin.toBraidGroupInf n) at h
+  rw [BraidGroupFin.toBraidGroupInf_mk_mk, BraidGroupFin.toBraidGroupInf_mk_mk] at h
+  exact h
+
+theorem BraidGroupInf.eq_of_BraidGroupFin_eq_word'
+    {a b : List (ℕ × Bool)} {n : ℕ} (ha : SignedList.bounded n.pred a) (hb : SignedList.bounded n.pred b)
+    (h1 : BraidGroupFin.mk n (.mk (SignedList.mapNatToFin a n.pred ha)) =
+      BraidGroupFin.mk n (.mk (SignedList.mapNatToFin b n.pred hb))) :
+    BraidGroupInf.mk (.mk a) = BraidGroupInf.mk (.mk b) := by
+  rw [← SignedList.mapNatToFin_map_val a ha, ← SignedList.mapNatToFin_map_val b hb]
+  exact BraidGroupInf.eq_of_BraidGroupFin_eq_word h1
+
+theorem BraidGroupInf.eq_of_BraidGroupFin_eq_free_group_elem {n : ℕ}
+    {a b : FreeGroup (Fin n.pred)}
+    (h : BraidGroupFin.mk n a = BraidGroupFin.mk n b) :
+    BraidGroupInf.mk (FreeGroup.map Fin.val a) =
+    BraidGroupInf.mk (FreeGroup.map Fin.val b) := by
+  rcases FreeGroup.exists_rep a with ⟨a', rfl⟩
+  rcases FreeGroup.exists_rep b with ⟨b', rfl⟩
+  exact BraidGroupInf.eq_of_BraidGroupFin_eq_word h
+
+theorem BraidGroupFin.toLargerBraidGroupFin_helper (h : n.pred < m.pred) : BraidGroupFin.IsLiftable n (fun x => (σₙ ⟨x.1, Nat.lt_trans x.2 h⟩ : BraidGroupFin m)) := by
+  constructor
+  · intro i j h
+    apply BraidGroupFin.braid
+    exact h
+  intro i j h
+  apply BraidGroupFin.comm
+  exact h
+
+def BraidGroupFin.toLargerBraidGroupFin {n m : ℕ} (h : n.pred < m.pred) : BraidGroupFin n →* BraidGroupFin m :=
+  BraidGroupFin.toGroup n (BraidGroupFin.toLargerBraidGroupFin_helper h)
+
+theorem BraidGroupFin.toLargerBraidGroupFin_one  {n m : ℕ} (h : n.pred < m.pred) : BraidGroupFin.toLargerBraidGroupFin h 1 = 1 := rfl
+
+theorem BraidGroupFin.toLargerBraidGroupFin_of {n m : ℕ} (h : n.pred < m.pred) (i : Fin n.pred) :
+    BraidGroupFin.toLargerBraidGroupFin h (σₙ i) = σₙ (⟨i.1, Nat.lt_trans i.2 h⟩ : Fin m.pred) := rfl
+
+theorem BraidGroupFin.toLargerBraidGroupFin_mk_mk {n m : ℕ} (h : n.pred < m.pred) (w : List (Fin n.pred × Bool)) :
+    BraidGroupFin.toLargerBraidGroupFin h (BraidGroupFin.mk n (FreeGroup.mk w)) =
+    BraidGroupFin.mk m (FreeGroup.mk (List.map (fun i => (⟨i.1.val, Nat.lt_trans i.1.2 h⟩, i.2)) w)) := by
+  induction w with
+  | nil => rfl
+  | cons head tail ih =>
+    rw [List.map_cons, FreeGroup.mk_cons, map_mul]
+    erw [map_mul, ih]
+    conv => rhs; rw [FreeGroup.mk_cons, map_mul]
+    match head with
+    | ⟨hh, true⟩ => rfl
+    | (hh, false) => rfl
+
+theorem BraidGroupFin.eq_of_SmallerBraidGroupFin_eq {n m : ℕ} (h : n.pred < m.pred) {a b : List (Fin n.pred × Bool)}
+    (h1 : BraidGroupFin.mk n (FreeGroup.mk a) = BraidGroupFin.mk n (FreeGroup.mk b)) :
+    BraidGroupFin.mk m (FreeGroup.mk (List.map (fun i => (⟨i.1.val, Nat.lt_trans i.1.2 h⟩, i.2)) a)) =
+    BraidGroupFin.mk m (FreeGroup.mk (List.map (fun i => (⟨i.1.val, Nat.lt_trans i.1.2 h⟩, i.2)) b)) := by
+  apply congr_arg (BraidGroupFin.toLargerBraidGroupFin h) at h1
+  rw [BraidGroupFin.toLargerBraidGroupFin_mk_mk, BraidGroupFin.toLargerBraidGroupFin_mk_mk] at h1
+  exact h1
+
+theorem BraidGroupFin.eq_of_SmallerBraidGroupFin_eq' {n m : ℕ} (h : n.pred < m.pred) {a b : List (ℕ × Bool)}
+    (ha : SignedList.bounded n.pred a) (hb : SignedList.bounded n.pred b)
+    (h1 : BraidGroupFin.mk n (.mk (SignedList.mapNatToFin a n.pred ha)) =
+      BraidGroupFin.mk n (.mk (SignedList.mapNatToFin b n.pred hb))) :
+    BraidGroupFin.mk m (.mk (SignedList.mapNatToFin
+      (a) m.pred
+      (SignedList.bounded_trans ha h)) ) =
+    BraidGroupFin.mk m (.mk (SignedList.mapNatToFin
+      (b) m.pred (SignedList.bounded_trans hb h)) ) := by
+  have := BraidGroupFin.eq_of_SmallerBraidGroupFin_eq h h1
+  convert this
+  · clear b hb h1 this
+    induction a with
+    | nil => rfl
+    | cons head tail ih =>
+      rw [SignedList.mapNatToFin_cons (SignedList.bounded_trans ha h)
+        (SignedList.bounded_trans ((SignedList.bounded_tail ha)) h), SignedList.mapNatToFin_cons ha,
+        List.map_cons, ih (SignedList.bounded_tail ha)]
+  clear a ha h1 this
+  induction b with
+  | nil => rfl
+  | cons head tail ih =>
+    rw [SignedList.mapNatToFin_cons (SignedList.bounded_trans hb h)
+      (SignedList.bounded_trans ((SignedList.bounded_tail hb)) h), SignedList.mapNatToFin_cons hb,
+      List.map_cons, ih (SignedList.bounded_tail hb)]
+
 
 end Braid
