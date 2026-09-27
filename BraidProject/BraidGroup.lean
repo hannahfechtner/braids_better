@@ -71,7 +71,8 @@ theorem BraidMatrixInf_adjacent' {i : ℕ} : BraidMatrixInf.1 i (i + 1) = 3 := b
   unfold BraidMatrixInf
   simp [Nat.dist, add_tsub_cancel_left]
 
-theorem BraidMatrixFin_adjacent {n : ℕ} (i j : Fin n.pred) (h : i.val.dist j = 1)  : BraidMatrixFin.1 i j = 3 := by
+theorem BraidMatrixFin_adjacent {n : ℕ} (i j : Fin n.pred) (h : i.val.dist j = 1) :
+    BraidMatrixFin.1 i j = 3 := by
   unfold BraidMatrixFin
   grind [Matrix.of_apply, Nat.dist]
 

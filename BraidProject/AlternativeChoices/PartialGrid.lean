@@ -2,8 +2,8 @@ import BraidProject.PartialGrid.Basic
 
 namespace Braid
 
-/-- Bundle a `PartialGrid` together with its frame labels, so we can put a
-homogeneous relation on all partial grids regardless of their frame. -/
+-- Bundle a `PartialGrid` together with its frame, so we can put a relation
+-- on all partial grids regardless of their frame
 structure AnyPartialGrid : Type where
   a : List (Option ℕ × Bool)
   b : List (Option ℕ × Bool)

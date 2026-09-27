@@ -234,4 +234,11 @@ theorem mapNatToFin_inj {n : ℕ} {a b : FreeMonoid ℕ}
   simp only [Fin.mk.injEq] at hx
   exact hx
   
+theorem lift_FreeGroup_of_eq_mk_map_true (a : FreeMonoid α) :
+    lift FreeGroup.of a = FreeGroup.mk (List.map (fun x => (x, true)) a) := by
+  induction a with
+  | one => rfl
+  | of x => rfl
+  | mul x y hx hy => simp [hx, hy, List.map_mul, ← FreeGroup.mul_mk]
+
 end FreeMonoid

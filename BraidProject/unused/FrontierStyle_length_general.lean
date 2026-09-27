@@ -1,4 +1,4 @@
-import BraidProject.SemiThue_length_general
+import BraidProject.DataCarrying.SemiThue
 import BraidProject.PartialGrid.AddCell
 
 namespace Braid

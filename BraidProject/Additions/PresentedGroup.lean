@@ -43,4 +43,28 @@ theorem lift_of_eq_one_of_mem_free_group_set_of_function
   rw [← PresentedGroup.mk_eq_lift_of]
   exact one_of_mem h
 
+theorem eq_of_PresentedMonoid_eq {α : Type} {rels : FreeMonoid α → FreeMonoid α → Prop}
+    {a b : FreeMonoid α} (h : PresentedMonoid.mk rels a = PresentedMonoid.mk rels b) :
+    PresentedGroup.mk (free_group_set_of_function rels) (FreeMonoid.lift FreeGroup.of a) =
+    PresentedGroup.mk (free_group_set_of_function rels) (FreeMonoid.lift FreeGroup.of b) := by
+  rw [mk_eq_lift_of, ← FreeMonoid.lift_eq_FreeGroup_lift_comp_of_apply,
+    ← FreeMonoid.lift_eq_FreeGroup_lift_comp_of_apply]
+  exact congr_arg (@PresentedMonoid.lift _ _ _ (@PresentedGroup.of _ (free_group_set_of_function rels)) rels
+    ((free_group_set_of_function_lift_eq_one_iff _).mp
+     (fun r hr =>  lift_of_eq_one_of_mem_free_group_set_of_function _ hr))) h
+
+theorem mk_eq_mk_of_subset {rels₁ rels₂ : Set (FreeGroup α)} (hsub : rels₁ ⊆ rels₂)
+    {a b : FreeGroup α} (h : PresentedGroup.mk rels₁ a = PresentedGroup.mk rels₁ b) :
+    PresentedGroup.mk rels₂ a = PresentedGroup.mk rels₂ b := by
+  rw [← mul_inv_eq_one, ← map_inv, ← map_mul, mk_eq_one_iff] at h ⊢
+  exact Subgroup.normalClosure_mono hsub h
+
+theorem eq_of_PresentedMonoid_eq_rels_subset {α : Type}
+    {rels : FreeMonoid α → FreeMonoid α → Prop} {group_rels : Set (FreeGroup α)}
+    (hsub : free_group_set_of_function rels ⊆ group_rels) {a b : FreeMonoid α}
+    (h : PresentedMonoid.mk rels a = PresentedMonoid.mk rels b) :
+    PresentedGroup.mk group_rels (FreeMonoid.lift FreeGroup.of a) =
+    PresentedGroup.mk group_rels (FreeMonoid.lift FreeGroup.of b) :=
+  mk_eq_mk_of_subset hsub (eq_of_PresentedMonoid_eq h)
+
 end PresentedGroup

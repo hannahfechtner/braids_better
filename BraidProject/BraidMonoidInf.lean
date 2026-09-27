@@ -1,4 +1,5 @@
 import BraidProject.Additions.PresentedMonoid
+import BraidProject.Additions.PresentedGroup
 import Mathlib.Data.Nat.Dist
 import BraidProject.Additions.NatDist
 import BraidProject.Additions.FreeMonoid
@@ -17,6 +18,21 @@ theorem braid_monoid_rels_inf.length_pos {f g : FreeMonoid ℕ} (h : braid_monoi
     f.length > 0 ∧ g.length > 0 := by
   rcases h
   all_goals grind [length_mul, length_of]
+
+theorem free_group_set_subset_braidRelationInf :
+    PresentedGroup.free_group_set_of_function braid_monoid_rels_inf ⊆ braidRelationInf := by
+  rintro x ⟨⟨a, b⟩, h, rfl⟩
+  simp only [Set.mem_setOf_eq] at h
+  cases h with
+  | adjacent i =>
+    use (i, i + 1)
+    simp only [Function.uncurry_apply_pair, ArtinTits.Group.relation, BraidMatrixInf_adjacent',
+      Monoid.alternate_three, map_mul, FreeMonoid.lift_eval_of]
+  | separated i j hij =>
+    use (i, j)
+    simp only [Function.uncurry_apply_pair, ArtinTits.Group.relation, Monoid.alternate_two,
+      map_mul, FreeMonoid.lift_eval_of,
+      BraidMatrixInf_separated (Nat.le_dist_iff.mpr (Or.inl hij))]
 
 open PresentedMonoid
 
@@ -398,6 +414,15 @@ theorem BraidGroupInf.eq_of_BraidMonoidInf_eq {n : ℕ} {a1 b1 : FreeMonoid ℕ}
   apply congr_arg toBraidGroupInf at h
   rw [toBraidGroupInf_mk, toBraidGroupInf_mk] at h
   exact h
+
+theorem BraidGroupInf.eq_of_BraidMonoidInf_eq' {a1 b1 : FreeMonoid ℕ}
+    (h : BraidMonoidInf.mk a1 = BraidMonoidInf.mk b1) :
+    BraidGroupInf.mk (FreeGroup.mk (List.map (fun x => (x, true)) a1)) =
+    BraidGroupInf.mk (FreeGroup.mk (List.map (fun x => (x, true)) b1)) := by
+  rw [← FreeMonoid.lift_FreeGroup_of_eq_mk_map_true,
+    ← FreeMonoid.lift_FreeGroup_of_eq_mk_map_true]
+  exact PresentedGroup.eq_of_PresentedMonoid_eq_rels_subset
+    free_group_set_subset_braidRelationInf h
 
 end BraidMonoidInf
 

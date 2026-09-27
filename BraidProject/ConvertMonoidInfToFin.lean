@@ -10,25 +10,9 @@ theorem braid_monoid_rels_fin_of_inf (n: ℕ) (a b: FreeMonoid ℕ) (holds_in_in
     braid_monoid_rels_fin n (FreeMonoid.mapNatToFin n.pred a bounded_a) (FreeMonoid.mapNatToFin n.pred b bounded_b) := by
   cases holds_in_inf with
   | adjacent i =>
-    have ⟨k, hk⟩ : ∃ k, n = Nat.succ k := by
-      use n.pred
-      rw [Nat.succ_pred]
-      intro h
-      have := bounded_a i (FreeMonoid.mem_mul.mpr (Or.inr FreeMonoid.mem_of_self))
-      rw [h] at this
-      simp at this
-    subst hk
-    exact braid_rels_multi.adjacent ⟨i, _⟩ _ rfl
+    exact braid_monoid_rels_fin.adjacent ⟨i, _⟩ _ rfl
   | separated i j h =>
-    have ⟨k, hk⟩ : ∃ k, n = Nat.succ k := by
-      use n.pred
-      rw [Nat.succ_pred]
-      intro h
-      have := bounded_a j (FreeMonoid.mem_mul.mpr (Or.inr FreeMonoid.mem_of_self))
-      rw [h] at this
-      simp at this
-    subst hk
-    apply braid_rels_multi.separated
+    apply braid_monoid_rels_fin.separated
     linarith
 
 theorem BraidMonoidFin.eq_of_BraidMonoidInf_eq (n : ℕ) (a b : FreeMonoid ℕ) (bounded_a: ∀ x, x ∈ a → x < n.pred)
