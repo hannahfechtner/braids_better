@@ -21,11 +21,14 @@ Install [Lean 4](https://lean-lang.org/install/) and Git. Then run:
 ```bash
 git clone --branch afm https://github.com/hannahfechtner/braids_better.git
 cd braids_better
+git checkout 50c8de17ed3fe231596aea3ccb351195b2037cfa
 lake exe cache get
 lake build
 ```
 
-Note that the Lean version for the frozen links in the paper is `4.29.0`, and the precise Mathlib SHA can be found in `lake-mainfest.json`.  
+The `git checkout` command selects the exact commit referenced by the links in the accompanying paper, ensuring that the source code and line numbers match. To build the latest version of the `afm` branch instead, omit this command.
+
+The project uses Lean `v4.29.0-rc3`, as specified in `lean-toolchain`. The precise Mathlib version and other dependencies are recorded in `lake-manifest.json`.
 
 ## Trying the solver
 
