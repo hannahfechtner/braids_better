@@ -1,7 +1,6 @@
 import BraidProject.Solver.GroupCorrectnessHardDirection
 import BraidProject.Solver.Solver_Fin
 
--- 
 open Braid
 #time
 #eval braid_word_solver [(1, true), (2, true), (4, true), (1, true)]
@@ -13,6 +12,7 @@ open Braid
 #eval braid_solver (σ 1 * σ 2 * σ 1) (σ 2 * σ 1 * σ 2 * (σ 3)⁻¹* (σ 3))
 
 #eval solver_nonsense ((σ 1 * σ 2 * σ 1)) ((σ 2 * σ 1 * σ 2)⁻¹)
+
 #time #eval braid_solver
   ((σ 1 * (σ 4)⁻¹ *
     σ 2 * (σ 6)⁻¹ *
