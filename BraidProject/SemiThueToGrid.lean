@@ -50,20 +50,13 @@ theorem Grid.of_SemiThueData_reversing
     use to_horizontal_edge_no_epsilon c, to_vertical_edge_no_epsilon d
     exact ⟨⟨is_true_to_horizontal_edge_no_epsilon, ⟨is_false_to_vertical_edge_no_epsilon, hs.symm⟩⟩⟩
   have h3 := PosNegData_of_toSignedList_PosNeg_and_irreducible h2 hi
-  have : SignedOptionList.toSignedList d1 = [] := by
-    rcases PartialGrid.middle_frontier_spec pg with ⟨⟨rfl⟩⟩ | ⟨front, mid_d, caboose, ⟨d_eq⟩⟩
-    · rfl
-    have hf : c1 ++ d1 ++ e1 =
-        c1 ++ [(front, false)] ++ (mid_d ++ [(caboose, true)] ++ e1) := by
-      rw [d_eq]
-      simp [List.append_assoc]
-    exact (empty_middle_frontier_of_pos_neg_frontier h3 hf).elim
-  have h1 := GridData.to_grid <| GridData.PartialGridStyle.of_PartialGrid_almost_empty_middle_frontier pg this
+  obtain ⟨rfl, -, -⟩ := PartialGrid.empty_middle_frontier_of_frontier_PosNegData pg h3
+  have h1 := GridData.to_grid <|
+    GridData.PartialGridStyle.of_PartialGrid_almost_empty_middle_frontier pg rfl
   rw [toList_to_vertical_edge_rev, toList_to_horizontal_edge] at h1
   have hs' : SignedOptionList.toSignedList c1 ++ SignedOptionList.toSignedList e1 =
       to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d := by
-    rw [hs, SignedOptionList.toSignedList_append, SignedOptionList.toSignedList_append, this,
-      List.append_nil]
+    rw [hs, List.append_nil, SignedOptionList.toSignedList_append]
   have ⟨hc, he⟩ := SignedList.parts_eq_of_true_false_eq
     (SignedOptionList.toSignedList_is_true pg.bottom_frontier_is_true)
     is_true_to_horizontal_edge_no_epsilon

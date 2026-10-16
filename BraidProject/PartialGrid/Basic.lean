@@ -390,6 +390,23 @@ def middle_frontier_spec (h : PartialGrid a b c d e) :
     use f2, m2 ++ [(c2, true)] ++ up2 ++ [(f1, false)] ++ m1, c1
     exact {down := by simp}
 
+theorem empty_middle_frontier_of_frontier_PosNegData (h : PartialGrid a b c d e)
+    (hf : PosNegData (c ++ d ++ e)) : d = [] ∧ c = hf.1 ∧ e = hf.2.1 := by
+  rcases hf with ⟨a1, a2, a1_true, a2_false, heq⟩
+  rcases middle_frontier_spec h with ⟨⟨rfl⟩⟩ | ⟨frontm, middlem, caboosem, ⟨rfl⟩⟩
+  · rw [List.append_nil] at heq
+    exact ⟨rfl, parts_eq_of_true_false_eq h.bottom_frontier_is_true a1_true
+      h.right_frontier_is_false a2_false heq⟩
+  have heq' : a1 ++ a2 = (c ++ [(frontm, false)]) ++ (middlem ++ ([(caboosem, true)] ++ e)) := by
+    rw [← heq]; simp
+  rcases List.append_eq_append_iff.mp heq' with ⟨r, _, hr2⟩ | ⟨r, hr1, _⟩
+  · rw [hr2] at a2_false
+    specialize a2_false (caboosem, true) (by simp)
+    simp at a2_false
+  rw [hr1] at a1_true
+  specialize a1_true (frontm, false) (by simp)
+  simp at a1_true
+
 theorem frontier_options_from_horizontal
     (h : PartialGrid a b c m e)
     (i1 : PartialGrid a b1 c1 m1 d1) (i2 : PartialGrid d1 b2 c2 m2 e)

@@ -170,15 +170,3 @@ def false_prefix_of_unfinished_frontier (h1 : SignedList.is_false t3) (h : tk ++
       simp only [List.cons_append, List.append_assoc, List.nil_append, List.cons.injEq] at h
       rw [h.1]
       exact List.PrefixData.cons ht (@ih tt (SignedList.is_false_of_cons h1).2 (by simp [h.2]))
-
-theorem empty_middle_frontier_of_pos_neg_frontier (h : PosNegData c)
-    (hf : c = c1 ++ [(c2, false)] ++ (m1 ++ [(d2, true)] ++ d1)) : False := by
-  rcases h with ⟨a, b, ha, hb, rfl⟩
-  rw [List.append_assoc m1] at hf
-  rcases List.append_eq_append_iff.mp hf with ⟨r, hr1, hr2⟩ | ⟨r, hr1, hr2⟩
-  · rw [hr2] at hb
-    specialize hb (d2, true) (by simp)
-    aesop
-  rw [hr1] at ha
-  specialize ha (c2, false) (by simp)
-  aesop

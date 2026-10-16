@@ -57,7 +57,17 @@ theorem freeMonoid_lift_of_eq_mk_of_mulHom {β : Type} [Monoid β] (r : FreeMono
     rw [map_mul, ih, FreeMonoid.lift_eval_of, mk_mul, map_mul]
     rfl
 
+@[refl]
 theorem refl : PresentedMonoid.rel rels a a := ConGen.Rel.refl _
+
+@[trans]
+theorem trans : PresentedMonoid.rel rels a b → PresentedMonoid.rel rels b c →
+  PresentedMonoid.rel rels a c := fun h1 h2 => h1.trans h2
+
+@[symm]
+theorem symm : PresentedMonoid.rel rels a b → PresentedMonoid.rel rels b a :=
+  fun h => ConGen.Rel.symm h
+
 theorem one_step_reduction : ∀ c d, rels a b → PresentedMonoid.rel rels (c * a * d) (c * b * d) :=
   fun _ _ h => ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl _) (ConGen.Rel.of _ _ h))
         (ConGen.Rel.refl _)
@@ -65,8 +75,6 @@ theorem one_step_reduction_symm : ∀ c d, rels a b →
     PresentedMonoid.rel rels (c * b * d) (c * a * d) :=
   fun _ _ h => ConGen.Rel.mul (ConGen.Rel.mul (ConGen.Rel.refl _)
         (ConGen.Rel.symm (ConGen.Rel.of _ _ h))) (ConGen.Rel.refl _)
-theorem trans : PresentedMonoid.rel rels a b → PresentedMonoid.rel rels b c →
-  PresentedMonoid.rel rels a c := fun h1 h2 => h1.trans h2
 theorem mul : PresentedMonoid.rel rels a b → PresentedMonoid.rel rels c d →
   PresentedMonoid.rel rels (a * c) (b * d) := fun h1 h2 => ConGen.Rel.mul h1 h2
 theorem mul_rels_left : rels a b → PresentedMonoid.rel rels c d →
@@ -85,8 +93,6 @@ theorem rels_alone : rels a b → PresentedMonoid.rel rels a b :=
   fun h => ConGen.Rel.of _ _ h
 theorem symm_alone : rels a b → PresentedMonoid.rel rels b a :=
   fun h => ConGen.Rel.symm (ConGen.Rel.of _ _ h)
-theorem symm : PresentedMonoid.rel rels a b → PresentedMonoid.rel rels b a :=
-  fun h => ConGen.Rel.symm h
 
 private inductive rw_system (rels : FreeMonoid α → FreeMonoid α → Prop) : FreeMonoid α → FreeMonoid α → Prop
   | refl : rw_system rels a a

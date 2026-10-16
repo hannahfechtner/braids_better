@@ -3,6 +3,7 @@ import Mathlib.Data.List.Basic
 import Mathlib.Data.List.Lex
 import Mathlib.Data.List.Induction
 import BraidProject.Additions.FreeMonoid
+import BraidProject.Additions.PresentedMonoid
 
 inductive SemiThue {α : Type} (rels : List α → List α → Prop) : List α → List α → Prop
 | refl {a : List α} : SemiThue rels a a
@@ -76,3 +77,26 @@ def SemiThue.of_rel (h : rels a b) : SemiThue rels a b := by
 
 def SemiThue.append (hab : SemiThue rels a b) (hcd : SemiThue rels c d) :
   SemiThue rels (a ++ c) (b ++ d) := (SemiThue.append_right hab).trans (SemiThue.append_left hcd)
+
+theorem SemiThue_symm (h : Symmetric rels) : SemiThue rels a b → SemiThue rels b a := by
+  intro h
+  induction h with
+  | refl => exact SemiThue.refl
+  | step a b hr => exact SemiThue.append_left_right (SemiThue.of_rel (h hr))
+  | trans _ _ ih1 ih2 => exact ih2.trans ih1
+
+theorem SemiThue_PresentedMonoid_of_symm_rel_iff (h : Symmetric rels) :
+  SemiThue rels a b ↔ PresentedMonoid.rel rels a b := by
+  constructor
+  · intro h
+    induction h with
+    | refl => rfl
+    | step _ _ h => exact PresentedMonoid.one_step_reduction _ _ h
+    | trans _ _ ih1 ih2 => exact ih1.trans ih2
+  intro h
+  induction h with
+  | of x y h => exact SemiThue.of_rel h
+  | refl x => rfl
+  | symm h1 h2 => exact SemiThue_symm h h2
+  | trans _ _ ih1 ih2 => exact ih1.trans ih2
+  | mul _ _ ih1 ih2 => exact SemiThue.append ih1 ih2
