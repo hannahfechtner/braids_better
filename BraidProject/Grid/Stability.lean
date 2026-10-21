@@ -19,29 +19,8 @@ private theorem stable_word_one : stable a 1 := by
   intro c d gr a' b' ha hb
   have ⟨hc, hd⟩ := word_one gr
   rw [hc, hd, BraidMonoidInf.one_of_eq_mk_one hb.symm]
-  apply PresentedMonoid.exact at ha
-  induction ha with
-  | of x y bxy =>
-    use 1, y
-    constructor
-    · exact sides_word y
-    exact ⟨rfl, PresentedMonoid.sound (.of x y bxy)⟩
-  | refl x =>
-    use 1, x
-    exact ⟨sides_word x, ⟨by rw [hb], rfl⟩⟩
-  | symm brxy _ =>
-    rename_i x y _
-    use 1, x
-    exact ⟨sides_word x, ⟨rfl, PresentedMonoid.sound (.symm brxy)⟩⟩
-  | trans h1 h2 _ _ =>
-    rename_i x y z _ _
-    use 1, z
-    exact ⟨sides_word z, ⟨rfl, PresentedMonoid.sound (.trans h1 h2)⟩⟩
-  | mul h1 h2 _ _ =>
-    rename_i x y z w _ _
-    use 1, y * w
-    exact ⟨sides_word _, ⟨rfl, PresentedMonoid.sound (.mul h1 h2)⟩⟩
-
+  use 1, a', sides_word a'
+  
 private theorem stable_one_word : stable 1 v := stable_swap stable_word_one
 
 private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
