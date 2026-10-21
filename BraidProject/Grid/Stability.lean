@@ -19,8 +19,9 @@ private theorem stable_word_one : stable a 1 := by
   intro c d gr a' b' ha hb
   have ⟨hc, hd⟩ := word_one gr
   rw [hc, hd, BraidMonoidInf.one_of_eq_mk_one hb.symm]
-  use 1, a', sides_word a'
-  
+  use 1, a'
+  use sides_word a'
+
 private theorem stable_one_word : stable 1 v := stable_swap stable_word_one
 
 private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :

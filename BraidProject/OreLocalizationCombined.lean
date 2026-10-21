@@ -219,6 +219,19 @@ theorem PresentedMonoidFullLocalization_to_presented_group_surjective :
   Function.RightInverse.surjective <| congrFun (MonoidHom.comp_toFun
   (pmfl_to_presentedGroup_comp_presentedGroup_to_pmfl rels))
 
+-- embedding of the presented monoid into the presented group
+noncomputable def embedding : PresentedMonoid rels →* PresentedGroup (free_group_set_of_function rels) :=
+  (presentedMonoidLocalizationEquivPresentedGroup rels).toMonoidHom.comp
+  OreLocalization.numeratorHom
+
+theorem embedding_injective [IsLeftCancelMul (PresentedMonoid rels)] : Function.Injective (embedding rels) := by
+  unfold embedding
+  intro a b hab
+  simp only [MulEquiv.toMonoidHom_eq_coe, MonoidHom.coe_comp, MonoidHom.coe_coe, MonoidHom.coe_mk,
+    OneHom.coe_mk, Function.comp_apply, EmbeddingLike.apply_eq_iff_eq] at hab
+  change OreLocalization.numeratorHom a = OreLocalization.numeratorHom b at hab
+  exact numeratorHom_injective_of_cancellative _ _ hab
+
 -- equivalence in the group implies equivalence in the monoid for positive words
 theorem presentedMonoid_mk_eq_of_presentedGroup_mk_eq_of_positive [IsLeftCancelMul (PresentedMonoid rels)]
     (h : PresentedGroup.mk (free_group_set_of_function rels) (FreeGroup.mk e) =
