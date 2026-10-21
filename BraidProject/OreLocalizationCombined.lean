@@ -224,13 +224,15 @@ noncomputable def embedding : PresentedMonoid rels →* PresentedGroup (free_gro
   (presentedMonoidLocalizationEquivPresentedGroup rels).toMonoidHom.comp
   OreLocalization.numeratorHom
 
-theorem embedding_injective [IsLeftCancelMul (PresentedMonoid rels)] : Function.Injective (embedding rels) := by
-  unfold embedding
+theorem embedding_def (a : PresentedMonoid rels) : embedding rels a =
+    PresentedMonoidFullLocalization_to_presented_group rels (numeratorHom a) := rfl
+
+theorem embedding_injective [IsLeftCancelMul (PresentedMonoid rels)] :
+    Function.Injective (embedding rels) := by
   intro a b hab
-  simp only [MulEquiv.toMonoidHom_eq_coe, MonoidHom.coe_comp, MonoidHom.coe_coe, MonoidHom.coe_mk,
-    OneHom.coe_mk, Function.comp_apply, EmbeddingLike.apply_eq_iff_eq] at hab
-  change OreLocalization.numeratorHom a = OreLocalization.numeratorHom b at hab
-  exact numeratorHom_injective_of_cancellative _ _ hab
+  rw [embedding_def, embedding_def] at hab
+  exact numeratorHom_injective_of_cancellative _ _
+    (PresentedMonoidFullLocalization_to_presented_group_injective rels hab)
 
 -- equivalence in the group implies equivalence in the monoid for positive words
 theorem presentedMonoid_mk_eq_of_presentedGroup_mk_eq_of_positive [IsLeftCancelMul (PresentedMonoid rels)]
@@ -248,17 +250,14 @@ theorem presentedMonoid_mk_eq_of_presentedGroup_mk_eq_of_positive [IsLeftCancelM
 -- not necessary for our algorithm, but a nice fact
 theorem presentedGroup_exists_fraction_form
     (c : PresentedGroup (free_group_set_of_function rels)) : ∃ (a b : PresentedMonoid rels),
-    c = (PresentedMonoidFullLocalization_to_presented_group rels (numeratorHom b))⁻¹ *
-    PresentedMonoidFullLocalization_to_presented_group rels (numeratorHom a) := by
+    c = (embedding _ b)⁻¹ * embedding _ a := by
   rcases PresentedMonoidFullLocalization_to_presented_group_surjective rels c with ⟨c', hc⟩
   unfold PresentedMonoidFullLocalization at c'
   cases hc' : c' with
   | c r s =>
     use r, s
-    rw [← hc, hc', ← map_inv, ← map_mul]
-    simp only [MonoidHom.coe_mk, OneHom.coe_mk, map_mul, map_inv]
-    rw [← map_inv, ← map_mul]
-    change _ = (PresentedMonoidFullLocalization_to_presented_group rels)
-      ((1 /ₒ s : PresentedMonoidFullLocalization rels) * (r /ₒ 1 : PresentedMonoidFullLocalization rels))
-    rw [mul_div_one]
-    simp
+    rw [← hc, hc', embedding_def, embedding_def,
+      ← map_inv (PresentedMonoidFullLocalization_to_presented_group rels), ← map_mul]
+    refine congrArg _ ?_
+    show (r /ₒ s : PresentedMonoidFullLocalization rels) = (1 /ₒ s) * (r /ₒ 1)
+    rw [mul_div_one, one_mul]
