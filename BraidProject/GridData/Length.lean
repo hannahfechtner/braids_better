@@ -152,63 +152,6 @@ theorem generator_generator_apart (h : GridData a b c d) (h1 : a = .of i) (h2 : 
 
 end DeterminativeSpineLength
 
-def split_horizontally (h : GridData a b c d) := ∀ a₁ a₂, a = a₁ * a₂ →
-  Σ u d₁ d₂, (h1 : GridData a₁ b u d₁) × (h2 : GridData a₂ u c d₂) × PLift (d = d₁ * d₂) ×
-  PLift (GridData.length h = GridData.length h1 + GridData.length h2)
-
-noncomputable def splittable_horizontally {a b c d : FreeMonoid ℕ} (h : GridData a b c d) :
-    split_horizontally h := by
-  induction h with
-  | empty =>
-    intro _ _ b_is
-    rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
-    exact ⟨1, 1, 1, .empty, .empty, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
-  | top_bottom i =>
-    intro _ _ b_is
-    rw [(FreeMonoid.prod_eq_one b_is.symm).1, (FreeMonoid.prod_eq_one b_is.symm).2]
-    exact ⟨.of i, 1, 1, .top_bottom _, .top_bottom _, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
-  | sides i =>
-    intro a₁ a₂ b_is
-    rcases FreeMonoid.prodEqOfCases a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
-    · exact ⟨1, 1, .of i, .empty, .sides _, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
-    exact ⟨1, .of i, 1, .sides _, .empty, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
-  | top_left i =>
-    intro a₁ a₂ b_is
-    rcases FreeMonoid.prodEqOfCases a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
-    · exact ⟨.of i, 1, 1, .top_bottom _, .top_left _, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
-    exact ⟨1, 1, 1, .top_left _, .empty, ⟨rfl⟩, ⟨by simp [GridData.length]⟩⟩
-  | adjacent i k dist =>
-    intro a₁ a₂ b_is
-    rcases FreeMonoid.prodEqOfCases a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
-    · exact ⟨.of k, 1, .of i * .of k, .top_bottom _, .adjacent i k dist, ⟨by simp⟩,
-        ⟨by simp [GridData.length]⟩⟩
-    exact ⟨.of k * .of i, .of i * .of k, 1, .adjacent i k dist,
-      .horizontal (.top_bottom k) (.top_bottom i), ⟨by simp⟩, ⟨by simp [GridData.length]⟩⟩
-  | separated i j dist =>
-    intro a₁ a₂ b_is
-    rcases FreeMonoid.prodEqOfCases a₁ a₂ b_is.symm with ⟨⟨rfl, rfl⟩⟩ | ⟨⟨rfl, rfl⟩⟩
-    · exact ⟨.of j, 1, .of i, .top_bottom _, .separated _ _ dist, ⟨by simp⟩,
-        ⟨by simp [GridData.length]⟩⟩
-    exact ⟨.of j, .of i, 1, .separated _ _ dist, .top_bottom _, ⟨by simp⟩,
-      ⟨by simp [GridData.length]⟩⟩
-  | vertical h1 h2 ih1 ih2 =>
-    rename_i a' b' c' d' e' f' g'
-    intro fi₁ fi₂ fi_is
-    rcases FreeMonoid.prodEqProdCases a' e' fi₁ fi₂ fi_is with ⟨m, ⟨rfl, rfl⟩⟩ | ⟨m, ⟨rfl, rfl⟩⟩
-    · rcases ih2 m fi₂ rfl with ⟨u, k₁, k₂, g1, g2, ⟨hk⟩, ⟨len⟩⟩
-      use u, d' * k₁, k₂
-      exact ⟨.vertical h1 g1, g2, ⟨by rw [hk, mul_assoc]⟩,
-        ⟨by simp [GridData.length, len, add_assoc]⟩⟩
-    rcases ih1 fi₁ m rfl with ⟨u, k₁, k₂, g1, g2, ⟨hk⟩, ⟨len⟩⟩
-    use u, k₁, k₂ * g'
-    refine ⟨g1, .vertical g2 h2, ⟨by rw [hk, mul_assoc]⟩,
-      ⟨by simp [GridData.length, len, add_assoc]⟩⟩
-  | horizontal h1 h2 ih1 ih2 =>
-    intro f₁ f₂ f_is
-    rcases ih1 f₁ f₂ f_is with ⟨l, m, n, hg1, hg2, ⟨heq⟩, ⟨len1⟩⟩
-    rcases ih2 m n heq with ⟨o, p, q, hg3, hg4, ⟨heq'⟩, ⟨len2⟩⟩
-    use l * o, p, q
-    exact ⟨.horizontal hg1 hg3, .horizontal hg2 hg4, ⟨heq'⟩, ⟨by grind [GridData.length]⟩⟩
 
 def split_vertically (h : GridData a b c d) := ∀ b₁ b₂, b = b₁ * b₂ →
   Σ u c₁ c₂, (h1 : GridData a b₁ c₁ u) × (h2 : GridData u b₂ c₂ d) × PLift (c = c₁ * c₂) ×
@@ -276,6 +219,42 @@ noncomputable def splittable_vertically {a b c d : FreeMonoid ℕ} (h : GridData
     rcases h1_ih fi₁ m rfl with ⟨u, h₁, h₂, g1, g2, ⟨hh⟩, ⟨len⟩⟩
     use u, h₁, (h₂ * j)
     exact ⟨g1, GridData.horizontal g2 h2, ⟨by rw [hh, mul_assoc]⟩, ⟨by grind [GridData.length]⟩⟩
+
+def swap_with_length (h : GridData a b c d) : {h1 : GridData b a d c // h.length = h1.length} := by
+  match h with
+  | .empty => use GridData.empty
+  | .top_bottom i => use GridData.sides i; rfl
+  | .sides i => use GridData.top_bottom i; rfl
+  | .top_left i => use GridData.top_left i
+  | .adjacent i k h => use GridData.adjacent k i (by rw [Nat.dist_comm] at h; exact h); rfl
+  | .separated i j h => use GridData.separated j i (by rw [Nat.dist_comm] at h; exact h); rfl
+  | .vertical h1 h2 =>
+    let ⟨h1', h1_len⟩ := swap_with_length h1
+    let ⟨h2', h2_len⟩ := swap_with_length h2
+    use GridData.horizontal h1' h2'
+    rw [GridData.length, GridData.length]
+    aesop
+  | .horizontal h1 h2 =>
+    let ⟨h1', h1_len⟩ := swap_with_length h1
+    let ⟨h2', h2_len⟩ := swap_with_length h2
+    use GridData.vertical h1' h2'
+    rw [GridData.length, GridData.length]
+    aesop
+
+def split_horizontally (h : GridData a b c d) := ∀ a₁ a₂, a = a₁ * a₂ →
+  Σ u d₁ d₂, (h1 : GridData a₁ b u d₁) × (h2 : GridData a₂ u c d₂) × PLift (d = d₁ * d₂) ×
+  PLift (GridData.length h = GridData.length h1 + GridData.length h2)
+
+noncomputable def splittable_horizontally {a b c d : FreeMonoid ℕ} (h : GridData a b c d) :
+    split_horizontally h := by
+  have ⟨h', h'_len⟩ := swap_with_length h
+  intro a₁ a₂ ha
+  have ⟨c1, c2, m, g1, g2, hc, ⟨hl⟩⟩ := splittable_vertically h' a₁ a₂ ha
+  have ⟨g1, hg1⟩ := swap_with_length g1
+  have ⟨g2, hg2⟩ := swap_with_length g2
+  use c1, c2, m, g1, g2, hc
+  constructor
+  aesop
 
 open DeterminativeSpineLength
 
