@@ -30,14 +30,13 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
   rw [BraidMonoidInf.eq_singleton ha']
   rcases BraidMonoidInf.eq_length_two hb' with rfl | rfl
   · use c, d
-  rcases splittable_vertically grid_abcd (of j) (of k) rfl with ⟨u, c₁, c₂, g1, g2, rfl⟩
   rcases dist_trichotomy i j with ij_dist_ge_two | ij_dist_eq_one | ij_eq
-  · have ⟨hc₁, hu⟩ := generator_generator_apart g1 ij_dist_ge_two
-    rw [hu] at g2
-    rcases dist_trichotomy i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
-    · have ⟨hc₂, hd⟩ := generator_generator_apart g2 ik_dist_ge_two
+  · rcases dist_trichotomy i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
+    · have : grid (of i) (of j * of k) (of j * of k) (of i) :=
+        grid.horizontal (.separated i j ij_dist_ge_two) (.separated i k ik_dist_ge_two)
+      have ⟨hc, hd⟩ := unicity this _ _ grid_abcd
+      rw [hc, hd]
       use of k * of j, of i
-      rw [hd, hc₁, hc₂]
       exact ⟨grid.horizontal (.separated i k ik_dist_ge_two)
         (.separated i j ij_dist_ge_two), ⟨BraidMonoidInf.comm_rw_self _ _ h, rfl⟩⟩
     · use of k * of i * of j, of i * of k
@@ -46,85 +45,55 @@ private theorem stable_generator_comm_rel (i j k : ℕ) (h : 2 ≤ j.dist k) :
         have := grid.vertical (.separated i j ij_dist_ge_two)
           (.separated k j h)
         exact grid.horizontal (.adjacent i k ik_dist_eq_one) this
-      have ⟨hc₂, hd⟩ := generator_generator_close g2 ik_dist_eq_one
-      rw [hc₁, hc₂, hd]
+      have ⟨rfl, rfl⟩ := unicity grid_abcd _ _ (grid.horizontal (.separated i j ij_dist_ge_two) (.adjacent i k ik_dist_eq_one))
       constructor
       · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
         rw [BraidMonoidInf.comm_rw_self j k h, BraidMonoidInf.comm_rw _ j i]
         rw [Nat.dist_comm]
         assumption
       rfl
-    rw [ik_eq] at g2
-    have ⟨hc₂, hd⟩ := generator_generator_same g2
-    rw [hc₁, hd, hc₂, ik_eq]
+    rw [ik_eq] at ij_dist_ge_two grid_abcd
+    have ⟨rfl, rfl⟩:= unicity grid_abcd _ _ (grid.horizontal (.separated k j ij_dist_ge_two) (.top_left k))
+    rw [ik_eq]
     use of j, 1
     exact ⟨grid.horizontal (.top_left k) (.top_bottom j), ⟨by rw [mul_one], rfl⟩⟩
-  · have ⟨hc₁, hu⟩ := generator_generator_close g1 ij_dist_eq_one
-    rw [hu] at g2
-    rw [hc₁]
-    rcases splittable_horizontally g2 _ _ rfl with ⟨m, d₁, d₂, g3, g4, hd⟩
-    rcases dist_trichotomy i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
+  · rcases dist_trichotomy i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
     · use of k * of j * of i, of i * of j
       constructor
       · rw [mul_assoc]
         exact grid.horizontal (.separated i k ik_dist_ge_two) (.adjacent i j ij_dist_eq_one)
-      have ⟨hm, hd₁⟩ := generator_generator_apart g3 ik_dist_ge_two
-      rw [hm] at g4
-      rcases dist_trichotomy j k with jk_dist_ge_two | jk_dist_eq_one | jk_eq
-      · have ⟨hc₂, hd₂⟩ := generator_generator_apart g4 jk_dist_ge_two
-        rw [hc₂, hd, hd₁, hd₂]
-        constructor
-        · simp only [BraidMonoidInf.mk_mul]
-          rw [BraidMonoidInf.comm_rw_self k j, BraidMonoidInf.comm_rw _ i k (by assumption)]
-          rw [Nat.dist_comm]; assumption
-        rfl
-      · aesop
-      aesop
+      have ⟨rfl, rfl⟩ := unicity grid_abcd _ _ (grid.horizontal (.adjacent i j ij_dist_eq_one)
+        (grid.vertical (.separated i k ik_dist_ge_two) (.separated j k h)))
+      constructor
+      · simp only [BraidMonoidInf.mk_mul]
+        rw [BraidMonoidInf.comm_rw_self k j, BraidMonoidInf.comm_rw _ i k (by assumption)]
+        rw [Nat.dist_comm]; assumption
+      rfl
     · use of k * of i * of j * of i * of k, of i * of j * of k * of i
       constructor
       · apply grid.horizontal (.adjacent i k ik_dist_eq_one)
         apply grid.vertical (.adjacent i j ij_dist_eq_one)
         rw [Nat.dist_comm] at h ik_dist_eq_one
         apply grid.horizontal (.separated k j h) (.adjacent k i ik_dist_eq_one)
-      have ⟨hm, hd₁⟩ := generator_generator_close g3 ik_dist_eq_one
-      rw [hm] at g4
-      rcases splittable_vertically g4 _ _ rfl with ⟨n, c₃, c₄, g5, g6, hc₂⟩
-      rw [hc₂]
-      have ⟨hc₃, hn⟩ := generator_generator_apart g5 h
-      rw [hn] at g6
-      rw [Nat.dist_comm] at ij_dist_eq_one
-      have ⟨hc₄, hd₂⟩ := generator_generator_close g6 ij_dist_eq_one
-      rw [hc₃, hc₄, hd, hd₁, hd₂]
+      have ⟨rfl, rfl⟩ := unicity grid_abcd _ _ (grid.horizontal (.adjacent i j ij_dist_eq_one)
+        (grid.vertical (.adjacent i k ik_dist_eq_one) (grid.horizontal (.separated j k h)
+        (.adjacent j i (Nat.dist_comm _ _ ▸ ij_dist_eq_one)))))
       constructor
       · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
         rw [BraidMonoidInf.braid_rw _ i k ik_dist_eq_one, BraidMonoidInf.comm_rw_self j k h]
         rw [Nat.dist_comm] at h
-        rw [BraidMonoidInf.comm_rw _ k j h, BraidMonoidInf.braid_rw _ j i ij_dist_eq_one]
+        rw [BraidMonoidInf.comm_rw _ k j h, BraidMonoidInf.braid_rw _ j i
+          (Nat.dist_comm _ _ ▸  ij_dist_eq_one)]
       simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
       rw [BraidMonoidInf.comm_rw _ j k]
       assumption
     rw [← ik_eq, Nat.dist_comm] at h
     aesop
-  rw [ij_eq] at g1
-  have ⟨hc₁, hu⟩ := generator_generator_same g1
-  rw [hu] at g2
-  have ⟨hc₂, hd⟩ := one_generator g2
-  rw [hc₁, hc₂, hd]
-  rw [← ij_eq]
-  rcases dist_trichotomy i k with ik_dist_ge_two | ik_dist_eq_one | ik_eq
-  · use of k, 1
-    constructor
-    · exact grid.horizontal (.separated i k ik_dist_ge_two) (.top_left i)
-    aesop
-  · use of k * of i, of k
-    constructor
-    · apply grid.horizontal (.adjacent i k ik_dist_eq_one)
-      exact grid.vertical (.top_left i) (.sides k)
-    aesop
-  use of i, 1
-  rw [← ik_eq]
+  subst ij_eq
+  use of k, 1
+  have := unicity grid_abcd _ _ (grid.horizontal (.top_left i) (.top_bottom k))
   constructor
-  · apply grid.horizontal (.top_left i) (.top_bottom i)
+  · exact grid.horizontal (.separated i k h) (.top_left i)
   aesop
 
 private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) :
@@ -133,29 +102,17 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
   rw [BraidMonoidInf.eq_singleton ha]
   rcases BraidMonoidInf.eq_alternating_length_three h hb with rfl | rfl
   · use c, d
-  rcases splittable_vertically grid_abcd (of j * of k) (of j) rfl with
-    ⟨u, c₁, c₂, g1, g2, rfl⟩
-  rcases splittable_vertically g1 (of j) (of k) rfl with ⟨m, u₁, u₂, g3, g4, rfl⟩
   rcases dist_trichotomy i j with ij_ge_two_apart | ij_one_apart | ij_eq
-  · have ⟨hu₁, hm⟩ := generator_generator_apart g3 ij_ge_two_apart
-    rw [hm] at g4
-    rcases dist_trichotomy i k with ik_ge_two_apart | ik_one_apart | ik_eq
-    · have ⟨hu₂, hu⟩ := generator_generator_apart g4 ik_ge_two_apart
-      rw [hu] at g2
-      have ⟨c₂, d⟩ := generator_generator_apart g2 ij_ge_two_apart
-      use of k * of j * of k, of i
+  · rcases dist_trichotomy i k with ik_ge_two_apart | ik_one_apart | ik_eq
+    · use of k * of j * of k, of i
       constructor
       · apply grid.horizontal (.separated i k ik_ge_two_apart)
           (.horizontal (.separated i j ij_ge_two_apart)
           (.separated i k ik_ge_two_apart))
+      have := unicity grid_abcd _ _ (grid.horizontal (grid.horizontal (.separated i j ij_ge_two_apart)
+        (.separated i k ik_ge_two_apart)) (.separated i j ij_ge_two_apart))
       aesop
-    · have ⟨hu₂, hu⟩ := generator_generator_close g4 ik_one_apart
-      rw [hu] at g2
-      rcases splittable_horizontally g2 (of i) (of k) rfl with ⟨n, d₁, d₂, g5, g6, hd⟩
-      have ⟨hn, hd₁⟩ := generator_generator_apart g5 ij_ge_two_apart
-      rw [hn] at g6
-      rw [Nat.dist_comm] at h
-      have ⟨hc₂, hd₂⟩ := generator_generator_close g6 h
+    · rw [Nat.dist_comm] at h
       use of k * of i * of j * of k * of i, of i * of k * of j
       constructor
       · apply grid.horizontal (.adjacent i k ik_one_apart) (.horizontal
@@ -165,77 +122,52 @@ private theorem stable_generator_braid_rel (i j k : ℕ) (h : Nat.dist j k = 1) 
           (.vertical (.top_bottom i) (.separated j i _)))))
         rw [Nat.dist_comm] at ij_ge_two_apart
         exact ij_ge_two_apart
+      have ⟨hc, hd⟩:= unicity grid_abcd _ _ (grid.horizontal (grid.horizontal (.separated i j ij_ge_two_apart)
+        (.adjacent i k ik_one_apart)) (grid.vertical (.separated i j ij_ge_two_apart) (.adjacent k j h)))
       constructor
-      · rw [hu₁, hu₂, hc₂]
-        simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
+      · simp only [← hc, BraidMonoidInf.mk_mul, ← mul_assoc]
         rw [Nat.dist_comm] at ik_one_apart h
         rw [BraidMonoidInf.comm_rw _ i j ij_ge_two_apart, BraidMonoidInf.braid_rw_self j k h,
           BraidMonoidInf.braid_rw _ k i ik_one_apart, BraidMonoidInf.comm_rw _ i j ij_ge_two_apart]
       grind
     rw [Nat.dist_comm] at h
     aesop
-  · have ⟨hu₁, hm⟩ := generator_generator_close g3 ij_one_apart
-    rw [hm] at g4
-    rcases splittable_horizontally g4 (of i) (of j) rfl with ⟨n, u₃, u₄, g5, g6, hu⟩
-    rcases dist_trichotomy i k with ik_ge_two_apart | ik_one_apart | ik_eq
-    · have ⟨hn, hu₃⟩ := generator_generator_apart g5 ik_ge_two_apart
-      rw [hn] at g6
-      have ⟨hu₂, hu₄⟩ := generator_generator_close g6 h
-      use of k * of j * of i * of k * of j, of i * of j * of k
+  · rcases dist_trichotomy i k with ik_ge_two_apart | ik_one_apart | ik_eq
+    · use of k * of j * of i * of k * of j, of i * of j * of k
       constructor
       · apply grid.horizontal (.separated i k ik_ge_two_apart)
           (.horizontal (.adjacent i j ij_one_apart)
           (.vertical (.separated i k ik_ge_two_apart) (.adjacent j k h)))
-      rw [hu₁, hu₂]
-      rw [hu] at g2
-      rcases splittable_horizontally g2 _ _ rfl with ⟨n₁, d₁, d₂, g7, g8, hd⟩
-      rw [hu₃] at g7
-      rw [hu₄] at g8
-      rcases splittable_horizontally g8 _ _ rfl with ⟨n₂, d₃, d₄, g9, g10, hd₂⟩
-      have ⟨hn₁, hd₁⟩ := generator_generator_close g7 ij_one_apart
-      rw [hn₁] at g9
-      rcases splittable_vertically g9 _ _ rfl with ⟨n₃, n₄, n₅, g11, g12, hn₂⟩
-      have ⟨hn₄, hn₃⟩ := generator_generator_same g11
-      rw [hn₃] at g12
-      have ⟨hn₅, hd₃⟩ := one_word g12
-      rw [hn₂, hn₄, hn₅, one_mul] at g10
+      have ⟨hc, hd⟩ := unicity grid_abcd _ _ (grid.horizontal (grid.horizontal (.adjacent i j ij_one_apart)
+        (grid.vertical (.separated i k ik_ge_two_apart) (.adjacent j k h))) (grid.vertical (.adjacent i j ij_one_apart)
+        (grid.horizontal (grid.vertical (.top_left j) (.sides k)) (.separated k i (Nat.dist_comm _ _▸ ik_ge_two_apart)))))
       rw [Nat.dist_comm] at ik_ge_two_apart
-      have ⟨hc₂, hd₄⟩ := generator_generator_apart g10 ik_ge_two_apart
-      rw [hd, hd₁, hd₂, hd₃, hd₄, hc₂]
+      rw [← hc, ← hd]
       constructor
       · simp only [BraidMonoidInf.mk_mul, ← mul_assoc]
         rw [Nat.dist_comm] at ik_ge_two_apart
-        rw [BraidMonoidInf.comm_rw _ i k ik_ge_two_apart,
+        rw [BraidMonoidInf.comm_rw _ i k ik_ge_two_apart, map_one, mul_one,
             BraidMonoidInf.braid_rw _ i j ij_one_apart, BraidMonoidInf.braid_rw_self j k h,
           BraidMonoidInf.comm_rw _ k i]
         rw [Nat.dist_comm]; assumption
       aesop
     · apply (@Nat.dist_no_triangle i j k 1 (by aesop)).elim
       aesop
-    rw [ik_eq] at g5
-    have ⟨hn, hu₃⟩ := generator_generator_same g5
-    rw [hn] at g6
-    have ⟨hu₂, hu₄⟩ := generator_one g6
+    subst ik_eq
     use of j * of i, 1
-    rw [← ik_eq]
     constructor
     · apply grid.horizontal (.top_left i)
         (.horizontal (.top_bottom j) (.top_bottom i))
-    rw [hu, hu₃, hu₄, one_mul] at g2
-    have ⟨hc₂, hd⟩ := generator_generator_same g2
+    have ⟨hc, hd⟩ := unicity grid_abcd _ _ (grid.horizontal (grid.horizontal (.adjacent i j ij_one_apart)
+      (grid.vertical (.top_left i) (.sides j))) (grid.vertical (.top_bottom j) (.top_left j)))
     aesop
-  rw [ij_eq] at g3
-  have ⟨hu₁, hm⟩ := generator_generator_same g3
-  rw [hm] at g4
-  have ⟨hu₂, hu⟩ := one_generator g4
-  rw [hu] at g2
-  have ⟨hc₂, hd⟩ := one_generator g2
-  rw [hu₁, hu₂, hd, hc₂]
-  rw [ij_eq]
-  use of k * of j, 1
+  subst ij_eq
+  have ⟨rfl, rfl⟩:= unicity grid_abcd _ _ (grid.horizontal (grid.horizontal (.top_left i) (.top_bottom k)) (.top_bottom i))
+  use of k * of i, 1
   constructor
-  · apply grid.horizontal (.adjacent j k h) <| grid.horizontal (.vertical (.top_left j) (.sides k))
+  · have := grid.horizontal (.adjacent i k h) <| grid.horizontal (.vertical (.top_left i) (.sides k))
       (grid.vertical (.top_bottom k) (.top_left k))
+    exact this
   exact ⟨rfl, rfl⟩
 
 private theorem stable_generator_elem_braid_rels {w y : FreeMonoid ℕ} (h : braid_monoid_rels_inf w y) :

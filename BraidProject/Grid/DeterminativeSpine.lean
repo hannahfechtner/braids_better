@@ -206,5 +206,25 @@ def generator_generator_apart (h : grid (of i) (of j) c d) (dist : i.dist j > 1)
   c = of j ∧ d = of i := generator_generator_apart_helper h rfl rfl dist
 
 end DeterminativeSpine
+
+open DeterminativeSpine
+
+theorem unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d' = d := by
+  induction h1 with
+  | empty => exact fun _ _ h => one_one h
+  | top_bottom i => exact fun _ _ h => one_generator h
+  | sides i => exact fun _ _ h =>  generator_one h
+  | top_left i => exact fun _ _ h => generator_generator_same h
+  | adjacent i k h => exact fun _ _ hg => generator_generator_close hg h
+  | separated i j h => exact fun _ _ hg => generator_generator_apart hg (by aesop)
+  | vertical _ _ _ _ =>
+    intro _ _ gr
+    rcases splittable_horizontally gr _ _ rfl
+    grind
+  | horizontal _ _ _ _ =>
+    intro _ _ gr
+    rcases splittable_vertically gr _ _ rfl
+    grind
+
 end Grid
 end Braid

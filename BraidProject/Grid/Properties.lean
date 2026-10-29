@@ -49,23 +49,6 @@ instance : IsLeftCancelMul BraidMonoidInf := ⟨fun _ _ _ => left_cancellative�
 
 instance : IsRightCancelMul BraidMonoidInf := ⟨fun _ _ _ => right_cancellative⟩
 
-theorem Grid.unicity (h1 : grid a b c d) : ∀ c' d', grid a b c' d' → c' = c ∧ d' = d := by
-  induction h1 with
-  | empty => exact fun _ _ h => one_one h
-  | top_bottom i => exact fun _ _ h => one_generator h
-  | sides i => exact fun _ _ h =>  generator_one h
-  | top_left i => exact fun _ _ h => generator_generator_same h
-  | adjacent i k h => exact fun _ _ hg => generator_generator_close hg h
-  | separated i j h => exact fun _ _ hg => generator_generator_apart hg (by aesop)
-  | vertical _ _ _ _ =>
-    intro _ _ gr
-    rcases splittable_horizontally gr _ _ rfl
-    grind
-  | horizontal _ _ _ _ =>
-    intro _ _ gr
-    rcases splittable_vertically gr _ _ rfl
-    grind
-
 theorem Grid.existence : ∀ a b, ∃ c d, grid a b c d := by
   intro a b
   rcases common_right_mul_mk a b with ⟨c1, d1, h⟩
