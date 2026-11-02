@@ -3,12 +3,13 @@ import BraidProject.Solver.Solver_Fin
 
 open Braid
 #time
-#eval braid_word_solver [(1, true), (2, true), (4, true), (1, true)]
-  [(2, true), (1, true), (2, true), (4, true)]
+#eval braid_word_solver [(4, false), (1, true), (2, true), (1, true)]
+  [(2, true), (1, true), (2, true), (4, false)]
 
 #time
-#eval free_group_elem_braid_solver (FreeGroup.mk [(1, true), (2, true), (4, true), (1, true)])
-  (FreeGroup.mk [(2, true), (1, true), (2, true), (4, true)])
+#eval free_group_elem_braid_solver (FreeGroup.mk [(4, false), (1, true), (2, true), (1, true)])
+  (FreeGroup.mk [(2, true), (1, true), (2, true), (4, false)])
+
 #eval braid_solver (σ 1 * σ 2 * σ 1) (σ 2 * σ 1 * σ 2 * (σ 3)⁻¹* (σ 3))
 
 #eval solver_nonsense ((σ 1 * σ 2 * σ 1)) ((σ 2 * σ 1 * σ 2)⁻¹)
