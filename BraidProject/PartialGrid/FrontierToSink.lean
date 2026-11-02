@@ -8,7 +8,7 @@ namespace PartialGrid
 
 open Relations
 
-private noncomputable def mid_frontier_reverses_to_grid_helper
+private theorem mid_frontier_reverses_to_grid_helper
     (h : PartialGrid a1 b1 c1 m1 d1)
     (ha : SignedOptionList.toSignedList a1 = to_vertical_edge_no_epsilon a)
     (hb : SignedOptionList.toSignedList b1 = to_horizontal_edge_no_epsilon b)
@@ -240,7 +240,7 @@ def frontier_reverses_to_grid_def (h : PartialGrid a1 b1 c1 d1 e1) :=
   SemiThue reversing_prop (SignedOptionList.toSignedList (c1 ++ d1 ++ e1))
   (to_horizontal_edge_no_epsilon g ++ to_vertical_edge_no_epsilon f)
 
-noncomputable def frontier_reverses_to_grid (h : PartialGrid a b c d e) : frontier_reverses_to_grid_def h := by
+theorem frontier_reverses_to_grid (h : PartialGrid a b c d e) : frontier_reverses_to_grid_def h := by
   intros a1 b1 f g ha hb h2
   have ⟨⟨c1, hc1⟩, ⟨e1, he1⟩, _⟩ := PartialGrid.frontier_prefix h2 h ha hb
   rw [← he1, ← hc1]
@@ -249,7 +249,7 @@ noncomputable def frontier_reverses_to_grid (h : PartialGrid a b c d e) : fronti
   simp only [← List.append_assoc]
   exact SemiThue.append_right (mid_frontier_reverses_to_grid_helper h ha hb hc1 he1 h2)
 
-noncomputable def restricted_confluence_non_nil (h1 : SemiThue reversing_prop
+theorem restricted_confluence_non_nil (h1 : SemiThue reversing_prop
     (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
     (h2 : SemiThue reversing_prop (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) d)
     (ha : a.length > 0) (hb : b.length > 0) :
@@ -266,7 +266,7 @@ noncomputable def restricted_confluence_non_nil (h1 : SemiThue reversing_prop
   exact PartialGrid.frontier_reverses_to_grid pg2 toSignedList_to_vertical_edge
       toSignedList_to_horizontal_edge gt
 
-noncomputable def restricted_confluence (h1 : SemiThue reversing_prop
+theorem restricted_confluence (h1 : SemiThue reversing_prop
     (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) c)
     (h2 : SemiThue reversing_prop (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) d) :
     ∃ e, SemiThue reversing_prop c e ∧ SemiThue reversing_prop d e := by
