@@ -270,16 +270,16 @@ open Braid
   [(2, true), (3, true), (2, true), (0, false)]] : List (List ((ℕ × Bool))))
 
 --#show_braid_word [(3, false)]
-#show_braid (σ (0 : Fin 4) * (σ (1 : Fin 4))⁻¹ * σ (0 : Fin 4) : BraidGroupFin 4)
+-- #show_braid (σ (0 : Fin 4) * (σ (1 : Fin 4))⁻¹ * σ (0 : Fin 4) : BraidGroupFin 4)
 
-def foo : BraidGroupFin 17 := σ 0 * (σ 1)⁻¹ * σ 0
-#show_braid foo
-#show_braid_bounded foo * foo * foo * foo⁻¹
-#show_braid foo * foo
-#show_braid (σ 2 : BraidGroupFin 4)⁻¹ * (σ 2 : BraidGroupFin 4)
+-- def foo := (σ 0 * (σ 1)⁻¹ * σ 0 )
+-- #show_braid foo
+-- #show_braid_bounded foo * foo * foo * foo⁻¹
+-- #show_braid foo * foo
+-- #show_braid (σ 2 : BraidGroupFin 4)⁻¹ * (σ 2 : BraidGroupFin 4)
 
--- ask on zulip about things like instantiating metavariables
--- add delta braids
--- infer type; case on type to remove the need for show_braid_word
--- add optConfig with a +bounded notation
--- javascript linear interpolation
+-- -- ask on zulip about things like instantiating metavariables
+-- -- add delta braids
+-- -- infer type; case on type to remove the need for show_braid_word
+-- -- add optConfig with a +bounded notation
+-- -- javascript linear interpolation

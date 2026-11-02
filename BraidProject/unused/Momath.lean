@@ -1,86 +1,47 @@
-import BraidProject.Solver_G
+import BraidProject.Solver.Examples
+import BraidProject.Widgets
 
+open Braid Relations
 
-def solver_helper_list (a : triangle) : List (List (ℕ × Bool)) × List (ℕ × Bool) × List (ℕ × Bool) :=
-  match hb': find_it a.2.2.1 with
+def solver_helper_list (a : triangle a1 b1) :
+    List (List (ℕ × Bool)) × List (ℕ × Bool) × List (ℕ × Bool) :=
+  match hb' : FindOpenPair a.1 with
   | none => by
-    have H := in_order_of_find_it_none hb'
-    rcases H with ⟨a1, a2, spec⟩
-    exact ([a.2.2.1], a1, a2)
+    rcases SignedList.PosNegData_of_FindOpenPair_none hb' with ⟨c, d, spec⟩
+    exact ([a.1], c, d)
   | some (c, d, e) =>
     match hd : d.1.dist d.2 with
-    | 0 => ([c ++ ([(d.1, false), (d.2, true)]) ++ e] ++ (solver_helper_list ⟨a.1, ⟨a.2.1, ⟨c ++ [] ++ e,
-        ⟨a.2.2.2.1,
-        by
-          apply a.2.2.2.2.trans
-          rw [find_it_spec hb']
-          exact SemiThue.reduction (reversing.basic hd)⟩⟩⟩⟩).1,
-          (solver_helper_list ⟨a.1, ⟨a.2.1, ⟨c ++ [] ++ e,
-        ⟨a.2.2.2.1,
-        by
-          apply a.2.2.2.2.trans
-          rw [find_it_spec hb']
-          exact SemiThue.reduction (reversing.basic hd)⟩⟩⟩⟩).2)
-    | 1 => ([c ++ ([(d.1, false), (d.2, true)]) ++ e] ++ (solver_helper_list ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e),
-        ⟨ a.2.2.2.1, by
-          apply a.2.2.2.2.trans
-          rw [find_it_spec hb']
-          exact SemiThue.reduction (reversing.close hd)⟩ ⟩⟩⟩).1,
-        (solver_helper_list ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e),
-        ⟨ a.2.2.2.1, by
-          apply a.2.2.2.2.trans
-          rw [find_it_spec hb']
-          exact SemiThue.reduction (reversing.close hd)⟩ ⟩⟩⟩).2)
-    | Nat.succ (Nat.succ n) => ([c ++ ([(d.1, false), (d.2, true)]) ++ e] ++ (solver_helper_list ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, false)] ++ e),
-        ⟨ a.2.2.2.1, by
-          apply a.2.2.2.2.trans
-          rw [find_it_spec hb']
-          exact SemiThue.reduction (reversing.apart (by omega))⟩⟩⟩⟩).1, (solver_helper_list ⟨a.1, ⟨a.2.1, ⟨(c ++ [(d.2, true), (d.1, false)] ++ e),
-        ⟨ a.2.2.2.1, by
-          apply a.2.2.2.2.trans
-          rw [find_it_spec hb']
-          exact SemiThue.reduction (reversing.apart (by omega))⟩⟩⟩⟩).2)
-    termination_by get_n' a
-    decreasing_by
-    · rcases a with ⟨a1, a2, a3, a4⟩
-      simp only
-      rcases find_it_spec hb' with ⟨b1, b2, b3⟩
-      rcases d with ⟨x, y⟩
-      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-      · simp [rw_length_rev]
-      · apply st_smaller_than_g
-        simp only [gt_iff_lt, a4.1.1.1]
-        simp [a4.1.1.2]
-      apply st_smaller_than_g
-      simp [a4.1.1.1]
-      simp [a4.1.1.2]
-    · rcases a with ⟨a1, a2, a3, a4⟩
-      rcases find_it_spec hb' with ⟨b1, b2, b3⟩
-      rcases d with ⟨x, y⟩
-      apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-      · simp [rw_length_rev]
-      · apply st_smaller_than_g
-        simp [a4.1.1.1]
-        simp [a4.1.1.2]
-      apply st_smaller_than_g
-      simp [a4.1.1.1]
-      simp [a4.1.1.2]
-    rcases a with ⟨a1, a2, a3, a4⟩
-    rcases find_it_spec hb' with ⟨b1, b2, b3⟩
-    rcases d with ⟨x, y⟩
-    apply (@tsub_lt_tsub_iff_left_of_le_of_le Nat _ _ _ _ _ _ _ _ _ _ _ _ _).mpr
-    · simp [rw_length_rev]
-    · apply st_smaller_than_g
-      simp [a4.1.1.1]
-      simp [a4.1.1.2]
-    apply st_smaller_than_g
-    simp [a4.1.1.1]
-    simp [a4.1.1.2]
+    | 0 =>
+      let rest := solver_helper_list (⟨c ++ [] ++ e, by
+        have := a.2
+        rw [FindOpenPair.spec hb'] at this
+        exact SemiThueDataDerivation.step this (reversing.basic hd)⟩ : triangle a1 b1)
+      ([a.1] ++ rest.1, rest.2)
+    | 1 =>
+      let rest := solver_helper_list
+        (⟨c ++ [(d.2, true), (d.1, true), (d.2, false), (d.1, false)] ++ e, by
+          have := a.2
+          rw [FindOpenPair.spec hb'] at this
+          exact SemiThueDataDerivation.step this (reversing.close hd)⟩ : triangle a1 b1)
+      ([a.1] ++ rest.1, rest.2)
+    | Nat.succ (Nat.succ n) =>
+      let rest := solver_helper_list (⟨c ++ [(d.2, true), (d.1, false)] ++ e, by
+        have := a.2
+        rw [FindOpenPair.spec hb'] at this
+        exact SemiThueDataDerivation.step this (reversing.apart (by omega))⟩ : triangle a1 b1)
+      ([a.1] ++ rest.1, rest.2)
+  termination_by Triangle.length a
+  decreasing_by
+    all_goals
+      apply (tsub_lt_tsub_iff_left_of_le_of_le
+        (SemiThueDataDerivation.reversing.length_le_ab_len _)
+        (SemiThueDataDerivation.reversing.length_le_ab_len _)).mpr
+      rcases a with ⟨a3, a4⟩
+      rcases FindOpenPair.spec hb' with ⟨c1, c2, c3⟩
+      simp [SemiThueDataDerivation.length, reversing.length]
 
-#check solver_long
-
-def to_triangle (a b : List ℕ) (ha : List.length a > 0) (hb : List.length b > 0) : triangle :=
-  ⟨a, ⟨b, ⟨to_up_plain a ++ to_over_plain b, by simp [to_up_plain, to_over_plain]; exact ⟨⟨ha, hb⟩, by apply SemiThue.refl _ ⟩⟩⟩⟩
+def to_triangle (a b : List ℕ) : triangle a b :=
+  ⟨to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b, SemiThueDataDerivation.refl⟩
 
 -- gives off the list of steps, as well as the true part and the false part of the result
 def fraction_form (L : List (ℕ × Bool)) : List (List (ℕ × Bool)) × (List (ℕ × Bool)) × List (ℕ × Bool) :=
@@ -107,7 +68,7 @@ def fraction_form (L : List (ℕ × Bool)) : List (List (ℕ × Bool)) × (List 
     use [a1 :: a2], [], a1 :: a2
   | (a1::a2, (b1::b2, c)) => by
     have H := solver_helper_list (to_triangle (List.map (fun x => x.1) (a1 :: a2).reverse)
-      (List.map (fun x => x.1) (b1 :: b2)) (by simp) (by simp))
+      (List.map (fun x => x.1) (b1 :: b2)))
     have hc : c.length < (l1 :: l2).length := by
       have H := separate_first_pair_correct (l1 :: l2)
       have c_is : c = (separate_first_pair (l1 :: l2)).2.2 := by simp [hs]
@@ -130,12 +91,14 @@ def fraction_form (L : List (ℕ × Bool)) : List (List (ℕ × Bool)) × (List 
     | f1 :: f2 =>
     have H2 := (solver_helper_list
         (to_triangle (List.map (fun x => x.1) (e1 :: e2))
-        (List.map (fun x => x.1) (f1 :: f2)) (by simp) (by simp)))
+        (List.map (fun x => x.1) (f1 :: f2))))
     use (List.map (fun x => x ++ c) H.1) ++
       (List.map (fun x => H.2.1 ++ H.2.2 ++ x) (fraction_form c).1) ++
       (List.map (fun x => H.2.1 ++ x ++ (fraction_form c).2.2) H2.1)
     use H.2.1 ++ H2.2.1, H2.2.2 ++ (fraction_form c).2.2
   termination_by L.length
+  decreasing_by
+    all_goals exact hc
 
 #show_braid_word_help ((fraction_form ([(1, false), (2, false), (1, true), (2, true), (3, false), (4, false)] : List (ℕ × Bool))).1 : List (List (ℕ × Bool)))
 #show_braid_word_help ((fraction_form [(1, false), (0, false), (2, false), (2, false), (3, true), (3, true), (4, true)]).1 : List (List (ℕ × Bool)))
