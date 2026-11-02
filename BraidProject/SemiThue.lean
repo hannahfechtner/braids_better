@@ -19,19 +19,19 @@ inductive SemiThueDerivation (rels : List α → List α → Prop) : List α →
 
 attribute [refl] SemiThueDerivation.refl
 
-private noncomputable def SemiThueDerivation.trans (h1 : SemiThueDerivation rels a b) (h2 : SemiThueDerivation rels b c) :
+private theorem SemiThueDerivation.trans (h1 : SemiThueDerivation rels a b) (h2 : SemiThueDerivation rels b c) :
     SemiThueDerivation rels a c := by
   induction h2 with
   | refl => exact h1
   | step h1 h2 ih => exact SemiThueDerivation.step (ih h1) h2
 
-noncomputable def SemiThueDerivation.toSemiThue {a b : List α} (h : SemiThueDerivation rels a b) :
+theorem SemiThueDerivation.toSemiThue {a b : List α} (h : SemiThueDerivation rels a b) :
     SemiThue rels a b := by
   induction h with
   | refl =>  exact SemiThue.refl
   | step h1 h2 ih => exact ih.trans (SemiThue.step _ _ h2)
 
-noncomputable def SemiThue.toSemiThueDerivation {a b : List α} (h : SemiThue rels a b) :
+theorem SemiThue.toSemiThueDerivation {a b : List α} (h : SemiThue rels a b) :
     SemiThueDerivation rels a b := by
   induction h with
   | refl => exact SemiThueDerivation.refl
@@ -40,7 +40,7 @@ noncomputable def SemiThue.toSemiThueDerivation {a b : List α} (h : SemiThue re
 
 
 @[gcongr]
-def SemiThue.cons (h : SemiThue rels a b) : SemiThue rels (c :: a) (c :: b) := by
+theorem SemiThue.cons (h : SemiThue rels a b) : SemiThue rels (c :: a) (c :: b) := by
   match h with
   | SemiThue.refl => exact SemiThue.refl
   | SemiThue.step _ _ h =>
@@ -49,7 +49,7 @@ def SemiThue.cons (h : SemiThue rels a b) : SemiThue rels (c :: a) (c :: b) := b
   | SemiThue.trans f g =>
     exact (SemiThue.cons f).trans (SemiThue.cons g)
 
-def SemiThue.append_left (h : SemiThue rels a b) : SemiThue rels (c ++ a) (c ++ b) := by
+theorem SemiThue.append_left (h : SemiThue rels a b) : SemiThue rels (c ++ a) (c ++ b) := by
   match h with
   | SemiThue.refl => exact SemiThue.refl
   | SemiThue.step _ _ h =>
@@ -58,7 +58,7 @@ def SemiThue.append_left (h : SemiThue rels a b) : SemiThue rels (c ++ a) (c ++ 
   | SemiThue.trans f g =>
     exact (SemiThue.append_left f).trans (SemiThue.append_left g)
 
-def SemiThue.append_right (h : SemiThue rels a b) : SemiThue rels (a ++ c) (b ++ c) := by
+theorem SemiThue.append_right (h : SemiThue rels a b) : SemiThue rels (a ++ c) (b ++ c) := by
   match h with
   | SemiThue.refl => exact SemiThue.refl
   | SemiThue.step _ _ h =>
@@ -68,14 +68,14 @@ def SemiThue.append_right (h : SemiThue rels a b) : SemiThue rels (a ++ c) (b ++
   | SemiThue.trans f g =>
     apply (SemiThue.append_right f).trans (SemiThue.append_right g)
 
-def SemiThue.append_left_right (h : SemiThue rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d) :=
+theorem SemiThue.append_left_right (h : SemiThue rels a b) : SemiThue rels (c ++ a ++ d) (c ++ b ++ d) :=
   SemiThue.append_right (SemiThue.append_left h)
 
-def SemiThue.of_rel (h : rels a b) : SemiThue rels a b := by
+theorem SemiThue.of_rel (h : rels a b) : SemiThue rels a b := by
   rw [← List.nil_append a, ← List.nil_append b, ← List.append_nil ([] ++ a), ← List.append_nil ([] ++ b)]
   exact SemiThue.step _ _ h
 
-def SemiThue.append (hab : SemiThue rels a b) (hcd : SemiThue rels c d) :
+theorem SemiThue.append (hab : SemiThue rels a b) (hcd : SemiThue rels c d) :
   SemiThue rels (a ++ c) (b ++ d) := (SemiThue.append_right hab).trans (SemiThue.append_left hcd)
 
 theorem SemiThue_symm (h : Symmetric rels) : SemiThue rels a b → SemiThue rels b a := by

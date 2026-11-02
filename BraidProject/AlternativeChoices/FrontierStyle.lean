@@ -39,10 +39,10 @@ def length (h : FrontierStyle a b c) : Nat :=
   | FrontierStyle.adjacent _ _ _ h _ => FrontierStyle.length h + 1
   | FrontierStyle.separated _ _ _ h _ => FrontierStyle.length h + 1
 
-noncomputable def is_false_left_side (h : FrontierStyle a b c) : is_false a := by
+theorem is_false_left_side (h : FrontierStyle a b c) : is_false a := by
   induction h; all_goals assumption
 
-noncomputable def is_true_top_side (h : FrontierStyle a b c) : is_true b := by
+theorem is_true_top_side (h : FrontierStyle a b c) : is_true b := by
   induction h; all_goals assumption
 
 open Relations

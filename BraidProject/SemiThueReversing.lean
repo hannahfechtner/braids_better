@@ -183,7 +183,7 @@ theorem SemiThueData.reversing.to_braid_group_equiv (h : SemiThueData reversing 
       exact eq_mul_inv_of_mul_eq (mul_inv_eq_of_eq_mul (BraidGroupInf.braid h)).symm
   | trans _ _ _ _ => aesop
 
-noncomputable def GridData.to_SemiThue_reversing (h : GridData a b c d) : SemiThue reversing_prop
+theorem GridData.to_SemiThue_reversing (h : GridData a b c d) : SemiThue reversing_prop
   (to_vertical_edge_no_epsilon a ++ to_horizontal_edge_no_epsilon b) (to_horizontal_edge_no_epsilon c ++ to_vertical_edge_no_epsilon d) := by
   induction h with
   | empty => exact SemiThue.refl
