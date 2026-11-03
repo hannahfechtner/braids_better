@@ -98,9 +98,8 @@ theorem BraidGroupFin.eq_of_braid_word_solver_true {n : ℕ} (ha : SignedList.bo
   intro h
   unfold braid_word_solver at h
   rcases dede : (reverse_word (a ++ (FreeGroup.invRev b))).2 with ⟨d, e, hde⟩
-  have hinvb : SignedList.bounded n.pred (FreeGroup.invRev b) := SignedList.bounded_invRev hb
-  have hainvb : SignedList.bounded n.pred (a ++ FreeGroup.invRev b) :=
-    SignedList.bounded_append.mpr ⟨ha, hinvb⟩
+  have hinvb := SignedList.bounded_invRev hb
+  have hainvb := SignedList.bounded_append.mpr ⟨ha, hinvb⟩
   have hout := reverse_word_bounded hainvb
   have hde_out : (reverse_word (a ++ FreeGroup.invRev b)).out = d ++ e := hde.1.2.2
   have hde_b : SignedList.bounded n.pred (d ++ e) := hde_out ▸ hout
@@ -130,7 +129,7 @@ theorem BraidGroupFin.eq_of_braid_word_solver_true {n : ℕ} (ha : SignedList.bo
     -- we need to get rid of hde.out here to avoid dtt hell
     have := (reverse_word (a ++ FreeGroup.invRev b)).3
     rw [hde_out] at this; exact this
-  have H2 := BraidGroupFin.eq_of_SemiThueData_reversing (n := n) semi_thue_ab_de hainvb hde_b
+  have H2 := BraidGroupFin.eq_of_SemiThueData_reversing semi_thue_ab_de hainvb hde_b
   rw [SignedList.mapNatToFin_append' hainvb, SignedList.mapNatToFin_append' hde_b,
       ← FreeGroup.mul_mk, ← FreeGroup.mul_mk, map_mul, map_mul, SignedList.mapNatToFin_invRev hb hinvb] at H2
   rw [← SignedList.mapNatToFin_of_is_true d n.pred hde.1.1 hd hd_map] at H

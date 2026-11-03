@@ -16,7 +16,7 @@ theorem braid_monoid_rels_fin_of_inf (n: ℕ) (a b: FreeMonoid ℕ) (holds_in_in
     linarith
 
 theorem BraidMonoidFin.eq_of_BraidMonoidInf_eq (n : ℕ) (a b : FreeMonoid ℕ) (bounded_a: ∀ x, x ∈ a → x < n.pred)
-    (bounded_b: ∀ x, x ∈ b→ x < n.pred) (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
+    (bounded_b: ∀ x, x ∈ b → x < n.pred) (h : BraidMonoidInf.mk a = BraidMonoidInf.mk b) :
     BraidMonoidFin.mk _ (FreeMonoid.mapNatToFin n.pred a bounded_a) = BraidMonoidFin.mk _ (FreeMonoid.mapNatToFin n.pred b bounded_b) := by
   apply PresentedMonoid.exact at h
   induction h with
