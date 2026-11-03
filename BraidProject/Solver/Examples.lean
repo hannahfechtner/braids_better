@@ -1,5 +1,5 @@
 import BraidProject.Solver.GroupCorrectnessHardDirection
-import BraidProject.Solver.Solver_Fin
+import BraidProject.Solver.Finite
 
 open Braid
 #time
