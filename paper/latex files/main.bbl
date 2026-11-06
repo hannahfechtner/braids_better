@@ -1,0 +1,1810 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{artin_theory_1947}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=b9b51a6ca145b2345d2a8b8e55e88c96}{%
+           family={Artin},
+           familyi={A\bibinitperiod},
+           given={E.},
+           giveni={E\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{b9b51a6ca145b2345d2a8b8e55e88c96}
+      \strng{fullhash}{b9b51a6ca145b2345d2a8b8e55e88c96}
+      \strng{fullhashraw}{b9b51a6ca145b2345d2a8b8e55e88c96}
+      \strng{bibnamehash}{b9b51a6ca145b2345d2a8b8e55e88c96}
+      \strng{authorbibnamehash}{b9b51a6ca145b2345d2a8b8e55e88c96}
+      \strng{authornamehash}{b9b51a6ca145b2345d2a8b8e55e88c96}
+      \strng{authorfullhash}{b9b51a6ca145b2345d2a8b8e55e88c96}
+      \strng{authorfullhashraw}{b9b51a6ca145b2345d2a8b8e55e88c96}
+      \field{extraname}{1}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0003486X}
+      \field{journaltitle}{The Annals of Mathematics}
+      \field{month}{1}
+      \field{number}{1}
+      \field{title}{Theory of {Braids}}
+      \field{urlday}{4}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{volume}{48}
+      \field{year}{1947}
+      \field{urldateera}{ce}
+      \field{pages}{101}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.2307/1969218
+      \endverb
+      \verb{urlraw}
+      \verb https://www.jstor.org/stable/1969218?origin=crossref
+      \endverb
+      \verb{url}
+      \verb https://www.jstor.org/stable/1969218?origin=crossref
+      \endverb
+    \endentry
+    \entry{artin_theorie_1925}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=d5b16e394ff832b1cc37fbe2cab40240}{%
+           family={Artin},
+           familyi={A\bibinitperiod},
+           given={Emil},
+           giveni={E\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {de}%
+      }
+      \strng{namehash}{d5b16e394ff832b1cc37fbe2cab40240}
+      \strng{fullhash}{d5b16e394ff832b1cc37fbe2cab40240}
+      \strng{fullhashraw}{d5b16e394ff832b1cc37fbe2cab40240}
+      \strng{bibnamehash}{d5b16e394ff832b1cc37fbe2cab40240}
+      \strng{authorbibnamehash}{d5b16e394ff832b1cc37fbe2cab40240}
+      \strng{authornamehash}{d5b16e394ff832b1cc37fbe2cab40240}
+      \strng{authorfullhash}{d5b16e394ff832b1cc37fbe2cab40240}
+      \strng{authorfullhashraw}{d5b16e394ff832b1cc37fbe2cab40240}
+      \field{extraname}{2}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1865-8784}
+      \field{journaltitle}{Abhandlungen aus dem Mathematischen Seminar der Universität Hamburg}
+      \field{month}{12}
+      \field{number}{1}
+      \field{title}{Theorie der {Zöpfe}}
+      \field{urlday}{4}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{volume}{4}
+      \field{year}{1925}
+      \field{urldateera}{ce}
+      \field{pages}{47\bibrangedash 72}
+      \range{pages}{26}
+      \verb{doi}
+      \verb 10.1007/BF02950718
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1007/BF02950718
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1007/BF02950718
+      \endverb
+    \endentry
+    \entry{bigelow_braid_2000}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=c83479926b4e4d2f1e606f20a55cbd56}{%
+           family={Bigelow},
+           familyi={B\bibinitperiod},
+           given={Stephen},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{c83479926b4e4d2f1e606f20a55cbd56}
+      \strng{fullhash}{c83479926b4e4d2f1e606f20a55cbd56}
+      \strng{fullhashraw}{c83479926b4e4d2f1e606f20a55cbd56}
+      \strng{bibnamehash}{c83479926b4e4d2f1e606f20a55cbd56}
+      \strng{authorbibnamehash}{c83479926b4e4d2f1e606f20a55cbd56}
+      \strng{authornamehash}{c83479926b4e4d2f1e606f20a55cbd56}
+      \strng{authorfullhash}{c83479926b4e4d2f1e606f20a55cbd56}
+      \strng{authorfullhashraw}{c83479926b4e4d2f1e606f20a55cbd56}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The braid group B n B\_n can be defined as the mapping class group of the n n -punctured disk. A group is said to be linear if it admits a faithful representation into a group of matrices over R {\textbackslash}mathbf R . Recently Daan Krammer has shown that a certain representation of the braid groups is faithful for the case n = 4 n=4 . In this paper, we show that it is faithful for all n n .}
+      \field{issn}{1088-6834, 0894-0347}
+      \field{journaltitle}{Journal of the American Mathematical Society}
+      \field{month}{12}
+      \field{number}{2}
+      \field{title}{Braid groups are linear}
+      \field{urlday}{5}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{14}
+      \field{year}{2000}
+      \field{urldateera}{ce}
+      \field{pages}{471\bibrangedash 486}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1090/S0894-0347-00-00361-1
+      \endverb
+      \verb{urlraw}
+      \verb https://www.ams.org/jams/2001-14-02/S0894-0347-00-00361-1/
+      \endverb
+      \verb{url}
+      \verb https://www.ams.org/jams/2001-14-02/S0894-0347-00-00361-1/
+      \endverb
+    \endentry
+    \entry{birman_new_1998}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=f5fe8a423f5f684b3b582fb3f8583408}{%
+           family={Birman},
+           familyi={B\bibinitperiod},
+           given={Joan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=2ec5d188742530193463816f4fd9c5ba}{%
+           family={Ko},
+           familyi={K\bibinitperiod},
+           given={Ki\bibnamedelima Hyoung},
+           giveni={K\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=1b823ef01f6102a7910d51e8e8519261}{%
+           family={Lee},
+           familyi={L\bibinitperiod},
+           given={Sang\bibnamedelima Jin},
+           giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{355e56b25d00a4c80eb4c27c6c6d4011}
+      \strng{fullhash}{355e56b25d00a4c80eb4c27c6c6d4011}
+      \strng{fullhashraw}{355e56b25d00a4c80eb4c27c6c6d4011}
+      \strng{bibnamehash}{355e56b25d00a4c80eb4c27c6c6d4011}
+      \strng{authorbibnamehash}{355e56b25d00a4c80eb4c27c6c6d4011}
+      \strng{authornamehash}{355e56b25d00a4c80eb4c27c6c6d4011}
+      \strng{authorfullhash}{355e56b25d00a4c80eb4c27c6c6d4011}
+      \strng{authorfullhashraw}{355e56b25d00a4c80eb4c27c6c6d4011}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{00018708}
+      \field{journaltitle}{Advances in Mathematics}
+      \field{month}{11}
+      \field{number}{2}
+      \field{title}{A {New} {Approach} to the {Word} and {Conjugacy} {Problems} in the {Braid} {Groups}}
+      \field{urlday}{14}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{volume}{139}
+      \field{year}{1998}
+      \field{urldateera}{ce}
+      \field{pages}{322\bibrangedash 353}
+      \range{pages}{32}
+      \verb{doi}
+      \verb 10.1006/aima.1998.1761
+      \endverb
+      \verb{urlraw}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0001870898917613
+      \endverb
+      \verb{url}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0001870898917613
+      \endverb
+    \endentry
+    \entry{boone_word_1959}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=8d878c2feb95c25f643d30645212add1}{%
+           family={Boone},
+           familyi={B\bibinitperiod},
+           given={William\bibnamedelima W.},
+           giveni={W\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+      }
+      \strng{namehash}{8d878c2feb95c25f643d30645212add1}
+      \strng{fullhash}{8d878c2feb95c25f643d30645212add1}
+      \strng{fullhashraw}{8d878c2feb95c25f643d30645212add1}
+      \strng{bibnamehash}{8d878c2feb95c25f643d30645212add1}
+      \strng{authorbibnamehash}{8d878c2feb95c25f643d30645212add1}
+      \strng{authornamehash}{8d878c2feb95c25f643d30645212add1}
+      \strng{authorfullhash}{8d878c2feb95c25f643d30645212add1}
+      \strng{authorfullhashraw}{8d878c2feb95c25f643d30645212add1}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0003486X}
+      \field{journaltitle}{The Annals of Mathematics}
+      \field{month}{9}
+      \field{number}{2}
+      \field{title}{The {Word} {Problem}}
+      \field{urlday}{14}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{volume}{70}
+      \field{year}{1959}
+      \field{urldateera}{ce}
+      \field{pages}{207}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.2307/1970103
+      \endverb
+      \verb{urlraw}
+      \verb https://www.jstor.org/stable/1970103?origin=crossref
+      \endverb
+      \verb{url}
+      \verb https://www.jstor.org/stable/1970103?origin=crossref
+      \endverb
+    \endentry
+    \entry{carlier_unbiasing_2026}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=ee91f111325e4708003bc48ac87366db}{%
+           family={Carlier},
+           familyi={C\bibinitperiod},
+           given={Robin},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{ee91f111325e4708003bc48ac87366db}
+      \strng{fullhash}{ee91f111325e4708003bc48ac87366db}
+      \strng{fullhashraw}{ee91f111325e4708003bc48ac87366db}
+      \strng{bibnamehash}{ee91f111325e4708003bc48ac87366db}
+      \strng{authorbibnamehash}{ee91f111325e4708003bc48ac87366db}
+      \strng{authornamehash}{ee91f111325e4708003bc48ac87366db}
+      \strng{authorfullhash}{ee91f111325e4708003bc48ac87366db}
+      \strng{authorfullhashraw}{ee91f111325e4708003bc48ac87366db}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We present a formalization in Lean 4, within the framework of the mathematical library Mathlib, of the unbiasing process for symmetric monoidal categories. This is realized by extending the data of a symmetric monoidal category to a Cat-valued pseudofunctor from the (2,1)-category of spans of finite sets, encoding tensor products of higher arities and their coherences. The construction relies on a formalization of Mac Lane's coherence theorem using Piceghello's presentation of free symmetric monoidal categories as symmetric lists, and uses an encoding of universal formulas via an appropriate Kleisli bicategory.}
+      \field{note}{Version Number: 1}
+      \field{title}{Unbiasing symmetric monoidal categories in {Lean}}
+      \field{urlday}{13}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550/ARXIV.2603.00896
+      \endverb
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2603.00896
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2603.00896
+      \endverb
+      \keyw{Category Theory (math.CT),FOS: Computer and information sciences,FOS: Mathematics,Logic in Computer Science (cs.LO)}
+    \endentry
+    \entry{cirpons_certifying_2026}{inproceedings}{}{}
+      \name{author}{6}{}{%
+        {{hash=5d5a0c369a21acccfff9ab991183d319}{%
+           family={Cirpons},
+           familyi={C\bibinitperiod},
+           given={Reinis},
+           giveni={R\bibinitperiod}}}%
+        {{hash=2fbdfebfb73b5df4eb93b2c2dbe8f7f1}{%
+           family={Hivert},
+           familyi={H\bibinitperiod},
+           given={Florent},
+           giveni={F\bibinitperiod}}}%
+        {{hash=5b76a4300ed8b7c7844ff4a71c1fde5c}{%
+           family={Mahboubi},
+           familyi={M\bibinitperiod},
+           given={Assia},
+           giveni={A\bibinitperiod}}}%
+        {{hash=ea99fa81419df5a6a2e833857da60e0f}{%
+           family={Melquiond},
+           familyi={M\bibinitperiod},
+           given={Guillaume},
+           giveni={G\bibinitperiod}}}%
+        {{hash=d4eacb3133e76021228761dbc6f91e07}{%
+           family={Mitchell},
+           familyi={M\bibinitperiod},
+           given={James\bibnamedelima D.},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=c54d95a827153873d8fee62b7a232198}{%
+           family={Smith},
+           familyi={S\bibinitperiod},
+           given={Finn},
+           giveni={F\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {Rennes France}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{53e3e264e8258f077ecd892832173ee3}
+      \strng{fullhash}{004a12ef2925c2c1a6eebed7734eadc7}
+      \strng{fullhashraw}{004a12ef2925c2c1a6eebed7734eadc7}
+      \strng{bibnamehash}{53e3e264e8258f077ecd892832173ee3}
+      \strng{authorbibnamehash}{53e3e264e8258f077ecd892832173ee3}
+      \strng{authornamehash}{53e3e264e8258f077ecd892832173ee3}
+      \strng{authorfullhash}{004a12ef2925c2c1a6eebed7734eadc7}
+      \strng{authorfullhashraw}{004a12ef2925c2c1a6eebed7734eadc7}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 15th {ACM} {SIGPLAN} {International} {Conference} on {Certified} {Programs} and {Proofs}}
+      \field{isbn}{979-8-4007-2341-4}
+      \field{month}{1}
+      \field{title}{Certifying the {Decidability} of the {Word} {Problem} in {Monoids} at {Large}}
+      \field{urlday}{13}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{urldateera}{ce}
+      \field{pages}{128\bibrangedash 142}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1145/3779031.3779101
+      \endverb
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/10.1145/3779031.3779101
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/10.1145/3779031.3779101
+      \endverb
+    \endentry
+    \entry{platzer_lean_2021}{incollection}{}{}
+      \name{author}{2}{}{%
+        {{hash=6f56e279fa3378e39f74c27d62149c2c}{%
+           family={De\bibnamedelima Moura},
+           familyi={D\bibinitperiod\bibinitdelim M\bibinitperiod},
+           given={Leonardo},
+           giveni={L\bibinitperiod}}}%
+        {{hash=f0eef0e3dc5cf232456ab1f5460e2ef4}{%
+           family={Ullrich},
+           familyi={U\bibinitperiod},
+           given={Sebastian},
+           giveni={S\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=0fb7e4129542e3e84c6115bee2a2b227}{%
+           family={Platzer},
+           familyi={P\bibinitperiod},
+           given={André},
+           giveni={A\bibinitperiod}}}%
+        {{hash=dd1c8983ac85362d3aa2a529a62b0620}{%
+           family={Sutcliffe},
+           familyi={S\bibinitperiod},
+           given={Geoff},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{28566dd5c25469c3e8944b6d2d629685}
+      \strng{fullhash}{28566dd5c25469c3e8944b6d2d629685}
+      \strng{fullhashraw}{28566dd5c25469c3e8944b6d2d629685}
+      \strng{bibnamehash}{28566dd5c25469c3e8944b6d2d629685}
+      \strng{authorbibnamehash}{28566dd5c25469c3e8944b6d2d629685}
+      \strng{authornamehash}{28566dd5c25469c3e8944b6d2d629685}
+      \strng{authorfullhash}{28566dd5c25469c3e8944b6d2d629685}
+      \strng{authorfullhashraw}{28566dd5c25469c3e8944b6d2d629685}
+      \strng{editorbibnamehash}{1c4255ef6c180f317b8d14066696be61}
+      \strng{editornamehash}{1c4255ef6c180f317b8d14066696be61}
+      \strng{editorfullhash}{1c4255ef6c180f317b8d14066696be61}
+      \strng{editorfullhashraw}{1c4255ef6c180f317b8d14066696be61}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Abstract Lean 4 is a reimplementation of the Lean interactive theorem prover (ITP) in Lean itself. It addresses many shortcomings of the previous versions and contains many new features. Lean 4 is fully extensible: users can modify and extend the parser, elaborator, tactics, decision procedures, pretty printer, and code generator. The new system has a hygienic macro system custom-built for ITPs. It contains a new typeclass resolution procedure based on tabled resolution, addressing significant performance problems reported by the growing user base. Lean 4 is also an efficient functional programming language based on a novel programming paradigm called functional but in-place . Efficient code generation is crucial for Lean users because many write custom proof automation procedures in Lean itself.}
+      \field{booktitle}{Automated {Deduction} – {CADE} 28}
+      \field{isbn}{978-3-030-79875-8 978-3-030-79876-5}
+      \field{note}{Series Title: Lecture Notes in Computer Science}
+      \field{title}{The {Lean} 4 {Theorem} {Prover} and {Programming} {Language}}
+      \field{urlday}{14}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{volume}{12699}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \field{pages}{625\bibrangedash 635}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1007/978-3-030-79876-5_37
+      \endverb
+      \verb{urlraw}
+      \verb https://link.springer.com/10.1007/978-3-030-79876-5_37
+      \endverb
+      \verb{url}
+      \verb https://link.springer.com/10.1007/978-3-030-79876-5_37
+      \endverb
+    \endentry
+    \entry{dehornoy_cancellativity_2018}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{bibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorbibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authornamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \field{extraname}{1}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We establish a new, fairly general cancellativity criterion for a presented monoid that properly extends the previously known related criteria. It is based on a new version of the word transformation called factor reversing, and its specificity is to avoid any restriction on the number of relations in the presentation. As an application, we deduce the cancellativity of some natural extension of Artin's braid monoid in which crossings are colored.}
+      \field{month}{9}
+      \field{note}{arXiv:1802.04607}
+      \field{title}{A cancellativity criterion for presented monoids}
+      \field{urlday}{11}
+      \field{urlmonth}{11}
+      \field{urlyear}{2024}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/1802.04607
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/1802.04607
+      \endverb
+      \keyw{Mathematics - Group Theory}
+    \endentry
+    \entry{myasnikov_braid-based_2004}{incollection}{}{}
+      \name{author}{1}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=3f52fd8e81ff8ea9405bea819b6dbafa}{%
+           family={Myasnikov},
+           familyi={M\bibinitperiod},
+           given={Alexei\bibnamedelima G.},
+           giveni={A\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=ced64140c0146106f61691b2ba210a36}{%
+           family={Shpilrain},
+           familyi={S\bibinitperiod},
+           given={Vladimir},
+           giveni={V\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {Providence, Rhode Island}%
+      }
+      \list{publisher}{1}{%
+        {American Mathematical Society}%
+      }
+      \strng{namehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{bibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorbibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authornamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{editorbibnamehash}{ed87cbe52503b4408bb35a38bc9aeb79}
+      \strng{editornamehash}{ed87cbe52503b4408bb35a38bc9aeb79}
+      \strng{editorfullhash}{ed87cbe52503b4408bb35a38bc9aeb79}
+      \strng{editorfullhashraw}{ed87cbe52503b4408bb35a38bc9aeb79}
+      \field{extraname}{2}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Contemporary {Mathematics}}
+      \field{isbn}{978-0-8218-3444-2 978-0-8218-5695-6 978-0-8218-7950-4}
+      \field{title}{Braid-based cryptography}
+      \field{urlday}{14}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{volume}{360}
+      \field{year}{2004}
+      \field{urldateera}{ce}
+      \field{pages}{5\bibrangedash 33}
+      \range{pages}{29}
+      \verb{doi}
+      \verb 10.1090/conm/360/06566
+      \endverb
+      \verb{urlraw}
+      \verb https://www.ams.org/conm/360
+      \endverb
+      \verb{url}
+      \verb https://www.ams.org/conm/360
+      \endverb
+    \endentry
+    \entry{dehornoy_complete_2003}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{bibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorbibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authornamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \field{extraname}{3}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{00218693}
+      \field{journaltitle}{Journal of Algebra}
+      \field{month}{10}
+      \field{number}{1}
+      \field{title}{Complete positive group presentations}
+      \field{urlday}{4}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{268}
+      \field{year}{2003}
+      \field{urldateera}{ce}
+      \field{pages}{156\bibrangedash 197}
+      \range{pages}{42}
+      \verb{doi}
+      \verb 10.1016/S0021-8693(03)00326-0
+      \endverb
+      \verb{urlraw}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0021869303003260
+      \endverb
+      \verb{url}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0021869303003260
+      \endverb
+    \endentry
+    \entry{dehornoy_deux_1992}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Paris}%
+      }
+      \strng{namehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{bibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorbibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authornamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \field{extraname}{4}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Comptes rendus de l'Académie des sciences}
+      \field{number}{6}
+      \field{series}{1}
+      \field{title}{Deux propriétés des groupes de tresses}
+      \field{volume}{315}
+      \field{year}{1992}
+      \field{pages}{633\bibrangedash 638}
+      \range{pages}{6}
+    \endentry
+    \entry{dehornoy_efficient_2008}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{bibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorbibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authornamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \field{extraname}{5}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0166218X}
+      \field{journaltitle}{Discrete Applied Mathematics}
+      \field{month}{9}
+      \field{number}{16}
+      \field{title}{Efficient solutions to the braid isotopy problem}
+      \field{urlday}{5}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{156}
+      \field{year}{2008}
+      \field{urldateera}{ce}
+      \field{pages}{3091\bibrangedash 3112}
+      \range{pages}{22}
+      \verb{doi}
+      \verb 10.1016/j.dam.2007.12.009
+      \endverb
+      \verb{urlraw}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0166218X08000437
+      \endverb
+      \verb{url}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0166218X08000437
+      \endverb
+    \endentry
+    \entry{dehornoy_completeness_2000}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{bibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorbibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authornamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \field{extraname}{6}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0012365X}
+      \field{journaltitle}{Discrete Mathematics}
+      \field{month}{10}
+      \field{number}{1-3}
+      \field{title}{On completeness of word reversing}
+      \field{urlday}{4}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{225}
+      \field{year}{2000}
+      \field{urldateera}{ce}
+      \field{pages}{93\bibrangedash 119}
+      \range{pages}{27}
+      \verb{doi}
+      \verb 10.1016/S0012-365X(00)00149-7
+      \endverb
+      \verb{urlraw}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0012365X00001497
+      \endverb
+      \verb{url}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0012365X00001497
+      \endverb
+    \endentry
+    \entry{dehornoy_subword_2011}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{fullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{bibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorbibnamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authornamehash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhash}{34cd8d81bd3ca595f66f337e8c004c89}
+      \strng{authorfullhashraw}{34cd8d81bd3ca595f66f337e8c004c89}
+      \field{extraname}{7}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We summarize the main known results involving subword reversing, a method of semigroup theory for constructing van Kampen diagrams by referring to a preferred direction. In good cases, the method provides a powerful tool for investigating presented (semi)groups. In particular, it leads to cancellativity and embeddability criteria for monoids and to efficient solutions for the word problem of monoids and groups of fractions. The text includes some new results about mixed reversing (combination of left- and right-reversings) and about the combinatorial distance of braids.}
+      \field{issn}{0218-1967, 1793-6500}
+      \field{journaltitle}{International Journal of Algebra and Computation}
+      \field{month}{2}
+      \field{number}{01n02}
+      \field{title}{The {Subword} {Reversing} {Method}}
+      \field{urlday}{4}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{21}
+      \field{year}{2011}
+      \field{urldateera}{ce}
+      \field{pages}{71\bibrangedash 118}
+      \range{pages}{48}
+      \verb{doi}
+      \verb 10.1142/S0218196711006091
+      \endverb
+      \verb{urlraw}
+      \verb https://www.worldscientific.com/doi/abs/10.1142/S0218196711006091
+      \endverb
+      \verb{url}
+      \verb https://www.worldscientific.com/doi/abs/10.1142/S0218196711006091
+      \endverb
+    \endentry
+    \entry{dehornoy_calculus_2022}{book}{}{}
+      \name{author}{3}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+        {{hash=b4e25a9aac14a906dbe55d044cede1d4}{%
+           family={Gibbons},
+           familyi={G\bibinitperiod},
+           given={Danièle},
+           giveni={D\bibinitperiod}}}%
+        {{hash=42872a2a89cd43919972f31dc020d063}{%
+           family={Gibbons},
+           familyi={G\bibinitperiod},
+           given={Greg},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Cambridge ; New York, NY}%
+      }
+      \list{publisher}{1}{%
+        {Cambridge University Press}%
+      }
+      \strng{namehash}{1f75ec7e3fd0c76ea81f61e47bb9a9e2}
+      \strng{fullhash}{1f75ec7e3fd0c76ea81f61e47bb9a9e2}
+      \strng{fullhashraw}{1f75ec7e3fd0c76ea81f61e47bb9a9e2}
+      \strng{bibnamehash}{1f75ec7e3fd0c76ea81f61e47bb9a9e2}
+      \strng{authorbibnamehash}{1f75ec7e3fd0c76ea81f61e47bb9a9e2}
+      \strng{authornamehash}{1f75ec7e3fd0c76ea81f61e47bb9a9e2}
+      \strng{authorfullhash}{1f75ec7e3fd0c76ea81f61e47bb9a9e2}
+      \strng{authorfullhashraw}{1f75ec7e3fd0c76ea81f61e47bb9a9e2}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{"Everyone knows what braids are, whether they be made of hair, knitting wool, or electrical cables. However, it is not at all evident that we can construct a theory about them, that is, elaborate a coherent and mathematically interesting corpus of results concerning them. Our goal here is to convince the reader that there is a resoundingly positive response to this question: braids are indeed fascinating objects, with a variety of rich mathematical properties. For this, we will concentrate on carefully and completely establishing only a few selected results. What they have in common is the sophistication of the proofs they require, in spite of their very simple statements. At the heart of the approach, a natural multiplication operation of braids leads to group structures, the braid groups. Combining both algebraic and topological aspects, these groups enjoy multiple interesting properties and are at the same time simple and complex"--}
+      \field{isbn}{978-1-108-84394-2}
+      \field{number}{100}
+      \field{series}{London {Mathematical} {Society} student texts}
+      \field{shorttitle}{The calculus of braids}
+      \field{title}{The {Calculus} of {Braids}: an introduction, and beyond}
+      \field{year}{2022}
+      \keyw{Braid theory,MATHEMATICS / Topology}
+    \endentry
+    \entry{dehornoy_garside_2019_fixed}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+        {{hash=c6792d27c93a2b68fa637d1b04df59ed}{%
+           family={Tesson},
+           familyi={T\bibinitperiod},
+           given={Emilie},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{be6b289cdcab3f463010cc57e7087727}
+      \strng{fullhash}{be6b289cdcab3f463010cc57e7087727}
+      \strng{fullhashraw}{be6b289cdcab3f463010cc57e7087727}
+      \strng{bibnamehash}{be6b289cdcab3f463010cc57e7087727}
+      \strng{authorbibnamehash}{be6b289cdcab3f463010cc57e7087727}
+      \strng{authornamehash}{be6b289cdcab3f463010cc57e7087727}
+      \strng{authorfullhash}{be6b289cdcab3f463010cc57e7087727}
+      \strng{authorfullhashraw}{be6b289cdcab3f463010cc57e7087727}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Algebraic Combinatorics}
+      \field{number}{4}
+      \field{title}{Garside combinatorics for Thompson's monoid {$F^+$} and a hybrid with the braid monoid {$B_\infty^+$}}
+      \field{volume}{2}
+      \field{year}{2019}
+      \field{pages}{683\bibrangedash 709}
+      \range{pages}{27}
+      \verb{doi}
+      \verb 10.5802/alco.52
+      \endverb
+    \endentry
+    \entry{dehornoy_word_2006}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=34cd8d81bd3ca595f66f337e8c004c89}{%
+           family={Dehornoy},
+           familyi={D\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+        {{hash=544790974da9ec98b26e18395a66097f}{%
+           family={Wiest},
+           familyi={W\bibinitperiod},
+           given={Bert},
+           giveni={B\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{1a2d187b20dbf302b3ca35374e8df895}
+      \strng{fullhash}{1a2d187b20dbf302b3ca35374e8df895}
+      \strng{fullhashraw}{1a2d187b20dbf302b3ca35374e8df895}
+      \strng{bibnamehash}{1a2d187b20dbf302b3ca35374e8df895}
+      \strng{authorbibnamehash}{1a2d187b20dbf302b3ca35374e8df895}
+      \strng{authornamehash}{1a2d187b20dbf302b3ca35374e8df895}
+      \strng{authorfullhash}{1a2d187b20dbf302b3ca35374e8df895}
+      \strng{authorfullhashraw}{1a2d187b20dbf302b3ca35374e8df895}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{It has been conjectured that in a braid group, or more generally in a Garside group, applying any sequence of monotone equivalences and word reversings can increase the length of a word by at most a linear factor depending on the group presentation only. We give a counter-example to this conjecture, but, on the other hand, we establish length upper bounds for the case when only right reversing is involved. We also state a new conjecture which would, like the above one, imply that the space complexity of the handle reduction algorithm is linear.}
+      \field{issn}{0218-1967, 1793-6500}
+      \field{journaltitle}{International Journal of Algebra and Computation}
+      \field{month}{10}
+      \field{number}{05}
+      \field{title}{On {Word} {Reversing} in {Braid} {Groups}}
+      \field{urlday}{6}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{16}
+      \field{year}{2006}
+      \field{urldateera}{ce}
+      \field{pages}{941\bibrangedash 957}
+      \range{pages}{17}
+      \verb{doi}
+      \verb 10.1142/S021819670600327X
+      \endverb
+      \verb{urlraw}
+      \verb https://www.worldscientific.com/doi/abs/10.1142/S021819670600327X
+      \endverb
+      \verb{url}
+      \verb https://www.worldscientific.com/doi/abs/10.1142/S021819670600327X
+      \endverb
+    \endentry
+    \entry{delpeuch_word_2022}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=aebd046ca2d354b09454d004a4af0412}{%
+           family={Delpeuch},
+           familyi={D\bibinitperiod},
+           given={Antonin},
+           giveni={A\bibinitperiod}}}%
+        {{hash=ccff9cb0ea86d9f63e3984a5b7d2f23a}{%
+           family={Vicary},
+           familyi={V\bibinitperiod},
+           given={Jamie},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{3d5c24db60f1ccd76217136bca191cee}
+      \strng{fullhash}{3d5c24db60f1ccd76217136bca191cee}
+      \strng{fullhashraw}{3d5c24db60f1ccd76217136bca191cee}
+      \strng{bibnamehash}{3d5c24db60f1ccd76217136bca191cee}
+      \strng{authorbibnamehash}{3d5c24db60f1ccd76217136bca191cee}
+      \strng{authornamehash}{3d5c24db60f1ccd76217136bca191cee}
+      \strng{authorfullhash}{3d5c24db60f1ccd76217136bca191cee}
+      \strng{authorfullhashraw}{3d5c24db60f1ccd76217136bca191cee}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2075-2180}
+      \field{journaltitle}{Electronic Proceedings in Theoretical Computer Science}
+      \field{month}{11}
+      \field{title}{The {Word} {Problem} for {Braided} {Monoidal} {Categories} is {Unknot}-{Hard}}
+      \field{urlday}{13}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{volume}{372}
+      \field{year}{2022}
+      \field{urldateera}{ce}
+      \field{pages}{72\bibrangedash 87}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.4204/EPTCS.372.6
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2105.04237v2
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2105.04237v2
+      \endverb
+    \endentry
+    \entry{dynnikov_yang-baxter_2002}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=8f533a07ac3b87807efe52830371b55d}{%
+           family={Dynnikov},
+           familyi={D\bibinitperiod},
+           given={I\bibnamedelima A},
+           giveni={I\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \strng{namehash}{8f533a07ac3b87807efe52830371b55d}
+      \strng{fullhash}{8f533a07ac3b87807efe52830371b55d}
+      \strng{fullhashraw}{8f533a07ac3b87807efe52830371b55d}
+      \strng{bibnamehash}{8f533a07ac3b87807efe52830371b55d}
+      \strng{authorbibnamehash}{8f533a07ac3b87807efe52830371b55d}
+      \strng{authornamehash}{8f533a07ac3b87807efe52830371b55d}
+      \strng{authorfullhash}{8f533a07ac3b87807efe52830371b55d}
+      \strng{authorfullhashraw}{8f533a07ac3b87807efe52830371b55d}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0036-0279, 1468-4829}
+      \field{journaltitle}{Russian Mathematical Surveys}
+      \field{month}{6}
+      \field{number}{3}
+      \field{title}{On a {Yang}-{Baxter} map and the {Dehornoy} ordering}
+      \field{urlday}{5}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{57}
+      \field{year}{2002}
+      \field{urldateera}{ce}
+      \field{pages}{592\bibrangedash 594}
+      \range{pages}{3}
+      \verb{doi}
+      \verb 10.1070/RM2002v057n03ABEH000519
+      \endverb
+      \verb{urlraw}
+      \verb https://www.mathnet.ru/eng/rm519
+      \endverb
+      \verb{url}
+      \verb https://www.mathnet.ru/eng/rm519
+      \endverb
+    \endentry
+    \entry{garside_braid_1969}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=04945dac668a82524dca6d22ffb01bfc}{%
+           family={Garside},
+           familyi={G\bibinitperiod},
+           given={F.\bibnamedelimi A.},
+           giveni={F\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{04945dac668a82524dca6d22ffb01bfc}
+      \strng{fullhash}{04945dac668a82524dca6d22ffb01bfc}
+      \strng{fullhashraw}{04945dac668a82524dca6d22ffb01bfc}
+      \strng{bibnamehash}{04945dac668a82524dca6d22ffb01bfc}
+      \strng{authorbibnamehash}{04945dac668a82524dca6d22ffb01bfc}
+      \strng{authornamehash}{04945dac668a82524dca6d22ffb01bfc}
+      \strng{authorfullhash}{04945dac668a82524dca6d22ffb01bfc}
+      \strng{authorfullhashraw}{04945dac668a82524dca6d22ffb01bfc}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0033-5606, 1464-3847}
+      \field{journaltitle}{The Quarterly Journal of Mathematics}
+      \field{number}{1}
+      \field{title}{The {Braid} {Group} and {Other} {Groups}}
+      \field{urlday}{4}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{volume}{20}
+      \field{year}{1969}
+      \field{urldateera}{ce}
+      \field{pages}{235\bibrangedash 254}
+      \range{pages}{20}
+      \verb{doi}
+      \verb 10.1093/qmath/20.1.235
+      \endverb
+      \verb{urlraw}
+      \verb https://academic.oup.com/qjmath/article-lookup/doi/10.1093/qmath/20.1.235
+      \endverb
+      \verb{url}
+      \verb https://academic.oup.com/qjmath/article-lookup/doi/10.1093/qmath/20.1.235
+      \endverb
+    \endentry
+    \entry{gonzalez-meneses_polynomial_2018}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=75c7842ebc8bf55f9d4920330053f5dc}{%
+           family={González-Meneses},
+           familyi={G\bibinithyphendelim M\bibinitperiod},
+           given={Juan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=058ae42e7358aa1bac197bd9b2c651fa}{%
+           family={Silvero},
+           familyi={S\bibinitperiod},
+           given={Marithania},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{c7b57e52c716241185dac3f660989e05}
+      \strng{fullhash}{c7b57e52c716241185dac3f660989e05}
+      \strng{fullhashraw}{c7b57e52c716241185dac3f660989e05}
+      \strng{bibnamehash}{c7b57e52c716241185dac3f660989e05}
+      \strng{authorbibnamehash}{c7b57e52c716241185dac3f660989e05}
+      \strng{authornamehash}{c7b57e52c716241185dac3f660989e05}
+      \strng{authorfullhash}{c7b57e52c716241185dac3f660989e05}
+      \strng{authorfullhashraw}{c7b57e52c716241185dac3f660989e05}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Braid combing is a procedure defined by Emil Artin to solve the word problem in braid groups. It is well known to have exponential complexity. In this paper, we use the theory of straight line programs to give a polynomial algorithm which performs braid combing. This procedure can be applied to braids on surfaces, providing the first algorithm (to our knowledge) which solves the word problem for braid groups on surfaces with boundary in polynomial time and space. In the case of surfaces without boundary, braid combing needs to use a section from the fundamental group of the surface to the braid group. Such a section was shown to exist by Gonçalves and Guaschi, who also gave a geometric description. We propose an algebraically simpler section, which we describe explicitly in terms of generators of the braid group, and we show why the above procedure to comb braids in polynomial time does not work in this case.}
+      \field{issn}{1088-6842, 0025-5718}
+      \field{journaltitle}{Mathematics of Computation}
+      \field{month}{11}
+      \field{number}{318}
+      \field{title}{Polynomial braid combing}
+      \field{urlday}{14}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{volume}{88}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \field{pages}{2027\bibrangedash 2045}
+      \range{pages}{19}
+      \verb{doi}
+      \verb 10.1090/mcom/3392
+      \endverb
+      \verb{urlraw}
+      \verb https://www.ams.org/mcom/2019-88-318/S0025-5718-2018-03392-0/
+      \endverb
+      \verb{url}
+      \verb https://www.ams.org/mcom/2019-88-318/S0025-5718-2018-03392-0/
+      \endverb
+    \endentry
+    \entry{hurtig_polynomial-time_2025}{article}{}{}
+      \name{author}{6}{}{%
+        {{hash=6d0974ff574424285c2226bc22f46754}{%
+           family={Hurtig},
+           familyi={H\bibinitperiod},
+           given={Nathan},
+           giveni={N\bibinitperiod}}}%
+        {{hash=eaf02d59ee3cde4f6c2393b4c5779502}{%
+           family={Lin},
+           familyi={L\bibinitperiod},
+           given={Jenny\bibnamedelima Han},
+           giveni={J\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=74ba2603c5fd00f5c4dc5d0c2453c956}{%
+           family={Price},
+           familyi={P\bibinitperiod},
+           given={Thomas\bibnamedelima S.},
+           giveni={T\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=f0c054ed7d06ea4b796ddaeaf13259ec}{%
+           family={Schulz},
+           familyi={S\bibinitperiod},
+           given={Adriana},
+           giveni={A\bibinitperiod}}}%
+        {{hash=021fd89b37c5f51bd0d5c22e8c013b6c}{%
+           family={McCann},
+           familyi={M\bibinitperiod},
+           given={James},
+           giveni={J\bibinitperiod}}}%
+        {{hash=e676562cc4d85572daf52ab073fbebdd}{%
+           family={Bernstein},
+           familyi={B\bibinitperiod},
+           given={Gilbert\bibnamedelima Louis},
+           giveni={G\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{7db2d25b4c5870a0d0af9c50dc253311}
+      \strng{fullhash}{062e23b1811f2c993b47252288e6be2a}
+      \strng{fullhashraw}{062e23b1811f2c993b47252288e6be2a}
+      \strng{bibnamehash}{7db2d25b4c5870a0d0af9c50dc253311}
+      \strng{authorbibnamehash}{7db2d25b4c5870a0d0af9c50dc253311}
+      \strng{authornamehash}{7db2d25b4c5870a0d0af9c50dc253311}
+      \strng{authorfullhash}{062e23b1811f2c993b47252288e6be2a}
+      \strng{authorfullhashraw}{062e23b1811f2c993b47252288e6be2a}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We present an algorithm that canonicalizes the algebraic representations of the topological semantics of machine knitting programs. Machine knitting is a staple technology of modern textile production where hundreds of mechanical needles are manipulated to form yarn into interlocking loop structures. Our semantics are defined using a variant of a monoidal category, and they closely correspond to string diagrams. We formulate our canonicalization as an Abstract Rewriting System (ARS) over words in our category, and prove that our algorithm is correct and runs in polynomial time.}
+      \field{issn}{2475-1421}
+      \field{journaltitle}{Proceedings of the ACM on Programming Languages}
+      \field{month}{8}
+      \field{number}{ICFP}
+      \field{title}{Polynomial-{Time} {Program} {Equivalence} for {Machine} {Knitting}}
+      \field{urlday}{4}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{9}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \field{pages}{371\bibrangedash 399}
+      \range{pages}{29}
+      \verb{doi}
+      \verb 10.1145/3747517
+      \endverb
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/10.1145/3747517
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/10.1145/3747517
+      \endverb
+    \endentry
+    \entry{joyal_braided_1993}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=639bac30c530f5adeb9b1b469cefa054}{%
+           family={Joyal},
+           familyi={J\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod}}}%
+        {{hash=cda36380aa428354320f0d11a75155a6}{%
+           family={Street},
+           familyi={S\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{f701fc75d0adb0729eee5bc8544319e8}
+      \strng{fullhash}{f701fc75d0adb0729eee5bc8544319e8}
+      \strng{fullhashraw}{f701fc75d0adb0729eee5bc8544319e8}
+      \strng{bibnamehash}{f701fc75d0adb0729eee5bc8544319e8}
+      \strng{authorbibnamehash}{f701fc75d0adb0729eee5bc8544319e8}
+      \strng{authornamehash}{f701fc75d0adb0729eee5bc8544319e8}
+      \strng{authorfullhash}{f701fc75d0adb0729eee5bc8544319e8}
+      \strng{authorfullhashraw}{f701fc75d0adb0729eee5bc8544319e8}
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{00018708}
+      \field{journaltitle}{Advances in Mathematics}
+      \field{month}{11}
+      \field{number}{1}
+      \field{title}{Braided {Tensor} {Categories}}
+      \field{urlday}{13}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{volume}{102}
+      \field{year}{1993}
+      \field{urldateera}{ce}
+      \field{pages}{20\bibrangedash 78}
+      \range{pages}{59}
+      \verb{doi}
+      \verb 10.1006/aima.1993.1055
+      \endverb
+      \verb{urlraw}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0001870883710558
+      \endverb
+      \verb{url}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0001870883710558
+      \endverb
+    \endentry
+    \entry{van_kampen_lemmas_1933}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=360a6989051abc04f7050006204cc79b}{%
+           family={Kampen},
+           familyi={K\bibinitperiod},
+           given={Egbert\bibnamedelima R.},
+           giveni={E\bibinitperiod\bibinitdelim R\bibinitperiod},
+           prefix={van},
+           prefixi={v\bibinitperiod}}}%
+      }
+      \strng{namehash}{360a6989051abc04f7050006204cc79b}
+      \strng{fullhash}{360a6989051abc04f7050006204cc79b}
+      \strng{fullhashraw}{360a6989051abc04f7050006204cc79b}
+      \strng{bibnamehash}{360a6989051abc04f7050006204cc79b}
+      \strng{authorbibnamehash}{360a6989051abc04f7050006204cc79b}
+      \strng{authornamehash}{360a6989051abc04f7050006204cc79b}
+      \strng{authorfullhash}{360a6989051abc04f7050006204cc79b}
+      \strng{authorfullhashraw}{360a6989051abc04f7050006204cc79b}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{00029327}
+      \field{journaltitle}{American Journal of Mathematics}
+      \field{number}{1/4}
+      \field{title}{On {Some} {Lemmas} in the {Theory} of {Groups}}
+      \field{urlday}{15}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{volume}{55}
+      \field{year}{1933}
+      \field{urldateera}{ce}
+      \field{pages}{268}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.2307/2371129
+      \endverb
+      \verb{urlraw}
+      \verb https://www.jstor.org/stable/2371129?origin=crossref
+      \endverb
+      \verb{url}
+      \verb https://www.jstor.org/stable/2371129?origin=crossref
+      \endverb
+    \endentry
+    \entry{krammer_braid_2002}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=1c9159578a8abbad923c6523c5dbbd94}{%
+           family={Krammer},
+           familyi={K\bibinitperiod},
+           given={Daan},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{1c9159578a8abbad923c6523c5dbbd94}
+      \strng{fullhash}{1c9159578a8abbad923c6523c5dbbd94}
+      \strng{fullhashraw}{1c9159578a8abbad923c6523c5dbbd94}
+      \strng{bibnamehash}{1c9159578a8abbad923c6523c5dbbd94}
+      \strng{authorbibnamehash}{1c9159578a8abbad923c6523c5dbbd94}
+      \strng{authornamehash}{1c9159578a8abbad923c6523c5dbbd94}
+      \strng{authorfullhash}{1c9159578a8abbad923c6523c5dbbd94}
+      \strng{authorfullhashraw}{1c9159578a8abbad923c6523c5dbbd94}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0003486X}
+      \field{journaltitle}{The Annals of Mathematics}
+      \field{month}{1}
+      \field{number}{1}
+      \field{title}{Braid {Groups} are {Linear}}
+      \field{urlday}{5}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{volume}{155}
+      \field{year}{2002}
+      \field{urldateera}{ce}
+      \field{pages}{131}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.2307/3062152
+      \endverb
+      \verb{urlraw}
+      \verb https://www.jstor.org/stable/3062152?origin=crossref
+      \endverb
+      \verb{url}
+      \verb https://www.jstor.org/stable/3062152?origin=crossref
+      \endverb
+    \endentry
+    \entry{lee_braid_2004}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=95c345a5b6d48d17a307f7bfb3393ad0}{%
+           family={Lee},
+           familyi={L\bibinitperiod},
+           given={Eonkyung},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{95c345a5b6d48d17a307f7bfb3393ad0}
+      \strng{fullhash}{95c345a5b6d48d17a307f7bfb3393ad0}
+      \strng{fullhashraw}{95c345a5b6d48d17a307f7bfb3393ad0}
+      \strng{bibnamehash}{95c345a5b6d48d17a307f7bfb3393ad0}
+      \strng{authorbibnamehash}{95c345a5b6d48d17a307f7bfb3393ad0}
+      \strng{authornamehash}{95c345a5b6d48d17a307f7bfb3393ad0}
+      \strng{authorfullhash}{95c345a5b6d48d17a307f7bfb3393ad0}
+      \strng{authorfullhashraw}{95c345a5b6d48d17a307f7bfb3393ad0}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEICE TRANSACTIONS on Fundamentals}
+      \field{number}{5}
+      \field{title}{Braid {Groups} in {Cryptology}}
+      \field{volume}{E87-A}
+      \field{year}{2004}
+      \field{pages}{986\bibrangedash 992}
+      \range{pages}{7}
+    \endentry
+    \entry{lyndon_combinatorial_2001}{book}{}{}
+      \name{author}{2}{}{%
+        {{hash=eb1ca9e41846af4bd0f3fdf6bad0bfe8}{%
+           family={Lyndon},
+           familyi={L\bibinitperiod},
+           given={Roger\bibnamedelima C.},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=ed253efefc6661571cd820afc508f8bf}{%
+           family={Schupp},
+           familyi={S\bibinitperiod},
+           given={Paul\bibnamedelima E.},
+           giveni={P\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {eng}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{e090035f995959bfe44cb6fbc929ce95}
+      \strng{fullhash}{e090035f995959bfe44cb6fbc929ce95}
+      \strng{fullhashraw}{e090035f995959bfe44cb6fbc929ce95}
+      \strng{bibnamehash}{e090035f995959bfe44cb6fbc929ce95}
+      \strng{authorbibnamehash}{e090035f995959bfe44cb6fbc929ce95}
+      \strng{authornamehash}{e090035f995959bfe44cb6fbc929ce95}
+      \strng{authorfullhash}{e090035f995959bfe44cb6fbc929ce95}
+      \strng{authorfullhashraw}{e090035f995959bfe44cb6fbc929ce95}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{From the reviews: "This book (..) defines the boundaries of the subject now called combinatorial group theory. (..)it is a considerable achievement to have concentrated a survey of the subject into 339 pages. This includes a substantial and useful bibliography; (over 1100 ÄitemsÜ). ..the book is a valuable and welcome addition to the literature, containing many results not previously available in a book. It will undoubtedly become a standard reference." Mathematical Reviews, AMS, 1979}
+      \field{isbn}{978-3-540-41158-1 978-3-642-61896-3}
+      \field{number}{89}
+      \field{series}{Classics in {Mathematics}}
+      \field{title}{Combinatorial {Group} {Theory}}
+      \field{year}{2001}
+      \verb{doi}
+      \verb 10.1007/978-3-642-61896-3
+      \endverb
+    \endentry
+    \entry{michel_development_2013}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=8b8e6b0fa93e1b9ed7f2707b562fb59a}{%
+           family={Michel},
+           familyi={M\bibinitperiod},
+           given={Jean},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{8b8e6b0fa93e1b9ed7f2707b562fb59a}
+      \strng{fullhash}{8b8e6b0fa93e1b9ed7f2707b562fb59a}
+      \strng{fullhashraw}{8b8e6b0fa93e1b9ed7f2707b562fb59a}
+      \strng{bibnamehash}{8b8e6b0fa93e1b9ed7f2707b562fb59a}
+      \strng{authorbibnamehash}{8b8e6b0fa93e1b9ed7f2707b562fb59a}
+      \strng{authornamehash}{8b8e6b0fa93e1b9ed7f2707b562fb59a}
+      \strng{authorfullhash}{8b8e6b0fa93e1b9ed7f2707b562fb59a}
+      \strng{authorfullhashraw}{8b8e6b0fa93e1b9ed7f2707b562fb59a}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{I describe the current state of the development version of the CHEVIE package, which deals with Coxeter groups, reductive algebraic groups, complex reflection groups, Hecke algebras, braid monoids, etc... Examples are given, showing the code to check some results of Lusztig.}
+      \field{month}{10}
+      \field{note}{arXiv:1310.7905 [math]}
+      \field{title}{The development version of the {CHEVIE} package of {GAP3}}
+      \field{urlday}{26}
+      \field{urlmonth}{11}
+      \field{urlyear}{2025}
+      \field{year}{2013}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550/arXiv.1310.7905
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/1310.7905
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/1310.7905
+      \endverb
+      \keyw{Mathematics - Representation Theory}
+    \endentry
+    \entry{novikov_algorithmic_1955}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=42ef324eeef1406d78a015163ae7e5df}{%
+           family={Novikov},
+           familyi={N\bibinitperiod},
+           given={Pyotr\bibnamedelima Sergeyevich},
+           giveni={P\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Moscow}%
+      }
+      \strng{namehash}{42ef324eeef1406d78a015163ae7e5df}
+      \strng{fullhash}{42ef324eeef1406d78a015163ae7e5df}
+      \strng{fullhashraw}{42ef324eeef1406d78a015163ae7e5df}
+      \strng{bibnamehash}{42ef324eeef1406d78a015163ae7e5df}
+      \strng{authorbibnamehash}{42ef324eeef1406d78a015163ae7e5df}
+      \strng{authornamehash}{42ef324eeef1406d78a015163ae7e5df}
+      \strng{authorfullhash}{42ef324eeef1406d78a015163ae7e5df}
+      \strng{authorfullhashraw}{42ef324eeef1406d78a015163ae7e5df}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Trudy Matematicheskogo Instituta imeni V. A. Steklova}
+      \field{title}{On the {Algorithmic} {Unsolvability} of the {Word} {Problem} in {Group} {Theory}}
+      \field{volume}{44}
+      \field{year}{1955}
+    \endentry
+    \entry{pous_string_2026}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=7dbfb8d285d47108e2d7d8ac1f74be2d}{%
+           family={Pous},
+           familyi={P\bibinitperiod},
+           given={Damien},
+           giveni={D\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=b30eb8db6fa04ec663c803d1cb570f52}{%
+           family={Komendantskaya},
+           familyi={K\bibinitperiod},
+           given={Ekaterina},
+           giveni={E\bibinitperiod}}}%
+        {{hash=a41b38c2580f5bb8c574d84f66e0856a}{%
+           family={Nipkow},
+           familyi={N\bibinitperiod},
+           given={Tobias},
+           giveni={T\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{publisher}{1}{%
+        {Schloss Dagstuhl – Leibniz-Zentrum für Informatik}%
+      }
+      \strng{namehash}{7dbfb8d285d47108e2d7d8ac1f74be2d}
+      \strng{fullhash}{7dbfb8d285d47108e2d7d8ac1f74be2d}
+      \strng{fullhashraw}{7dbfb8d285d47108e2d7d8ac1f74be2d}
+      \strng{bibnamehash}{7dbfb8d285d47108e2d7d8ac1f74be2d}
+      \strng{authorbibnamehash}{7dbfb8d285d47108e2d7d8ac1f74be2d}
+      \strng{authornamehash}{7dbfb8d285d47108e2d7d8ac1f74be2d}
+      \strng{authorfullhash}{7dbfb8d285d47108e2d7d8ac1f74be2d}
+      \strng{authorfullhashraw}{7dbfb8d285d47108e2d7d8ac1f74be2d}
+      \strng{editorbibnamehash}{01ae69e0beebd3338cd4c0fa7e5723cc}
+      \strng{editornamehash}{01ae69e0beebd3338cd4c0fa7e5723cc}
+      \strng{editorfullhash}{01ae69e0beebd3338cd4c0fa7e5723cc}
+      \strng{editorfullhashraw}{01ae69e0beebd3338cd4c0fa7e5723cc}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We present a Rocq library for monoidal categories, including a decision procedure for proving equality of morphisms as well as notations that make it possible to reason as if these monoidal categories were strict, inferring MacLane isomorphims automatically in the background. Together with an external tool for visualising and editing string diagrams, this make it possible to perform rewriting steps graphically, and to translate them into textual formal proofs which are concise and readable.}
+      \field{issn}{1868-8969}
+      \field{journaltitle}{LIPIcs, Volume 382, ITP 2026}
+      \field{note}{Artwork Size: 20 pages, 810898 bytes ISBN: 9783959774369 Medium: application/pdf}
+      \field{title}{String {Diagrams} for {Monoidal} {Categories}, in {Rocq}}
+      \field{urlday}{13}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{volume}{382}
+      \field{year}{2026}
+      \field{urldateera}{ce}
+      \field{pages}{28:1\bibrangedash 28:20}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.4230/LIPICS.ITP.2026.28
+      \endverb
+      \verb{urlraw}
+      \verb https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITP.2026.28
+      \endverb
+      \verb{url}
+      \verb https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITP.2026.28
+      \endverb
+      \keyw{Monoidal categories,Rocq,Theory of computation → Logic,formal proofs,graphical proofs,string diagrams}
+    \endentry
+    \entry{prathamesh_formalising_2015}{inproceedings}{}{}
+      \name{author}{1}{}{%
+        {{hash=6a28be91160a10f551d5354b1d3cf02a}{%
+           family={Prathamesh},
+           familyi={P\bibinitperiod},
+           given={T.\bibnamedelimi V.\bibnamedelimi H.},
+           giveni={T\bibinitperiod\bibinitdelim V\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=7e646f94ce1ca043d93239cb0cf55cdf}{%
+           family={Urban},
+           familyi={U\bibinitperiod},
+           given={Christian},
+           giveni={C\bibinitperiod}}}%
+        {{hash=55f1e3e1f91df039fc0dcabef4248b76}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Xingyuan},
+           giveni={X\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{6a28be91160a10f551d5354b1d3cf02a}
+      \strng{fullhash}{6a28be91160a10f551d5354b1d3cf02a}
+      \strng{fullhashraw}{6a28be91160a10f551d5354b1d3cf02a}
+      \strng{bibnamehash}{6a28be91160a10f551d5354b1d3cf02a}
+      \strng{authorbibnamehash}{6a28be91160a10f551d5354b1d3cf02a}
+      \strng{authornamehash}{6a28be91160a10f551d5354b1d3cf02a}
+      \strng{authorfullhash}{6a28be91160a10f551d5354b1d3cf02a}
+      \strng{authorfullhashraw}{6a28be91160a10f551d5354b1d3cf02a}
+      \strng{editorbibnamehash}{d6b6cf9420bc7e84da1c160034b4c725}
+      \strng{editornamehash}{d6b6cf9420bc7e84da1c160034b4c725}
+      \strng{editorfullhash}{d6b6cf9420bc7e84da1c160034b4c725}
+      \strng{editorfullhashraw}{d6b6cf9420bc7e84da1c160034b4c725}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{This paper describes a formalization of some topics in knot theory. The formalization was carried out in the interactive proof assistant, Isabelle. The concepts that were formalized include definitions of tangles, links, framed links and various forms of equivalences between them. The formalization is based on a formulation of links in terms of tangles. We further construct and prove the invariance of the Bracket polynomial. Bracket polynomial is an invariant of framed links closely linked to the Jones polynomial. This is perhaps the first attempt to formalize any aspect of knot theory in an interactive proof assistant.}
+      \field{booktitle}{Interactive {Theorem} {Proving}}
+      \field{isbn}{978-3-319-22102-1}
+      \field{title}{Formalising {Knot} {Theory} in {Isabelle}/{HOL}}
+      \field{year}{2015}
+      \field{pages}{438\bibrangedash 452}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1007/978-3-319-22102-1_29
+      \endverb
+      \keyw{Bracket polynomial,Formalization of mathematics,Kauffman bracket,Knot theory}
+    \endentry
+    \entry{shah_vicar_2024}{misc}{}{}
+      \name{author}{6}{}{%
+        {{hash=968257d8e20f07c1d102740a0c110b07}{%
+           family={Shah},
+           familyi={S\bibinitperiod},
+           given={Bhakti},
+           giveni={B\bibinitperiod}}}%
+        {{hash=7576a87dbcd83d89f95dd7824f413a3c}{%
+           family={Spencer},
+           familyi={S\bibinitperiod},
+           given={Willam},
+           giveni={W\bibinitperiod}}}%
+        {{hash=b76fa40db8118d155341484d2d273b91}{%
+           family={Zielinski},
+           familyi={Z\bibinitperiod},
+           given={Laura},
+           giveni={L\bibinitperiod}}}%
+        {{hash=4c0e912f86c8be0e0e616d8d7fd40cae}{%
+           family={Caldwell},
+           familyi={C\bibinitperiod},
+           given={Ben},
+           giveni={B\bibinitperiod}}}%
+        {{hash=3de4ee267d5101bdd6e97c33883dcb5b}{%
+           family={Lehmann},
+           familyi={L\bibinitperiod},
+           given={Adrian},
+           giveni={A\bibinitperiod}}}%
+        {{hash=4c2ee32c1076561e7e9a8c205365d017}{%
+           family={Rand},
+           familyi={R\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{d7519fa5176338b89199bb6e0a7eff29}
+      \strng{fullhash}{a237a51d6a2b2b87c7d7ed5ff16a87fb}
+      \strng{fullhashraw}{a237a51d6a2b2b87c7d7ed5ff16a87fb}
+      \strng{bibnamehash}{d7519fa5176338b89199bb6e0a7eff29}
+      \strng{authorbibnamehash}{d7519fa5176338b89199bb6e0a7eff29}
+      \strng{authornamehash}{d7519fa5176338b89199bb6e0a7eff29}
+      \strng{authorfullhash}{a237a51d6a2b2b87c7d7ed5ff16a87fb}
+      \strng{authorfullhashraw}{a237a51d6a2b2b87c7d7ed5ff16a87fb}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{We present ViCAR, a library for working with monoidal categories in the Coq proof assistant. ViCAR provides definitions for categorical structures that users can instantiate with their own verification projects. Upon verifying relevant coherence conditions, ViCAR gives a set of lemmas and tactics for manipulating categorical structures. We also provide a visualizer that can display any composition and tensor product of morphisms as a string diagram, showing its categorical structure. This enables graphical reasoning and automated rewriting for Coq projects with monoidal structures.}
+      \field{note}{Version Number: 2}
+      \field{shorttitle}{{ViCAR}}
+      \field{title}{{ViCAR}: {Visualizing} {Categories} with {Automated} {Rewriting} in {Coq}}
+      \field{urlday}{13}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550/ARXIV.2404.08163
+      \endverb
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2404.08163
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2404.08163
+      \endverb
+      \keyw{Category Theory (math.CT),FOS: Computer and information sciences,FOS: Mathematics,Programming Languages (cs.PL)}
+    \endentry
+    \entry{the_mathlib_community_lean_2020}{inproceedings}{}{}
+      \name{author}{1}{}{%
+        {{hash=bb5170ea60a446d7149cf03fffb89c70}{%
+           family={{The Mathlib Community}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {New Orleans LA USA}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{bb5170ea60a446d7149cf03fffb89c70}
+      \strng{fullhash}{bb5170ea60a446d7149cf03fffb89c70}
+      \strng{fullhashraw}{bb5170ea60a446d7149cf03fffb89c70}
+      \strng{bibnamehash}{bb5170ea60a446d7149cf03fffb89c70}
+      \strng{authorbibnamehash}{bb5170ea60a446d7149cf03fffb89c70}
+      \strng{authornamehash}{bb5170ea60a446d7149cf03fffb89c70}
+      \strng{authorfullhash}{bb5170ea60a446d7149cf03fffb89c70}
+      \strng{authorfullhashraw}{bb5170ea60a446d7149cf03fffb89c70}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 9th {ACM} {SIGPLAN} {International} {Conference} on {Certified} {Programs} and {Proofs}}
+      \field{isbn}{978-1-4503-7097-4}
+      \field{month}{1}
+      \field{title}{The lean mathematical library}
+      \field{urlday}{13}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2020}
+      \field{urldateera}{ce}
+      \field{pages}{367\bibrangedash 381}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1145/3372885.3373824
+      \endverb
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/10.1145/3372885.3373824
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/10.1145/3372885.3373824
+      \endverb
+    \endentry
+    \entry{thiffeault_braidlab_2019}{misc}{}{}
+      \name{author}{2}{}{%
+        {{hash=da9f1475f044703285e6322963db0c58}{%
+           family={Thiffeault},
+           familyi={T\bibinitperiod},
+           given={Jean-Luc},
+           giveni={J\bibinithyphendelim L\bibinitperiod}}}%
+        {{hash=96c7d4f9e5e8bbfd9c796e4f09eb79a4}{%
+           family={Budisic},
+           familyi={B\bibinitperiod},
+           given={Marko},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{60ef3e1a08943b8efb3f49f3227e6f53}
+      \strng{fullhash}{60ef3e1a08943b8efb3f49f3227e6f53}
+      \strng{fullhashraw}{60ef3e1a08943b8efb3f49f3227e6f53}
+      \strng{bibnamehash}{60ef3e1a08943b8efb3f49f3227e6f53}
+      \strng{authorbibnamehash}{60ef3e1a08943b8efb3f49f3227e6f53}
+      \strng{authornamehash}{60ef3e1a08943b8efb3f49f3227e6f53}
+      \strng{authorfullhash}{60ef3e1a08943b8efb3f49f3227e6f53}
+      \strng{authorfullhashraw}{60ef3e1a08943b8efb3f49f3227e6f53}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Braidlab is a Matlab package for analyzing data using braids. It was designed to be fast, so it can be used on relatively large problems. It uses the object-oriented features of Matlab to provide a class for braids on punctured disks and a class for equivalence classes of simple closed loops. The growth of loops under iterated action by braids is used to compute the topological entropy of braids, as well as for determining the equality of braids. This guide is a survey of the main capabilities of braidlab, with many examples; the help messages of the various commands provide more details. Some of the examples contain novel observations, such as the existence of cycles of the linear effective action for arbitrary braids.}
+      \field{month}{11}
+      \field{note}{arXiv:1410.0849 [math]}
+      \field{shorttitle}{Braidlab}
+      \field{title}{Braidlab: {A} {Software} {Package} for {Braids} and {Loops}}
+      \field{urlday}{4}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{year}{2019}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550/arXiv.1410.0849
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/1410.0849
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/1410.0849
+      \endverb
+      \keyw{Mathematics - Geometric Topology}
+    \endentry
+    \entry{epstein_braid_1992}{incollection}{}{}
+      \name{author}{1}{}{%
+        {{hash=b65a136c96355f4da1e3f93213a8df60}{%
+           family={Thurston},
+           familyi={T\bibinitperiod},
+           given={William},
+           giveni={W\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Boston}%
+      }
+      \list{publisher}{2}{%
+        {Jones}%
+        {Bartlett Publishers}%
+      }
+      \strng{namehash}{b65a136c96355f4da1e3f93213a8df60}
+      \strng{fullhash}{b65a136c96355f4da1e3f93213a8df60}
+      \strng{fullhashraw}{b65a136c96355f4da1e3f93213a8df60}
+      \strng{bibnamehash}{b65a136c96355f4da1e3f93213a8df60}
+      \strng{authorbibnamehash}{b65a136c96355f4da1e3f93213a8df60}
+      \strng{authornamehash}{b65a136c96355f4da1e3f93213a8df60}
+      \strng{authorfullhash}{b65a136c96355f4da1e3f93213a8df60}
+      \strng{authorfullhashraw}{b65a136c96355f4da1e3f93213a8df60}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Word processing in groups}
+      \field{isbn}{978-0-86720-244-1}
+      \field{title}{Braid {Groups}}
+      \field{year}{1992}
+      \keyw{Formal languages,Group theory,Sequential machine theory}
+    \endentry
+    \entry{touikan_van_2024}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=5db21d926777ff8f5c0b654cc0d61ce5}{%
+           family={Touikan},
+           familyi={T\bibinitperiod},
+           given={Nicholas},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{5db21d926777ff8f5c0b654cc0d61ce5}
+      \strng{fullhash}{5db21d926777ff8f5c0b654cc0d61ce5}
+      \strng{fullhashraw}{5db21d926777ff8f5c0b654cc0d61ce5}
+      \strng{bibnamehash}{5db21d926777ff8f5c0b654cc0d61ce5}
+      \strng{authorbibnamehash}{5db21d926777ff8f5c0b654cc0d61ce5}
+      \strng{authornamehash}{5db21d926777ff8f5c0b654cc0d61ce5}
+      \strng{authorfullhash}{5db21d926777ff8f5c0b654cc0d61ce5}
+      \strng{authorfullhashraw}{5db21d926777ff8f5c0b654cc0d61ce5}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{An introduction to combinatorial and geometric group theory}
+      \field{month}{9}
+      \field{title}{van {Kampen} diagrams and the geometry of the word problem}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://ntouikan.ext.unb.ca/MATH6022/IntroCGGT/html_output/section-14.html
+      \endverb
+      \verb{url}
+      \verb https://ntouikan.ext.unb.ca/MATH6022/IntroCGGT/html_output/section-14.html
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
